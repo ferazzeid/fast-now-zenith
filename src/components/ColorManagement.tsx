@@ -12,6 +12,8 @@ interface ColorValues {
   primaryHover: string;
   accent: string;
   ai: string;
+  chatAi: string;
+  chatUser: string;
 }
 
 export const ColorManagement: React.FC = () => {
@@ -19,7 +21,9 @@ export const ColorManagement: React.FC = () => {
     primary: '#3b82f6',
     primaryHover: '#2563eb',
     accent: '#22c55e',
-    ai: '#eab308'
+    ai: '#eab308',
+    chatAi: '#8b5cf6',
+    chatUser: '#06b6d4'
   });
   
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
@@ -35,7 +39,7 @@ export const ColorManagement: React.FC = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color']);
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color', 'chat_ai_color', 'chat_user_color']);
 
       if (error) {
         console.error('Error loading colors:', error);
@@ -52,6 +56,10 @@ export const ColorManagement: React.FC = () => {
           newColors.accent = hslToHex(setting.setting_value);
         } else if (setting.setting_key === 'brand_ai_color' && setting.setting_value) {
           newColors.ai = hslToHex(setting.setting_value);
+        } else if (setting.setting_key === 'chat_ai_color' && setting.setting_value) {
+          newColors.chatAi = hslToHex(setting.setting_value);
+        } else if (setting.setting_key === 'chat_user_color' && setting.setting_value) {
+          newColors.chatUser = hslToHex(setting.setting_value);
         }
       });
       setColors(newColors);
@@ -136,6 +144,10 @@ export const ColorManagement: React.FC = () => {
       root.style.setProperty('--accent', hslValue);
     } else if (colorType === 'ai') {
       root.style.setProperty('--ai', hslValue);
+    } else if (colorType === 'chatAi') {
+      root.style.setProperty('--chat-ai', hslValue);
+    } else if (colorType === 'chatUser') {
+      root.style.setProperty('--chat-user', hslValue);
     }
   };
 
@@ -157,6 +169,14 @@ export const ColorManagement: React.FC = () => {
         {
           setting_key: 'brand_ai_color',
           setting_value: hexToHsl(colors.ai)
+        },
+        {
+          setting_key: 'chat_ai_color',
+          setting_value: hexToHsl(colors.chatAi)
+        },
+        {
+          setting_key: 'chat_user_color',
+          setting_value: hexToHsl(colors.chatUser)
         }
       ];
 
@@ -171,12 +191,45 @@ export const ColorManagement: React.FC = () => {
         }
       }
 
+      // Generate Android and iOS colors from database colors
+      const platformResults = await Promise.allSettled([
+        supabase.functions.invoke('generate-android-colors'),
+        supabase.functions.invoke('generate-ios-colors')
+      ]);
+
+      const [androidResult, iosResult] = platformResults;
+      
+      if (androidResult.status === 'fulfilled') {
+        console.log('Android colors generated:', androidResult.value.data);
+      } else {
+        console.warn('Failed to generate Android colors:', androidResult.reason);
+      }
+
+      if (iosResult.status === 'fulfilled') {
+        console.log('iOS colors generated:', iosResult.value.data);
+      } else {
+        console.warn('Failed to generate iOS colors:', iosResult.reason);
+      }
+
       // Reload colors to ensure consistency
       await loadColors();
       
+      // Force immediate application of new colors
+      const root = document.documentElement;
+      root.style.setProperty('--chat-ai', hexToHsl(colors.chatAi));
+      root.style.setProperty('--chat-user', hexToHsl(colors.chatUser));
+      
+      console.log('🎨 Chat colors applied immediately:', {
+        chatAi: hexToHsl(colors.chatAi),
+        chatUser: hexToHsl(colors.chatUser)
+      });
+      
+      const platformSuccesses = platformResults.filter(r => r.status === 'fulfilled').length;
+      const totalPlatforms = platformResults.length;
+      
       toast({
         title: "Success",
-        description: "Brand colors saved successfully",
+        description: `Brand colors saved for web and ${platformSuccesses}/${totalPlatforms} native platforms successfully`,
       });
     } catch (error) {
       console.error('Error saving colors:', error);
@@ -193,7 +246,9 @@ export const ColorManagement: React.FC = () => {
       primary: '#3b82f6',
       primaryHover: '#2563eb',
       accent: '#8b5cf6',
-      ai: '#eab308'
+      ai: '#eab308',
+      chatAi: '#8b5cf6',
+      chatUser: '#06b6d4'
     };
     
     setColors(defaultColors);
@@ -205,7 +260,38 @@ export const ColorManagement: React.FC = () => {
     root.style.setProperty('--secondary', hexToHsl(defaultColors.primaryHover));
     root.style.setProperty('--accent', hexToHsl(defaultColors.accent));
     root.style.setProperty('--ai', hexToHsl(defaultColors.ai));
+    root.style.setProperty('--chat-ai', hexToHsl(defaultColors.chatAi));
+    root.style.setProperty('--chat-user', hexToHsl(defaultColors.chatUser));
   };
+
+  const ColorPickerModal = ({ type, title, color, onColorChange }: {
+    type: string;
+    title: string;
+    color: string;
+    onColorChange: (color: string) => void;
+  }) => (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
+      <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+        <div className="mb-4">
+          <Label className="text-sm font-medium">{title}</Label>
+        </div>
+        <HexColorPicker 
+          color={color} 
+          onChange={onColorChange}
+          style={{ width: '100%', height: '200px' }}
+        />
+        <div className="flex gap-2 mt-4">
+          <Button 
+            size="sm" 
+            onClick={() => setActiveColorPicker(null)}
+            className="flex-1"
+          >
+            Done
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <Card>
@@ -219,142 +305,123 @@ export const ColorManagement: React.FC = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Color Pickers Grid */}
-        <div className="grid grid-cols-4 gap-4">
-          {/* Primary Color */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Color</Label>
-            <div 
-              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
-              style={{ backgroundColor: colors.primary }}
-              onClick={() => setActiveColorPicker(activeColorPicker === 'primary' ? null : 'primary')}
-            />
-            
-            {activeColorPicker === 'primary' && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
-                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                  <div className="mb-4">
-                    <Label className="text-sm font-medium">Choose Primary Color</Label>
-                  </div>
-                  <HexColorPicker 
-                    color={colors.primary} 
-                    onChange={(color) => handleColorChange('primary', color)}
-                    style={{ width: '100%', height: '200px' }}
-                  />
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setActiveColorPicker(null)}
-                      className="flex-1"
-                    >
-                      Done
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Brand Colors Section */}
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Brand Colors</Label>
+          <div className="grid grid-cols-4 gap-4">
+            {/* Primary Color */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Color</Label>
+              <div 
+                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                style={{ backgroundColor: colors.primary }}
+                onClick={() => setActiveColorPicker(activeColorPicker === 'primary' ? null : 'primary')}
+              />
+              {activeColorPicker === 'primary' && (
+                <ColorPickerModal 
+                  type="primary"
+                  title="Choose Primary Color"
+                  color={colors.primary}
+                  onColorChange={(color) => handleColorChange('primary', color)}
+                />
+              )}
+            </div>
 
-          {/* Primary Hover Color */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Hover</Label>
-            <div 
-              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
-              style={{ backgroundColor: colors.primaryHover }}
-              onClick={() => setActiveColorPicker(activeColorPicker === 'primaryHover' ? null : 'primaryHover')}
-            />
-            
-            {activeColorPicker === 'primaryHover' && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
-                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                  <div className="mb-4">
-                    <Label className="text-sm font-medium">Choose Primary Hover Color</Label>
-                  </div>
-                  <HexColorPicker 
-                    color={colors.primaryHover} 
-                    onChange={(color) => handleColorChange('primaryHover', color)}
-                    style={{ width: '100%', height: '200px' }}
-                  />
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setActiveColorPicker(null)}
-                      className="flex-1"
-                    >
-                      Done
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            {/* Primary Hover Color */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Hover</Label>
+              <div 
+                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                style={{ backgroundColor: colors.primaryHover }}
+                onClick={() => setActiveColorPicker(activeColorPicker === 'primaryHover' ? null : 'primaryHover')}
+              />
+              {activeColorPicker === 'primaryHover' && (
+                <ColorPickerModal 
+                  type="primaryHover"
+                  title="Choose Primary Hover Color"
+                  color={colors.primaryHover}
+                  onColorChange={(color) => handleColorChange('primaryHover', color)}
+                />
+              )}
+            </div>
 
-          {/* Accent Color */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">Accent</Label>
-            <div 
-              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
-              style={{ backgroundColor: colors.accent }}
-              onClick={() => setActiveColorPicker(activeColorPicker === 'accent' ? null : 'accent')}
-            />
-            
-            {activeColorPicker === 'accent' && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
-                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                  <div className="mb-4">
-                    <Label className="text-sm font-medium">Choose Accent Color</Label>
-                  </div>
-                  <HexColorPicker 
-                    color={colors.accent} 
-                    onChange={(color) => handleColorChange('accent', color)}
-                    style={{ width: '100%', height: '200px' }}
-                  />
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setActiveColorPicker(null)}
-                      className="flex-1"
-                    >
-                      Done
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+            {/* Accent Color */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Accent</Label>
+              <div 
+                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                style={{ backgroundColor: colors.accent }}
+                onClick={() => setActiveColorPicker(activeColorPicker === 'accent' ? null : 'accent')}
+              />
+              {activeColorPicker === 'accent' && (
+                <ColorPickerModal 
+                  type="accent"
+                  title="Choose Accent Color"
+                  color={colors.accent}
+                  onColorChange={(color) => handleColorChange('accent', color)}
+                />
+              )}
+            </div>
 
-          {/* AI Color */}
-          <div className="space-y-2">
-            <Label className="text-xs font-medium">AI</Label>
-            <div 
-              className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
-              style={{ backgroundColor: colors.ai }}
-              onClick={() => setActiveColorPicker(activeColorPicker === 'ai' ? null : 'ai')}
-            />
-            
-            {activeColorPicker === 'ai' && (
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50" onClick={() => setActiveColorPicker(null)}>
-                <div className="bg-background border rounded-lg p-6 shadow-xl max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
-                  <div className="mb-4">
-                    <Label className="text-sm font-medium">Choose AI Color</Label>
-                  </div>
-                  <HexColorPicker 
-                    color={colors.ai} 
-                    onChange={(color) => handleColorChange('ai', color)}
-                    style={{ width: '100%', height: '200px' }}
-                  />
-                  <div className="flex gap-2 mt-4">
-                    <Button 
-                      size="sm" 
-                      onClick={() => setActiveColorPicker(null)}
-                      className="flex-1"
-                    >
-                      Done
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* AI Color */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">AI</Label>
+              <div 
+                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                style={{ backgroundColor: colors.ai }}
+                onClick={() => setActiveColorPicker(activeColorPicker === 'ai' ? null : 'ai')}
+              />
+              {activeColorPicker === 'ai' && (
+                <ColorPickerModal 
+                  type="ai"
+                  title="Choose AI Color"
+                  color={colors.ai}
+                  onColorChange={(color) => handleColorChange('ai', color)}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Chat Colors Section */}
+        <div>
+          <Label className="text-sm font-medium mb-3 block">Chat Colors</Label>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Chat AI Color */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">AI Messages</Label>
+              <div 
+                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                style={{ backgroundColor: colors.chatAi }}
+                onClick={() => setActiveColorPicker(activeColorPicker === 'chatAi' ? null : 'chatAi')}
+              />
+              {activeColorPicker === 'chatAi' && (
+                <ColorPickerModal 
+                  type="chatAi"
+                  title="Choose AI Chat Color"
+                  color={colors.chatAi}
+                  onColorChange={(color) => handleColorChange('chatAi', color)}
+                />
+              )}
+            </div>
+
+            {/* Chat User Color */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">User Messages</Label>
+              <div 
+                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                style={{ backgroundColor: colors.chatUser }}
+                onClick={() => setActiveColorPicker(activeColorPicker === 'chatUser' ? null : 'chatUser')}
+              />
+              {activeColorPicker === 'chatUser' && (
+                <ColorPickerModal 
+                  type="chatUser"
+                  title="Choose User Chat Color"
+                  color={colors.chatUser}
+                  onColorChange={(color) => handleColorChange('chatUser', color)}
+                />
+              )}
+            </div>
           </div>
         </div>
 

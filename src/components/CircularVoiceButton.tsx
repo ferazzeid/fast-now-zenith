@@ -10,6 +10,7 @@ interface CircularVoiceButtonProps {
   size?: 'sm' | 'md' | 'lg';
   autoStart?: boolean;
   onRecordingStateChange?: (isRecording: boolean) => void;
+  onError?: (error: string) => void;
 }
 
 export const CircularVoiceButton = React.forwardRef<
@@ -20,21 +21,51 @@ export const CircularVoiceButton = React.forwardRef<
   isDisabled = false,
   size = 'md',
   autoStart = false,
-  onRecordingStateChange
+  onRecordingStateChange,
+  onError
 }, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
+
+  // Check microphone permissions on mount
+  useEffect(() => {
+    checkMicrophonePermission();
+  }, []);
 
   // Auto-start recording when autoStart is true
   useEffect(() => {
-    if (autoStart && !isDisabled && !isRecording && !isProcessing) {
+    if (autoStart && !isDisabled && !isRecording && !isProcessing && hasPermission) {
       console.log('🎤 Auto-starting recording...');
       startRecording();
     }
-  }, [autoStart, isDisabled]);
+  }, [autoStart, isDisabled, hasPermission]);
+
+  // Recording timer
+  useEffect(() => {
+    if (isRecording) {
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+        recordingTimerRef.current = null;
+      }
+      setRecordingTime(0);
+    }
+
+    return () => {
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+    };
+  }, [isRecording]);
 
   // Expose stop recording method via ref
   React.useImperativeHandle(ref, () => ({
@@ -69,6 +100,18 @@ export const CircularVoiceButton = React.forwardRef<
     lg: 'h-6 w-6'
   };
 
+  const checkMicrophonePermission = async () => {
+    try {
+      console.log('🎤 Checking microphone permission...');
+      const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      setHasPermission(result.state === 'granted');
+      console.log('🎤 Permission state:', result.state);
+    } catch (error) {
+      console.log('🎤 Permission check not supported, will check during access');
+      setHasPermission(null); // Unknown, will check during access
+    }
+  };
+
   // Pick a supported mimeType to avoid first-click failures on some browsers (iOS Safari)
   const getSupportedMimeType = () => {
     const candidates = [
@@ -94,6 +137,7 @@ export const CircularVoiceButton = React.forwardRef<
   const startRecording = async () => {
     try {
       console.log('🎤 Starting recording...');
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
@@ -105,6 +149,7 @@ export const CircularVoiceButton = React.forwardRef<
       });
       
       console.log('🎤 MediaStream obtained, creating MediaRecorder...');
+      setHasPermission(true);
       const mimeType = getSupportedMimeType();
       console.log('🎤 Selected mimeType:', mimeType || 'default');
       mediaRecorderRef.current = mimeType
@@ -128,18 +173,18 @@ export const CircularVoiceButton = React.forwardRef<
         console.error('🎤 MediaRecorder error:', event);
       };
 
-      // 60 second timeout for voice messages
+      // 90 second timeout for voice messages
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
           console.log('🎤 Recording timeout reached');
           toast({
             title: "⏱️ Recording Timeout",
-            description: "Recording automatically stopped after 60 seconds.",
+            description: "Recording automatically stopped after 90 seconds.",
             variant: "destructive"
           });
           stopAndProcess();
         }
-      }, 60000); // 60 seconds
+      }, 90000); // 90 seconds
 
       mediaRecorderRef.current.start(100); // Request data every 100ms
       setIsRecording(true);
@@ -149,9 +194,18 @@ export const CircularVoiceButton = React.forwardRef<
       
     } catch (error) {
       console.error('🎤 Error starting recording:', error);
+      setHasPermission(false);
+      
+      let errorMsg = "Could not access microphone. Please check permissions.";
+      if (error.name === 'NotAllowedError') {
+        errorMsg = "Microphone access denied. Please enable microphone permissions in your browser settings.";
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = "No microphone found. Please connect a microphone and try again.";
+      }
+      
       toast({
-        title: "Error",
-        description: "Could not access microphone. Please check permissions.",
+        title: "Microphone Error",
+        description: errorMsg,
         variant: "destructive"
       });
     }
@@ -180,6 +234,18 @@ export const CircularVoiceButton = React.forwardRef<
   const stopAndProcess = async () => {
     console.log('🎤 Stopping and processing recording...');
     
+    // Check if recording was long enough
+    if (recordingTime < 1) {
+      console.error('🎤 Recording too short:', recordingTime, 'seconds');
+      cancelRecording();
+      toast({
+        title: "Recording Too Short",
+        description: "Please record for at least 1 second before stopping.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Clear timeout
     if (mediaRecorderRef.current && (mediaRecorderRef.current as any).timeout) {
       clearTimeout((mediaRecorderRef.current as any).timeout);
@@ -190,7 +256,7 @@ export const CircularVoiceButton = React.forwardRef<
       console.log('🎤 Stopping MediaRecorder...');
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      await new Promise(resolve => setTimeout(resolve, 200)); // Wait for onstop event
+      await new Promise(resolve => setTimeout(resolve, 300)); // Wait longer for onstop event
     }
     
     console.log('🎤 Audio chunks collected:', audioChunksRef.current.length);
@@ -206,17 +272,43 @@ export const CircularVoiceButton = React.forwardRef<
     }
     
     setIsProcessing(true);
+    
+    // Add a small delay to show the processing state
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     try {
       console.log('🎤 Creating audio blob...');
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+      console.log('🎤 Audio blob created:', audioBlob);
       console.log('🎤 Audio blob size:', audioBlob.size, 'bytes');
-      
+      console.log('🎤 Audio blob type:', audioBlob.type);
+
+      // Validate audio blob immediately after creation
       if (audioBlob.size === 0) {
-        throw new Error('Audio blob is empty');
+        console.error('🎤 Empty audio blob - no audio was recorded');
+        throw new Error('No audio recorded. Please check your microphone and try again.');
       }
+
+      if (audioBlob.size < 100) {
+        console.error('🎤 Audio blob too small:', audioBlob.size, 'bytes');
+        throw new Error('Recording too short. Please speak for at least 1-2 seconds.');
+      }
+
+      console.log('🎤 Audio blob validation passed, converting to ArrayBuffer...');
 
       console.log('🎤 Converting to base64...');
       const arrayBuffer = await audioBlob.arrayBuffer();
+      console.log('🎤 ArrayBuffer size:', arrayBuffer.byteLength, 'bytes');
+      
+      if (arrayBuffer.byteLength === 0) {
+        console.error('🎤 Empty ArrayBuffer - audio conversion failed');
+        throw new Error('Audio conversion failed. Please try recording again.');
+      }
+      
+      if (arrayBuffer.byteLength < 50) {
+        console.error('🎤 ArrayBuffer too small:', arrayBuffer.byteLength, 'bytes');
+        throw new Error('Audio data corrupted during conversion. Please try again.');
+      }
       
       // Process in chunks to prevent memory issues
       const uint8Array = new Uint8Array(arrayBuffer);
@@ -231,16 +323,64 @@ export const CircularVoiceButton = React.forwardRef<
       const base64Audio = btoa(binary);
       console.log('🎤 Base64 length:', base64Audio.length);
 
-      console.log('🎤 Sending to transcribe function...');
-      const { data, error } = await supabase.functions.invoke('transcribe', {
-        body: { audio: base64Audio }
-      });
-
-      if (error) {
-        console.error('🎤 Supabase function error:', error);
-        throw error;
+      if (!base64Audio || base64Audio.length === 0) {
+        throw new Error('Failed to convert audio to base64');
       }
 
+      console.log('🎤 Sending to transcribe function...');
+      console.log('🎤 Audio data validation - Base64 starts with:', base64Audio.substring(0, 50));
+      console.log('🎤 Audio data validation - Size in KB:', Math.round(base64Audio.length / 1024));
+      
+      // Show immediate feedback that we're processing
+      toast({
+        title: "Got it!",
+        description: "Converting your speech...",
+        duration: 2000,
+      });
+      
+      // Validate audio data before sending with better error message
+      if (base64Audio.length < 1000) {
+        console.error('🎤 Base64 too short:', base64Audio.length, 'characters');
+        console.error('🎤 Original blob size:', audioBlob.size, 'bytes');
+        console.error('🎤 ArrayBuffer size:', arrayBuffer.byteLength, 'bytes');
+        throw new Error(`Audio too short to process (${base64Audio.length} chars). Please record for at least 1-2 seconds.`);
+      }
+      
+      // Add timeout for transcription API call (90 seconds)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      
+      const requestPayload = { audio: base64Audio };
+      console.log('🎤 Request payload size:', JSON.stringify(requestPayload).length);
+      
+      // Get current session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('No authenticated session found');
+      }
+
+      // Use direct fetch instead of supabase.functions.invoke to ensure proper body transmission
+      const response = await fetch('https://texnkijwcygodtywgedm.supabase.co/functions/v1/transcribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+          'x-client-info': 'supabase-js-web/2.52.0',
+        },
+        body: JSON.stringify(requestPayload),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('🎤 Direct fetch error:', response.status, errorText);
+        throw new Error(`Transcription failed: ${response.status} ${errorText}`);
+      }
+
+      const data = await response.json();
       console.log('🎤 Transcription response:', data);
 
       if (data?.text) {
@@ -250,7 +390,6 @@ export const CircularVoiceButton = React.forwardRef<
         toast({
           title: "✓",
           description: "",
-          className: "w-16 h-8 p-2 text-center bg-green-600 text-white border-0 fixed bottom-4 right-4 text-xs",
           duration: 1500,
         });
         audioChunksRef.current = [];
@@ -259,11 +398,36 @@ export const CircularVoiceButton = React.forwardRef<
       }
     } catch (error) {
       console.error('🎤 Transcription error:', error);
+      
+      let errorMessage = "Please try recording again";
+      
+      // Handle specific error cases
+      if (error.message?.includes('empty') || error.message?.includes('short')) {
+        errorMessage = "Recording failed. Please try speaking louder and longer.";
+      } else if (error.name === 'AbortError' || error.message?.includes('timeout')) {
+        errorMessage = "Voice processing took too long. Please try with a shorter recording.";
+      } else if (error.message?.includes('limit')) {
+        errorMessage = "Voice feature unavailable. Please try later or upgrade.";
+      } else if (error.message?.includes('access') || error.message?.includes('premium')) {
+        errorMessage = "Voice feature requires premium access";
+      } else if (error.message?.includes('network') || error.message?.includes('connection')) {
+        errorMessage = "Network error. Please check your connection.";
+      } else if (error.message?.includes('AI features are only available')) {
+        errorMessage = "Voice input requires premium access. Upgrade to continue.";
+      }
+      
       toast({
-        title: "Failed to Process",
-        description: "Please try recording again",
+        title: "Voice Processing Failed",
+        description: errorMessage,
         variant: "destructive"
       });
+      // Notify parent component of error
+      onError?.(errorMessage);
+      
+      // Reset recording state on error
+      setIsRecording(false);
+      audioChunksRef.current = [];
+      
     } finally {
       setIsProcessing(false);
     }
@@ -279,29 +443,57 @@ export const CircularVoiceButton = React.forwardRef<
     }
   };
 
+  const getButtonColor = () => {
+    if (hasPermission === false) return 'bg-gray-500 hover:bg-gray-600';
+    if (isProcessing) return 'bg-blue-500 hover:bg-blue-600';
+    if (isRecording) return 'bg-red-500 hover:bg-red-600 animate-pulse';
+    return 'bg-ai hover:bg-ai/90';
+  };
+
+  const getStatusText = () => {
+    if (isProcessing) return 'Listening...';
+    if (isRecording) return `Recording ${recordingTime}s`;
+    if (hasPermission === false) return 'Mic needed';
+    return 'Tap to speak';
+  };
+
   return (
-    <Button
-      onClick={handleClick}
-      disabled={isDisabled || isProcessing}
-      className={`
-        ${sizeClasses[size]} 
-        rounded-full 
-        transition-all 
-        duration-200 
-        ${isRecording 
-          ? 'bg-orange-500 hover:bg-orange-600 recording-pulse' 
-          : 'bg-green-500 hover:bg-green-600'
-        }
-        text-white
-      `}
-    >
-      {isProcessing ? (
-        <div className={`animate-spin rounded-full border-2 border-white border-t-transparent ${iconSizes[size]}`} />
-      ) : isRecording ? (
-        <Send className={`${iconSizes[size]}`} />
-      ) : (
-        <Mic className={iconSizes[size]} />
+    <div className="flex flex-col items-center gap-2">
+      <Button
+        onClick={handleClick}
+        disabled={isDisabled || isProcessing}
+        className={`
+          ${sizeClasses[size]} 
+          rounded-full 
+          transition-all 
+          duration-200 
+          ${getButtonColor()}
+          text-white
+          relative
+        `}
+      >
+        {isProcessing ? (
+          <div className={`${iconSizes[size]} animate-spin rounded-full border-2 border-white border-t-transparent`} />
+        ) : (
+          <Mic className={iconSizes[size]} />
+        )}
+        
+        {/* Recording time indicator */}
+        {isRecording && size !== 'sm' && (
+          <div className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-mono">
+            {recordingTime}
+          </div>
+        )}
+      </Button>
+      
+      {/* Animated dots when processing or recording */}
+      {size !== 'sm' && (isProcessing || isRecording) && (
+        <div className="flex gap-1 mt-1">
+          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce"></div>
+        </div>
       )}
-    </Button>
+    </div>
   );
 });

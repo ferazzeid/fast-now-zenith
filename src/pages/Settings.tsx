@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, LogOut, Shield, CreditCard, Crown, AlertTriangle, Trash2, Database, Heart, Archive, MessageSquare, Sparkles, Palette, Brain, Wifi } from 'lucide-react';
+import { Key, Bell, User, Info, Brain, Wifi, Crown, Settings as SettingsIcon, LogOut, Trash2, RotateCcw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';  
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
+import { SubscriptionStatus } from '@/components/SubscriptionStatus';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
 import { ClearCacheButton } from '@/components/ClearCacheButton';
-
+import { CalorieGoalWarning } from '@/components/CalorieGoalWarning';
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
@@ -39,14 +41,17 @@ const Settings = () => {
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
   const [sex, setSex] = useState('');
+  const [targetDeficit, setTargetDeficit] = useState('1000');
   const [dailyCalorieGoal, setDailyCalorieGoal] = useState('');
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
+  const [manualTdeeOverride, setManualTdeeOverride] = useState('');
   
   const { toast } = useToast();
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { isAdmin: accessIsAdmin, originalIsAdmin, hasPremiumFeatures, createSubscription, openCustomerPortal, isTrial, daysRemaining, access_level } = useAccess();
+  const queryClient = useQueryClient();
+  const { isAdmin: accessIsAdmin, originalIsAdmin, ...access } = useAccess();
   const isWebPlatform = true; // Default to web for now
   const platformName = 'Stripe'; // Default to Stripe for now
   
@@ -67,7 +72,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, enable_fasting_slideshow, enable_walking_slideshow')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, manual_tdee_override, target_deficit, enable_fasting_slideshow, enable_walking_slideshow')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -86,9 +91,11 @@ const Settings = () => {
           setHeight(profileData.height?.toString() || '');
           setAge(profileData.age?.toString() || '');
           setSex(profileData.sex || '');
+          setTargetDeficit(profileData.target_deficit?.toString() || '1000');
           setDailyCalorieGoal(profileData.daily_calorie_goal?.toString() || '');
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
-          setActivityLevel(profileData.activity_level || 'sedentary');
+          setActivityLevel(profileData.activity_level || 'lightly_active');
+          setManualTdeeOverride(profileData.manual_tdee_override?.toString() || '');
 
           // Check if profile is incomplete and show onboarding
           const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
@@ -116,42 +123,165 @@ const Settings = () => {
     fetchUserSettings();
   }, [user, accessIsAdmin]);
 
+  // BMR calculation function with proper unit conversion
+  const calculateBMR = () => {
+    if (!weight || !height || !age || !sex) return 0;
+    
+    // Convert to metric for calculation if needed
+    let weightKg: number;
+    let heightCm: number;
+    
+    if (profile?.units === 'metric') {
+      weightKg = parseFloat(weight);
+      heightCm = parseInt(height);
+    } else {
+      // Imperial: convert pounds to kg, inches to cm
+      weightKg = parseFloat(weight) * 0.453592;
+      heightCm = parseInt(height) * 2.54;
+    }
+    
+    const ageNum = parseInt(age);
+    
+    // Mifflin-St Jeor equation
+    let bmr: number;
+    if (sex === 'female') {
+      bmr = 10 * weightKg + 6.25 * heightCm - 5 * ageNum - 161;
+    } else {
+      bmr = 10 * weightKg + 6.25 * heightCm - 5 * ageNum + 5;
+    }
+    return Math.round(bmr);
+  };
+
+  // Calculate TDEE using proper multipliers (matches InlineActivitySelector)
+  const getCalorieAddition = (level: string) => {
+    const bmr = calculateBMR();
+    const multipliers = {
+      sedentary: 1.2,          // Little/no exercise
+      lightly_active: 1.375,   // Light exercise 1-3 days/week
+      moderately_active: 1.55, // Moderate exercise 3-5 days/week
+      very_active: 1.725       // Hard exercise 6-7 days/week
+    };
+    
+    const sedentaryTdee = bmr * 1.2;
+    const levelTdee = bmr * (multipliers[level as keyof typeof multipliers] || 1.2);
+    
+    // Show additional calories above sedentary level
+    return Math.round(levelTdee - sedentaryTdee);
+  };
+
+  // Calculate TDEE for dynamic goal calculation
+  const calculateTDEE = () => {
+    if (manualTdeeOverride && parseFloat(manualTdeeOverride) > 0) {
+      return parseFloat(manualTdeeOverride);
+    }
+    
+    const bmr = calculateBMR();
+    if (bmr === 0) return 0;
+    
+    const multipliers = {
+      sedentary: 1.2,
+      lightly_active: 1.375,
+      moderately_active: 1.55,
+      very_active: 1.725
+    };
+    
+    return Math.round(bmr * (multipliers[activityLevel as keyof typeof multipliers] || 1.375));
+  };
+
+  // Calculate dynamic calorie goal based on TDEE and target deficit (no safety floor manipulation)
+  const calculateDynamicCalorieGoal = () => {
+    const tdee = calculateTDEE();
+    const deficit = parseFloat(targetDeficit) || 1000;
+    
+    if (tdee === 0) return 0;
+    
+    const calorieGoal = tdee - deficit;
+    return Math.round(calorieGoal);
+  };
+
+  // Check if calorie goal is below recommended minimums
+  const isLowCalorieGoal = () => {
+    const goal = calculateDynamicCalorieGoal();
+    const safetyFloor = sex === 'male' ? 1500 : sex === 'female' ? 1200 : 1200;
+    return goal > 0 && goal < safetyFloor;
+  };
+
+  // Auto-calculate goals when inputs change (for preview only)
+  const getCalculatedGoals = () => {
+    const calculatedCalorieGoal = calculateDynamicCalorieGoal();
+    const calculatedCarbGoal = 30; // Fixed carb goal
+    return { calculatedCalorieGoal, calculatedCarbGoal };
+  };
+
   const handleSaveSettings = async () => {
     try {
-      // Validate required fields (metric only now)
-      if (weight && (parseFloat(weight) < 30 || parseFloat(weight) > 300)) {
-        toast({
-          title: "Invalid Weight",
-          description: "Weight must be between 30-300 kg",
-          variant: "destructive"
-        });
-        return;
+      // Validate required fields - now supports both metric and imperial
+      if (weight) {
+        const weightNum = parseFloat(weight);
+        if (profile?.units === 'metric') {
+          if (weightNum < 30 || weightNum > 300) {
+            toast({
+              title: "Invalid Weight",
+              description: "Weight must be between 30-300 kg",
+              variant: "destructive"
+            });
+            return;
+          }
+        } else {
+          if (weightNum < 66 || weightNum > 660) {
+            toast({
+              title: "Invalid Weight", 
+              description: "Weight must be between 66-660 lbs",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
       }
-      if (height && (parseInt(height) < 100 || parseInt(height) > 250)) {
-        toast({
-          title: "Invalid Height", 
-          description: "Height must be between 100-250 cm",
-          variant: "destructive"
-        });
-        return;
+      
+      if (height) {
+        const heightNum = parseInt(height);
+        if (profile?.units === 'metric') {
+          if (heightNum < 100 || heightNum > 250) {
+            toast({
+              title: "Invalid Height",
+              description: "Height must be between 100-250 cm", 
+              variant: "destructive"
+            });
+            return;
+          }
+        } else {
+          if (heightNum < 39 || heightNum > 98) {
+            toast({
+              title: "Invalid Height",
+              description: "Height must be between 39-98 inches",
+              variant: "destructive"
+            });
+            return;
+          }
+        }
       }
 
 
-      // Save user preferences to database
-      if (user) {
-        const updateData = {
-          speech_model: speechModel,
-          transcription_model: transcriptionModel,
-          tts_model: ttsModel,
-          tts_voice: ttsVoice,
-          weight: weight ? parseFloat(weight) : null,
-          height: height ? parseInt(height) : null,
-          age: age ? parseInt(age) : null,
-          sex: (sex as 'male' | 'female') || null,
-          daily_calorie_goal: dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null,
-          daily_carb_goal: dailyCarbGoal ? parseInt(dailyCarbGoal) : null,
-          activity_level: activityLevel
-        };
+        // Save user preferences to database with auto-calculated goals
+        if (user) {
+          const { calculatedCalorieGoal, calculatedCarbGoal } = getCalculatedGoals();
+          
+          const updateData = {
+            speech_model: speechModel,
+            transcription_model: transcriptionModel,
+            tts_model: ttsModel,
+            tts_voice: ttsVoice,
+            weight: weight ? parseFloat(weight) : null,
+            height: height ? parseInt(height) : null,
+            age: age ? parseInt(age) : null,
+            sex: (sex as 'male' | 'female') || null,
+            daily_calorie_goal: calculatedCalorieGoal || (dailyCalorieGoal ? parseInt(dailyCalorieGoal) : null),
+            daily_carb_goal: calculatedCarbGoal || (dailyCarbGoal ? parseInt(dailyCarbGoal) : null),
+            activity_level: activityLevel,
+            manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null,
+            target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000
+          };
         
         console.log('Settings: User ID:', user?.id);
         console.log('Settings: Saving profile data:', updateData);
@@ -234,103 +364,112 @@ const Settings = () => {
     }
   };
 
-  const handleResetAccount = async () => {
-    if (!user) return;
-
+  const handleSignOut = async () => {
     try {
-      // Delete all user data but keep the account
-      const deleteOperations = [
-        supabase.from('chat_conversations').delete().eq('user_id', user.id),
-        supabase.from('motivators').delete().eq('user_id', user.id),
-        supabase.from('food_entries').delete().eq('user_id', user.id),
-        supabase.from('user_foods').delete().eq('user_id', user.id),
-        supabase.from('fasting_sessions').delete().eq('user_id', user.id),
-        supabase.from('walking_sessions').delete().eq('user_id', user.id),
-        supabase.from('manual_calorie_burns').delete().eq('user_id', user.id),
-        supabase.from('daily_activity_overrides').delete().eq('user_id', user.id),
-        supabase.from('daily_food_templates').delete().eq('user_id', user.id),
-        supabase.from('default_food_favorites').delete().eq('user_id', user.id)
-      ];
-
-      await Promise.all(deleteOperations);
-
-      // Reset profile data but keep account settings
-      await supabase
-        .from('profiles')
-        .update({
-          weight: null,
-          height: null,
-          age: null,
-          daily_calorie_goal: null,
-          daily_carb_goal: null,
-          goal_weight: null,
-          onboarding_completed: false
-        })
-        .eq('user_id', user.id);
-
-      toast({
-        title: "Account Reset Complete",
-        description: "All your data has been cleared. You can start fresh!",
-      });
-
-      // Navigate to home to start fresh
-      navigate('/');
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/auth');
     } catch (error) {
-      console.error('Error resetting account:', error);
+      console.error('Error signing out:', error);
       toast({
         title: "Error",
-        description: "Failed to reset account. Please try again.",
-        variant: "destructive",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleResetData = async () => {
+    if (!user) return;
+    
+    const confirmed = window.confirm(
+      "Are you sure you want to reset all your data? This will clear all your fasting sessions, food entries, walking sessions, and goals. This action cannot be undone."
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      // Clear all user data
+      await Promise.all([
+        supabase.from('fasting_sessions').delete().eq('user_id', user.id),
+        supabase.from('food_entries').delete().eq('user_id', user.id),
+        supabase.from('walking_sessions').delete().eq('user_id', user.id),
+        supabase.from('motivators').delete().eq('user_id', user.id),
+        supabase.from('chat_conversations').delete().eq('user_id', user.id)
+      ]);
+
+      // Clear React Query cache to ensure UI updates immediately
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['food-entries'] }),
+        queryClient.invalidateQueries({ queryKey: ['daily-totals'] }),
+        queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] }),
+        queryClient.invalidateQueries({ queryKey: ['walking-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['fasting-sessions'] }),
+        queryClient.invalidateQueries({ queryKey: ['motivators'] }),
+        queryClient.invalidateQueries({ queryKey: ['goals'] }),
+        queryClient.invalidateQueries({ queryKey: ['chat_conversations'] })
+      ]);
+
+      // Also remove cached data entirely for immediate effect
+      queryClient.removeQueries({ queryKey: ['food-entries'] });
+      queryClient.removeQueries({ queryKey: ['daily-totals'] });
+      queryClient.removeQueries({ queryKey: ['daily-deficit-stable'] });
+
+      toast({
+        title: "Data Reset Complete",
+        description: "All your data has been cleared successfully.",
+      });
+    } catch (error) {
+      console.error('Error resetting data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reset data. Please try again.",
+        variant: "destructive"
       });
     }
   };
 
   const handleDeleteAccount = async () => {
     if (!user) return;
+    
+    const confirmed = window.confirm(
+      "Are you sure you want to delete your account? This will permanently delete all your data and cannot be undone. You will be logged out immediately."
+    );
+    
+    if (!confirmed) return;
 
     try {
-      // Call the delete account edge function
-      const { data, error } = await supabase.functions.invoke('delete-account', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
+      const { error } = await supabase.functions.invoke('delete-account');
+      
       if (error) throw error;
 
-      if (data.scheduled) {
-        toast({
-          title: "Account Deletion Scheduled",
-          description: data.message,
-        });
-      } else {
-        toast({
-          title: "Account Deleted",
-          description: data.message,
-        });
-        // Sign out and redirect
-        await signOut();
-        navigate('/auth');
-      }
+      toast({
+        title: "Account Deleted",
+        description: "Your account has been successfully deleted.",
+      });
+      
+      // Sign out after deletion
+      await supabase.auth.signOut();
+      navigate('/auth');
     } catch (error) {
       console.error('Error deleting account:', error);
       toast({
         title: "Error",
         description: "Failed to delete account. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-      <div className="max-w-md mx-auto pt-10 pb-24">
+      <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
         <div className="space-y-6">
           <div className="space-y-2">
             {/* Header */}
             <div className="mb-2 mt-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
+                <h1 className="text-2xl font-bold text-foreground mb-1">
                   Settings
                 </h1>
                 {(isAdmin || originalIsAdmin) && (
@@ -351,48 +490,88 @@ const Settings = () => {
                     <User className="w-5 h-5 text-primary" />
                     <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOnboarding(true)}
-                    className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
-                    title="Setup Profile Walkthrough"
-                  >
-                    <Brain className="w-4 h-4 text-warm-text" />
-                  </Button>
+                  {accessIsAdmin && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowOnboarding(true)}
+                      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                      title="Setup Profile Walkthrough"
+                    >
+                      <Brain className="w-4 h-4 text-warm-text" />
+                    </Button>
+                  )}
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-8">
+                  
+                  {/* Measurement System Selection - Top */}
+                  <div className="space-y-4 mt-6">
+                    <div className="flex items-center gap-2">
+                      <Label className="text-warm-text">Measurement System</Label>
+                      <ClickableTooltip content="Choose how distances, speeds, and weights are displayed throughout the app">
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </ClickableTooltip>
+                    </div>
+                    <Select 
+                      value={profile?.units || 'imperial'} 
+                      onValueChange={async (value: 'metric' | 'imperial') => {
+                        await updateProfile({ units: value });
+                        toast({
+                          title: "Units Updated",
+                          description: `Switched to ${value === 'metric' ? 'metric (km, km/h, kg)' : 'imperial (miles, mph, lbs)'} system`,
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border z-50">
+                        <SelectItem value="imperial">Imperial</SelectItem>
+                        <SelectItem value="metric">Metric</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-2 border border-ceramic-rim">
+                      <div className="space-y-1">
+                        <div><strong>Imperial:</strong> miles, mph, lbs</div>
+                        <div><strong>Metric:</strong> kilometers, km/h, kg</div>
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
                     <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
-                        <Label htmlFor="weight" className="text-warm-text">Weight (kg)</Label>
+                        <Label htmlFor="weight" className="text-warm-text">
+                          Weight ({profile?.units === 'metric' ? 'kg' : 'lbs'})
+                        </Label>
                         <Input
                           id="weight"
                           type="number"
-                          placeholder="70"
+                          placeholder={profile?.units === 'metric' ? '70' : '154'}
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
-                          min="30"
-                          max="300"
+                          min={profile?.units === 'metric' ? '30' : '66'}
+                          max={profile?.units === 'metric' ? '300' : '660'}
                           step="0.1"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="height" className="text-warm-text">Height (cm)</Label>
+                        <Label htmlFor="height" className="text-warm-text">
+                          Height ({profile?.units === 'metric' ? 'cm' : 'in'})
+                        </Label>
                         <Input
                           id="height"
                           type="number"
-                          placeholder="175"
+                          placeholder={profile?.units === 'metric' ? '175' : '69'}
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
                           className="bg-ceramic-base border-ceramic-rim"
-                          min="100"
-                          max="250"
+                          min={profile?.units === 'metric' ? '100' : '39'}
+                          max={profile?.units === 'metric' ? '250' : '98'}
                           step="1"
                         />
                       </div>
@@ -424,166 +603,204 @@ const Settings = () => {
                     </div>
                   </div>
                   
-                  {/* Daily Goals Section */}
+                  {/* Activity Level Section */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-medium text-warm-text">Daily Goals</h4>
-                      <ClickableTooltip content="Set your daily calorie and carb targets. These help track your progress and calculate deficits. Leave blank if you don't want to track these goals.">
-                        <Info className="w-4 h-4 text-muted-foreground" />
-                      </ClickableTooltip>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="daily-calorie-goal" className="text-warm-text">Calorie Goal</Label>
-                        <Input
-                          id="daily-calorie-goal"
-                          type="number"
-                          placeholder="2000"
-                          value={dailyCalorieGoal}
-                          onChange={(e) => setDailyCalorieGoal(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="daily-carb-goal" className="text-warm-text">Carb Goal (g)</Label>
-                        <Input
-                          id="daily-carb-goal"
-                          type="number"
-                          placeholder="200"
-                          value={dailyCarbGoal}
-                          onChange={(e) => setDailyCarbGoal(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Activity Level Section */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
                       <Label htmlFor="activity-level" className="text-warm-text">Activity Level</Label>
-                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Sedentary' (office work) or 'Lightly Active' (some walking). This is your default setting.">
+                      <ClickableTooltip content="Affects calorie burn calculations. Most people should choose 'Lightly Active' (recommended default for daily activities) or 'Sedentary' (office work only). Choose based on your typical weekly activity level.">
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>
                     </div>
-                    <Select value={activityLevel} onValueChange={setActivityLevel}>
-                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                       <SelectContent>
-                          <SelectItem value="sedentary">Low</SelectItem>
-                          <SelectItem value="moderately_active">Medium</SelectItem>
-                          <SelectItem value="very_active">High</SelectItem>
-                       </SelectContent>
-                    </Select>
+                     <Select value={activityLevel} onValueChange={setActivityLevel}>
+                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
+                         <SelectValue placeholder="Select" />
+                       </SelectTrigger>
+                         <SelectContent>
+                            <SelectItem value="sedentary">Sedentary {getCalorieAddition('sedentary') > 0 ? `(+${getCalorieAddition('sedentary')} cal)` : ''}</SelectItem>
+                            <SelectItem value="lightly_active">Lightly Active (+{getCalorieAddition('lightly_active')} cal)</SelectItem>
+                            <SelectItem value="moderately_active">Moderately Active (+{getCalorieAddition('moderately_active')} cal)</SelectItem>
+                            <SelectItem value="very_active">Very Active (+{getCalorieAddition('very_active')} cal)</SelectItem>
+                         </SelectContent>
+                     </Select>
+                   </div>
+                  
+                  {/* Dynamic Goals Section */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2">
+                       <h4 className="text-sm font-medium text-warm-text">Dynamic Goals</h4>
+                       <ClickableTooltip content="Goals are calculated automatically when you save. Calorie goal = TDEE - deficit. Carb goal is fixed at 30g.">
+                         <Info className="w-4 h-4 text-muted-foreground" />
+                       </ClickableTooltip>
+                     </div>
+                    
+                    {/* Target Deficit Input */}
+                    <div className="space-y-2">
+                      <Label htmlFor="target-deficit" className="text-warm-text">Target Deficit (cal/day)</Label>
+                      <Input
+                        id="target-deficit"
+                        type="number"
+                        placeholder="1000"
+                        value={targetDeficit}
+                        onChange={(e) => setTargetDeficit(e.target.value)}
+                        className="bg-ceramic-base border-ceramic-rim"
+                        min="0"
+                        max="2000"
+                        step="50"
+                      />
+                    </div>
+
+                      {/* Calculated Goals Display */}
+                      <div className="bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-rim space-y-3">
+                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Calculated Goals</div>
+                        
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground">Calorie Goal</div>
+                            <div className="text-lg font-semibold text-warm-text">
+                              {calculateDynamicCalorieGoal() > 0 ? `${calculateDynamicCalorieGoal()} cal` : '— cal'}
+                            </div>
+                            {calculateDynamicCalorieGoal() > 0 && calculateTDEE() > 0 && (
+                              <div className="text-xs text-muted-foreground">
+                                TDEE {calculateTDEE()} - {targetDeficit}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <div className="text-xs text-muted-foreground">Carb Goal</div>
+                            <div className="text-lg font-semibold text-warm-text">30g</div>
+                            <div className="text-xs text-muted-foreground">Fixed</div>
+                          </div>
+                        </div>
+                        
+                        {/* Calorie Warning */}
+                        {calculateDynamicCalorieGoal() > 0 && isLowCalorieGoal() && (
+                          <CalorieGoalWarning 
+                            calorieGoal={calculateDynamicCalorieGoal()} 
+                            sex={sex} 
+                          />
+                        )}
+                      </div>
+                  </div>
+                   
+                   {/* Manual TDEE Override - Bottom with Separator */}
+                   {calculateBMR() > 0 && (
+                     <div className="space-y-4 pt-6">
+                       <Separator className="bg-ceramic-rim" />
+                       <div className="space-y-4">
+                         <div className="flex items-center gap-2">
+                           <Label htmlFor="manual-tdee" className="text-warm-text">Manual Daily Burn Override</Label>
+                           <ClickableTooltip content="Override the calculated daily burn if you know your actual TDEE from metabolic testing.">
+                             <Info className="w-4 h-4 text-muted-foreground" />
+                           </ClickableTooltip>
+                         </div>
+                         <div className="flex gap-2">
+                           <Input
+                             id="manual-tdee"
+                             type="number"
+                             placeholder={`${Math.round(calculateBMR() * (1.2 + (getCalorieAddition(activityLevel) / calculateBMR())))} (calculated)`}
+                             value={manualTdeeOverride}
+                             onChange={(e) => setManualTdeeOverride(e.target.value)}
+                             className="bg-ceramic-base border-ceramic-rim flex-1"
+                           />
+                           {manualTdeeOverride && (
+                             <Button
+                               variant="outline"
+                               size="sm"
+                               onClick={() => setManualTdeeOverride('')}
+                               className="bg-ceramic-base border-ceramic-rim"
+                             >
+                               Clear
+                             </Button>
+                           )}
+                         </div>
+                       </div>
+                     </div>
+                    )}
+                    
                   </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
 
             {/* Save Settings Button - under Profile */}
-            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary">
+            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full">
               Save Settings
             </Button>
 
-            {/* Account Section - moved up (2nd priority) */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account</h3>
+          {/* Account Information */}
+          <Card className="p-6 bg-card border-ceramic-rim">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <Key className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold text-warm-text">Account</h3>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Email</span>
+                  <span className="text-sm font-medium">{user?.email}</span>
                 </div>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Email</span>
-                    <span className="text-warm-text font-medium">{user?.email}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Login Method</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.app_metadata?.provider === 'google' ? 'Google' : 'Email'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Account Type</span>
-                    <span className="text-warm-text font-medium">
-                      {isTrial ? 'Trial User' : 
-                       hasPremiumFeatures ? 'Premium User' : 'Free User'}
-                    </span>
-                  </div>
-                  {(isTrial || hasPremiumFeatures) && daysRemaining && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">
-                        {isTrial ? 'Trial expires' : 'Premium expires'}
+                
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Member Since</span>
+                  <span className="text-sm font-medium">
+                    {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <div className="flex gap-2">
+                    {accessIsAdmin && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full">
+                        Admin
                       </span>
-                      <span className="text-warm-text font-medium">
-                        {new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                    )}
+                    {!accessIsAdmin && access.hasPremiumFeatures && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
+                        Premium
                       </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Member since</span>
-                    <span className="text-warm-text font-medium">
-                      {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
+                    )}
+                    {access.isTrial && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
+                        Trial ({access.daysRemaining}d)
+                      </span>
+                    )}
+                    {!accessIsAdmin && !access.hasPremiumFeatures && !access.isTrial && (
+                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded-full">
+                        Free
+                      </span>
+                    )}
                   </div>
                 </div>
-                <div className="pt-3 border-t border-ceramic-rim space-y-3">
-                  {access_level === 'free' && (
-                    <Button
-                      onClick={async () => {
-                        try {
-                          await createSubscription();
-                          toast({ 
-                            title: isWebPlatform ? "Redirecting to checkout" : `Use ${platformName} to upgrade`, 
-                            description: isWebPlatform ? "Opening payment page..." : `Purchases are managed via ${platformName}.`,
-                          });
-                        } catch {
-                          toast({ title: "Error", description: "Failed to start subscription. Please try again.", variant: "destructive" });
-                        }
-                      }}
-                      className="w-full bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary"
-                    >
-                      <Crown className="w-4 h-4 mr-2" />
-                      {isWebPlatform ? 'Upgrade to Premium' : `Upgrade via ${platformName}`}
-                    </Button>
-                  )}
-                  {hasPremiumFeatures && (
-                    <Button
-                      onClick={async () => {
-                        try {
-                          await openCustomerPortal();
-                          toast({ 
-                            title: "Opening customer portal", 
-                            description: "Manage your subscription...",
-                          });
-                        } catch {
-                          toast({ title: "Error", description: "Failed to open customer portal. Please try again.", variant: "destructive" });
-                        }
-                      }}
-                      variant="outline"
-                      className="w-full bg-ceramic-base border-ceramic-rim"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Manage Subscription
-                    </Button>
-                  )}
-                  <Button
-                    onClick={() => { signOut(); navigate('/auth'); }}
-                    variant="outline"
-                    className="w-full bg-ceramic-base border-ceramic-rim justify-start hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                
+                <div className="pt-2 space-y-2">
+                  <Button 
+                    onClick={() => navigate('/account')}
+                    variant="outline" 
+                    className="w-full"
                   >
+                    Manage Account
+                  </Button>
+                  
+                  <Button 
+                    onClick={handleSignOut}
+                    variant="default"
+                    className="w-full"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
                     Sign Out
                   </Button>
                 </div>
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            {/* Appearance Section - moved up (3rd priority) */}
+            {/* Appearance Section */}
             <Card className="p-6 bg-card border-ceramic-rim">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Palette className="w-5 h-5 text-primary" />
+                  <Brain className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
                 </div>
                 <div className="flex justify-center">
@@ -591,85 +808,6 @@ const Settings = () => {
                 </div>
               </div>
             </Card>
-
-
-
-            {/* Account Management - moved down (5th priority) */}
-            <Card className="p-6 bg-card border-ceramic-rim border-destructive/20">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <AlertTriangle className="w-5 h-5 text-destructive" />
-                  <h3 className="text-lg font-semibold text-warm-text">Account Management</h3>
-                </div>
-                
-                 <div className="space-y-3">
-                   {/* Cache clear */}
-                   
-                   {/* Clear Cache */}
-                   <ClearCacheButton />
-                   
-                   {/* Reset Account */}
-                   <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-orange-500/30 text-orange-600 hover:bg-orange-500/10 justify-start"
-                    >
-                      Reset Account Data
-                    </Button>
-                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                       <AlertDialogHeader>
-                         <AlertDialogTitle>Reset Account Data?</AlertDialogTitle>
-                         <AlertDialogDescription>
-                           This will permanently delete all your data (food entries, fasting sessions, walking history, motivators, etc.) but keep your account active. You can start fresh with a clean slate.
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
-                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                         <AlertDialogAction
-                           onClick={handleResetAccount}
-                           className="bg-orange-500 hover:bg-orange-600"
-                         >
-                           Reset All Data
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-
-                   {/* Delete Account */}
-                   <AlertDialog>
-                     <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10 justify-start"
-                    >
-                      Delete Account
-                    </Button>
-                     </AlertDialogTrigger>
-                     <AlertDialogContent>
-                       <AlertDialogHeader>
-                         <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
-                         <AlertDialogDescription>
-                           This will permanently delete your account and all associated data. This action cannot be undone. If you have an active subscription, it will be canceled.
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
-                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                         <AlertDialogAction
-                           onClick={handleDeleteAccount}
-                           className="bg-destructive hover:bg-destructive/80"
-                         >
-                           Delete Forever
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
-                </div>
-              </div>
-            </Card>
-
-
 
             {/* About */}
             <Card className="p-6 bg-card border-ceramic-rim">
@@ -688,43 +826,6 @@ const Settings = () => {
                     <span className="text-muted-foreground">Build</span>
                     <span className="text-warm-text font-medium">Beta</span>
                   </div>
-                </div>
-                
-                
-                 
-                </div>
-              </Card>
-
-            {/* Legal */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Legal</h3>
-                </div>
-                <div className="space-y-4">
-                  <a
-                    href="https://fastnow.app/privacy"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-left text-sm text-primary hover:underline"
-                  >
-                    <div className="flex items-center">
-                      <Shield className="w-4 h-4 mr-2" />
-                      Privacy Policy
-                    </div>
-                  </a>
-                  <a
-                    href="https://fastnow.app/terms"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-left text-sm text-primary hover:underline"
-                  >
-                    <div className="flex items-center">
-                      <Info className="w-4 h-4 mr-2" />
-                      Terms of Service
-                    </div>
-                  </a>
                 </div>
               </div>
             </Card>

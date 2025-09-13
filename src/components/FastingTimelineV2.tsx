@@ -1,12 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
-import { Button } from '@/components/ui/button';
-import { Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react';
+// Removed Button and icon imports - no longer needed for rotation controls
 import { Skeleton } from "@/components/ui/skeleton";
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
+import { AdminInsightDisplay } from './AdminInsightDisplay';
+import { useAccess } from '@/hooks/useAccess';
+import { useNavigate } from 'react-router-dom';
+import { useAdminPersonalLogEnabled } from '@/hooks/useAdminPersonalLogEnabled';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -18,8 +21,11 @@ interface FastingTimelineV2Props {
 const MAX_HOUR = 72;
 
 export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHour = 1, className }) => {
+  const navigate = useNavigate();
   const { data: hours, isLoading } = useFastingHoursQuery();
   const queryClient = useQueryClient();
+  const { isAdmin } = useAccess();
+  const { isEnabled: isPersonalLogEnabled } = useAdminPersonalLogEnabled();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -84,90 +90,76 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
           </div>
         ) : (
           <div className="space-y-3">
-            {rotation.totalVariants > 1 && (
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={rotation.goToPrevious}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronLeft className="h-3 w-3" />
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={rotation.toggleRotation}
-                  className="h-6 w-6 p-0"
-                >
-                  {rotation.isRotating ? (
-                    <Pause className="h-3 w-3" />
-                  ) : (
-                    <Play className="h-3 w-3" />
-                  )}
-                </Button>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={rotation.goToNext}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
-              </div>
-            )}
-
+            {/* Display Stage and Encouragement (original two-field system) */}
             <div className="min-h-[80px] relative">
-              {/* Hour Number Indicator */}
-              <div className="absolute bottom-2 right-2 bg-primary/10 text-primary border border-primary/20 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
-                {selectedHour}
-              </div>
-
-              {rotation.totalVariants > 1 ? (
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-xs font-medium text-muted-foreground">
-                      {getContentTypeLabel(rotation.currentType)}
-                    </h4>
-                    <div className="text-xs text-muted-foreground">
-                      {rotation.currentIndex + 1} of {rotation.totalVariants}
-                    </div>
-                  </div>
-                  <div 
-                    key={`${selectedHour}-${rotation.currentIndex}-${rotation.currentType}`}
-                    className="text-sm text-foreground animate-fade-in pr-10"
-                    style={{
-                      animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
-                    }}
-                  >
-                    {rotation.currentContent}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground pr-10">
-                  {selected?.physiological_effects || selected?.body_state || "We'll add details for this hour soon."}
+              {/* Hour Number Indicator - Admin Only */}
+              {isAdmin && (
+                <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
+                  {selectedHour}
                 </div>
               )}
+
+              <div className="relative pr-10">
+                {/* Stage Title */}
+                {selected?.stage && (
+                  <div className="font-semibold text-foreground mb-2 text-sm">
+                    {selected.stage}
+                  </div>
+                )}
+                
+                {/* Encouragement Content */}
+                <div 
+                  key={`${selectedHour}-encouragement`}
+                  className="text-sm text-muted-foreground animate-fade-in"
+                  style={{
+                    animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
+                  }}
+                >
+                  {rotation.currentContent}
+                </div>
+              </div>
             </div>
+            
+            {/* Read More Link */}
+            {selected?.read_more_url && (
+              <div className="pt-2 border-t border-border/50">
+                <button
+                  onClick={() => {
+                    // Navigate to content page using React Router
+                    navigate(`/content/fasting-hour-${selected.hour}`);
+                  }}
+                  className="text-xs text-primary hover:underline cursor-pointer"
+                >
+                  Read more
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
 
+      {/* Admin Insight Display - Shows how it appears to regular users */}
+      {selected?.admin_personal_log && (
+        <AdminInsightDisplay 
+          content={selected.admin_personal_log}
+        />
+      )}
+
       {/* Admin Personal Log Interface */}
-      <AdminPersonalLogInterface
-        key={`admin-log-${selectedHour}-${selected?.admin_personal_log}`} // Force re-render when data changes
-        currentHour={selectedHour}
-        existingLog={selected?.admin_personal_log}
-        onLogSaved={async () => {
-          // Force a complete data refresh to ensure UI updates
-          queryClient.removeQueries({ queryKey: fastingHoursKey });
-          await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
-          await queryClient.refetchQueries({ queryKey: fastingHoursKey });
-          console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
-        }}
-      />
+      {isAdmin && isPersonalLogEnabled && (
+        <AdminPersonalLogInterface
+          key={`admin-log-${selectedHour}-${selected?.admin_personal_log}`} // Force re-render when data changes
+          currentHour={selectedHour}
+          existingLog={selected?.admin_personal_log}
+          onLogSaved={async () => {
+            // Force a complete data refresh to ensure UI updates
+            queryClient.removeQueries({ queryKey: fastingHoursKey });
+            await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+            await queryClient.refetchQueries({ queryKey: fastingHoursKey });
+            console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
+          }}
+         />
+      )}
     </div>
   );
 };

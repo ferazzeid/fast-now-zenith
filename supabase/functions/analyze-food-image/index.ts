@@ -28,26 +28,170 @@ serve(async (req) => {
       throw new Error('No image data or URL provided');
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase client with service role key for admin operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || 'https://texnkijwcygodtywgedm.supabase.co';
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
     
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || (!supabaseServiceKey && !supabaseAnonKey)) {
       throw new Error('Supabase configuration not available');
     }
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Create client for JWT validation (use service role if available, otherwise anon)
+    const authClient = createClient(supabaseUrl, supabaseServiceKey || supabaseAnonKey, {
+      auth: { persistSession: false }
+    });
 
-    // Get user from auth header
+    // Create data client with service role for database operations
+    const dataClient = supabaseServiceKey ? 
+      createClient(supabaseUrl, supabaseServiceKey, { auth: { persistSession: false } }) :
+      authClient;
+
+    // Enhanced authentication validation
     const authHeader = req.headers.get('Authorization');
+    console.log('=== Authentication Check ===');
+    console.log('Auth header present:', !!authHeader);
+    console.log('Auth header format valid:', authHeader?.startsWith('Bearer '));
+    
     if (!authHeader) {
-      throw new Error('No authorization header provided');
+      console.error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Authentication required',
+          details: 'Please sign in to analyze food images',
+          code: 'AUTH_HEADER_MISSING'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
+      console.error('Invalid authorization header format');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid authentication format',
+          details: 'Authorization header must start with "Bearer "',
+          code: 'AUTH_FORMAT_INVALID'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
-    if (userError || !userData.user) {
-      throw new Error('User not authenticated');
+    console.log('Token extracted, length:', token.length, 'first 20 chars:', token.substring(0, 20) + '...');
+
+    // Validate the JWT token with detailed error handling
+    const { data: userData, error: userError } = await authClient.auth.getUser(token);
+    console.log('JWT Validation result:', { 
+      hasUser: !!userData?.user, 
+      error: userError?.message,
+      errorCode: userError?.code,
+      userId: userData?.user?.id,
+      userEmail: userData?.user?.email 
+    });
+
+    if (userError) {
+      console.error('JWT validation failed:', userError);
+      
+      // Provide specific error messages based on error type
+      let errorMessage = 'Authentication failed';
+      let userFriendlyMessage = 'Please sign in again';
+      
+      if (userError.message?.includes('expired') || userError.code === 'token_expired') {
+        errorMessage = 'Session expired';
+        userFriendlyMessage = 'Your session has expired. Please sign in again.';
+      } else if (userError.message?.includes('invalid') || userError.code === 'invalid_token') {
+        errorMessage = 'Invalid session';
+        userFriendlyMessage = 'Invalid session. Please sign in again.';
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          error: errorMessage,
+          details: userFriendlyMessage,
+          code: userError.code || 'AUTH_VALIDATION_FAILED'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    if (!userData?.user) {
+      console.error('No user found despite successful JWT validation');
+      return new Response(
+        JSON.stringify({ 
+          error: 'User not found',
+          details: 'Valid session but user not found. Please sign in again.',
+          code: 'USER_NOT_FOUND'
+        }),
+        { status: 401, headers: corsHeaders }
+      );
+    }
+
+    const userId = userData.user.id;
+
+    // Get user profile and check subscription status
+    const { data: profile, error: profileError } = await dataClient
+      .from('profiles')
+      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
+      .eq('user_id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      throw new Error('Failed to fetch user profile');
+    }
+
+    console.log('User access level:', profile.access_level, 'AI requests:', profile.monthly_ai_requests);
+
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'trial' : profile.access_level;
+
+    // Get both trial and premium limits from settings
+    const { data: settings } = await dataClient
+      .from('shared_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
+
+    const trialLimit = parseInt(settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50');
+    const premiumLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
+
+    // Determine appropriate limit based on user tier
+    let currentLimit: number;
+    let limitType: string;
+
+    if (effectiveLevel === 'admin') {
+      console.log('Admin user - unlimited AI access');
+      currentLimit = Infinity;
+      limitType = 'unlimited';
+    } else if (effectiveLevel === 'premium') {
+      currentLimit = premiumLimit;
+      limitType = 'premium';
+    } else {
+      // Trial users (includes expired premium users)
+      currentLimit = trialLimit;
+      limitType = 'trial';
+    }
+
+    // Check access permissions and limits
+    if (effectiveLevel === 'free') {
+      throw new Error('AI features are only available to premium users. Start your free trial or upgrade to continue.');
+    }
+
+    // Check limits (skip for admin)
+    if (effectiveLevel !== 'admin' && profile.monthly_ai_requests >= currentLimit) {
+      const resetDate = new Date();
+      resetDate.setMonth(resetDate.getMonth() + 1, 1);
+      const resetDateString = resetDate.toLocaleDateString();
+      
+      if (limitType === 'trial') {
+        throw new Error(`You've used all ${currentLimit} trial AI requests this month. Upgrade to premium for ${premiumLimit} monthly requests. Your trial limit will reset on ${resetDateString}.`);
+      } else {
+        throw new Error(`You've used all ${currentLimit} premium AI requests this month. Your limit will reset on ${resetDateString}.`);
+      }
     }
 
     // Get OpenAI API key from shared settings or environment
@@ -55,7 +199,7 @@ serve(async (req) => {
     
     if (!openaiApiKey) {
       // Get from shared settings
-      const { data: sharedKey } = await supabase
+      const { data: sharedKey } = await dataClient
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'shared_api_key')
@@ -86,9 +230,9 @@ serve(async (req) => {
         finalImageUrl = imageUrl;
         console.log('HTTP URL detected:', imageUrl);
       } else {
-        // Relative path - make it absolute
-        finalImageUrl = `https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com${imageUrl}`;
-        console.log('Relative path converted to absolute URL:', finalImageUrl);
+        // Relative path - make it absolute using Supabase storage
+        finalImageUrl = `https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images${imageUrl}`;
+        console.log('Relative path converted to Supabase storage URL:', finalImageUrl);
       }
       
       imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
@@ -167,18 +311,68 @@ serve(async (req) => {
     const analysisResult = data.choices[0].message.content;
     console.log('Analysis result:', analysisResult);
 
-    // Try to parse the JSON response
+    // Try to parse the JSON response with robust handling
     let nutritionData;
     try {
       nutritionData = JSON.parse(analysisResult);
     } catch (parseError) {
       console.error('Failed to parse OpenAI response as JSON:', parseError);
-      // Fallback: extract JSON from the response if it contains other text
-      const jsonMatch = analysisResult.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        nutritionData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error('Failed to extract valid JSON from OpenAI response');
+      
+      // Enhanced fallback: handle markdown-wrapped JSON and various formats
+      let cleanedResponse = analysisResult.trim();
+      
+      // First, try to extract JSON from markdown code blocks
+      if (cleanedResponse.includes('```')) {
+        const markdownPatterns = [
+          /```json\s*\n?\s*(\{[\s\S]*?\})\s*\n?\s*```/i,
+          /```\s*\n?\s*(\{[\s\S]*?\})\s*\n?\s*```/i,
+          /(\{[\s\S]*?\})/i
+        ];
+        
+        for (const pattern of markdownPatterns) {
+          const match = cleanedResponse.match(pattern);
+          if (match) {
+            cleanedResponse = match[1].trim();
+            console.log('Extracted JSON from markdown:', cleanedResponse);
+            break;
+          }
+        }
+      }
+      
+      // Try parsing the cleaned response
+      try {
+        nutritionData = JSON.parse(cleanedResponse);
+        console.log('Successfully parsed extracted JSON:', nutritionData);
+      } catch (secondParseError) {
+        console.error('Second parse attempt failed:', secondParseError);
+        
+        // Final fallback: find the first complete JSON object
+        const jsonPatterns = [
+          /\{[^{}]*"name"[^{}]*"calories_per_100g"[\s\S]*?\}/,
+          /\{[\s\S]*?\}/
+        ];
+        
+        for (const pattern of jsonPatterns) {
+          const jsonMatch = cleanedResponse.match(pattern);
+          if (jsonMatch) {
+            try {
+              nutritionData = JSON.parse(jsonMatch[0]);
+              console.log('Successfully parsed with fallback pattern');
+              break;
+            } catch (thirdParseError) {
+              console.error('Pattern match failed:', thirdParseError);
+              continue;
+            }
+          }
+        }
+        
+        if (!nutritionData) {
+          console.error('All JSON parsing attempts failed:', { 
+            original: analysisResult, 
+            cleaned: cleanedResponse
+          });
+          throw new Error('Failed to extract valid JSON from OpenAI response');
+        }
       }
     }
 
@@ -188,6 +382,29 @@ serve(async (req) => {
     }
 
     console.log('Successfully analyzed food image:', nutritionData);
+
+    // Increment usage counter (all users count against limits now)
+    try {
+      await dataClient
+        .from('profiles')
+        .update({ 
+          monthly_ai_requests: profile.monthly_ai_requests + 1 
+        })
+        .eq('user_id', userId);
+    } catch (e) {
+      console.warn('Non-blocking: failed to increment monthly_ai_requests', e);
+    }
+
+    try {
+      await dataClient.rpc('track_usage_event', {
+        _user_id: userId,
+        _event_type: 'food_image_analysis',
+        _requests_count: 1,
+        _subscription_status: profile.subscription_status
+      });
+    } catch (e) {
+      console.warn('Non-blocking: failed to log usage analytics', e);
+    }
 
     return new Response(
       JSON.stringify({

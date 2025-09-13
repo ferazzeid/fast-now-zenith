@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { AdminImageUploadSilent } from './AdminImageUploadSilent';
 import { useToast } from '@/hooks/use-toast';
+import { useAccess } from '@/hooks/useAccess';
 import { Save } from 'lucide-react';
 
 interface AdminGoalIdea {
@@ -16,7 +17,9 @@ interface AdminGoalIdea {
   description: string;
   category: string;
   imageUrl?: string;
-  gender?: 'male' | 'female';
+  maleImageUrl?: string;
+  femaleImageUrl?: string;
+  linkUrl?: string;
 }
 
 interface AdminGoalEditModalProps {
@@ -29,20 +32,24 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [gender, setGender] = useState<'male' | 'female'>('male');
+  const [maleImageUrl, setMaleImageUrl] = useState('');
+  const [femaleImageUrl, setFemaleImageUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [componentKey, setComponentKey] = useState(0);
   const [inlineError, setInlineError] = useState<string>('');
   const [inlineSuccess, setInlineSuccess] = useState<string>('');
   const { toast } = useToast();
+  const { isAdmin } = useAccess();
 
   useEffect(() => {
     if (goal) {
-      console.log('📝 Loading goal data into form:', goal);
       setTitle(goal.title || '');
       setDescription(goal.description || '');
       setImageUrl(goal.imageUrl || '');
-      setGender(goal.gender || 'male');
+      setMaleImageUrl(goal.maleImageUrl || '');
+      setFemaleImageUrl(goal.femaleImageUrl || '');
+      setLinkUrl(goal.linkUrl || '');
       setIsSubmitting(false);
       setInlineError('');
       setInlineSuccess('');
@@ -68,7 +75,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         title: title.trim(),
         description: description.trim(),
         imageUrl: imageUrl || undefined,
-        gender: gender,
+        maleImageUrl: maleImageUrl || undefined,
+        femaleImageUrl: femaleImageUrl || undefined,
+        linkUrl: linkUrl.trim() || undefined,
       };
 
       console.log('💾 Saving goal data:', updatedGoal);
@@ -81,7 +90,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         setTitle('');
         setDescription('');
         setImageUrl('');
-        setGender('male');
+        setMaleImageUrl('');
+        setFemaleImageUrl('');
+        setLinkUrl('');
         setIsSubmitting(false);
         setInlineError('');
         setInlineSuccess('');
@@ -103,8 +114,9 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
       onClose={onClose}
       title="Edit Motivator Idea"
       variant="standard"
-      size="sm"
+      size="lg"
       showCloseButton={true}
+      contentClassName="max-h-[65vh] overflow-y-auto pb-4"
       footer={
         <>
           <Button
@@ -178,21 +190,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         </div>
 
         <div className="space-y-2">
-          <Label className="text-warm-text font-medium">Gender</Label>
-          <RadioGroup value={gender} onValueChange={(value: 'male' | 'female') => setGender(value)}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="male" id="male" />
-              <Label htmlFor="male" className="text-warm-text">Male 🔵</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="female" id="female" />
-              <Label htmlFor="female" className="text-warm-text">Female 🔴</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-warm-text font-medium">Image</Label>
+          <Label className="text-warm-text font-medium">General Image (Fallback)</Label>
           <AdminImageUploadSilent
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
@@ -201,6 +199,49 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             onSuccess={(message) => setInlineSuccess(message)}
           />
         </div>
+
+        <div className="space-y-2">
+          <Label className="text-warm-text font-medium">Male-Specific Image</Label>
+          <AdminImageUploadSilent
+            currentImageUrl={maleImageUrl}
+            onImageUpload={setMaleImageUrl}
+            onImageRemove={() => setMaleImageUrl('')}
+            onError={(error) => setInlineError(error)}
+            onSuccess={(message) => setInlineSuccess(message)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-warm-text font-medium">Female-Specific Image</Label>
+          <AdminImageUploadSilent
+            currentImageUrl={femaleImageUrl}
+            onImageUpload={setFemaleImageUrl}
+            onImageRemove={() => setFemaleImageUrl('')}
+            onError={(error) => setInlineError(error)}
+            onSuccess={(message) => setInlineSuccess(message)}
+          />
+        </div>
+
+        {isAdmin && (
+          <div className="space-y-2">
+            <Label htmlFor="goal-link" className="text-warm-text font-medium">
+              Read More Link
+            </Label>
+            <Input
+              id="goal-link"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              className="bg-ceramic-base border-ceramic-rim"
+              placeholder="https://website.com/detailed-story..."
+              disabled={isSubmitting}
+              type="url"
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional URL to a detailed story or description on your website
+            </p>
+          </div>
+        )}
+
       </div>
     </UniversalModal>
   );

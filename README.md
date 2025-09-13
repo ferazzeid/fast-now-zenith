@@ -1,73 +1,74 @@
-# Welcome to your Lovable project
+# Welcome to Fast Now
 
-## Project info
+Fast Now is a comprehensive nutrition and meal tracking application that helps you maintain a healthy lifestyle through intelligent food logging, meal planning, and nutritional insights.
 
-**URL**: https://lovable.dev/projects/de91d618-edcf-40eb-8e11-7c45904095be
+## Features
 
-## How can I edit this code?
+- **Smart Food Library**: Extensive database of foods with detailed nutritional information
+- **Quick Logging**: Fast and intuitive meal and food entry
+- **Nutritional Tracking**: Monitor calories, macronutrients, and micronutrients
+- **Meal Planning**: Plan your meals in advance for better nutrition management
+- **Progress Insights**: Track your nutritional goals and progress over time
+- **Cross-Platform**: Available on web, iOS, and Android
 
-There are several ways of editing your application.
+## Testing
 
-**Use Lovable**
+Run the unit tests with:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/de91d618-edcf-40eb-8e11-7c45904095be) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+npm test
 ```
 
-**Edit a file directly in GitHub**
+Contributions are encouraged! Feel free to submit pull requests with tests.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Building the Android AAB
 
-**Use GitHub Codespaces**
+To build the Android App Bundle (AAB) from a fresh git clone:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Prerequisites
+- Node.js and npm installed
+- Android Studio with Android SDK
+- Java 21 installed and configured
 
-## What technologies are used for this project?
+### Build Steps
+```bash
+# 1. Install dependencies
+npm install
 
-This project is built with:
+# 2. Build the web assets
+npm run build
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# 3. Sync Capacitor to generate Android files
+npx cap sync android
 
-## How can I deploy this project?
+# 4. Navigate to Android directory
+cd android
 
-Simply open [Lovable](https://lovable.dev/projects/de91d618-edcf-40eb-8e11-7c45904095be) and click on Share -> Publish.
+# 5. Make gradlew executable (on macOS/Linux)
+chmod +x ./gradlew
 
-## Can I connect a custom domain to my Lovable project?
+# 6. Build the release AAB
+./gradlew bundleRelease
+```
 
-Yes, you can!
+### Output Location
+The generated AAB file will be located at:
+```
+android/app/build/outputs/bundle/release/app-release.aab
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Troubleshooting
+- If you get "Gradle wrapper not found" errors, run `./gradlew wrapper` first
+- For "Permission denied" errors on gradlew, run `chmod +x ./gradlew`
+- If build fails, try `./gradlew clean` then retry the build
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+### Version Management
+Before each release, update the version in `android/app/build.gradle`:
+```gradle
+defaultConfig {
+    versionCode 51  // Increment for each release
+    versionName "51"  // Update version string
+}
+```
+
+Start your journey to better nutrition with Fast Now - making healthy eating simple and sustainable.

@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
+import { useProfile } from '@/hooks/useProfile';
+import { formatDistance, formatSpeed } from '@/utils/unitConversions';
 
 interface WalkingSession {
   id: string;
@@ -41,6 +43,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
+  const { profile } = useProfile();
 
   useEffect(() => {
     const fetchWalkingSessions = async () => {
@@ -316,7 +319,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <MapPin className="w-3 h-3 text-green-500" />
-                                          {session.is_edited ? 'N/A' : `${session.distance?.toFixed(2) || 0} mi`}
+                                          {session.is_edited ? 'N/A' : formatDistance(session.distance || 0, profile?.units || 'imperial')}
                                         </span>
                                         <span className="flex items-center gap-1">
                                           <Zap className="w-3 h-3 text-orange-500" />

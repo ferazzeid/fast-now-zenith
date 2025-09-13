@@ -1,4 +1,4 @@
-import { Brain, Settings, Utensils, Clock, Footprints, Lock } from 'lucide-react';
+import { Brain, Settings, Utensils, Clock, Footprints, Lock, User } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Link, useLocation } from 'react-router-dom';
 import { useEffect, useState, useMemo } from 'react';
@@ -9,6 +9,7 @@ import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
+import { CalorieBadge } from '@/components/CalorieBadge';
 import { TrialTimerBadge } from '@/components/TrialTimerBadge';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useConnectionStore } from '@/stores/connectionStore';
@@ -27,7 +28,7 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, access_level, createSubscription, refetch, testRole, isTestingMode } = useAccess();
+  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch, testRole, isTestingMode } = useAccess();
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -155,15 +156,8 @@ export const Navigation = () => {
       path: '/motivators',
       isEating: false
     },
-    { icon: Settings, label: 'Settings', path: '/settings', isEating: false },
+    { icon: User, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
-
-  const getConnectionStatus = () => {
-    if (!isOnline) return { color: 'bg-red-500', tooltip: 'Offline - Changes will sync when connected', shouldPulse: false };
-    return { color: 'bg-green-500', tooltip: 'Connected', shouldPulse: false };
-  };
-
-  const connectionStatus = getConnectionStatus();
 
   return (
     <TooltipProvider>
@@ -180,17 +174,17 @@ export const Navigation = () => {
                   case 'Walk': return 'Track your walking sessions and burn calories';
                   case 'Food': return 'Log your meals and track daily intake';
                   case 'Goals': return 'View and create motivational content';
-                  case 'Settings': return 'Customize your app preferences';
+                  case 'Settings': return 'Manage your profile, preferences and account';
                   default: return label;
                 }
               };
 
               // Handle premium gating for Food navigation with role testing support
               const currentAccessLevel = isTestingMode ? testRole : access_level;
-              const currentHasPremiumFeatures = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin') : hasPremiumFeatures;
+              const currentHasFoodAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_food_only' || testRole === 'free_full') : hasFoodAccess;
               
               const handleFoodClick = (e: React.MouseEvent) => {
-                const hasAccess = currentAccessLevel === 'admin' || currentHasPremiumFeatures;
+                const hasAccess = currentAccessLevel === 'admin' || currentHasFoodAccess;
                 if (!hasAccess && label === 'Food') {
                   e.preventDefault();
                   e.stopPropagation();
@@ -199,7 +193,7 @@ export const Navigation = () => {
                 }
               };
               
-              const hasAccess = currentAccessLevel === 'admin' || currentHasPremiumFeatures;
+              const hasAccess = currentAccessLevel === 'admin' || currentHasFoodAccess;
               const isLocked = label === 'Food' && !hasAccess;
               
               const content = (
@@ -229,22 +223,12 @@ export const Navigation = () => {
                   
                   {/* Calorie badge for food ONLY */}
                   {caloriesBadge && label === 'Food' && (
-                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 text-xs rounded-full flex items-center justify-center font-medium bg-warning text-warning-foreground px-1">
-                      {caloriesBadge}
-                    </span>
+                    <CalorieBadge calories={caloriesBadge} />
                   )}
                   
                   {/* Trial countdown badge ONLY for Settings button */}
                   {label === 'Settings' && inTrial && daysRemaining && (
                     <TrialTimerBadge daysRemaining={daysRemaining} />
-                  )}
-                  
-                  {/* Connection status indicator ONLY for Settings button */}
-                  {label === 'Settings' && (
-                    <div className="absolute -bottom-1 -right-1">
-                      <div className={`w-2 h-2 rounded-full ${connectionStatus.color} ${connectionStatus.shouldPulse ? 'animate-pulse' : ''}`} 
-                           title={connectionStatus.tooltip} />
-                    </div>
                   )}
                 </Link>
               );

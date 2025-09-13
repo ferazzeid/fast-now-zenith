@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save, Database, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -24,9 +25,10 @@ import {
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
+import { useAuth } from '@/hooks/useAuth';
+import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
 
 interface UserFood {
   id: string;
@@ -47,40 +49,86 @@ interface DefaultFood {
   is_favorite?: boolean;
 }
 
+interface TemplateFood {
+  id: string;
+  name: string;
+  calories: number;
+  carbs: number;
+  serving_size: number;
+  image_url?: string;
+}
+
 interface FoodLibraryViewProps {
   onSelectFood: (food: UserFood, consumed?: boolean) => void;
   onBack: () => void;
+  // Template functionality props
+  templateFoods?: TemplateFood[];
+  templateLoading?: boolean;
+  onSaveAsTemplate?: (foods: any[]) => Promise<any>;
+  onAddToTemplate?: (foods: any[], insertAfterIndex?: number) => Promise<any>;
+  onClearTemplate?: () => Promise<any>;
+  onApplyTemplate?: () => Promise<any>;
+  onDeleteTemplateFood?: (foodId: string) => Promise<any>;
+  onForceLoadTemplate?: () => Promise<void>;
 }
 
-export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) => {
-  const [foods, setFoods] = useState<UserFood[]>([]);
+export const FoodLibraryView = ({ 
+  onSelectFood, 
+  onBack,
+  templateFoods = [],
+  templateLoading = false,
+  onSaveAsTemplate,
+  onAddToTemplate,
+  onClearTemplate,
+  onApplyTemplate,
+  onDeleteTemplateFood,
+  onForceLoadTemplate
+}: FoodLibraryViewProps) => {
+  const location = useLocation();
+  const { user, loading } = useAuth();
+
+  // IMMEDIATE: Don't render anything if on auth routes to prevent interactions
+  if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
+    return null;
+  }
+
+  // Use recent foods hook for "My Foods" tab
+  const { recentFoods, loading: recentFoodsLoading, refreshRecentFoods } = useRecentFoods();
+  
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
+  const [myFoodFavorites, setMyFoodFavorites] = useState<Set<string>>(new Set()); // Same pattern as defaultFoodFavorites
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'recent' | 'my-foods' | 'suggested'>('recent');
+  const [activeTab, setActiveTab] = useState<'my-foods' | 'template' | 'suggested'>('my-foods');
+  const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
+  const [showApplyTemplateDialog, setShowApplyTemplateDialog] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
+  const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
   
-  // Visual feedback state
-  const [flashingItems, setFlashingItems] = useState<Set<string>>(new Set());
-  
-  const { user } = useAuth();
+  // Remove complex optimistic favorites - use simple state like Default tab
+
+  // Prevent interactions during loading states
+  const isInteractionSafe = !loading;
   const { toast } = useToast();
-  const { recentFoods, loading: recentLoading, refreshRecentFoods } = useRecentFoods();
+  
+  // Combined loading state
+  const isLoading = recentFoodsLoading || defaultFoodsLoading;
 
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
+      setDefaultFoodsLoading(true);
       try {
         await Promise.all([
-          loadUserFoods(),
           loadDefaultFoods(),
           loadDefaultFoodFavorites(),
+          loadMyFoodFavorites(), // Load my food favorites like default food favorites
           checkAdminRole()
         ]);
       } finally {
-        setLoading(false);
+        setDefaultFoodsLoading(false);
       }
     };
     
@@ -88,6 +136,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       loadData();
     }
   }, [user]);
+
+  // Remove optimistic update timeout - not needed with simple state pattern
 
   const checkAdminRole = async () => {
     if (!user) return;
@@ -103,28 +153,25 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const loadUserFoods = async () => {
-    if (!user) return;
+  // Convert recent foods to UserFood format for compatibility
+  const foods: UserFood[] = useMemo(() => {
+    console.log('🔥 FOODS MEMO - Raw recentFoods:', recentFoods.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
+    console.log('🔥 FOODS MEMO - myFoodFavorites Set:', Array.from(myFoodFavorites));
     
-    try {
-      const { data, error } = await supabase
-        .from('user_foods')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('is_favorite', { ascending: false })
-        .order('name');
-
-      if (error) throw error;
-      setFoods(data || []);
-    } catch (error) {
-      console.error('Error loading user foods:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load your food library",
-        variant: "destructive"
-      });
-    }
-  };
+    const result = recentFoods.map(food => ({
+      id: food.id,
+      name: food.name,
+      calories_per_100g: food.calories_per_100g,
+      carbs_per_100g: food.carbs_per_100g,
+      // Use myFoodFavorites Set as source of truth (same pattern as defaultFoodFavorites)
+      is_favorite: myFoodFavorites.has(food.id),
+      image_url: food.image_url,
+      variations: []
+    }));
+    
+    console.log('🔥 FOODS MEMO - Final foods for UI:', result.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
+    return result;
+  }, [recentFoods, myFoodFavorites]); // Use myFoodFavorites instead of optimisticFavorites
 
   const loadDefaultFoods = async () => {
     try {
@@ -142,6 +189,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
         description: "Failed to load suggested foods",
         variant: "destructive"
       });
+    }
+  };
+
+  const loadMyFoodFavorites = async () => {
+    if (!user) return;
+    
+    console.log('🔥 MY FOOD FAVORITES - Loading favorites from database');
+    try {
+      const { data, error } = await supabase
+        .from('user_foods')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_favorite', true);
+
+      if (error) throw error;
+      
+      const favoriteIds = new Set(data?.map(food => food.id) || []);
+      console.log('🔥 MY FOOD FAVORITES - Loaded favorite IDs:', Array.from(favoriteIds));
+      setMyFoodFavorites(favoriteIds);
+    } catch (error) {
+      console.error('🔥 MY FOOD FAVORITES - Error loading favorites:', error);
     }
   };
 
@@ -163,40 +231,39 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const handleQuickSelect = (food: UserFood | DefaultFood, consumed: boolean = false) => {
+  const handleQuickSelect = async (food: UserFood | DefaultFood, consumed: boolean = false) => {
+    if (!isInteractionSafe) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
+    console.log('🔄 FoodLibrary: Adding food to today:', food.name);
+    
     const userFood = 'variations' in food ? food : {
       ...food,
       is_favorite: false,
       variations: []
     } as UserFood;
     
-    // Add visual feedback
-    setFlashingItems(prev => new Set([...prev, food.id]));
-    setTimeout(() => {
-      setFlashingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(food.id);
-        return newSet;
-      });
-    }, 600);
-    
-    onSelectFood(userFood, consumed);
+    // Let React Query handle loading states and errors
+    await onSelectFood(userFood, consumed);
   };
 
   const handleAddToTemplate = async (food: UserFood | DefaultFood) => {
     if (!user) return;
     
-    console.log('🍽️ FoodLibrary - handleAddToTemplate called with:', food);
-    
-    // Add visual feedback
-    setFlashingItems(prev => new Set([...prev, food.id]));
-    setTimeout(() => {
-      setFlashingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(food.id);
-        return newSet;
+    if (!isInteractionSafe) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
       });
-    }, 600);
+      return;
+    }
+    
+    console.log('🍽️ FoodLibrary - handleAddToTemplate called with:', food);
     
     try {
       const { data, error } = await supabase
@@ -233,88 +300,84 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
-  const importToMyLibrary = async (defaultFood: DefaultFood) => {
-    if (!user) return;
-    
-    // Add visual feedback
-    setFlashingItems(prev => new Set([...prev, defaultFood.id]));
-    setTimeout(() => {
-      setFlashingItems(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(defaultFood.id);
-        return newSet;
-      });
-    }, 600);
-    
-    try {
-      const { data, error } = await supabase
-        .from('user_foods')
-        .insert({
-          user_id: user.id,
-          name: defaultFood.name,
-          calories_per_100g: defaultFood.calories_per_100g,
-          carbs_per_100g: defaultFood.carbs_per_100g,
-          image_url: defaultFood.image_url,
-          is_favorite: false,
-          variations: []
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setFoods(prev => [...prev, data]);
-      
-      toast({
-        title: "Food imported",
-        description: `${defaultFood.name} has been added to your personal library`,
-      });
-    } catch (error) {
-      console.error('Error importing food:', error);
-      toast({
-        title: "Error",
-        description: "Failed to import food to your library",
-        variant: "destructive"
-      });
-    }
-  };
 
   const toggleFavorite = async (foodId: string, currentFavorite: boolean) => {
-    console.log('🍽️ FoodLibrary - toggleFavorite called with:', { foodId, currentFavorite });
+    console.log('❤️ FoodLibrary - toggleFavorite started:', { 
+      foodId, 
+      currentFavorite,
+      user: user ? { id: user.id, email: user.email } : null
+    });
+
+    if (!user?.id) {
+      console.error('❤️ FoodLibrary - No user found');
+      toast({
+        variant: "destructive",
+        title: "Authentication Error",
+        description: "Please log in to manage favorites"
+      });
+      return;
+    }
+
+    // Check if we can perform database operations
+    if (!isInteractionSafe) {
+      console.log('❤️ FoodLibrary - Database not ready or unsafe route, showing loading state');
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+
+    console.log('❤️ MY FOODS FAVORITE - Toggling favorite:', { foodId, currentFavorite });
+
     try {
+      // Update database
       const { data, error } = await supabase
         .from('user_foods')
         .update({ is_favorite: !currentFavorite })
         .eq('id', foodId)
-        .eq('user_id', user?.id)
-        .select()
+        .eq('user_id', user.id)
+        .select('id, name, is_favorite')
         .single();
 
-      if (error) {
-        console.error('🍽️ FoodLibrary - toggleFavorite error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('🍽️ FoodLibrary - toggleFavorite success:', data);
+      // Update local state immediately (same pattern as toggleDefaultFoodFavorite)
+      setMyFoodFavorites(prev => {
+        const newSet = new Set(prev);
+        if (currentFavorite) {
+          newSet.delete(foodId);
+          console.log('❤️ MY FOODS FAVORITE - Removed from favorites:', foodId);
+        } else {
+          newSet.add(foodId);
+          console.log('❤️ MY FOODS FAVORITE - Added to favorites:', foodId);
+        }
+        return newSet;
+      });
 
-      // Use functional state update to avoid stale closure
-      setFoods(prevFoods => prevFoods.map(food => 
-        food.id === foodId 
-          ? { ...food, is_favorite: !currentFavorite }
-          : food
-      ));
+      console.log('❤️ MY FOODS FAVORITE - Update successful:', data);
+      
     } catch (error) {
-      console.error('🍽️ FoodLibrary - toggleFavorite failed:', error);
+      console.error('❤️ MY FOODS FAVORITE - Update failed:', error);
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update favorite status"
+        description: "Failed to update favorite. Please try again."
       });
     }
   };
 
   const toggleDefaultFoodFavorite = async (foodId: string, isFavorite: boolean) => {
     if (!user) return;
+    
+    if (!isInteractionSafe) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
     
     try {
       if (isFavorite) {
@@ -355,6 +418,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const updateFood = async (foodId: string, updates: Partial<UserFood>) => {
     console.log('🍽️ FoodLibrary - updateFood called with:', { foodId, updates });
+    
+    if (loading) {
+      throw new Error('Database not ready');
+    }
+    
     try {
       const { data, error } = await supabase
         .from('user_foods')
@@ -371,12 +439,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('🍽️ FoodLibrary - updateFood success:', data);
 
-      // Use functional state update to avoid stale closure
-      setFoods(prevFoods => prevFoods.map(food => 
-        food.id === foodId 
-          ? { ...food, ...updates }
-          : food
-      ));
+      // Refresh recent foods to show the updated food
+      await refreshRecentFoods();
 
       console.log('🍽️ FoodLibrary - food updated in local state');
     } catch (error) {
@@ -387,6 +451,15 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
   const deleteFood = async (foodId: string) => {
     console.log('🍽️ FoodLibrary - deleteFood called with:', { foodId });
+    
+    if (loading) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('user_foods')
@@ -412,8 +485,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       console.log('🍽️ FoodLibrary - deleteFood success:', data);
 
-      // Use functional state update to avoid stale closure
-      setFoods(prevFoods => prevFoods.filter(food => food.id !== foodId));
+      // Refresh recent foods to show the updated library
+      await refreshRecentFoods();
       
       toast({
         title: "Food removed",
@@ -432,27 +505,54 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const deleteAllUserFoods = async () => {
     if (!user) return;
     
+    if (loading) {
+      toast({
+        title: "Please wait",
+        description: "System is loading, please try again in a moment"
+      });
+      return;
+    }
+    
     try {
-      const { error } = await supabase
-        .from('user_foods')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setFoods([]);
+      console.log('🍽️ FoodLibrary - Starting delete all foods operation');
+      
+      // Clear confirmation dialog
       setShowDeleteAllConfirm(false);
+      
+      // Delete both user library foods AND all food entries (recent foods)
+      const [userFoodsResult, foodEntriesResult] = await Promise.all([
+        supabase
+          .from('user_foods')
+          .delete()
+          .eq('user_id', user.id),
+        supabase
+          .from('food_entries')
+          .delete()
+          .eq('user_id', user.id)
+      ]);
+
+      if (userFoodsResult.error || foodEntriesResult.error) {
+        const error = userFoodsResult.error || foodEntriesResult.error;
+        console.error('🍽️ FoodLibrary - Database deletion failed:', error);
+        setShowDeleteAllConfirm(true);
+        throw error;
+      }
+
+      console.log('🍽️ FoodLibrary - Database deletion successful');
+      
+      // Refresh recent foods to show the updated library
+      await refreshRecentFoods();
       
       toast({
         title: "All foods removed",
-        description: "All foods have been removed from your library"
+        description: "All foods and food entries have been removed from your library"
       });
     } catch (error) {
-      console.error('Error deleting all foods:', error);
+      console.error('🍽️ FoodLibrary - Error deleting all foods:', error);
       toast({
         title: "Error",
         description: "Failed to remove all foods",
-        variant: "destructive"
+        variant: "destructive" 
       });
     }
   };
@@ -491,6 +591,37 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
     }
   };
 
+  const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }, silent: boolean = false) => {
+    if (loading) {
+      throw new Error('Database not ready');
+    }
+    
+    const { data, error } = await supabase
+      .from('user_foods')
+      .insert([{
+        user_id: user!.id,
+        name: food.name,
+        calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
+        carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Refresh recent foods to show the new addition
+    await refreshRecentFoods();
+    
+    if (!silent) {
+      toast({
+        title: "Saved to Library",
+        description: `${food.name} has been added to your food library`
+      });
+    }
+
+    return data; // Return the saved food data
+  };
+
   const deleteRecentFood = async (foodName: string) => {
     try {
       // For recent foods, remove all food entries with this name from the user's history
@@ -502,8 +633,8 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
       if (error) throw error;
 
-      // Refresh recent foods to update the list
-      refreshRecentFoods();
+      // Refresh recent foods to show the updated library
+      await refreshRecentFoods();
       
       toast({
         title: "Food removed",
@@ -529,6 +660,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
       if (error) throw error;
 
       setDefaultFoods(defaultFoods.filter(food => food.id !== foodId));
+      setShowDeleteDefaultFoodConfirm(false);
+      setDefaultFoodToDelete(null);
+      
       toast({
         title: "Default food removed",
         description: "Default food has been removed from the system"
@@ -544,32 +678,48 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
 
-  const filteredUserFoods = foods.filter(food =>
-    food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => {
-    // Favorites first, then alphabetical
-    if (a.is_favorite && !b.is_favorite) return -1;
-    if (!a.is_favorite && b.is_favorite) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  // Filter and sort recent foods by recency
+  const filteredUserFoods = useMemo(() => {
+    if (!foods) return [];
+    
+    const filtered = foods.filter(food =>
+      food.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    // Sort favorites first, then by recency (most recent first)
+    return filtered.sort((a, b) => {
+      // Favorites first
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      
+      // If both are favorites or both are not favorites, sort by recency
+      const aRecentFood = recentFoods.find(rf => rf.id === a.id);
+      const bRecentFood = recentFoods.find(rf => rf.id === b.id);
+      
+      if (!aRecentFood || !bRecentFood) return 0;
+      
+      return new Date(bRecentFood.last_used).getTime() - new Date(aRecentFood.last_used).getTime();
+    });
+  }, [foods, searchTerm, recentFoods]);
 
-  const filteredDefaultFoods = defaultFoods.filter(food =>
-    food.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).map(food => ({
-    ...food,
-    is_favorite: defaultFoodFavorites.has(food.id)
-  })).sort((a, b) => {
-    // Favorites first, then alphabetical
-    if (a.is_favorite && !b.is_favorite) return -1;
-    if (!a.is_favorite && b.is_favorite) return 1;
-    return a.name.localeCompare(b.name);
-  });
+  const filteredDefaultFoods = useMemo(() => {
+    return defaultFoods.filter(food =>
+      food.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ).map(food => ({
+      ...food,
+      is_favorite: defaultFoodFavorites.has(food.id)
+    })).sort((a, b) => {
+      // Favorites first, then alphabetical
+      if (a.is_favorite && !b.is_favorite) return -1;
+      if (!a.is_favorite && b.is_favorite) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [defaultFoods, defaultFoodFavorites, searchTerm]);
 
   // Quick access favorites for My Foods
   const favoriteUserFoods = filteredUserFoods.filter(food => food.is_favorite).slice(0, 5);
 
   const FoodCard = ({ food, isUserFood = true }: { food: UserFood | DefaultFood, isUserFood?: boolean }) => {
-    const isFlashing = flashingItems.has(food.id);
     const [showEditModal, setShowEditModal] = useState(false);
     
     const handleCardClick = (e: React.MouseEvent) => {
@@ -580,28 +730,20 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           target.closest('[data-radix-dropdown-menu-content]') ||
           target.closest('[data-radix-popper-content-wrapper]') ||
           target.closest('.dropdown-menu') ||
+          target.closest('.flex-shrink-0') || // Prevent clicks on button containers
           showEditModal) {
+        e.preventDefault();
         e.stopPropagation();
         return;
       }
 
-      if (isUserFood) {
-        handleQuickSelect(food as UserFood, false);
-      } else {
-        // For Recent and Suggested foods, add them directly to today's plan
-        if (activeTab === 'recent' || activeTab === 'suggested') {
-          handleQuickSelect(food as UserFood, false);
-        } else {
-          importToMyLibrary(food as DefaultFood);
-        }
-      }
+      // Always add to today's plan for both user foods and suggested foods
+      handleQuickSelect(food as UserFood, false);
     };
 
     return (
       <div 
-        className={`p-2 mx-2 rounded-lg transition-all duration-200 cursor-pointer bg-card border border-ceramic-rim hover:bg-ceramic-base ${
-          isFlashing ? 'animate-success-flash' : ''
-        }`}
+        className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
@@ -612,26 +754,27 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                  className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
                   title="More options"
                   aria-label="More options"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical className="w-4 h-4 text-primary" />
+                  <MoreVertical className="w-5 h-5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-               <DropdownMenuContent 
+              <DropdownMenuContent 
                  align="start" 
                  side="bottom" 
                  sideOffset={8}
                  avoidCollisions={true}
                  collisionPadding={16}
-                 className="w-52 z-50 bg-background border border-border shadow-lg"
+                 className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
+                 style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
+                 onCloseAutoFocus={(e) => e.preventDefault()}
                >
-                    {isUserFood ? (
-                      <>
-                          {/* Only show Edit option for user foods and admin for default foods */}
-                          {(isUserFood || isAdmin) && !food.id.startsWith('recent-') && (
+                      {isUserFood ? (
+                        <>
+                            {/* Edit option for all user library foods */}
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -642,17 +785,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                                <Edit className="w-4 h-4 mr-3" />
                                Edit Food
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickSelect(food as UserFood, false);
-                            }}
-                             className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                           >
-                             <Plus className="w-4 h-4 mr-3" />
-                             Add to Today
-                          </DropdownMenuItem>
+                           <DropdownMenuItem
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await handleQuickSelect(food as UserFood, false);
+                              }}
+                               className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                             >
+                               <Plus className="w-4 h-4 mr-3" />
+                               Add to Today
+                            </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
@@ -675,30 +817,30 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                           </DropdownMenuItem>
                        </>
                      ) : (
-                       <>
-                          {/* Edit option for admin on default foods, and for recent foods that aren't ID-based */}
-                          {(isAdmin && !food.id.startsWith('recent-')) && (
-                            <DropdownMenuItem
-                              onClick={(e) => {
+                        <>
+                           {/* Edit option for admin on default foods */}
+                           {isAdmin && (
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setShowEditModal(true);
+                               }}
+                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
+                              >
+                                <Edit className="w-4 h-4 mr-3" />
+                                Edit Food
+                             </DropdownMenuItem>
+                           )}
+                           <DropdownMenuItem
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                setShowEditModal(true);
+                                await handleQuickSelect(food as UserFood, false);
                               }}
                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
                              >
-                               <Edit className="w-4 h-4 mr-3" />
-                               Edit Food
+                               <Plus className="w-4 h-4 mr-3" />
+                               Add to Today
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleQuickSelect(food as UserFood, false);
-                            }}
-                             className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                           >
-                             <Plus className="w-4 h-4 mr-3" />
-                             Add to Today
-                          </DropdownMenuItem>
                            <DropdownMenuItem
                              onClick={(e) => {
                                e.stopPropagation();
@@ -709,39 +851,16 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                               <Save className="w-4 h-4 mr-3" />
                               Add to Template
                            </DropdownMenuItem>
-                           <DropdownMenuItem
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               importToMyLibrary(food as DefaultFood);
-                             }}
-                              className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
-                            >
-                              <Download className="w-4 h-4 mr-3" />
-                              Add to My Food
-                           </DropdownMenuItem>
-                           {food.id.startsWith('recent-') ? (
-                             <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 deleteRecentFood(food.name);
-                               }}
-                                className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4 mr-3" />
-                                Delete
-                             </DropdownMenuItem>
-                           ) : isAdmin && (
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteDefaultFood(food.id);
-                                  }}
-                                   className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                                 >
-                                   <Trash2 className="w-4 h-4 mr-3" />
-                                   Delete
-                                </DropdownMenuItem>
-                           )}
+                            <DropdownMenuItem
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await deleteDefaultFood(food.id);
+                              }}
+                               className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                             >
+                               <Trash2 className="w-4 h-4 mr-3" />
+                               Delete Food
+                            </DropdownMenuItem>
                        </>
                     )}
                 </DropdownMenuContent>
@@ -787,32 +906,90 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             </div>
           </div>
            
+            {/* Heart Icon for MyFoods tab */}
+            {activeTab === 'my-foods' && 'is_favorite' in food && (
+              <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                   onClick={async (e) => {
+                     e.stopPropagation();
+                     if (!isInteractionSafe) {
+                       toast({
+                         title: "Please wait",
+                         description: "System is loading, please try again in a moment"
+                       });
+                       return;
+                     }
+                     
+                      // All foods in "My Foods" are now proper library foods, so toggle directly
+                      await toggleFavorite(food.id, food.is_favorite || false);
+                   }}
+                   disabled={!isInteractionSafe}
+                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                  aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart 
+                    className={`w-4 h-4 transition-colors ${
+                      food.is_favorite 
+                        ? 'fill-red-500 text-red-500' 
+                        : 'text-muted-foreground hover:text-red-400'
+                    }`} 
+                  />
+                </Button>
+              </div>
+            )}
+
+            {/* Heart Icon for Suggested tab */}
+            {activeTab === 'suggested' && 'is_favorite' in food && (
+              <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     if (!isInteractionSafe) {
+                       toast({
+                         title: "Please wait",
+                         description: "System is loading, please try again in a moment"
+                       });
+                       return;
+                     }
+                     toggleDefaultFoodFavorite(food.id, food.is_favorite || false);
+                   }}
+                   disabled={!isInteractionSafe}
+                  className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                  aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <Heart 
+                    className={`w-4 h-4 transition-colors ${
+                      food.is_favorite 
+                        ? 'fill-red-500 text-red-500' 
+                        : 'text-muted-foreground hover:text-red-400'
+                    }`} 
+                  />
+                </Button>
+              </div>
+            )}
+
             {/* Primary Action Button */}
           <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <Button
               variant="default"
               size="sm"
-              onClick={(e) => {
+              onClick={async (e) => {
+                e.preventDefault();
                 e.stopPropagation();
-                if (isUserFood) {
-                  handleQuickSelect(food as UserFood, false);
-                } else if (activeTab === 'recent' || activeTab === 'suggested') {
-                  handleQuickSelect(food as UserFood, false);
-                } else {
-                  importToMyLibrary(food as DefaultFood);
-                }
+                
+                await handleQuickSelect(food as UserFood, false);
               }}
-              className={`min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors ${
-                isFlashing ? 'animate-button-success' : ''
-              }`}
-              title={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
-              aria-label={isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? "Add to today's plan" : "Import to your library"}
+              className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+              title="Add to today's plan"
+              aria-label="Add to today's plan"
             >
-              {isUserFood || activeTab === 'recent' || activeTab === 'suggested' ? (
-                <Plus className="w-4 h-4" />
-              ) : (
-                <Download className="w-4 h-4" />
-              )}
+              <Plus className="w-3 h-3 text-primary-foreground" />
             </Button>
           </div>
         </div>
@@ -832,42 +1009,52 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   };
 
   return (
-    <div className="h-full flex flex-col max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="px-6 py-6 border-b border-border">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Food Library</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="hover:bg-muted transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
+    <DatabaseErrorBoundary onRetry={() => window.location.reload()}>
+      <div className="h-full flex flex-col">
+        {/* Search Bar */}
+        <div className="relative mb-4">
+          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 transform -translate-y-1/2" />
+          <Input
+            placeholder="Search foods..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="flex-1 px-2 py-4 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'recent' | 'my-foods' | 'suggested')} className="h-full flex flex-col">
+        {/* Content */}
+        <div className="flex-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'template' | 'suggested')} className="h-full flex flex-col">
           <div className="mb-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="recent">Recent</TabsTrigger>
-              <TabsTrigger value="my-foods" className="flex items-center gap-2">
-                My Food
+            <TabsList className="grid w-full grid-cols-3 text-xs">
+              <TabsTrigger value="my-foods" className="flex items-center gap-1 text-xs">
+                My Foods
                 {filteredUserFoods.length > 0 && (
                   <Trash2 
                     className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
                     onClick={(e) => {
                       e.stopPropagation();
+                      console.log('🗑️ Delete All button clicked, foods count:', filteredUserFoods.length);
                       setShowDeleteAllConfirm(true);
                     }}
                   />
                 )}
               </TabsTrigger>
-              <TabsTrigger value="suggested">Default</TabsTrigger>
+              <TabsTrigger value="template" className="flex items-center gap-1 text-xs">
+                Template
+                {templateFoods.length > 0 && (
+                  <Trash2 
+                    className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowClearTemplateDialog(true);
+                    }}
+                  />
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="suggested" className="flex items-center gap-1 text-xs">
+                Default
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -875,7 +1062,7 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           <TabsContent value="my-foods" className="flex-1 overflow-y-auto mt-0">
           <div className="space-y-2 mt-1">
             {/* My Foods List */}
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
                  <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
@@ -914,10 +1101,147 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
         </TabsContent>
 
+          {/* Template Tab */}
+          <TabsContent value="template" className="flex-1 overflow-y-auto mt-0">
+            <div className="space-y-2 mt-1">
+              {/* Apply Template Button */}
+              {templateFoods.length > 0 && (
+                <div className="mb-4">
+                  <Button
+                    onClick={() => setShowApplyTemplateDialog(true)}
+                    className="w-full flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    size="sm"
+                  >
+                    <Play className="w-4 h-4" />
+                    Apply Template to Today
+                  </Button>
+                </div>
+              )}
+
+              {/* Template Foods List */}
+              {templateLoading ? (
+                <div className="space-y-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-muted" />
+                        <div className="flex-1 space-y-1">
+                          <div className="h-3 bg-muted rounded w-3/4" />
+                          <div className="h-2 bg-muted rounded w-1/2" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-muted rounded" />
+                          <div className="w-5 h-5 bg-muted rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : templateFoods.length === 0 ? (
+                <div className="text-center py-12">
+                  <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">Your template is empty</p>
+                  <p className="text-muted-foreground text-sm">
+                    Go to Food Tracking and save today's plan as a template
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1 overflow-x-hidden">
+                  {templateFoods.map((food) => (
+                     <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
+                       <div className="flex items-center gap-2">
+                         {/* Options Dropdown */}
+                         <div className="flex-shrink-0">
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
+                               >
+                                 <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent 
+                               align="start" 
+                               side="bottom" 
+                               sideOffset={8}
+                               avoidCollisions={true}
+                               collisionPadding={16}
+                               className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
+                               style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
+                               onCloseAutoFocus={(e) => e.preventDefault()}
+                             >
+                               <DropdownMenuItem
+                                 onClick={() => onDeleteTemplateFood?.(food.id)}
+                                 className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                               >
+                                 <Trash2 className="w-4 h-4 mr-3" />
+                                 Delete from Template
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         </div>
+
+                         {/* Template Food Image */}
+                         <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                           {food.image_url ? (
+                             <img 
+                               src={food.image_url} 
+                               alt={food.name}
+                               className="w-10 h-10 object-cover rounded-lg"
+                             />
+                           ) : (
+                             <Utensils className="w-5 h-5 text-muted-foreground" />
+                           )}
+                         </div>
+
+                         {/* Template Food Info */}
+                         <div className="flex-1 min-w-0">
+                           <div className="mb-0">
+                             <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                             <span className="font-medium">{Math.round(food.serving_size)}g</span>
+                             <span className="text-muted-foreground/60">•</span>
+                             <span className="font-medium">{Math.round(food.calories)}</span>
+                             <span className="text-muted-foreground/60">•</span>
+                             <span className="font-medium">{Math.round(food.carbs)}g</span>
+                           </div>
+                         </div>
+
+                         {/* Add to Today Button */}
+                         <div className="flex-shrink-0">
+                           <Button
+                             variant="default"
+                             size="sm"
+                             onClick={() => handleQuickSelect({
+                               id: food.id,
+                               name: food.name,
+                               calories_per_100g: (food.calories / food.serving_size) * 100,
+                               carbs_per_100g: (food.carbs / food.serving_size) * 100,
+                               is_favorite: false,
+                               image_url: food.image_url,
+                               variations: []
+                             }, false)}
+                             className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                             title="Add to today's plan"
+                           >
+                             <Plus className="w-3 h-3 text-primary-foreground" />
+                           </Button>
+                         </div>
+                       </div>
+                     </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
           {/* Suggested Foods Tab */}
           <TabsContent value="suggested" className="flex-1 overflow-y-auto mt-0">
           <div className="space-y-2 mt-1">
-            {loading ? (
+            {isLoading ? (
               <div className="space-y-1">
                 {[...Array(8)].map((_, i) => (
                   <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
@@ -956,45 +1280,6 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </div>
          </TabsContent>
 
-          {/* Recent Foods Tab */}
-          <TabsContent value="recent" className="flex-1 overflow-y-auto mt-0">
-            <div className="space-y-2 mt-1">
-              {recentLoading ? (
-                <div className="space-y-1">
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-muted" />
-                        <div className="flex-1 space-y-1">
-                          <div className="h-3 bg-muted rounded w-3/4" />
-                          <div className="h-2 bg-muted rounded w-1/2" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-muted rounded" />
-                          <div className="w-5 h-5 bg-muted rounded" />
-                          <div className="w-5 h-5 bg-muted rounded" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : recentFoods.length === 0 ? (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">⏰</div>
-                  <h3 className="text-lg font-medium mb-2">No recent foods</h3>
-                  <p className="text-muted-foreground">
-                    Foods you've logged recently will appear here for quick access
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-1 overflow-x-hidden">
-                  {recentFoods.map((food) => (
-                    <FoodCard key={`recent-${food.id}`} food={food} isUserFood={false} />
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 
@@ -1011,7 +1296,10 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={deleteAllUserFoods}
+              onClick={() => {
+                console.log('🗑️ Delete All confirmed, calling deleteAllUserFoods');
+                deleteAllUserFoods();
+              }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete All
@@ -1019,6 +1307,73 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+
+      {/* Delete Default Food Confirmation Dialog */}
+      <AlertDialog open={showDeleteDefaultFoodConfirm} onOpenChange={setShowDeleteDefaultFoodConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Default Food?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{defaultFoodToDelete?.name}" from the default food system. This action cannot be undone and will affect all users.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteDefaultFoodConfirm(false);
+              setDefaultFoodToDelete(null);
+            }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => defaultFoodToDelete && deleteDefaultFood(defaultFoodToDelete.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Food
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear Template Confirmation Dialog */}
+      <AlertDialog open={showClearTemplateDialog} onOpenChange={setShowClearTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear Template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all {templateFoods.length} foods from your daily template. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onClearTemplate?.()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Clear Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Apply Template Confirmation Dialog */}
+      <AlertDialog open={showApplyTemplateDialog} onOpenChange={setShowApplyTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply Template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will add all {templateFoods.length} foods from your template to today's plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onApplyTemplate?.()}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Apply Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      </div>
+    </DatabaseErrorBoundary>
   );
 };

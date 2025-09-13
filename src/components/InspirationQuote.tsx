@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bookmark } from 'lucide-react';
+import { Bookmark, Hand } from 'lucide-react';
 import { Quote } from '@/hooks/useQuoteSettings';
 import { Button } from '@/components/ui/button';
 
@@ -71,21 +71,23 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <div 
-      className={`max-w-md mx-auto text-center ${compact ? 'px-4 py-2' : 'px-6 py-4'} cursor-pointer transition-opacity duration-500 hover:opacity-80 ${className}`}
+      className={`max-w-md mx-auto bg-gray-900 border border-gray-700 rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative">
-        <p className={`${compact ? 'text-xs' : 'text-sm'} italic text-muted-foreground/80 leading-relaxed mb-2`}>
+        <p className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-white leading-relaxed mb-3`}>
           "{currentQuote.text}"
         </p>
         {currentQuote.author && (
-          <cite className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground/60 not-italic`}>
+          <cite className={`${compact ? 'text-xs' : 'text-sm'} text-gray-200 not-italic`}>
             — {currentQuote.author}
           </cite>
         )}
       </blockquote>
-      <div className="flex items-center justify-between mt-2">
-        <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-muted-foreground/40`}>
+      
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-700">
+        <div className={`${compact ? 'text-xs' : 'text-sm'} text-gray-300 flex items-center gap-2`}>
+          <Hand className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
           Tap for another quote
         </div>
         {onSaveQuote && (
@@ -96,9 +98,9 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
               e.stopPropagation();
               handleSaveQuote();
             }}
-            className={`${compact ? 'h-5 px-1 text-[10px]' : 'h-6 px-2 text-xs'} text-muted-foreground/60 hover:text-muted-foreground`}
+            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-2`}
           >
-            <Bookmark className={`${compact ? 'w-2 h-2 mr-0.5' : 'w-3 h-3 mr-1'}`} />
+            <Bookmark className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
             Save to Goals
           </Button>
         )}

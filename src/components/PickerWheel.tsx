@@ -117,7 +117,7 @@ export const PickerWheel = ({
               "flex items-center justify-center transition-all duration-200 cursor-pointer hover:scale-105",
               "text-2xl font-medium",
               isCenter 
-                ? "text-primary scale-110 font-semibold" 
+                ? "text-foreground scale-110 font-semibold" 
                 : "text-muted-foreground hover:text-foreground"
             )}
             style={{ height: `${itemHeight}px` }}

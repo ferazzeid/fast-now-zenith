@@ -4,20 +4,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAccess } from '@/hooks/useAccess';
-import { TestTube, RotateCcw, Crown, User, UserX } from 'lucide-react';
+import { TestTube, RotateCcw, Crown, User, UserX, Utensils, Zap } from 'lucide-react';
 
-export type UserRole = 'admin' | 'paid_user' | 'free_user';
+export type UserRole = 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only';
 
 const roleIcons = {
   admin: Crown,
   paid_user: User,
   free_user: UserX,
+  free_full: Zap,
+  free_food_only: Utensils,
 };
 
 const roleDescriptions = {
   admin: 'Full admin access with unlimited features',
   paid_user: 'Premium features and high request limits',
   free_user: 'Basic access with limited features',
+  free_full: 'Free access with food tracking and AI features',
+  free_food_only: 'Free access with food tracking only (no AI)',
 };
 
 export const AdminRoleTester = () => {
@@ -70,7 +74,9 @@ export const AdminRoleTester = () => {
               <SelectContent className="bg-background border border-border shadow-lg z-50">
                 <SelectItem value="none">Admin (Default)</SelectItem>
                 <SelectItem value="paid_user">Premium User</SelectItem>
-                <SelectItem value="free_user">Free User</SelectItem>
+                <SelectItem value="free_user">Free User (Limited)</SelectItem>
+                <SelectItem value="free_full">Free Full Access</SelectItem>
+                <SelectItem value="free_food_only">Free Food Only</SelectItem>
               </SelectContent>
             </Select>
             

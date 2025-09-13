@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { usePageSEO } from '@/hooks/usePageSEO';
 import { useToast } from '@/hooks/use-toast';
 import { useAdminGoalIdeas, AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
-import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
@@ -14,7 +13,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { AdminGoalEditModal } from '@/components/AdminGoalEditModal';
-import { Lightbulb, Plus, Edit, Trash2, ArrowLeft, ChevronDown } from 'lucide-react';
+import { GoalIdeasErrorBoundary } from '@/components/GoalIdeasErrorBoundary';
+import { MotivatorContentModal } from '@/components/MotivatorContentModal';
+import { Lightbulb, Plus, Edit, Trash2, X, ChevronDown, ExternalLink } from 'lucide-react';
 
 export default function MotivatorIdeas() {
   usePageSEO({
@@ -28,44 +29,62 @@ export default function MotivatorIdeas() {
   const { profile } = useProfile();
   const { isAdmin } = useAccess();
   
-  // Default to male if user sex is not set
-  const userGender = profile?.sex || 'male';
-  console.log('MotivatorIdeas - User gender for filtering:', userGender, 'Profile sex:', profile?.sex);
-  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh } = useAdminGoalIdeas(userGender);
-  const { removeFromDefaultGoals, updateDefaultGoal, loading: adminLoading } = useAdminGoalManagement();
-  const { createMotivator } = useMotivators();
+  const { goalIdeas, loading, refreshGoalIdeas, forceRefresh, updateGoalIdea, removeGoalIdea } = useAdminGoalIdeas();
+  const { createMotivator, refreshMotivators } = useMotivators();
 
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
-  const [previousSex, setPreviousSex] = useState<string | null>(null);
-
+  const [forceRenderKey, setForceRenderKey] = useState(0);
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<{
+    id: string;
+    title: string;
+    content: string;
+    external_url?: string;
+  } | null>(null);
   useEffect(() => {
-    console.log('🔄 Refreshing goal ideas on page load...');
     refreshGoalIdeas();
-  }, []); // Empty dependency array to run only once on mount
-
-  // Force refresh goals when profile sex actually changes (not on initial load)
-  useEffect(() => {
-    if (profile?.sex) {
-      // Only refresh if the sex has actually changed, not on initial load
-      if (previousSex !== null && previousSex !== profile.sex) {
-        console.log('MotivatorIdeas: Profile sex changed from', previousSex, 'to', profile.sex, '- refreshing goals');
-        refreshGoalIdeas();
-      }
-      setPreviousSex(profile.sex);
-    }
-  }, [profile?.sex, previousSex, forceRefresh]);
+  }, []);
 
   const handleAdd = async (goal: AdminGoalIdea) => {
     try {
-      await createMotivator({
+      console.log('🎯 Adding goal from Goal Ideas:', goal.title);
+      
+      // Choose appropriate image based on user gender
+      const userGender = profile?.sex || 'male';
+      const selectedImageUrl = userGender === 'female' && goal.femaleImageUrl 
+        ? goal.femaleImageUrl 
+        : userGender === 'male' && goal.maleImageUrl 
+        ? goal.maleImageUrl 
+        : goal.imageUrl;
+
+      // Create excerpt from description (first 150 characters)
+      const excerpt = goal.description && goal.description.length > 150 
+        ? goal.description.substring(0, 150) + '...' 
+        : goal.description || '';
+
+      const result = await createMotivator({
         title: goal.title,
-        content: goal.description || '',
+        content: excerpt,
         category: 'personal',
-        imageUrl: goal.imageUrl || undefined,
+        imageUrl: selectedImageUrl || undefined,
+        linkUrl: goal.linkUrl || undefined,
       });
-      toast({ title: '✅ Added to My Goals', description: 'The motivator was added successfully.' });
+      
+      console.log('✅ Goal created successfully:', result);
+      
+      // Refresh motivators cache to ensure immediate availability
+      await refreshMotivators();
+      
+      toast({ 
+        title: '✅ Added to My Goals', 
+        description: 'The motivator was added successfully.' 
+      });
+      
+      // Navigate back to motivators page with refreshed data
+      navigate('/motivators');
     } catch (e) {
+      console.error('❌ Error adding goal:', e);
       toast({ title: 'Error', description: 'Failed to add motivator.', variant: 'destructive' });
     }
   };
@@ -74,46 +93,40 @@ export default function MotivatorIdeas() {
     setEditingGoal(goal);
   };
 
+
   const handleSaveEdit = useCallback(async (updatedGoal: AdminGoalIdea) => {
     try {
-      console.log('Saving edit with data:', updatedGoal);
-      const success = await updateDefaultGoal(updatedGoal.id, {
-        title: updatedGoal.title,
-        content: updatedGoal.description,
-        imageUrl: updatedGoal.imageUrl,
-      });
+      const success = await updateGoalIdea(updatedGoal.id, updatedGoal);
       if (success) {
-        console.log('✅ Update successful, clearing modal...');
         toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
-        
-        // Clear editing state first, then refresh
         setEditingGoal(null);
-        setTimeout(() => refreshGoalIdeas(), 200);
       } else {
         throw new Error('Update failed');
       }
     } catch (e) {
-      console.error('Update error:', e);
       toast({ title: 'Error', description: 'Failed to update idea.', variant: 'destructive' });
     }
-  }, [updateDefaultGoal, forceRefresh, toast]);
+  }, [updateGoalIdea, toast]);
 
   const handleDelete = async (goalId: string) => {
-    const ok = await removeFromDefaultGoals(goalId);
-    if (ok) {
-      toast({ title: 'Removed', description: 'Idea removed from defaults.' });
-      refreshGoalIdeas();
-    }
+    await removeGoalIdea(goalId);
   };
 
   return (
-    <div key={`motivator-ideas-${profile?.sex || 'unknown'}-${Date.now()}`} className="pt-20 pb-20"> {/* Increased spacing from deficit bar */}
-      <header className="flex items-center gap-3 mb-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/motivators')} aria-label="Back to My Goals">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <h1 className="text-xl font-bold text-warm-text">Goal Ideas</h1>
-      </header>
+    <GoalIdeasErrorBoundary>
+      <div className="pt-20 pb-20 relative"> {/* Increased spacing from deficit bar */}
+        
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold text-foreground">Goal Ideas</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
       <main>
         {loading ? (
@@ -138,43 +151,75 @@ export default function MotivatorIdeas() {
           <section className="space-y-3" aria-label="Motivator ideas list">
             {goalIdeas.map((goal) => {
               const isExpanded = expandedGoal === goal.id;
-              const shouldShowExpandButton = goal.description && goal.description.length > 50;
+              
+              // Create excerpt from full description (first 150 characters)
+              const excerpt = goal.description && goal.description.length > 150 
+                ? goal.description.substring(0, 150) + '...' 
+                : goal.description;
+              
+              const shouldShowExpandButton = goal.description && goal.description.length > 150;
 
               return (
                 <Card key={goal.id} className="overflow-hidden relative">
                   <CardContent className="p-0">
                     <div className="flex">
                       <div className="w-32 h-32 flex-shrink-0">
-                        <MotivatorImageWithFallback src={goal.imageUrl} alt={goal.title} className="w-full h-full object-cover" />
+                        {(() => {
+                          const userGender = profile?.sex || 'male';
+                          const selectedImageUrl = userGender === 'female' && goal.femaleImageUrl 
+                            ? goal.femaleImageUrl 
+                            : userGender === 'male' && goal.maleImageUrl 
+                            ? goal.maleImageUrl 
+                            : goal.imageUrl;
+                          return <MotivatorImageWithFallback src={selectedImageUrl} alt={goal.title} className="w-full h-full object-cover" />;
+                        })()}
                       </div>
                       <div className="flex-1 p-4 pr-2">
                         <div className="flex items-start justify-between h-full">
-                         <div className="flex-1 space-y-1">
+                          <div className="flex-1 space-y-1">
                             <div className="flex items-center gap-2">
                               <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
-                              {isAdmin && goal.gender && (
-                                <span className="text-sm" title={`${goal.gender} goal`}>
-                                  {goal.gender === 'male' ? '🔵' : '🔴'}
-                                </span>
-                              )}
                             </div>
                             {goal.description && (
                               <div className="text-sm text-muted-foreground">
-                                {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{goal.description}</p>}
+                                {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{excerpt}</p>}
+                              </div>
+                            )}
+                            
+                            {/* Read More Link */}
+                            {goal.slug && (
+                              <div className="mt-3">
+                                 <Button
+                                   variant="link"
+                                   size="sm"
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     setSelectedContent({
+                                       id: goal.id,
+                                       title: goal.title,
+                                       content: goal.description,
+                                       external_url: goal.linkUrl
+                                     });
+                                     setShowContentModal(true);
+                                   }}
+                                   className="h-auto p-0 text-primary hover:text-primary/80 text-sm font-medium"
+                                 >
+                                   Read More <ExternalLink className="w-3 h-3 ml-1" />
+                                 </Button>
                               </div>
                             )}
                           </div>
-                          <div className="flex flex-col gap-2 ml-2">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button size="sm" onClick={() => handleAdd(goal)} className="p-1 h-6 w-6 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground" aria-label="Add to my goals">
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Add this motivator to your goals</p>
-                              </TooltipContent>
-                            </Tooltip>
+                           <div className="flex flex-col gap-2 ml-2">
+                             <Tooltip>
+                               <TooltipTrigger asChild>
+                                 <Button size="sm" onClick={() => handleAdd(goal)} className="p-1 h-6 w-6 rounded-md bg-primary hover:bg-primary/90 text-primary-foreground" aria-label="Add to my goals">
+                                   <Plus className="w-3 h-3" />
+                                 </Button>
+                               </TooltipTrigger>
+                               <TooltipContent>
+                                 <p>Add this motivator to your goals</p>
+                               </TooltipContent>
+                              </Tooltip>
 
                             {isAdmin && (
                               <Tooltip>
@@ -194,7 +239,7 @@ export default function MotivatorIdeas() {
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <AlertDialogTrigger asChild>
-                                      <Button size="sm" variant="ghost" disabled={adminLoading} className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive" aria-label="Delete idea">
+                                      <Button size="sm" variant="ghost" disabled={loading} className="p-1 h-6 w-6 rounded-md hover:bg-destructive/10 hover:text-destructive" aria-label="Delete idea">
                                         <Trash2 className="w-3 h-3" />
                                       </Button>
                                     </AlertDialogTrigger>
@@ -253,6 +298,13 @@ export default function MotivatorIdeas() {
           onClose={() => setEditingGoal(null)}
         />
       )}
+
+      <MotivatorContentModal
+        isOpen={showContentModal}
+        onClose={() => setShowContentModal(false)}
+        content={selectedContent}
+      />
     </div>
+    </GoalIdeasErrorBoundary>
   );
 }

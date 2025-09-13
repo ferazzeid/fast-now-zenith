@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useQuoteSettings, Quote } from '@/hooks/useQuoteSettings';
 
@@ -72,9 +75,20 @@ const QuoteEditModal: React.FC<QuoteEditModalProps> = ({ quote, isOpen, onSave, 
 };
 
 export const AdminQuoteSettings: React.FC = () => {
-  const { quotes, loading, updateQuotes } = useQuoteSettings();
+  const { 
+    quotes, 
+    loading, 
+    updateQuotes, 
+    fastingQuotesEnabled,
+    walkingQuotesEnabled,
+    updateQuoteStatus
+  } = useQuoteSettings();
   const [editingQuote, setEditingQuote] = useState<{ quote?: Quote; index?: number; type?: string } | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [toggleStates, setToggleStates] = useState({
+    fasting: false,
+    walking: false
+  });
   const { toast } = useToast();
 
   const handleAddQuote = (type: 'fasting_timer_quotes' | 'walking_timer_quotes') => {
@@ -135,6 +149,22 @@ export const AdminQuoteSettings: React.FC = () => {
     }
   };
 
+  const handleToggleQuoteStatus = async (type: 'fasting_timer_quotes_enabled' | 'walking_timer_quotes_enabled', enabled: boolean) => {
+    const result = await updateQuoteStatus(type, enabled);
+    if (result.success) {
+      toast({
+        title: "Settings updated",
+        description: `${type.includes('fasting') ? 'Fasting' : 'Walking'} timer quotes ${enabled ? 'enabled' : 'disabled'}`,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update settings",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4">Loading quotes...</div>;
   }
@@ -142,72 +172,126 @@ export const AdminQuoteSettings: React.FC = () => {
   return (
     <>
       <Card className="mt-8">
-        <CardContent className="space-y-6 p-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium mt-2">Fasting Timer Quotes</h3>
-              <Button size="sm" onClick={() => handleAddQuote('fasting_timer_quotes')}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add
-              </Button>
-            </div>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {quotes.fasting_timer_quotes.map((quote, index) => (
-                <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm italic">"{quote.text}"</p>
-                    {quote.author && (
-                      <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'fasting_timer_quotes')}>
-                      <Edit2 className="w-3 h-3" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'fasting_timer_quotes')}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Fasting Timer Quotes</span>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="fasting-quotes-toggle">Enable</Label>
+              {toggleStates.fasting ? (
+                <div className="flex items-center">
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Updating...</span>
                 </div>
-              ))}
+              ) : (
+                <Switch
+                  id="fasting-quotes-toggle"
+                  checked={fastingQuotesEnabled}
+                  onCheckedChange={(checked) => handleToggleQuoteStatus('fasting_timer_quotes_enabled', checked)}
+                  disabled={toggleStates.fasting}
+                />
+              )}
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">{quotes.fasting_timer_quotes.length} quotes</div>
-          </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 p-6">
+          {fastingQuotesEnabled ? (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <Button size="sm" onClick={() => handleAddQuote('fasting_timer_quotes')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {quotes.fasting_timer_quotes.map((quote, index) => (
+                  <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm italic">"{quote.text}"</p>
+                      {quote.author && (
+                        <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'fasting_timer_quotes')}>
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'fasting_timer_quotes')}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">{quotes.fasting_timer_quotes.length} quotes</div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Fasting timer quotes are disabled</p>
+              <p className="text-sm">Enable the toggle above to show system quotes in the fasting timer</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
       <Card className="mt-8">
-        <CardContent className="space-y-6 p-6">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium mt-2">Walking Timer Quotes</h3>
-              <Button size="sm" onClick={() => handleAddQuote('walking_timer_quotes')}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add
-              </Button>
-            </div>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {quotes.walking_timer_quotes.map((quote, index) => (
-                <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm italic">"{quote.text}"</p>
-                    {quote.author && (
-                      <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-1">
-                    <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'walking_timer_quotes')}>
-                      <Edit2 className="w-3 h-3" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'walking_timer_quotes')}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Walking Timer Quotes</span>
+            <div className="flex items-center space-x-2">
+              <Label htmlFor="walking-quotes-toggle">Enable</Label>
+              {toggleStates.walking ? (
+                <div className="flex items-center">
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <span className="text-sm text-muted-foreground">Updating...</span>
                 </div>
-              ))}
+              ) : (
+                <Switch
+                  id="walking-quotes-toggle"
+                  checked={walkingQuotesEnabled}
+                  onCheckedChange={(checked) => handleToggleQuoteStatus('walking_timer_quotes_enabled', checked)}
+                  disabled={toggleStates.walking}
+                />
+              )}
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">{quotes.walking_timer_quotes.length} quotes</div>
-          </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6 p-6">
+          {walkingQuotesEnabled ? (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <Button size="sm" onClick={() => handleAddQuote('walking_timer_quotes')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {quotes.walking_timer_quotes.map((quote, index) => (
+                  <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm italic">"{quote.text}"</p>
+                      {quote.author && (
+                        <p className="text-xs text-muted-foreground mt-1">— {quote.author}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'walking_timer_quotes')}>
+                        <Edit2 className="w-3 h-3" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'walking_timer_quotes')}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">{quotes.walking_timer_quotes.length} quotes</div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>Walking timer quotes are disabled</p>
+              <p className="text-sm">Enable the toggle above to show system quotes in the walking timer</p>
+            </div>
+          )}
 
           <QuoteEditModal
             quote={editingQuote?.quote}

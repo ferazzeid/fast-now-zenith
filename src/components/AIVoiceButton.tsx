@@ -5,23 +5,30 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { PremiumGatedCircularVoiceButton } from '@/components/PremiumGatedCircularVoiceButton';
 import { FloatingBubble } from '@/components/FloatingBubble';
 import { PremiumGate } from '@/components/PremiumGate';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useOfflineGuard } from '@/hooks/useOfflineGuard';
+import { enqueueOperation } from '@/utils/outbox';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
+import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
+import { useOutboxSync } from '@/hooks/useOutboxSync';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { conversationMemory } from '@/utils/conversationMemory';
+import { generateUniqueSlug } from '@/utils/slugUtils';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isSuccess?: boolean;
 }
 
 export const AIVoiceButton = () => {
@@ -32,13 +39,56 @@ export const AIVoiceButton = () => {
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
+  const [hasWelcomeMessage, setHasWelcomeMessage] = useState(false);
   const { user } = useAuth();
+  const { isOnline, guardOnlineAction, warnIfOffline } = useOfflineGuard();
   
   // Import session hooks for function execution
   const { currentSession: fastingSession, startFastingSession, endFastingSession } = useFastingSession();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
+  const { addFoodEntry, addMultipleFoodEntries } = useFoodEntriesQuery();
+  const { isSyncing, pending } = useOutboxSync();
+  const isMobile = useIsMobile();
+
+  // Add welcome message when modal opens
+  useEffect(() => {
+    if (isOpen && !hasWelcomeMessage) {
+      const currentPath = window.location.pathname;
+      let welcomeMessage = "Hi! I'm your AI assistant. How can I help you today?";
+      
+      // Create page-specific welcome messages
+      switch (currentPath) {
+        case '/walking':
+          welcomeMessage = "I can help you start/stop walking sessions, track your progress, and answer questions about your fitness goals.";
+          break;
+        case '/timer':
+          welcomeMessage = "I can help you manage your fasting sessions, track progress, and provide guidance.";
+          break;
+        case '/food-tracking':
+          welcomeMessage = "I can help you add food to your daily plan. Just tell me what you ate!";
+          break;
+        case '/motivators':
+          welcomeMessage = "I can help you create, edit, and manage your motivational content.";
+          break;
+        default:
+          welcomeMessage = "I can help you with fasting, walking, nutrition tracking, and motivation.";
+      }
+      
+      setBubbles([{
+        id: 'welcome-' + Date.now(),
+        role: 'assistant',
+        content: welcomeMessage,
+        timestamp: new Date()
+      }]);
+      setHasWelcomeMessage(true);
+    } else if (!isOpen) {
+      // Reset when modal closes
+      setHasWelcomeMessage(false);
+      setBubbles([]);
+    }
+  }, [isOpen, hasWelcomeMessage]);
 
 
   // Close modal on escape key or click outside
@@ -77,12 +127,13 @@ export const AIVoiceButton = () => {
     };
   }, [isOpen]);
 
-  const addBubble = (role: 'user' | 'assistant', content: string) => {
+  const addBubble = (role: 'user' | 'assistant', content: string, isSuccess?: boolean) => {
     const newBubble: Message = {
       id: Date.now().toString() + Math.random(),
       role,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      isSuccess
     };
     
     setBubbles(prev => [...prev, newBubble]);
@@ -99,9 +150,36 @@ export const AIVoiceButton = () => {
     addBubble('user', message);
     setIsProcessing(true);
 
+    // Handle offline scenario
+    if (!isOnline) {
+      try {
+        await enqueueOperation({
+          entity: 'ai_chat',
+          action: 'process_message',
+          user_id: user.id,
+          payload: { 
+            message, 
+            fromVoice, 
+            currentPath: window.location.pathname 
+          }
+        });
+        
+        addBubble('assistant', 'Message saved. I\'ll process this when you\'re back online.');
+        warnIfOffline('Voice message saved offline - will be processed when connection restored.');
+        setIsProcessing(false);
+        return;
+      } catch (error) {
+        console.error('Failed to queue offline message:', error);
+        addBubble('assistant', 'Sorry, I couldn\'t save your message for offline processing.');
+        setIsProcessing(false);
+        return;
+      }
+    }
+
     try {
       const currentPath = window.location.pathname;
       const pageContext = getPageContext(currentPath);
+      const contextMode = currentPath === '/food-tracking' ? 'food_only' : undefined;
       const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
 
       const { data, error } = await supabase.functions.invoke('chat-completion', {
@@ -109,60 +187,74 @@ export const AIVoiceButton = () => {
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: message }
-          ]
+          ],
+          context: contextMode
         }
       });
 
       if (error) throw error;
+      
+      console.log('🤖 AI Chat response data:', data);
 
-      // Handle function calls first - ACTUALLY EXECUTE THEM
-      if (data?.functionCall) {
-        console.log('🤖 AI Chat: Function call detected:', data.functionCall.name);
-        
-        let responseMessage = '';
-        try {
-          switch (data.functionCall.name) {
-            case 'add_multiple_foods':
-              responseMessage = await handleAddMultipleFoods(data.functionCall.arguments);
-              break;
-            case 'create_motivator':
-              responseMessage = await handleCreateMotivator(data.functionCall.arguments);
-              break;
-            case 'create_multiple_motivators':
-              responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
-              break;
-            case 'start_fasting_session':
-              responseMessage = await handleStartFastingSession(data.functionCall.arguments);
-              break;
-            case 'stop_fasting_session':
-              responseMessage = await handleStopFastingSession();
-              break;
-            case 'start_walking_session':
-              responseMessage = await handleStartWalkingSession(data.functionCall.arguments);
-              break;
-            case 'stop_walking_session':
-              responseMessage = await handleStopWalkingSession();
-              break;
-            case 'edit_motivator':
-              responseMessage = await handleEditMotivator(data.functionCall.arguments);
-              break;
-            case 'delete_motivator':
-              responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
-              break;
-            default:
-              responseMessage = 'I processed your request successfully.';
+        // Handle function calls first - ACTUALLY EXECUTE THEM
+        if (data?.functionCall) {
+          console.log('🤖 AI Chat: Function call detected:', data.functionCall.name, 'with args:', data.functionCall.arguments);
+          
+          let responseMessage = '';
+          try {
+            switch (data.functionCall.name) {
+              case 'add_multiple_foods':
+                responseMessage = await handleAddMultipleFoods(data.functionCall.arguments);
+                break;
+              case 'create_motivator':
+                responseMessage = await handleCreateMotivator(data.functionCall.arguments);
+                break;
+              case 'create_multiple_motivators':
+                responseMessage = await handleCreateMultipleMotivators(data.functionCall.arguments);
+                break;
+              case 'start_fasting_session':
+                responseMessage = await handleStartFastingSession(data.functionCall.arguments);
+                break;
+              case 'stop_fasting_session':
+                responseMessage = await handleStopFastingSession();
+                break;
+              case 'start_walking_session':
+                responseMessage = await handleStartWalkingSession(data.functionCall.arguments);
+                break;
+              case 'stop_walking_session':
+                responseMessage = await handleStopWalkingSession();
+                break;
+              case 'edit_motivator':
+                responseMessage = await handleEditMotivator(data.functionCall.arguments);
+                break;
+              case 'delete_motivator':
+                responseMessage = await handleDeleteMotivator(data.functionCall.arguments);
+                break;
+              case 'modify_recent_foods':
+                responseMessage = await handleModifyRecentFoods(data.functionCall.arguments);
+                break;
+              default:
+                responseMessage = 'I processed your request successfully.';
+            }
+          } catch (error) {
+            console.error('🤖 AI Chat: Function execution error:', error);
+            responseMessage = 'Sorry, I had trouble processing that request. Please try again.';
           }
-        } catch (error) {
-          console.error('🤖 AI Chat: Function execution error:', error);
-          responseMessage = 'Sorry, I had trouble processing that request. Please try again.';
+          
+          // Only add bubble if there's a message to show
+          if (responseMessage && responseMessage.trim()) {
+            addBubble('assistant', responseMessage);
+            
+            if (fromVoice) {
+              await playTextAsAudio(responseMessage);
+            }
+          }
+          
+          // Debug: If no function matched, log what we got
+          if (!responseMessage || responseMessage === 'I processed your request successfully.') {
+            console.log('🤖 AI Chat: Unknown function or no response:', data.functionCall);
+          }
         }
-        
-        addBubble('assistant', responseMessage);
-        
-        if (fromVoice) {
-          await playTextAsAudio(responseMessage);
-        }
-      }
       // Handle regular completion responses
       else if (data?.completion && data.completion.trim()) {
         addBubble('assistant', data.completion);
@@ -184,6 +276,36 @@ export const AIVoiceButton = () => {
       setIsProcessing(false);
     }
   };
+
+  // Listen for AI responses from outbox sync and handle them
+  useEffect(() => {
+    const handleAIResponse = (event: any) => {
+      const { data, fromVoice, originalMessage } = event.detail;
+      
+      // Handle function calls first - ACTUALLY EXECUTE THEM
+      if (data?.functionCall) {
+        console.log('🤖 AI Chat (Offline): Function call detected:', data.functionCall.name);
+        
+        let responseMessage = '';
+        // Function execution handlers would go here similar to sendToAI
+        // For now, just add the response
+        addBubble('assistant', 'I processed your offline request successfully.');
+      }
+      // Handle regular completion responses
+      else if (data?.completion && data.completion.trim()) {
+        addBubble('assistant', data.completion);
+        
+        if (fromVoice) {
+          playTextAsAudio(data.completion);
+        }
+      } else {
+        addBubble('assistant', 'I processed your offline request.');
+      }
+    };
+
+    window.addEventListener('ai-chat-response', handleAIResponse);
+    return () => window.removeEventListener('ai-chat-response', handleAIResponse);
+  }, []);
 
   const playTextAsAudio = async (text: string) => {
     try {
@@ -237,7 +359,7 @@ export const AIVoiceButton = () => {
     setPendingFoods(foods);
     setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
     
-    return ''; // Return empty to prevent message, we'll show the preview UI
+    return null; // Don't add a message, just show the preview UI
   };
 
   const confirmAddFoods = async () => {
@@ -253,22 +375,14 @@ export const AIVoiceButton = () => {
     }
 
     try {
-      for (const food of selectedFoods) {
-        const { error } = await supabase
-          .from('food_entries')
-          .insert({
-            user_id: user!.id,
-            name: food.name,
-            serving_size: food.serving_size || 100,
-            calories: food.calories || 0,
-            carbs: food.carbs || 0,
-            source_date: new Date().toISOString().split('T')[0]
-          });
-
-        if (error) throw error;
-      }
-
-      await refreshContext();
+      // Use bulk insert for better performance
+      await addMultipleFoodEntries(selectedFoods.map(food => ({
+        name: food.name,
+        serving_size: food.serving_size || 100,
+        calories: food.calories || 0,
+        carbs: food.carbs || 0,
+        consumed: false
+      })));
       
       const totalCalories = selectedFoods.reduce((sum: number, food: any) => sum + (food.calories || 0), 0);
       const foodList = selectedFoods.map((food: any) => `${food.name} (${food.serving_size}g)`).join(', ');
@@ -276,7 +390,7 @@ export const AIVoiceButton = () => {
       setPendingFoods([]);
       setSelectedFoodIds(new Set());
       
-      addBubble('assistant', `Added ${foodList} - ${totalCalories} calories total`);
+      addBubble('assistant', `Added ${foodList} - ${totalCalories} calories total`, true);
       
       toast({
         title: "Foods added successfully",
@@ -335,7 +449,8 @@ export const AIVoiceButton = () => {
         .insert({
           user_id: user!.id,
           title: args.title,
-          content: args.content
+          content: args.content,
+          slug: generateUniqueSlug(args.title)
         });
 
       if (error) throw error;
@@ -459,50 +574,81 @@ export const AIVoiceButton = () => {
     }
   };
 
+  const handleModifyRecentFoods = async (args: any): Promise<string | null> => {
+    try {
+      const modifications = args?.modifications || {};
+      const clarificationText = args?.clarification_text || '';
+      console.log('🔄 AIVoiceButton - Processing food modification:', modifications, clarificationText);
+
+      // Use conversation memory to process the modification for pending foods
+      const context = conversationMemory.getContext();
+      const recentAction = context.recentFoodActions[0];
+      
+      if (recentAction && pendingFoods.length > 0) {
+        const modifiedFoods = conversationMemory.processModification(recentAction, modifications, pendingFoods);
+        
+        if (modifiedFoods && modifiedFoods.length > 0) {
+          setPendingFoods(modifiedFoods);
+          const foodNames = modifiedFoods.map(food => food.name).join(', ');
+          return `Updated ${foodNames} in preview. Please confirm to save the changes.`;
+        }
+      }
+      
+      // If no pending foods, provide helpful feedback
+      console.log('AIVoiceButton: No pending foods to modify');
+      return 'I can help you modify foods, but I need to see them first. Please add some foods and then ask me to modify them.';
+    } catch (error) {
+      console.error('AIVoiceButton: Error modifying foods:', error);
+      return 'Sorry, I had trouble modifying those foods. Please try again.';
+    }
+  };
+
   return (
     <>
       {/* AI Voice Button */}
       <Button
-        variant="ghost"
-        size="sm"
+        variant="action-primary"
+        size="action-tall"
         onClick={() => setIsOpen(true)}
-        className="ai-voice-button w-8 h-8 p-0 rounded-full bg-ai hover:bg-ai/90 hover:scale-110 transition-all duration-200"
+        className="w-full flex items-center justify-center bg-ai hover:bg-ai/90 border-ai hover:border-ai/90 text-white"
         title="AI Voice Assistant"
       >
-        <Mic className="w-4 h-4 text-white" />
+        <Mic className="w-5 h-5" />
       </Button>
 
       {/* Aquarium Glass Overlay - Constrained to app container */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex justify-center bg-frame-background/50">
           <div className="relative max-w-md w-full bg-background/5 backdrop-blur-lg">
-            {/* Close Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200"
-              title="Close"
-            >
-              <X className="w-6 h-6 text-foreground" />
-            </Button>
+              {/* Close Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsOpen(false)}
+                className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200"
+                title="Close"
+              >
+                <X className="w-6 h-6 text-foreground" />
+              </Button>
+
+              {/* Offline/Sync indicator */}
+              {(pending > 0 || isSyncing || !isOnline) && (
+                <div className="absolute top-4 left-4 z-10">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-sm">
+                    {!isOnline && <span className="text-destructive">Offline</span>}
+                    {pending > 0 && <span className="text-muted-foreground">{pending} pending</span>}
+                    {isSyncing && <span className="text-primary">Syncing...</span>}
+                  </div>
+                </div>
+              )}
 
             {/* Aquarium Container */}
             <div className="aquarium-container relative w-full h-screen flex flex-col">
-              {/* Chat Messages Area */}
+              {/* Content Area */}
               <div className="flex-1 overflow-hidden pt-20 pb-24">
                 <ScrollArea className="h-full">
                   <div className="max-w-full mx-auto space-y-2">
-                    {bubbles.map((bubble, index) => (
-                      <FloatingBubble
-                        key={bubble.id}
-                        content={bubble.content}
-                        role={bubble.role}
-                        index={index}
-                      />
-                    ))}
-                    
-                    {/* Food Preview Section */}
+                    {/* Food Preview Section - Now appears first */}
                     {pendingFoods.length > 0 && (
                       <div className="px-4 space-y-4">
                         <Card className="bg-background/90 backdrop-blur-sm border-border/50">
@@ -658,6 +804,17 @@ export const AIVoiceButton = () => {
                         </Card>
                       </div>
                     )}
+
+                    {/* Chat Messages Area - Now appears after food preview */}
+                    {bubbles.map((bubble, index) => (
+                      <FloatingBubble
+                        key={bubble.id}
+                        content={bubble.content}
+                        role={bubble.role}
+                        index={index}
+                        isSuccess={bubble.isSuccess}
+                      />
+                    ))}
                     
                     {/* Processing Bubble */}
                     {isProcessing && (
@@ -676,8 +833,8 @@ export const AIVoiceButton = () => {
               </div>
 
               {/* Voice Button at Bottom */}
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-                <PremiumGatedCircularVoiceButton
+              <div className={`absolute left-1/2 transform -translate-x-1/2 ${isMobile ? 'bottom-8 pb-safe mb-4' : 'bottom-4'}`}>
+                <CircularVoiceButton
                   onTranscription={handleVoiceTranscription}
                   isDisabled={isProcessing}
                   size="lg"

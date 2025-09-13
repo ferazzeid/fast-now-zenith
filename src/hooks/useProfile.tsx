@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 import { cacheProfile, getCachedProfile, deduplicateRequest } from '@/utils/offlineStorage';
@@ -18,22 +18,27 @@ interface UserProfile {
   goal_weight?: number;
   activity_level?: string;
   default_walking_speed?: number;
+  manual_tdee_override?: number;
   enable_fasting_slideshow?: boolean;
   enable_walking_slideshow?: boolean;
   enable_food_image_generation?: boolean;
   enable_daily_reset?: boolean;
   enable_ceramic_animations?: boolean;
+  enable_quotes_in_animations?: boolean;
+  enable_notes_in_animations?: boolean;
   sex?: 'male' | 'female';
+  onboarding_completed?: boolean;
 }
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const user = useAuthStore(state => state.user);
   const { toast } = useToast();
   const { executeWithRetry } = useRetryableSupabase();
 
   const loadProfile = useCallback(async (forceRefresh: boolean = false) => {
+    // Always set loading to false if no user, but don't return early
     if (!user) {
       setProfile(null);
       setLoading(false);
@@ -204,19 +209,23 @@ export const useProfile = () => {
       profile.weight && 
       profile.height && 
       profile.age && 
-      (profile.activity_level || profile['activity-level'])); // Handle both formats, removed sex requirement
+      profile.sex &&
+      (profile.activity_level || profile['activity-level']) &&
+      profile.onboarding_completed); // Must have onboarding completed flag
     
     console.log('Profile completion check:', { 
       complete, 
       weight: profile?.weight,
       height: profile?.height,
       age: profile?.age,
+      sex: profile?.sex,
       activity_level: profile?.activity_level,
+      onboarding_completed: profile?.onboarding_completed,
       profile: profile
     });
     
     return complete;
-  }, [profile?.weight, profile?.height, profile?.age, profile?.activity_level]);
+  }, [profile?.weight, profile?.height, profile?.age, profile?.sex, profile?.activity_level, profile?.onboarding_completed]);
 
   const calculateBMR = () => {
     if (!profile || !profile.weight || !profile.height || !profile.age) return 0;
@@ -233,11 +242,17 @@ export const useProfile = () => {
       heightCm = profile.height * 2.54; // Convert inches to cm
     }
     
-    // Mifflin-St Jeor Equation (assuming average between male/female)
+    // Mifflin-St Jeor Equation with sex-specific calculation
     // Male: BMR = 10 × weight + 6.25 × height - 5 × age + 5
     // Female: BMR = 10 × weight + 6.25 × height - 5 × age - 161
-    // Average: BMR = 10 × weight + 6.25 × height - 5 × age - 78
-    return Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 78);
+    let bmr: number;
+    if (profile.sex === 'female') {
+      bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 161);
+    } else {
+      // Default to male formula if sex not specified or is male
+      bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
+    }
+    return bmr;
   };
 
   const calculateWalkingCalories = (durationMinutes: number, speedMph: number = 3) => {
@@ -266,12 +281,8 @@ export const useProfile = () => {
   };
 
   useEffect(() => {
-    if (user?.id) {
-      loadProfile();
-    } else {
-      setProfile(null);
-      setLoading(false);
-    }
+    // Always call loadProfile, it handles the user check internally
+    loadProfile();
   }, [user?.id, loadProfile]);
 
   return {

@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils';
 interface UniversalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title: string | React.ReactNode;
   description?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
   variant?: 'standard' | 'fullscreen';
@@ -46,7 +46,7 @@ const sizeClasses = {
   md: 'max-w-lg', 
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
-  full: 'max-w-[95vw] max-h-[95vh]'
+  full: 'w-[95vw] max-w-6xl mx-auto'
 };
 
 export const UniversalModal = ({

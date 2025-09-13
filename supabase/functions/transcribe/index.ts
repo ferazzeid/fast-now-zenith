@@ -30,18 +30,126 @@ function checkBurstLimit(key: string, limit: number, windowMs: number): boolean 
 }
 
 serve(async (req) => {
+  console.log('🚨 TRANSCRIBE FUNCTION CALLED - TIMESTAMP:', new Date().toISOString());
+  console.log('🚨 Request method:', req.method);
+  console.log('🚨 Request headers:', Object.fromEntries(req.headers.entries()));
+  
   // Handle CORS preflight requests
   const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
   if (req.method === 'OPTIONS') {
+    console.log('🚨 Returning CORS preflight response');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { audio } = await req.json();
-    console.log('Received transcription request, audio data length:', audio?.length || 0);
+    console.log('Transcribe function called, method:', req.method);
+    console.log('Content-Type:', req.headers.get('content-type'));
     
+    // Get raw body first to debug empty requests
+    const bodyText = await req.text();
+    console.log('Raw body length:', bodyText.length);
+    console.log('Request content-length header:', req.headers.get('content-length'));
+    console.log('Request size info - URL length:', req.url.length);
+    
+    if (!bodyText || bodyText.trim() === '') {
+      console.error('Empty request body received');
+      console.error('Headers received:', Object.fromEntries(req.headers.entries()));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Empty request body', 
+          details: 'No audio data received' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    let requestData;
+    try {
+      requestData = JSON.parse(bodyText);
+      console.log('Request data parsed successfully, keys:', Object.keys(requestData || {}));
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Body preview:', bodyText.substring(0, 200));
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid JSON', 
+          details: 'Request body is not valid JSON' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    const { audio } = requestData;
+    console.log('Audio data present:', !!audio);
+    console.log('Audio data type:', typeof audio);
+    console.log('Audio data length:', audio?.length || 0);
+    
+    if (audio && typeof audio === 'string') {
+      console.log('Audio data sample (first 50 chars):', audio.substring(0, 50));
+      console.log('Audio data size in KB:', Math.round(audio.length / 1024));
+    }
+    
+    // Validate audio data
     if (!audio) {
-      throw new Error('No audio data provided');
+      console.error('No audio data provided');
+      return new Response(
+        JSON.stringify({ 
+          error: 'No audio data provided', 
+          details: 'The audio field is missing from the request' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (typeof audio !== 'string') {
+      console.error('Invalid audio data type:', typeof audio);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid audio data type', 
+          details: `Expected string, got ${typeof audio}` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (audio.length === 0) {
+      console.error('Empty audio data');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Empty audio data', 
+          details: 'The audio data string is empty' 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (audio.length < 1000) {
+      console.error('Audio data too short:', audio.length);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Audio data too short', 
+          details: `Received ${audio.length} chars, need at least 1000` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Initialize Supabase client
@@ -52,13 +160,33 @@ serve(async (req) => {
     // Get user from auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('No authorization header provided');
+      console.error('No authorization header provided');
+      return new Response(
+        JSON.stringify({ 
+          error: 'No authorization header provided', 
+          details: 'Authentication required' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const token = authHeader.replace('Bearer ', '');
     const { data: userData, error: userError } = await supabase.auth.getUser(token);
     if (userError || !userData.user) {
-      throw new Error('User not authenticated');
+      console.error('User authentication failed:', userError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'User not authenticated', 
+          details: 'Invalid or expired token' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const userId = userData.user.id;
@@ -74,52 +202,170 @@ serve(async (req) => {
     // Get user profile and check subscription status
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, subscription_status, user_tier')
+      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
       .eq('user_id', userId)
       .single();
 
     if (profileError) {
-      throw new Error('Failed to fetch user profile');
+      console.error('Profile fetch error:', profileError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to fetch user profile', 
+          details: 'Database error' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Get monthly request limit from settings
+    console.log('User access level:', profile.access_level, 'AI requests:', profile.monthly_ai_requests);
+
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'free' : profile.access_level;
+
+    // Get both trial and premium limits from settings
     const { data: settings } = await supabase
       .from('shared_settings')
-      .select('setting_value')
-      .eq('setting_key', 'monthly_request_limit')
-      .maybeSingle();
+      .select('setting_key, setting_value')
+      .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
 
-    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    const trialLimit = parseInt(settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50');
+    const premiumLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
     
-    // Free users get 0 requests (only trial users get requests)
-    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
-    
-    if (profile.monthly_ai_requests >= userLimit) {
-      throw new Error(`Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : 'Your monthly limit has been reached.'}`);
+    // Determine appropriate limit based on user tier
+    let currentLimit: number;
+    let limitType: string;
+
+    if (effectiveLevel === 'admin') {
+      console.log('Admin user - unlimited AI access');
+      currentLimit = Infinity;
+      limitType = 'unlimited';
+    } else if (effectiveLevel === 'premium') {
+      currentLimit = premiumLimit;
+      limitType = 'premium';
+    } else {
+      // Trial users (includes expired premium users)
+      currentLimit = trialLimit;
+      limitType = 'trial';
     }
 
-    // Resolve API key (shared key only)
-    const clientApiKey = req.headers.get('X-OpenAI-API-Key');
-    let OPENAI_API_KEY = clientApiKey;
+    // Check access permissions and limits
+    if (effectiveLevel === 'free') {
+      console.error('User access denied - free tier');
+      return new Response(
+        JSON.stringify({ 
+          error: 'AI features are only available to premium users', 
+          details: 'Start your free trial or upgrade to continue' 
+        }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Check limits (skip for admin)
+    if (effectiveLevel !== 'admin' && profile.monthly_ai_requests >= currentLimit) {
+      console.error('User request limit exceeded:', profile.monthly_ai_requests, '>=', currentLimit);
+      const resetDate = new Date();
+      resetDate.setMonth(resetDate.getMonth() + 1, 1);
+      const resetDateString = resetDate.toLocaleDateString();
+      
+      let errorMessage;
+      if (limitType === 'trial') {
+        errorMessage = `You've used all ${currentLimit} trial AI requests this month. Upgrade to premium for ${premiumLimit} monthly requests. Your trial limit will reset on ${resetDateString}.`;
+      } else {
+        errorMessage = `You've used all ${currentLimit} premium AI requests this month. Your limit will reset on ${resetDateString}.`;
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'Request limit exceeded', 
+          details: errorMessage 
+        }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Resolve API key - check environment first, then shared settings
+    let OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
     
     if (!OPENAI_API_KEY) {
+      // Check for client-provided key
+      const clientApiKey = req.headers.get('X-OpenAI-API-Key');
+      if (clientApiKey) {
+        OPENAI_API_KEY = clientApiKey;
+      }
+    }
+    
+    if (!OPENAI_API_KEY) {
+      // Fall back to shared settings
       const { data: sharedKey } = await supabase
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'shared_api_key')
         .maybeSingle();
-      OPENAI_API_KEY = sharedKey?.setting_value || Deno.env.get('OPENAI_API_KEY') || '';
+      OPENAI_API_KEY = sharedKey?.setting_value;
     }
 
+    console.log('OpenAI API Key available:', !!OPENAI_API_KEY);
+    
     if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key not configured. Please contact support.');
+      console.error('OpenAI API key not configured - env var:', !!Deno.env.get('OPENAI_API_KEY'), 'shared setting checked');
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured', 
+          details: 'Please configure the OpenAI API key in environment variables or admin settings' 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
-    // Convert base64 to binary
-    const binaryString = atob(audio);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    // Convert base64 to binary with validation
+    let binaryString;
+    let bytes;
+    try {
+      console.log('Converting base64 to binary...');
+      binaryString = atob(audio);
+      console.log('Binary string length:', binaryString.length, 'bytes');
+      
+      if (binaryString.length === 0) {
+        throw new Error('Decoded audio data is empty');
+      }
+      
+      if (binaryString.length < 100) {
+        throw new Error(`Decoded audio data too small: ${binaryString.length} bytes`);
+      }
+      
+      bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      console.log('Audio conversion successful, final size:', bytes.length, 'bytes');
+      
+    } catch (decodeError) {
+      console.error('Base64 decode error:', decodeError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid base64 audio data', 
+          details: `Failed to decode: ${decodeError.message}` 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     // Create form data for OpenAI Whisper API
@@ -139,13 +385,24 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
+      console.error('OpenAI API error. Status:', response.status);
       try {
         const errorData = await response.json();
-        if (!isProd) console.error('OpenAI API error:', errorData);
+        console.error('OpenAI API error details:', errorData);
       } catch (_) {
-        if (!isProd) console.error('OpenAI API error: non-JSON body');
+        console.error('OpenAI API error: non-JSON response');
       }
-      throw new Error(`OpenAI API error: ${response.status}`);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: 'Transcription service error', 
+          details: `OpenAI API returned status ${response.status}` 
+        }),
+        { 
+          status: 500, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
     }
 
     const result = await response.json();

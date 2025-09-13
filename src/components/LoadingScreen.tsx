@@ -1,5 +1,5 @@
-import { EnhancedLoadingScreen } from './enhanced/SmartLoadingStates';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export const LoadingScreen = ({ message }: { message?: string } = {}) => {
-  return <EnhancedLoadingScreen message={message} />;
+  return <LoadingSpinner text={message} />;
 };

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
+import { ImageUpload } from '@/components/ImageUpload';
 
 interface FoodEntry {
   id: string;
@@ -28,6 +29,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
   const [calories, setCalories] = useState(entry.calories.toString());
   const [carbs, setCarbs] = useState(entry.carbs.toString());
   const [servingSize, setServingSize] = useState(entry.serving_size.toString());
+  const [imageUrl, setImageUrl] = useState(entry.image_url || '');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -80,6 +82,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
         calories: caloriesNum,
         carbs: carbsNum,
         serving_size: servingSizeNum,
+        image_url: imageUrl || undefined,
       };
 
       await onUpdate(updatedEntry);
@@ -102,6 +105,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
     setCalories(entry.calories.toString());
     setCarbs(entry.carbs.toString());
     setServingSize(entry.serving_size.toString());
+    setImageUrl(entry.image_url || '');
   };
 
   return (
@@ -133,16 +137,15 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
       }
     >
       <div className="space-y-4">
-        {/* Food Image - Display only */}
-        {entry.image_url && (
-          <div className="w-full h-32 mb-4">
-            <img
-              src={entry.image_url}
-              alt={entry.name}
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
-        )}
+        {/* Food Image Upload */}
+        <div className="space-y-2">
+          <Label>Food Image</Label>
+          <ImageUpload
+            currentImageUrl={imageUrl}
+            onImageUpload={setImageUrl}
+            onImageRemove={() => setImageUrl('')}
+          />
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="name">Food Name</Label>

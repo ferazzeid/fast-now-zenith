@@ -1,5 +1,8 @@
 project_id = "texnkijwcygodtywgedm"
 
+[functions.transcribe]
+verify_jwt = true
+
 [functions.realtime-chat]
 verify_jwt = false
 
@@ -44,6 +47,9 @@ verify_jwt = true
 
 [functions.check-subscription]
 verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
 
 [functions.execute-ai-function]
 verify_jwt = true

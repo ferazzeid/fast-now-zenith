@@ -78,7 +78,7 @@ serve(async (req) => {
     // Get user profile and check subscription status
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, subscription_status, user_tier')
+      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
       .eq('user_id', userId)
       .single();
 
@@ -86,21 +86,37 @@ serve(async (req) => {
       throw new Error('Failed to fetch user profile');
     }
 
-    // Get monthly request limit from settings
+    console.log('User access level:', profile.access_level, 'AI requests:', profile.monthly_ai_requests);
+
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'trial' : profile.access_level;
+
+    // Get request limits from settings
     const { data: settings } = await supabase
       .from('shared_settings')
-      .select('setting_value')
-      .eq('setting_key', 'monthly_request_limit')
-      .maybeSingle();
+      .select('setting_key, setting_value')
+      .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
 
-    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    const trialLimit = parseInt(settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50');
+    const premiumLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
     
-    // Free users get 0 requests (only trial users get requests)
-    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
-    
-    if (profile.monthly_ai_requests >= userLimit) {
-      throw new Error(`Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : 'Your monthly limit has been reached.'}`);
+    // Check access permissions and limits
+    if (effectiveLevel === 'trial') {
+      if (profile.monthly_ai_requests >= trialLimit) {
+        throw new Error('Your free trial has ended. Upgrade to premium to continue using AI features.');
+      }
+    } else if (effectiveLevel === 'premium') {
+      if (profile.monthly_ai_requests >= premiumLimit) {
+        throw new Error(`You've used all ${premiumLimit} AI requests this month. Your limit will reset next month.`);
+      }
+    } else if (effectiveLevel !== 'admin') {
+      throw new Error('AI features are only available to premium users. Start your free trial or upgrade to continue.');
     }
+
+    // Admins have unlimited access (no limit check needed)
 
     // Resolve API key (shared key only)
     const clientApiKey = req.headers.get('X-OpenAI-API-Key');

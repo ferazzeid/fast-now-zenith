@@ -24,7 +24,7 @@ interface WalkingSession {
 export const useWalkingSession = () => {
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedSpeed, setSelectedSpeed] = useState<number>(3); // Default to average speed
+  const [selectedSpeed, setSelectedSpeed] = useState<number | null>(null); // Initialize as null to avoid race condition
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
@@ -89,26 +89,38 @@ export const useWalkingSession = () => {
     }
   }, [user]);
 
-  const startWalkingSession = useCallback(async (speedMph: number = selectedSpeed): Promise<{data: any, error: any}> => {
+  const startWalkingSession = useCallback(async (speedMph?: number): Promise<{data: any, error: any}> => {
     if (!user) return { error: { message: 'User not authenticated' }, data: null };
 
-    const offlineStart = async () => {
-      const localId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const startIso = new Date().toISOString();
-      const localSession: WalkingSession = {
-        id: localId,
-        user_id: user.id,
-        start_time: startIso,
-        status: 'active',
-        session_state: 'active',
-        total_pause_duration: 0,
-        speed_mph: speedMph,
-      } as any;
+    // Use provided speed, or selectedSpeed, or fall back to 3
+    const speed = speedMph || selectedSpeed || 3;
+    const startTimeIso = new Date().toISOString();
+    
+    console.log('Starting walking session with speed:', { speedMph, selectedSpeed, finalSpeed: speed });
+    
+    // Create optimistic session immediately for instant UI feedback
+    const optimisticSession: WalkingSession = {
+      id: `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      user_id: user.id,
+      start_time: startTimeIso,
+      status: 'active',
+      session_state: 'active',
+      total_pause_duration: 0,
+      speed_mph: speed,
+    };
 
-      // Optimistic local state
+    // Set optimistic state immediately
+    setCurrentSession(optimisticSession);
+    if (selectedSpeed === null) {
+      setSelectedSpeed(speed); // Initialize selectedSpeed if it's null
+    }
+    setIsPaused(false);
+
+    const offlineStart = async () => {
+      // Update optimistic session with proper offline ID
+      const localId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const localSession = { ...optimisticSession, id: localId };
       setCurrentSession(localSession);
-      setSelectedSpeed(speedMph);
-      setIsPaused(false);
 
       // Enqueue start op
       await enqueueOperation({
@@ -117,8 +129,8 @@ export const useWalkingSession = () => {
         user_id: user.id,
         payload: {
           local_id: localId,
-          start_time: startIso,
-          speed_mph: speedMph,
+          start_time: startTimeIso,
+          speed_mph: speed,
           status: 'active',
           session_state: 'active',
           total_pause_duration: 0,
@@ -129,29 +141,32 @@ export const useWalkingSession = () => {
 
     setLoading(true);
     try {
-      // If offline, immediately create a local session and queue
+      // If offline, handle offline flow
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         const res = await offlineStart();
         return res;
       }
 
+      // Online flow - but we already have optimistic UI
       const { data, error } = await supabase
         .from('walking_sessions')
         .insert({
           user_id: user.id,
-          start_time: new Date().toISOString(),
+          start_time: startTimeIso,
           status: 'active',
-          speed_mph: speedMph,
+          speed_mph: speed,
           session_state: 'active',
           total_pause_duration: 0,
         })
         .select()
         .single();
 
+      if (error) throw error;
+
       console.log('Walking session started successfully:', data);
+      
+      // Update with real session data from database
       setCurrentSession(data);
-      setSelectedSpeed(speedMph);
-      setIsPaused(false);
       
       // Persist to local storage
       persistWalkingSession({
@@ -169,11 +184,6 @@ export const useWalkingSession = () => {
       console.log('Triggering refresh after session start');
       triggerRefresh();
 
-      // Additional immediate load to ensure state is fresh
-      setTimeout(() => {
-        loadActiveSession();
-      }, 100);
-
       return { data, error: null };
     } catch (error: any) {
       console.error('Error starting walking session:', error);
@@ -182,11 +192,14 @@ export const useWalkingSession = () => {
         const res = await offlineStart();
         return res;
       }
+      // Revert optimistic update on error
+      setCurrentSession(null);
+      setIsPaused(false);
       return { error, data: null };
     } finally {
       setLoading(false);
     }
-  }, [user, selectedSpeed, loadActiveSession, triggerRefresh]);
+  }, [user, selectedSpeed, triggerRefresh]);
 
   const pauseWalkingSession = useCallback(async (): Promise<{data: any, error: any}> => {
     if (!user || !currentSession) return { error: { message: 'No active session' }, data: null };
@@ -494,12 +507,26 @@ export const useWalkingSession = () => {
     };
   }, [loadActiveSession]);
 
-  // Initialize selectedSpeed from profile - stable dependency with debouncing
+  // Initialize selectedSpeed from profile - always prioritize profile data when available
   useEffect(() => {
-    if (profile?.default_walking_speed && profile.default_walking_speed !== selectedSpeed) {
-      setSelectedSpeed(profile.default_walking_speed);
+    console.log('Speed initialization effect triggered:', { 
+      profileSpeed: profile?.default_walking_speed, 
+      currentSelectedSpeed: selectedSpeed,
+      user: user?.id 
+    });
+
+    if (profile?.default_walking_speed != null) {
+      // Normalize profile speed to exact option values
+      const profileSpeed = profile.default_walking_speed;
+      const normalizedSpeed = profileSpeed > 3.7 ? 4.3 : 3.1;
+      console.log('Setting selectedSpeed from profile:', { profileSpeed, normalizedSpeed });
+      setSelectedSpeed(normalizedSpeed);
+    } else if (selectedSpeed === null) {
+      // Only set default if no profile speed and no current speed
+      console.log('Setting default selectedSpeed to 3.1 (no profile speed available)');
+      setSelectedSpeed(3.1);
     }
-  }, [profile?.default_walking_speed]); // Removed selectedSpeed to prevent infinite loops
+  }, [profile?.default_walking_speed, user]); // Add user as dependency to re-run when user changes
 
   const updateSessionSpeed = useCallback(async (newSpeed: number): Promise<{data: any, error: any}> => {
     if (!currentSession || !user) return { error: null, data: null };
@@ -551,23 +578,51 @@ export const useWalkingSession = () => {
   }, [user, currentSession]);
 
   // Save selected speed to profile
-  const saveSpeedToProfile = useCallback(async (newSpeed: number) => {
-    if (!user) return;
+  const saveSpeedToProfile = useCallback(async (newSpeed: number): Promise<boolean> => {
+    if (!user) return false;
     
     try {
-      await supabase
+      // Use upsert pattern like activity override for reliability
+      const { data, error } = await supabase
         .from('profiles')
         .update({ default_walking_speed: newSpeed })
         .eq('user_id', user.id);
+      
+      if (error) {
+        console.error('Database error saving walking speed:', error);
+        throw error;
+      }
+      
+      return true;
     } catch (error) {
       console.error('Error saving walking speed to profile:', error);
+      return false;
     }
   }, [user]);
 
-  // Enhanced setSelectedSpeed that also saves to profile
-  const updateSelectedSpeed = useCallback((newSpeed: number) => {
-    setSelectedSpeed(newSpeed);
-    saveSpeedToProfile(newSpeed);
+  // Enhanced setSelectedSpeed with immediate optimistic updates like activity override
+  const updateSelectedSpeed = useCallback(async (newSpeed: number) => {
+    // Normalize speed to exact option values to prevent display issues
+    const normalizedSpeed = newSpeed > 3.7 ? 4.3 : 3.1;
+    
+    // Immediate UI update for optimistic behavior (like activity override)
+    setSelectedSpeed(normalizedSpeed);
+    
+    try {
+      // Save to user's profile in background
+      const success = await saveSpeedToProfile(normalizedSpeed);
+      
+      if (success) {
+        // Keep the optimistic update - success!
+        console.log('Walking speed saved successfully:', normalizedSpeed);
+      } else {
+        // Could show error toast here like activity override does
+        console.error('Failed to save walking speed, keeping optimistic update');
+      }
+    } catch (error) {
+      console.error('Error saving walking speed:', error);
+      // Keep optimistic UI update for better UX (like activity override pattern)
+    }
   }, [saveSpeedToProfile]);
 
   // triggerRefresh defined earlier
@@ -575,8 +630,9 @@ export const useWalkingSession = () => {
   return {
     currentSession,
     loading,
-    selectedSpeed,
+    selectedSpeed: selectedSpeed ?? 3.1, // Ensure we never return null to components, default to normal speed
     setSelectedSpeed: updateSelectedSpeed, // Use the enhanced version
+    updateSelectedSpeed, // Also export directly for explicit use
     isPaused,
     startWalkingSession,
     pauseWalkingSession,

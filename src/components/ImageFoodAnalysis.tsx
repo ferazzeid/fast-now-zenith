@@ -143,7 +143,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
           {/* Action Buttons */}
           <div className="flex gap-2 pt-4">
             <Button onClick={onSave} className="flex-1">
-              Add to Food Plan & Library
+              Add to Food Plan
             </Button>
             <Button variant="outline" onClick={onClose}>
               Cancel
@@ -153,7 +153,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
           {/* Workflow Info */}
           <div className="bg-muted/50 rounded-lg p-3 mt-2">
             <p className="text-xs text-muted-foreground">
-              This will add {data.name || 'this food'} ({data.servingSize || '0'}g) to your food plan and calculate per-100g values for your library.
+              This will add {data.name || 'this food'} ({data.servingSize || '0'}g) to your food plan.
             </p>
           </div>
         </div>

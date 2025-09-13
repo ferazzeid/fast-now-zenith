@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppLogo } from '@/hooks/useAppLogo';
+
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Loader2, ChevronDown, Mail } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -15,8 +19,13 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
+  const { appLogo } = useAppLogo();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
+  
 
   useEffect(() => {
     if (user && !authLoading) {
@@ -24,9 +33,15 @@ const Auth = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Show loading screen while auth is loading to prevent login form flash
+  // Show loading screen while auth is loading, but with enhanced fallback
   if (authLoading) {
-    return <LoadingSpinner />;
+    return (
+      <LoadingSpinner 
+        text="Connecting..."
+        subText="Loading your account"
+        showLogo={false}
+      />
+    );
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -45,19 +60,42 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
-    await signInWithGoogle();
-    setLoading(false);
+    try {
+      await signInWithGoogle();
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
-        {/* Logo/Brand */}
+        {/* Logo/Brand - Progressive Loading */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            FastNow
-          </h1>
-          <p className="text-muted-foreground">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            {/* Show logo if loaded, fallback letter if not */}
+            {appLogo ? (
+              <img 
+                src={appLogo} 
+                alt="App Logo" 
+                className="w-12 h-12 object-contain rounded-lg"
+                onError={() => {
+                  // Hide broken images gracefully
+                  const target = event?.target as HTMLImageElement;
+                  if (target) target.style.display = 'none';
+                }}
+              />
+            ) : (
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary">F</span>
+              </div>
+            )}
+            <h1 className="text-4xl font-bold text-foreground">
+              FastNow
+            </h1>
+          </div>
+          <p className="text-foreground/80">
             Your no-BS weight loss program
           </p>
         </div>
@@ -178,18 +216,18 @@ const Auth = () => {
             <p className="text-xs text-muted-foreground text-center leading-relaxed">
               By continuing, you agree to our{' '}
               <a
-                href="https://fastnow.app/terms"
+                href="https://go.fastnow.app/terms"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-foreground hover:text-primary"
+                className="underline text-foreground hover:text-foreground"
               >
                 Terms of Service
               </a>{' '}and{' '}
               <a
-                href="https://fastnow.app/privacy"
+                href="https://go.fastnow.app/privacy"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline text-foreground hover:text-primary"
+                className="underline text-foreground hover:text-foreground"
               >
                 Privacy Policy
               </a>.

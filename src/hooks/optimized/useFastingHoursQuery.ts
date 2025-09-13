@@ -17,6 +17,7 @@ export interface FastingHour {
   autophagy_milestone?: boolean;
   ketosis_milestone?: boolean;
   fat_burning_milestone?: boolean;
+  read_more_url?: string;
   // Enhanced fields
   benefits_challenges?: string;
   content_snippet?: string;
@@ -29,6 +30,7 @@ export interface FastingHour {
   mental_emotional_state?: string[];
   stage?: string;
   admin_personal_log?: string;
+  slug?: string;
 }
 
 export interface ContentVariant {
@@ -64,10 +66,18 @@ export function useFastingHoursQuery() {
       })) as FastingHour[];
       
       console.log('🔄 FASTING HOURS QUERY: Fetched', result.length, 'hours');
+      console.log('🔄 FASTING HOURS QUERY: Sample data for hours 0-2:', 
+        result.slice(0, 3).map(h => ({ 
+          hour: h.hour, 
+          metabolic_changes: h.metabolic_changes?.substring(0, 50) + '...',
+          content_rotation_data: h.content_rotation_data ? 'present' : 'missing'
+        }))
+      );
       return result;
     },
     // Use shorter cache time for admins actively editing logs
-    staleTime: isAdmin ? 5 * 60 * 1000 : 24 * 60 * 60 * 1000, // 5 min for admins, 24h for users
-    refetchOnWindowFocus: isAdmin, // Refetch when admin switches back to window
+    staleTime: isAdmin ? 30 * 1000 : 60 * 1000, // 30 seconds for admins, 1 minute for users (much shorter for testing)
+    refetchOnWindowFocus: true, // Always refetch when switching back to window
+    refetchInterval: isAdmin ? 30000 : false, // Auto-refetch every 30 seconds for admins
   });
 }

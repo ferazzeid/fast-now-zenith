@@ -1,26 +1,47 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { parseHSL } from '@/utils/colorUtils';
 
 interface ColorSettings {
   primary_color?: string;
   secondary_color?: string;
   accent_color?: string;
   ai_color?: string;
+  chat_ai_color?: string;
+  chat_user_color?: string;
 }
 
-export const useColorTheme = () => {
+export const useColorTheme = (shouldLoad: boolean = true) => {
   const [colorSettings, setColorSettings] = useState<ColorSettings>({});
   const [loading, setLoading] = useState(true);
 
   const loadColors = async () => {
+    // Skip loading if we shouldn't load yet (during startup)
+    if (!shouldLoad) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color']);
+        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color', 'chat_ai_color', 'chat_user_color']);
 
       if (error) {
         console.error('Error loading color settings:', error);
+        // Apply cached colors on error
+        const cachedColors = localStorage.getItem('admin_colors');
+        if (cachedColors) {
+          try {
+            const parsedColors = JSON.parse(cachedColors);
+            console.log('Applying cached colors due to database error');
+            applyColors(parsedColors);
+            setColorSettings(parsedColors);
+          } catch (cacheError) {
+            console.error('Error parsing cached colors:', cacheError);
+          }
+        }
         return;
       }
 
@@ -35,13 +56,32 @@ export const useColorTheme = () => {
           settings.accent_color = setting.setting_value;
         } else if (setting.setting_key === 'brand_ai_color') {
           settings.ai_color = setting.setting_value;
+        } else if (setting.setting_key === 'chat_ai_color') {
+          settings.chat_ai_color = setting.setting_value;
+        } else if (setting.setting_key === 'chat_user_color') {
+          settings.chat_user_color = setting.setting_value;
         }
       });
 
       setColorSettings(settings);
       applyColors(settings);
+      
+      // Cache the colors for instant loading on next visit
+      localStorage.setItem('admin_colors', JSON.stringify(settings));
     } catch (error) {
       console.error('Error in loadColors:', error);
+      // Apply cached colors on error
+      const cachedColors = localStorage.getItem('admin_colors');
+      if (cachedColors) {
+        try {
+          const parsedColors = JSON.parse(cachedColors);
+          console.log('Applying cached colors due to network error');
+          applyColors(parsedColors);
+          setColorSettings(parsedColors);
+        } catch (cacheError) {
+          console.error('Error parsing cached colors:', cacheError);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -77,67 +117,57 @@ export const useColorTheme = () => {
       // The values from database are already in HSL format
       root.style.setProperty('--ai', settings.ai_color);
     }
-  };
 
-  // Apply default colors immediately to prevent flash
-  const applyDefaultColors = () => {
-    const root = document.documentElement;
-    // Set default primary color to prevent green flash
-    root.style.setProperty('--primary', '140 35% 45%'); // Match design system
-    root.style.setProperty('--ring', '140 35% 45%');
-    root.style.setProperty('--primary-glow', '140 45% 55%');
-    root.style.setProperty('--primary-hover', '140 35% 40%');
-  };
-
-  const hexToHsl = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return null;
-
-    let r = parseInt(result[1], 16) / 255;
-    let g = parseInt(result[2], 16) / 255;
-    let b = parseInt(result[3], 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max === min) {
-      h = s = 0;
-    } else {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
+    if (settings.chat_ai_color) {
+      // The values from database are already in HSL format
+      root.style.setProperty('--chat-ai', settings.chat_ai_color);
     }
 
-    return {
-      h: Math.round(h * 360),
-      s: Math.round(s * 100),
-      l: Math.round(l * 100)
-    };
+    if (settings.chat_user_color) {
+      // The values from database are already in HSL format
+      root.style.setProperty('--chat-user', settings.chat_user_color);
+    }
   };
 
-  const parseHSL = (hslString: string) => {
-    // Parse "220 35% 45%" format
-    const matches = hslString.match(/(\d+)\s+(\d+)%\s+(\d+)%/);
-    if (!matches) return null;
+  // Apply brand default colors while loading database colors
+  const applyNeutralDefaults = () => {
+    const root = document.documentElement;
     
-    return {
-      h: parseInt(matches[1]),
-      s: parseInt(matches[2]),
-      l: parseInt(matches[3])
-    };
+    // Use same brand colors as CSS defaults
+    root.style.setProperty('--primary', '220 85% 50%');
+    root.style.setProperty('--ring', '220 85% 50%');
+    root.style.setProperty('--primary-glow', '220 85% 60%');
+    root.style.setProperty('--primary-hover', '220 85% 40%');
+    root.style.setProperty('--secondary', '220 13% 40%');
+    root.style.setProperty('--accent', '220 13% 50%');
+    root.style.setProperty('--ai', '48 96% 53%');
+    root.style.setProperty('--chat-ai', '262 83% 58%');
+    root.style.setProperty('--chat-user', '188 94% 43%');
   };
+
 
   useEffect(() => {
-    // Apply default colors immediately to prevent flash
-    applyDefaultColors();
-    loadColors();
-  }, []); // Remove user dependency since color settings are shared/global
+    // Always start with cached colors if available, then neutral defaults
+    const cachedColors = localStorage.getItem('admin_colors');
+    if (cachedColors) {
+      try {
+        const parsedColors = JSON.parse(cachedColors);
+        console.log('Applying cached colors immediately');
+        applyColors(parsedColors);
+        setColorSettings(parsedColors);
+      } catch (error) {
+        console.error('Error parsing cached colors:', error);
+        applyNeutralDefaults();
+      }
+    } else {
+      applyNeutralDefaults();
+    }
+    
+    // Load fresh colors from database when ready
+    if (shouldLoad) {
+      loadColors();
+    }
+  }, [shouldLoad]);
 
   return { colorSettings, loading, loadColors, applyColors };
 };

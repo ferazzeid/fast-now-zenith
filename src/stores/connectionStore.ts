@@ -23,9 +23,22 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
     set({ isTestingConnection: true });
     
     try {
-      // Test actual connectivity with a small request
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      // Use more reliable endpoint or assume online for native apps
+      const isCapacitor = typeof window !== 'undefined' && (window as any).Capacitor;
+      
+      if (isCapacitor) {
+        // In native apps, assume online if we can't test
+        clearTimeout(timeoutId);
+        set({
+          isOnline: true,
+          lastChecked: Date.now(),
+          isTestingConnection: false
+        });
+        return true;
+      }
       
       const response = await fetch('/favicon.ico', {
         method: 'HEAD',
@@ -44,12 +57,14 @@ export const useConnectionStore = create<ConnectionState>((set, get) => ({
       
       return isConnected;
     } catch (error) {
-      set({ 
-        isOnline: false, 
+      // In mobile apps, assume online if we can't test
+      const assumeOnline = typeof window !== 'undefined' && (window as any).Capacitor;
+      set({
+        isOnline: assumeOnline || navigator.onLine,
         lastChecked: Date.now(),
-        isTestingConnection: false 
+        isTestingConnection: false
       });
-      return false;
+      return assumeOnline || navigator.onLine;
     }
   },
 

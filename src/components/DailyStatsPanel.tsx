@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
-import { ChevronDown, Activity, Utensils, Target } from 'lucide-react';
+import { ChevronDown, Activity, Utensils, Target, Info, Lock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
@@ -9,17 +9,13 @@ import { DeficitDisplay, StatDisplay } from '@/components/OptimizedComponents';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { GoalMetrics } from '@/components/GoalMetrics';
 import { useAppLogo } from '@/hooks/useAppLogo';
-import { PremiumGatedDeficitDisplay } from '@/components/PremiumGatedDeficitDisplay';
-import { PremiumGatedCaloriesIn } from '@/components/PremiumGatedCaloriesIn';
-import { PremiumGatedGoalMetrics } from '@/components/PremiumGatedGoalMetrics';
-import { PremiumGatedDeficitDisplayLarge } from '@/components/PremiumGatedDeficitDisplayLarge';
+import { AccessGate } from '@/components/AccessGate';
 
 import { InlineActivitySelector } from '@/components/InlineActivitySelector';
 import { WalkingSessionsBreakdown } from '@/components/WalkingSessionsBreakdown';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { Info } from 'lucide-react';
 
 export const DailyStatsPanel = memo(() => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -42,7 +38,7 @@ export const DailyStatsPanel = memo(() => {
   };
 
   const getDeficitColor = useMemo(() => (deficit: number) => {
-    if (deficit > 0) return 'text-green-600 dark:text-green-400';
+    if (deficit > 0) return 'text-accent';
     if (deficit < 0) return 'text-red-600 dark:text-red-400';
     return 'text-muted-foreground';
   }, []);
@@ -159,13 +155,19 @@ export const DailyStatsPanel = memo(() => {
               <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
                 <Info className="w-3 h-3 text-muted-foreground" />
               </ClickableTooltip>
-              <PremiumGatedDeficitDisplay 
-                value={deficitData.todayDeficit}
-                formatNumber={formatNumber}
-                getDeficitColor={getDeficitColor}
-                loading={loading}
-                tdee={deficitData.tdee}
-              />
+              <AccessGate feature="food">
+                {({ hasAccess }) => (
+                  hasAccess ? (
+                    <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
+                      {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0
+                        ? '...'
+                        : `${formatNumber(deficitData.todayDeficit)} cal`}
+                    </span>
+                  ) : (
+                    <Lock className="w-3 h-3 text-muted-foreground" />
+                  )
+                )}
+              </AccessGate>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
@@ -185,26 +187,83 @@ export const DailyStatsPanel = memo(() => {
             <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-muted-foreground">
               <div className="px-8 py-4 space-y-4">
                 {/* Main Deficit Display */}
-                <PremiumGatedDeficitDisplayLarge 
-                  deficit={deficitData.todayDeficit}
-                  loading={loading}
-                  tdee={deficitData.tdee}
-                  fatInGrams={fatInGrams}
-                  thirtyDayProjection={thirtyDayProjection}
-                  userUnits={profile?.units}
-                />
+                <AccessGate feature="food">
+                  {({ hasAccess, requestUpgrade }) =>
+                    hasAccess ? (
+                      <DeficitDisplay
+                        deficit={deficitData.todayDeficit}
+                        loading={loading}
+                        tdee={deficitData.tdee}
+                        fatInGrams={fatInGrams}
+                        thirtyDayProjection={thirtyDayProjection}
+                        userUnits={profile?.units}
+                      />
+                    ) : (
+                      <Card className="p-4 bg-card border-border relative" onClick={requestUpgrade}>
+                        <div className="text-center space-y-3">
+                          <div className="flex items-center justify-center space-x-2">
+                            <h3 className="text-lg font-semibold text-muted-foreground">Today's Deficit</h3>
+                          </div>
+                          <div className="text-3xl font-bold text-muted-foreground">
+                            <Lock className="w-8 h-8 mx-auto" />
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">
+                              Deficit tracking requires premium
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Unlock detailed calorie deficit analysis, fat loss projections, and more
+                            </p>
+                          </div>
+                        </div>
+                      </Card>
+                    )
+                  }
+                </AccessGate>
 
                 {/* Breakdown */}
                 <div className="grid grid-cols-2 gap-1 px-0.5">
                   {/* Calories In with Carbs */}
-                  <PremiumGatedCaloriesIn 
-                    calories={deficitData.caloriesConsumed}
-                    carbs={todayTotals.carbs}
-                  />
+                  <AccessGate feature="food">
+                    {({ hasAccess, requestUpgrade }) => (
+                      <Card
+                        className={`p-3 bg-card border-border relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
+                        onClick={hasAccess ? undefined : requestUpgrade}
+                      >
+                        <div className="absolute top-2 right-2">
+                          <ClickableTooltip content="Total calories consumed from food today">
+                            <Info className="w-5 h-5 text-muted-foreground" />
+                          </ClickableTooltip>
+                        </div>
+
+                        <div className="flex items-center space-x-2 mb-1 pr-6">
+                          <Utensils className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-xs font-medium text-warm-text">Calories In</span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <div className="text-lg font-bold text-muted-foreground">
+                            {Math.round(deficitData.caloriesConsumed)} cal
+                          </div>
+
+                          {/* Dividing line and carbs */}
+                          <div className="flex items-center space-x-2">
+                            <div className="w-px h-6 bg-border"></div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-sm font-medium text-muted-foreground">{Math.round(todayTotals.carbs)}g</span>
+                              <ClickableTooltip content="Total carbs consumed from food today">
+                                <Info className="w-3 h-3 text-muted-foreground" />
+                              </ClickableTooltip>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    )}
+                  </AccessGate>
 
                   {/* Calories Out */}
                   <StatDisplay
-                    icon={<Activity className="w-4 h-4 text-primary" />}
+                    icon={<Activity className="w-4 h-4 text-muted-foreground" />}
                     label="Calories Out"
                     value={deficitData.totalCaloriesBurned}
                     tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.totalCaloriesBurned)}`}
@@ -217,7 +276,7 @@ export const DailyStatsPanel = memo(() => {
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <Target className="w-4 h-4 text-primary" />
+                      <Target className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
                       <ClickableTooltip content={`Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`}>
                         <Info className="w-4 h-4 text-muted-foreground" />
@@ -247,7 +306,16 @@ export const DailyStatsPanel = memo(() => {
 
 
                   {/* Goal Metrics */}
-                  <PremiumGatedGoalMetrics />
+                  <AccessGate feature="food">
+                    {({ hasAccess, requestUpgrade }) => (
+                      <div
+                        onClick={hasAccess ? undefined : requestUpgrade}
+                        className={hasAccess ? '' : 'opacity-50 cursor-pointer'}
+                      >
+                        <GoalMetrics />
+                      </div>
+                    )}
+                  </AccessGate>
 
 
 

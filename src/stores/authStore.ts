@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-
+import { checkOAuthRecovery } from '@/utils/oauthRecovery';
 // Auth debugging logger
 const authLogger = {
   info: (message: string, data?: any) => console.log(`🔐 Auth: ${message}`, data || ''),
@@ -14,6 +14,8 @@ interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  oauthCompleting: boolean;
+  initialized: boolean;
   
   // Actions
   initialize: () => Promise<void>;
@@ -21,9 +23,12 @@ interface AuthState {
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
+  
   resetPassword: (email: string) => Promise<{ error: any }>;
   updatePassword: (password: string) => Promise<{ error: any }>;
   setLoading: (loading: boolean) => void;
+  setOAuthCompleting: (completing: boolean) => void;
+  forceRefresh: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -32,60 +37,93 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       session: null,
       loading: true,
+      oauthCompleting: false,
+      initialized: false,
 
       initialize: async () => {
         const state = get();
-        if (!state.loading) {
+        if (state.initialized) {
           authLogger.info('Already initialized, skipping');
           return;
         }
 
         authLogger.info('Starting auth initialization');
+        set({ initialized: true, loading: true });
+        
+        // Single timeout for auth initialization
+        const timeoutId = setTimeout(() => {
+          authLogger.warn('Auth initialization timeout after 12 seconds');
+          set({ loading: false });
+        }, 12000);
         
         try {
-          // Set up auth state listener - simple and reliable
+          // Set up auth state listener first
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-              authLogger.info(`Auth state changed: ${event}`, { 
-                hasSession: !!session, 
-                userId: session?.user?.id,
-                email: session?.user?.email 
+            async (event, session) => {
+              authLogger.info(`Auth event: ${event}`, {
+                hasSession: !!session,
+                userId: session?.user?.id
               });
+              
+              // Handle token refresh errors by clearing invalid sessions
+              if (event === 'TOKEN_REFRESHED' && !session) {
+                authLogger.warn('Token refresh failed, clearing session');
+                localStorage.removeItem('sb-texnkijwcygodtywgedm-auth-token');
+                set({
+                  session: null,
+                  user: null,
+                  loading: false,
+                });
+                return;
+              }
               
               set({
                 session,
                 user: session?.user ?? null,
                 loading: false,
               });
+              clearTimeout(timeoutId); // Clear timeout on success
             }
           );
 
-          // Get current session - simple, no race conditions
+          // Get current session with better error handling
           const { data: { session }, error } = await supabase.auth.getSession();
+          
+          clearTimeout(timeoutId); // Clear timeout on completion
+          
           if (error) {
             authLogger.error('Error getting session:', error);
+            // Clear corrupted auth tokens
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-') && key.includes('auth-token')) {
+                localStorage.removeItem(key);
+              }
+            });
+            set({ 
+              session: null, 
+              user: null, 
+              loading: false 
+            });
+          } else {
+            // Update initial session state
+            authLogger.info('Initial session loaded', { hasSession: !!session });
+            set({
+              session,
+              user: session?.user ?? null,
+              loading: false,
+            });
           }
-          
-          authLogger.info('Session initialization complete', { 
-            hasSession: !!session,
-            userId: session?.user?.id 
-          });
-          
-          set({
-            session,
-            user: session?.user ?? null,
-            loading: false,
-          });
 
           // Store subscription for cleanup
           (window as any).__authSubscription = subscription;
-          (window as any).__authInitialized = true;
+          authLogger.info('Auth initialization complete', { hasSession: !!session });
           
         } catch (error) {
+          clearTimeout(timeoutId); // Clear timeout on error
           authLogger.error('Auth initialization failed:', error);
-          // Graceful degradation - still allow app to work
-          set({ loading: false });
-          (window as any).__authInitialized = true;
+          // Always ensure loading is set to false even on error
+          set({ loading: false, session: null, user: null });
         }
       },
 
@@ -120,16 +158,22 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signInWithGoogle: async () => {
-        const redirectUrl = `${window.location.origin}/`;
-        
+        // Web: let Supabase handle the redirect in the same window
+        authLogger.info('Initiating web OAuth flow');
+
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
-          options: {
-            redirectTo: redirectUrl
-          }
+          options: { redirectTo: window.location.origin }
         });
+
+        if (error) {
+          authLogger.error('Google OAuth initiation failed:', error);
+        } else {
+          authLogger.info('Web OAuth redirect initiated');
+        }
         return { error };
       },
+
 
       resetPassword: async (email: string) => {
         const redirectUrl = `${window.location.origin}/update-password`;
@@ -150,36 +194,78 @@ export const useAuthStore = create<AuthState>()(
       signOut: async () => {
         authLogger.info('Signing out');
         
-        const { error } = await supabase.auth.signOut();
-        if (!error) {
-          set({ 
-            user: null, 
-            session: null,
+        // Always clear local state first
+        set({ 
+          user: null, 
+          session: null,
+          loading: false,
+        });
+        
+        // Clear all authentication caches
+        if (typeof window !== 'undefined') {
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith('cache_profile_') || 
+                key.startsWith('dedupe_profile_') ||
+                key.startsWith('cache_access_') ||
+                key.startsWith('dedupe_access_') ||
+                key.startsWith('sb-texnkijwcygodtywgedm-auth-token')) {
+              localStorage.removeItem(key);
+            }
           });
-          
-          // Clear all authentication caches on sign out
-          if (typeof window !== 'undefined') {
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-              if (key.startsWith('cache_profile_') || 
-                  key.startsWith('dedupe_profile_') ||
-                  key.startsWith('cache_access_') ||
-                  key.startsWith('dedupe_access_')) {
-                localStorage.removeItem(key);
-              }
-            });
-          }
-          
-          authLogger.info('Sign out successful');
-        } else {
-          authLogger.error('Sign out failed:', error);
         }
         
-        return { error };
+        try {
+          const { error } = await supabase.auth.signOut();
+          
+          if (error && !error.message?.includes('Session not found')) {
+            // Only log actual errors, not "session not found" which is expected
+            authLogger.warn('Sign out server error (but local state cleared):', error);
+            return { error: null }; // Return success since local state is cleared
+          }
+          
+          authLogger.info('Sign out completed successfully');
+          return { error: null };
+        } catch (err) {
+          // Even if server sign out fails, we've cleared local state
+          authLogger.warn('Sign out server error (but local state cleared):', err);
+          return { error: null };
+        }
       },
 
 
       setLoading: (loading: boolean) => set({ loading }),
+      
+      setOAuthCompleting: (completing: boolean) => {
+        console.log('🔄 Setting OAuth completing:', completing);
+        set({ oauthCompleting: completing });
+      },
+      
+      forceRefresh: async () => {
+        console.log('🔄 Force refreshing auth state...');
+        try {
+          const { data: { session }, error } = await supabase.auth.getSession();
+          if (error) {
+            console.error('❌ Error getting session during force refresh:', error);
+            return;
+          }
+          
+          console.log('✅ Force refresh session result:', {
+            hasSession: !!session,
+            userId: session?.user?.id,
+            email: session?.user?.email
+          });
+          
+          set({
+            session,
+            user: session?.user ?? null,
+            loading: false,
+            oauthCompleting: false
+          });
+        } catch (error) {
+          console.error('❌ Force refresh error:', error);
+        }
+      },
     }),
     {
       name: 'auth-storage',

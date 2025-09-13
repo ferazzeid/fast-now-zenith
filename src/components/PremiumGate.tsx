@@ -17,11 +17,18 @@ interface PremiumGateProps {
 }
 
 export const PremiumGate = ({ children, feature, className = "", showUpgrade = true, grayOutForFree = false }: PremiumGateProps) => {
-  const { access_level, hasPremiumFeatures, loading, createSubscription } = useAccess();
+  const { access_level, hasPremiumFeatures, hasFoodAccess, hasAIAccess, loading, createSubscription } = useAccess();
   const [showUpgradeModal, setShowUpgradeModal] = React.useState(false);
 
-  // Check access based on level
-  const hasAccess = access_level !== 'free';
+  // Determine access based on feature type
+  let hasAccess = false;
+  if (feature.toLowerCase().includes('food') || feature.toLowerCase().includes('tracking')) {
+    hasAccess = hasFoodAccess;
+  } else if (feature.toLowerCase().includes('ai') || feature.toLowerCase().includes('voice')) {
+    hasAccess = hasAIAccess;
+  } else {
+    hasAccess = hasPremiumFeatures;
+  }
 
   // Show content while loading to prevent flashing
   if (loading) {

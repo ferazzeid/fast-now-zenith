@@ -20,13 +20,36 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
-  const recomputePosition = () => {
+    const recomputePosition = () => {
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
+    const tooltipWidth = 180;
+    const tooltipHeight = 120;
+    const margin = 24; // Increased margin for better boundary detection
+    
     const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceLeft = rect.left;
     const spaceRight = window.innerWidth - rect.right;
-    setShowBelow(spaceAbove < 120);
-    setAlignLeft(spaceRight < 180);
+    
+    // Prefer showing above if there's enough space, otherwise below
+    const showBelow = spaceAbove < tooltipHeight && spaceBelow >= tooltipHeight;
+    
+    // Better horizontal alignment to stay within viewport
+    let alignLeft = false;
+    if (rect.right + tooltipWidth > window.innerWidth - margin) {
+      // If tooltip would overflow right edge, align left (tooltip extends leftward)
+      alignLeft = true;
+    } else if (rect.left - tooltipWidth < margin) {
+      // If tooltip would overflow left edge, align right (tooltip extends rightward)
+      alignLeft = false;
+    } else {
+      // If there's space on both sides, prefer right alignment
+      alignLeft = spaceRight < spaceLeft;
+    }
+    
+    setShowBelow(showBelow);
+    setAlignLeft(alignLeft);
   };
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -91,12 +114,12 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
           <div
             ref={tooltipRef}
             className={cn(
-              "absolute z-50 px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
-              "w-[180px] max-w-[calc(100vw-32px)] text-left leading-relaxed",
+              "absolute z-[60] px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
+              "w-[180px] max-w-[calc(100vw-48px)] text-left leading-relaxed", // Increased padding for better boundary respect
               "animate-in fade-in-0 zoom-in-95 duration-200",
               showBelow 
-                ? (alignLeft ? "top-full left-0 mt-2" : "top-full right-0 mt-2")
-                : (alignLeft ? "bottom-full left-0 mb-2" : "bottom-full right-0 mb-2")
+                ? (alignLeft ? "top-full right-0 mt-2" : "top-full left-0 mt-2")
+                : (alignLeft ? "bottom-full right-0 mb-2" : "bottom-full left-0 mb-2")
             )}
           >
             {content}

@@ -2,7 +2,7 @@ import { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { Play, Square, Pause, Clock, Activity, Zap, Timer, Gauge, Info, TrendingUp, X, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SpeedSelectionModal } from './SpeedSelectionModal';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
@@ -10,6 +10,7 @@ import { ClickableTooltip } from './ClickableTooltip';
 import { AuthorTooltip } from './AuthorTooltip';
 import { useAnimationControl } from '@/components/AnimationController';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistance } from '@/utils/unitConversions';
 
 
 interface WalkingTimerProps {
@@ -56,27 +57,19 @@ const WalkingTimerComponent = ({
   const { isAnimationsSuspended } = useAnimationControl();
   const { toast } = useToast();
 
-  // Simplified speed mappings - just Normal and Fast options (no units needed)
-  const SPEED_OPTIONS = useMemo(() => [
-    { displaySpeed: 'normal', storageSpeed: 3.1, label: 'Normal', description: 'Sustainable pace, light-moderate cardio' },
-    { displaySpeed: 'fast', storageSpeed: 4.3, label: 'Fast', description: 'Intense pace, higher calorie burn' }
-  ], []);
-
-  // Find current speed option
-  const getCurrentSpeedOption = useCallback((speedMph: number) => {
-    return SPEED_OPTIONS.find(option => 
-      Math.abs(option.storageSpeed - speedMph) < 0.2
-    ) || SPEED_OPTIONS[0]; // Default to normal if no match
-  }, [SPEED_OPTIONS]);
-
-  const handleSpeedChange = useCallback((value: string) => {
-    const option = SPEED_OPTIONS.find(opt => opt.displaySpeed === value);
-    if (option) {
-      onSpeedChange(option.storageSpeed);
+  // Simplified speed display logic without console spam
+  const getCurrentSpeedDisplay = useCallback(() => {
+    const normalSpeed = 3.1;
+    const fastSpeed = 4.3;
+    
+    if (Math.abs(selectedSpeed - fastSpeed) < 0.3) {
+      return { label: 'Fast', description: 'Intense pace, higher calorie burn' };
+    } else {
+      return { label: 'Normal', description: 'Sustainable pace, light-moderate cardio' };
     }
-  }, [SPEED_OPTIONS, onSpeedChange]);
+  }, [selectedSpeed]);
 
-  const currentSpeedOption = getCurrentSpeedOption(selectedSpeed);
+  const currentSpeedDisplay = getCurrentSpeedDisplay();
 
 
   return (
@@ -118,8 +111,8 @@ const WalkingTimerComponent = ({
             </div>
             <div className={cn(
               "text-lg font-medium transition-colors duration-300",
-              isActive && !isPaused ? 'text-primary' : 
-              isPaused ? 'text-primary/70' : 'text-muted-foreground'
+              isActive && !isPaused ? 'text-foreground' : 
+              isPaused ? 'text-muted-foreground' : 'text-muted-foreground'
             )}>
               {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
@@ -166,7 +159,7 @@ const WalkingTimerComponent = ({
                         });
                       }
                     }}
-                    variant="action-primary"
+                    variant="outline"
                     size="action-secondary"
                     className="flex-1"
                   >
@@ -177,7 +170,7 @@ const WalkingTimerComponent = ({
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent collisionPadding={16}>
                   <p>{isPaused ? 'Resume' : 'Pause'}</p>
                 </TooltipContent>
               </Tooltip>
@@ -205,14 +198,14 @@ const WalkingTimerComponent = ({
                           });
                         }
                       }}
-                      variant="action-primary"
+                      variant="outline"
                       size="action-secondary"
-                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                      className="flex-1"
                     >
                       <X className="w-6 h-6" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent collisionPadding={16}>
                     <p>Cancel</p>
                   </TooltipContent>
                 </Tooltip>
@@ -250,7 +243,7 @@ const WalkingTimerComponent = ({
                     Finish
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent collisionPadding={16}>
                   <p>Complete</p>
                 </TooltipContent>
               </Tooltip>
@@ -266,7 +259,7 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <Zap className="w-4 h-4 text-primary" />
+                    <Zap className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Speed</span>
                     <ClickableTooltip content="Normal walking: Comfortable sustainable pace - Default. Fast walking: More intense pace for higher calorie burn. Adjust during your walk if needed.">
                       <Info className="w-4 h-4 text-muted-foreground" />
@@ -274,43 +267,41 @@ const WalkingTimerComponent = ({
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
-                <div className="flex items-center justify-start">
-                  <Select 
-                    value={currentSpeedOption.displaySpeed}
-                    onValueChange={handleSpeedChange}
+                <div className="flex items-center justify-between">
+                  {/* Left side: Current speed display */}
+                  <div className="flex-1">
+                    <div className="text-lg font-bold text-foreground">
+                      {currentSpeedDisplay.label}
+                    </div>
+                  </div>
+                  
+                  {/* Right side: Set button */}
+                  <SpeedSelectionModal
+                    selectedSpeed={selectedSpeed}
+                    onSpeedChange={onSpeedChange}
                   >
-                    <SelectTrigger className="h-7 w-24 text-sm bg-ceramic-base border-ceramic-rim">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="z-50 bg-ceramic-plate border-ceramic-rim backdrop-blur-sm">
-                      {SPEED_OPTIONS.map((option) => (
-                        <SelectItem 
-                          key={option.displaySpeed} 
-                          value={option.displaySpeed}
-                          className="text-xs hover:bg-ceramic-base focus:bg-ceramic-base"
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="ml-2 h-8 w-16 text-xs"
+                    >
+                      Set
+                    </Button>
+                  </SpeedSelectionModal>
                 </div>
               </Card>
 
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-primary" />
+                    <Activity className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Distance</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
-                    {realTimeStats.distance}
-                    <span className="text-sm font-normal text-muted-foreground ml-1">
-                      {units === 'metric' ? 'km' : 'mi'}
-                    </span>
+                  <div className="text-xl font-bold text-foreground">
+                    {formatDistance(realTimeStats.distance, units)}
                   </div>
                   <ClickableTooltip content="Distance is estimated based on your walking speed and elapsed time.">
                     <Info className="w-4 h-4 text-muted-foreground" />
@@ -324,13 +315,13 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <Activity className="w-4 h-4 text-primary" />
+                    <Activity className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Calories</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
+                  <div className="text-xl font-bold text-foreground">
                     {realTimeStats.calories}
                     <span className="text-sm font-normal text-muted-foreground ml-1">cal</span>
                   </div>
@@ -343,13 +334,13 @@ const WalkingTimerComponent = ({
               <Card className="p-3 relative">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center space-x-2">
-                    <TrendingUp className="w-4 h-4 text-primary" />
+                    <TrendingUp className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-warm-text">Fat</span>
                   </div>
                   <div className={`w-3 h-3 rounded-full ${isActive && !isPaused && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive && !isPaused ? 'bg-accent' : 'bg-muted'}`} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-xl font-bold text-primary">
+                  <div className="text-xl font-bold text-foreground">
                     {(realTimeStats.calories / 9).toFixed(1)}
                     <span className="text-sm font-normal text-muted-foreground ml-1">g</span>
                   </div>
@@ -360,14 +351,6 @@ const WalkingTimerComponent = ({
               </Card>
             </div>
             
-            {/* Author Tooltip - positioned under the metrics */}
-            <div className="flex justify-start mt-3">
-              <AuthorTooltip 
-                contentKey="walking_timer_health"
-                content="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
-                size="sm"
-              />
-            </div>
           </div>
         )}
 

@@ -1,24 +1,38 @@
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { AnimationProvider } from './components/AnimationController'
-import { initOfflineStorage } from './utils/offlineStorage'
-import { useDynamicFavicon } from './hooks/useDynamicFavicon'
+import { createRoot } from 'react-dom/client';
+import { StrictMode } from 'react';
+import App from './App.tsx';
+import './index.css';
+import { AnimationProvider } from './components/AnimationController';
+import { initOfflineStorage } from './utils/offlineStorage';
+import { conditionalPWAInit } from './utils/conditionalPWA';
+import './debug/prodErrorBridge'; // Import error bridge at startup
+import './env'; // Import build info logging
+import { RootErrorBoundary } from './components/RootErrorBoundary';
 
-// Production logging guard - reduce noise in prod
+// Production logging guard - reduce noise in prod but keep errors
 if (process.env.NODE_ENV === 'production') {
   console.debug = () => {};
   console.info = () => {};
+  // Keep console.error and console.warn for debugging critical issues
 }
-// Initialize offline storage and cleanup
+
+// Initialize offline storage only (no dynamic assets during startup)
 initOfflineStorage();
-const AppWithFavicon = () => {
-  useDynamicFavicon();
+
+// Initialize PWA features conditionally (web only, never in native)
+conditionalPWAInit();
+
+// Simplified App wrapper - no dynamic loading during startup
+const SimplifiedApp = () => {
   return <App />;
 };
 
 createRoot(document.getElementById("root")!).render(
-  <AnimationProvider>
-    <AppWithFavicon />
-  </AnimationProvider>
+  <StrictMode>
+    <RootErrorBoundary>
+      <AnimationProvider>
+        <SimplifiedApp />
+      </AnimationProvider>
+    </RootErrorBoundary>
+  </StrictMode>
 );

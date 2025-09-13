@@ -9,13 +9,25 @@ import {
 } from "@/components/ui/toast"
 
 export function Toaster() {
-  const { toasts } = useToast()
+  const { toasts, dismiss } = useToast()
 
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
         return (
-          <Toast key={id} {...props}>
+          <Toast 
+            key={id} 
+            {...props}
+            className={`${props.className || ''} cursor-pointer`}
+            onClick={(e) => {
+              // Don't dismiss if clicking on action buttons or close button
+              const target = e.target as HTMLElement;
+              if (target.closest('button') || target.closest('[role="button"]')) {
+                return;
+              }
+              dismiss(id);
+            }}
+          >
             <div className="grid gap-1">
               {title && <ToastTitle>{title}</ToastTitle>}
               {description && (

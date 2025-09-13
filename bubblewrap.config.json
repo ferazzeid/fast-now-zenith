@@ -1,0 +1,26 @@
+{
+  "host": {
+    "url": "https://go.fastnow.app/"
+  },
+  "androidPackage": {
+    "applicationId": "com.fastnow.zenith",
+    "packageId": "com.fastnow.zenith",
+    "versionCode": 100216,
+    "versionName": "100216"
+  },
+  "jdkPath": "/usr/lib/jvm/java-17-openjdk",
+  "androidSdkPath": "~/Android/Sdk",
+  "enableSiteSettingsShortcut": false,
+  "enableNotifications": true,
+  "enableWebapp": true,
+  "disableFirstRunActivity": true,
+  "enableUrlBarHiding": true,
+  "signing": {
+    "scheme": "HTTPS"
+  },
+  "splashScreen": {
+    "backgroundColor": "#F5F2EA",
+    "image": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest"
+  },
+  "shortcuts": []
+}

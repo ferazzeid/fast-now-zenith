@@ -118,10 +118,7 @@ export const AdminSEOSettings = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Search className="h-5 w-5" />
-            SEO Indexing Settings
-          </CardTitle>
+          <CardTitle className="text-lg">SEO Indexing Settings</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
@@ -136,10 +133,7 @@ export const AdminSEOSettings = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <Search className="h-4 w-4" />
-          SEO Indexing Settings
-        </CardTitle>
+        <CardTitle className="text-lg">SEO Indexing Settings</CardTitle>
         <CardDescription>
           Control search engine indexing for different pages
         </CardDescription>

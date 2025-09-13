@@ -101,7 +101,7 @@ export const RotatingGoalText = ({
           <div className="absolute inset-[-10px] border-2 border-primary/50 rounded-full goal-celebration pointer-events-none" style={{ animationDelay: '0.9s' }} />
           
           <div 
-            className="text-primary font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-background/80 backdrop-blur-sm border border-primary/20 animate-scale-in max-w-[80%]"
+            className="text-foreground font-bold text-lg tracking-wide text-center px-4 py-2 rounded-full bg-background/80 backdrop-blur-sm border border-primary/20 animate-scale-in max-w-[80%]"
             style={{
               textShadow: '0 2px 4px rgba(0,0,0,0.1)',
               animation: 'scaleIn 8s ease-in-out'

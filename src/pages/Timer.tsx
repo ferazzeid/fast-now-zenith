@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Play, Square, Settings, AlertTriangle, ChevronDown, Clock, History, X, CheckCircle } from 'lucide-react';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
+import { MetaverseTimer } from '@/components/MetaverseTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
+import { useTimerDesign } from '@/hooks/useTimerDesign';
 import { FastSelector } from '@/components/FastSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -29,11 +31,14 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
-
+import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 
 import { useAccess } from '@/hooks/useAccess';
+import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
 
 const Timer = () => {
+  const navigate = useNavigate();
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
   const [fastDuration, setFastDuration] = useState(60 * 60 * 60); // 60 hours default (water fast)
   const [fastType, setFastType] = useState<'longterm'>('longterm');
@@ -56,6 +61,7 @@ const Timer = () => {
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { isAdmin } = useAccess();
+  const { timerDesign } = useTimerDesign();
 
 
   const isRunning = !!fastingSession;
@@ -141,24 +147,22 @@ const Timer = () => {
       // Then update every second for display
       interval = setInterval(updateTimer, 1000);
 
-      // FIXED: Prevent massive timeout values and validate session before executing
+      // FIXED: Handle both future goals and already-passed goals
       if (fastingSession.goal_duration_seconds) {
         const startTime = new Date(fastingSession.start_time);
         const goalEndTime = new Date(startTime.getTime() + (fastingSession.goal_duration_seconds * 1000));
         const timeToGoal = goalEndTime.getTime() - Date.now();
         
-        // CRITICAL FIX: Only set timeout if reasonable and session is current
-        const MAX_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours max
-        if (timeToGoal > 0 && timeToGoal < MAX_TIMEOUT) {
-          console.log(`🎯 Setting goal completion timeout for ${timeToGoal}ms from now`);
-          goalTimeout = setTimeout(async () => {
-            console.log('🎉 Goal achieved! Auto-completing fasting session...');
-            
-            // CRITICAL: Validate session still exists and user is authenticated
+        // CRITICAL FIX: If goal already passed, complete immediately
+        if (timeToGoal <= 0) {
+          console.log('🎉 Goal already achieved! Auto-completing fasting session immediately...');
+          
+          // Use setTimeout to avoid blocking the render
+          setTimeout(async () => {
             try {
               const { data: { session } } = await supabase.auth.getSession();
               if (!session?.user?.id) {
-                console.warn('⚠️ Goal timeout triggered but user not authenticated, skipping');
+                console.warn('⚠️ Goal completion triggered but user not authenticated, skipping');
                 return;
               }
               
@@ -182,13 +186,50 @@ const Timer = () => {
               });
             } catch (error) {
               console.error('Error auto-completing fasting session:', error);
-              // Don't show error toast to avoid user confusion
             }
-          }, timeToGoal);
-        } else if (timeToGoal >= MAX_TIMEOUT) {
-          console.warn(`⚠️ Skipping goal timeout - duration too long: ${timeToGoal}ms`);
+          }, 100); // Small delay to avoid blocking
         } else {
-          console.log('⚠️ Skipping goal timeout - time already passed');
+          // Goal is in the future - set timeout as before
+          const MAX_TIMEOUT = 168 * 60 * 60 * 1000; // 168 hours max (7 days)
+          if (timeToGoal < MAX_TIMEOUT) {
+            console.log(`🎯 Setting goal completion timeout for ${timeToGoal}ms from now`);
+            goalTimeout = setTimeout(async () => {
+              console.log('🎉 Goal achieved! Auto-completing fasting session...');
+              
+              // CRITICAL: Validate session still exists and user is authenticated
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.user?.id) {
+                  console.warn('⚠️ Goal timeout triggered but user not authenticated, skipping');
+                  return;
+                }
+                
+                // Verify the session is still active before ending
+                const { data: currentFastingSession } = await supabase
+                  .from('fasting_sessions')
+                  .select('id, status')
+                  .eq('id', fastingSession.id)
+                  .eq('status', 'active')
+                  .maybeSingle();
+                
+                if (!currentFastingSession) {
+                  console.warn('⚠️ Session no longer active, skipping auto-completion');
+                  return;
+                }
+                
+                await stableEndSession(fastingSession.id);
+                toast({
+                  title: "🎉 Goal Achieved!",
+                  description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
+                });
+              } catch (error) {
+                console.error('Error auto-completing fasting session:', error);
+                // Don't show error toast to avoid user confusion
+              }
+            }, timeToGoal);
+          } else {
+            console.warn(`⚠️ Skipping goal timeout - duration too long: ${timeToGoal}ms`);
+          }
         }
       }
     } else {
@@ -337,12 +378,25 @@ const Timer = () => {
       });
       
       if (result) {
-        // Load the session to get accurate timing
-        await refreshActiveSession();
-        
+        // Calculate elapsed time immediately
         const now = new Date();
         const timeDiffMs = now.getTime() - pastStartDateTime.getTime();
         const elapsedSeconds = Math.floor(timeDiffMs / 1000);
+        
+        // Immediately update the timer display to show correct elapsed time
+        setTimeElapsed(elapsedSeconds);
+        
+        // Force an immediate refresh of the active session to update `isRunning`
+        await refreshActiveSession();
+        
+        // Trigger the timer effect by ensuring the session data is available
+        // This solves the issue where retro fasts need a page refresh
+        setTimeout(() => {
+          // Double-check that the session is loaded and trigger another refresh if needed
+          if (!fastingSession) {
+            refreshActiveSession();
+          }
+        }, 100);
         
         toast({
           title: "Fast started retroactively",
@@ -361,47 +415,57 @@ const Timer = () => {
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-      <div className="max-w-md mx-auto pt-10 pb-24">
+      <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
         {/* Header with Onboarding Button */}
-        <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <AIVoiceButton />
-          </div>
-          {/* History button - only show for fasting mode */}
-          {currentMode === 'fasting' && (
-            <div className="absolute right-0 top-0">
-              <HistoryButton onClick={() => setShowFastingHistory(true)} title="View fasting history" />
-            </div>
-          )}
-          <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
-              {currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">
-              {currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
-            </p>
-          </div>
-        </div>
+        <ResponsivePageHeader
+          title={currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
+          subtitle={currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
+          onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : undefined}
+          historyTitle="View fasting history"
+          showAuthorTooltip={true}
+          authorTooltipContentKey={currentMode === 'fasting' ? "fasting_timer_insights" : undefined}
+          authorTooltipContent={currentMode === 'fasting' ? "Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" : undefined}
+        />
+
 
         {/* Timer Display */}
         <div className="relative mb-12 mt-12">
           {currentMode === 'fasting' ? (
             <>
-              <CeramicTimer 
-                progress={getProgress()}
-                displayTime={getDisplayTime()}
-                isActive={isRunning}
-                showSlideshow={profile?.enable_fasting_slideshow ?? false}
-                countDirection={countDirection}
-                onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
-                fastType={fastType}
-                goalDuration={fastDuration / 3600}
-                celebrationAnimation={celebration.isVisible ? {
-                  isActive: celebration.isVisible,
-                  type: celebration.animationType,
-                  onAnimationEnd: closeCelebration
-                } : undefined}
-              />
+              {timerDesign === 'metaverse' ? (
+                <MetaverseTimer
+                  progress={getProgress()}
+                  displayTime={getDisplayTime()}
+                  isActive={isRunning}
+                  showSlideshow={profile?.enable_fasting_slideshow ?? false}
+                  countDirection={countDirection}
+                  onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
+                  fastType={fastType}
+                  goalDuration={fastDuration / 3600}
+                  elapsedSeconds={timeElapsed}
+                  celebrationAnimation={celebration.isVisible ? {
+                    isActive: celebration.isVisible,
+                    type: celebration.animationType,
+                    onAnimationEnd: closeCelebration
+                  } : undefined}
+                />
+              ) : (
+                <CeramicTimer 
+                  progress={getProgress()}
+                  displayTime={getDisplayTime()}
+                  isActive={isRunning}
+                  showSlideshow={profile?.enable_fasting_slideshow ?? false}
+                  countDirection={countDirection}
+                  onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
+                  fastType={fastType}
+                  goalDuration={fastDuration / 3600}
+                  celebrationAnimation={celebration.isVisible ? {
+                    isActive: celebration.isVisible,
+                    type: celebration.animationType,
+                    onAnimationEnd: closeCelebration
+                  } : undefined}
+                />
+              )}
             </>
           ) : (
             <WalkingTimer
@@ -445,7 +509,7 @@ const Timer = () => {
                           setStopAction('cancel');
                           setShowStopConfirmDialog(true);
                         }}
-                        variant="action-primary"
+                        variant="outline"
                         size="action-main"
                       >
                         <X className="w-5 h-5" />
@@ -513,11 +577,6 @@ const Timer = () => {
         currentDuration={formatTimeFasting(timeElapsed)}
         actionType={stopAction}
       />
-
-      {/* Fasting History Modal */}
-      {showFastingHistory && (
-        <FastingHistory onClose={() => setShowFastingHistory(false)} />
-      )}
 
       {/* Onboarding Modal */}
       <PageOnboardingModal

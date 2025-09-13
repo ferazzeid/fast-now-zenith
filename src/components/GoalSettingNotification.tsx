@@ -40,7 +40,7 @@ export const GoalSettingNotification: React.FC<GoalSettingNotificationProps> = (
     extra_active: 1.9
   };
   
-  const activityLevel = profile.activity_level || 'moderately_active';
+  const activityLevel = profile.activity_level || 'lightly_active';
   const tdee = Math.round(bmr * activityMultipliers[activityLevel as keyof typeof activityMultipliers]);
 
   const goalOptions: GoalOption[] = [

@@ -10,9 +10,10 @@ interface PageOnboardingModalProps {
   heroQuote?: string;
   backgroundImage?: string;
   children: ReactNode;
+  showCloseButton?: boolean;
 }
 
-export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuote, backgroundImage, children }: PageOnboardingModalProps) => {
+export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuote, backgroundImage, children, showCloseButton = true }: PageOnboardingModalProps) => {
   if (!isOpen) return null;
 
   return (
@@ -28,23 +29,25 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
             }}
           />
         )}
-        {/* Header with close button */}
+        {/* Header with optional close button */}
         <div className="flex justify-between items-start p-4 border-b border-border/30 relative z-10">
-          <div className="flex-1 mr-3">
+          <div className={`${showCloseButton ? 'flex-1 mr-3' : 'w-full'}`}>
             <h1 className="text-xl font-bold text-warm-text mb-1">{title}</h1>
             {subtitle && (
               <p className="text-sm text-warm-text/80 leading-relaxed">{subtitle}</p>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="w-12 h-12 rounded-full bg-muted/50 hover:bg-muted/70 hover:scale-110 transition-all duration-200 flex-shrink-0"
-            title="Close onboarding"
-          >
-            <X className="w-8 h-8 text-warm-text" />
-          </Button>
+          {showCloseButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="w-12 h-12 rounded-full bg-muted/50 hover:bg-muted/70 hover:scale-110 transition-all duration-200 flex-shrink-0"
+              title="Close onboarding"
+            >
+              <X className="w-8 h-8 text-warm-text" />
+            </Button>
+          )}
         </div>
 
         {/* Scrollable content */}

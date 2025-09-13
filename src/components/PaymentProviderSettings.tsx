@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CreditCard, Smartphone, Apple } from 'lucide-react';
+import { Loader2, CreditCard } from 'lucide-react';
 
 interface PaymentProvider {
   provider: string;
@@ -31,10 +29,11 @@ export const PaymentProviderSettings = () => {
       const { data, error } = await supabase
         .from('payment_provider_configs')
         .select('*')
-        .order('provider');
+        .eq('provider', 'stripe')
+        .single();
 
       if (error) throw error;
-      setProviders(data || []);
+      setProviders(data ? [data] : []);
     } catch (error) {
       console.error('Error fetching providers:', error);
       toast({
@@ -78,39 +77,13 @@ export const PaymentProviderSettings = () => {
     }
   };
 
-  const getProviderIcon = (provider: string) => {
-    switch (provider) {
-      case 'stripe':
-        return <CreditCard className="w-5 h-5" />;
-      case 'google_play':
-        return <Smartphone className="w-5 h-5" />;
-      case 'apple_app_store':
-        return <Apple className="w-5 h-5" />;
-      default:
-        return <CreditCard className="w-5 h-5" />;
-    }
-  };
-
-  const getProviderName = (provider: string) => {
-    switch (provider) {
-      case 'stripe':
-        return 'Stripe';
-      case 'google_play':
-        return 'Google Play Billing';
-      case 'apple_app_store':
-        return 'Apple App Store';
-      default:
-        return provider;
-    }
-  };
-
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Payment Provider Settings</CardTitle>
+          <CardTitle>Stripe Payment Settings</CardTitle>
           <CardDescription>
-            Configure payment providers for different platforms
+            Configure Stripe payment processing for subscriptions
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,22 +97,15 @@ export const PaymentProviderSettings = () => {
 
   return (
     <div className="space-y-6">
-
       {providers.map((provider) => (
         <Card key={provider.provider}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {getProviderIcon(provider.provider)}
+                <CreditCard className="w-5 h-5" />
                 <div>
-                  <CardTitle className="text-lg">
-                    {getProviderName(provider.provider)}
-                  </CardTitle>
-                  <CardDescription>
-                    {provider.provider === 'stripe' && 'Web payments via Stripe'}
-                    {provider.provider === 'google_play' && 'Android in-app purchases'}
-                    {provider.provider === 'apple_app_store' && 'iOS in-app purchases'}
-                  </CardDescription>
+                  <CardTitle className="text-lg">Stripe Configuration</CardTitle>
+                  <CardDescription>Web payments via Stripe</CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -157,99 +123,228 @@ export const PaymentProviderSettings = () => {
             </div>
           </CardHeader>
           
-          <CardContent className="space-y-4">
-            {provider.provider === 'stripe' && (
-              <div className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* API Keys Section */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">API Keys</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label>Stripe Configuration</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Stripe settings are configured via the main admin panel and Supabase secrets.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {provider.provider === 'google_play' && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="package_name">Package Name</Label>
+                  <Label htmlFor="secret_key">Secret Key</Label>
                   <Input
-                    id="package_name"
-                    value={provider.config_data.package_name || ''}
-                    onChange={(e) => {
-                      const newConfigData = {
-                        ...provider.config_data,
-                        package_name: e.target.value
-                      };
-                      updateProvider(provider.provider, { config_data: newConfigData });
-                    }}
-                    placeholder="com.yourapp.package"
-                    disabled={saving === provider.provider}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="service_account_key">Service Account Key (JSON)</Label>
-                  <Textarea
-                    id="service_account_key"
-                    value={provider.config_data.service_account_key || ''}
-                    onChange={(e) => {
-                      const newConfigData = {
-                        ...provider.config_data,
-                        service_account_key: e.target.value
-                      };
-                      updateProvider(provider.provider, { config_data: newConfigData });
-                    }}
-                    placeholder="Paste your Google Cloud Service Account JSON key here"
-                    rows={6}
-                    disabled={saving === provider.provider}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Download from Google Cloud Console → IAM & Admin → Service Accounts
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {provider.provider === 'apple_app_store' && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="bundle_id">Bundle ID</Label>
-                  <Input
-                    id="bundle_id"
-                    value={provider.config_data.bundle_id || ''}
-                    onChange={(e) => {
-                      const newConfigData = {
-                        ...provider.config_data,
-                        bundle_id: e.target.value
-                      };
-                      updateProvider(provider.provider, { config_data: newConfigData });
-                    }}
-                    placeholder="com.yourapp.bundle"
-                    disabled={saving === provider.provider}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="shared_secret">App Store Connect Shared Secret</Label>
-                  <Input
-                    id="shared_secret"
+                    id="secret_key"
                     type="password"
-                    value={provider.config_data.shared_secret || ''}
+                    value={provider.config_data.secret_key || ''}
                     onChange={(e) => {
                       const newConfigData = {
                         ...provider.config_data,
-                        shared_secret: e.target.value
+                        secret_key: e.target.value
                       };
                       updateProvider(provider.provider, { config_data: newConfigData });
                     }}
-                    placeholder="Your App Store Connect shared secret"
+                    placeholder="sk_test_... or sk_live_..."
                     disabled={saving === provider.provider}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Found in App Store Connect → My Apps → App → Features → In-App Purchases
+                    Your Stripe secret key from the dashboard
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="publishable_key">Publishable Key</Label>
+                  <Input
+                    id="publishable_key"
+                    value={provider.config_data.publishable_key || ''}
+                    onChange={(e) => {
+                      const newConfigData = {
+                        ...provider.config_data,
+                        publishable_key: e.target.value
+                      };
+                      updateProvider(provider.provider, { config_data: newConfigData });
+                    }}
+                    placeholder="pk_test_... or pk_live_..."
+                    disabled={saving === provider.provider}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Your Stripe publishable key (client-side)
                   </p>
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Mode Toggle */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Environment</h4>
+              <div className="flex items-center gap-3">
+                <Switch
+                  checked={provider.config_data.test_mode || false}
+                  onCheckedChange={(checked) => {
+                    const newConfigData = {
+                      ...provider.config_data,
+                      test_mode: checked
+                    };
+                    updateProvider(provider.provider, { config_data: newConfigData });
+                  }}
+                  disabled={saving === provider.provider}
+                />
+                <Label>Test Mode</Label>
+                <Badge 
+                  variant={provider.config_data.test_mode ? 'default' : 'destructive'}
+                  className={provider.config_data.test_mode ? 'bg-orange-100 text-orange-800 border-orange-200' : ''}
+                >
+                  {provider.config_data.test_mode ? 'Test Mode' : 'Live Mode'}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Test mode uses Stripe's test environment. Switch to Live mode for production payments.
+              </p>
+            </div>
+
+            {/* Products Section */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Subscription Products</h4>
+              <p className="text-xs text-muted-foreground">
+                Configure your Stripe subscription products. Get Price IDs from your Stripe dashboard.
+              </p>
+              <div className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Label>Premium Plan</Label>
+                    <Badge variant="default" className="text-xs">Active</Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <Input
+                      value={provider.config_data.products?.premium?.price_id || ''}
+                      onChange={(e) => {
+                        const newConfigData = {
+                          ...provider.config_data,
+                          products: {
+                            ...provider.config_data.products,
+                            premium: {
+                              ...provider.config_data.products?.premium,
+                              price_id: e.target.value
+                            }
+                          }
+                        };
+                        updateProvider(provider.provider, { config_data: newConfigData });
+                      }}
+                      placeholder="price_1ABC123... (from Stripe dashboard)"
+                      disabled={saving === provider.provider}
+                    />
+                    <Input
+                      type="number"
+                      value={provider.config_data.products?.premium?.amount || 900}
+                      onChange={(e) => {
+                        const newConfigData = {
+                          ...provider.config_data,
+                          products: {
+                            ...provider.config_data.products,
+                            premium: {
+                              ...provider.config_data.products?.premium,
+                              amount: parseInt(e.target.value)
+                            }
+                          }
+                        };
+                        updateProvider(provider.provider, { config_data: newConfigData });
+                      }}
+                      placeholder="Amount in cents"
+                      disabled={saving === provider.provider}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Price ID from Stripe and amount in cents (900 = $9.00/month)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* URLs Section */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Redirect URLs</h4>
+              <p className="text-xs text-muted-foreground">
+                Where users go after successful payment or cancellation. These paths will be automatically prefixed with your domain.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="success_url">Success URL</Label>
+                  <Input
+                    id="success_url"
+                    value={provider.config_data.success_url || '/settings?success=true'}
+                    onChange={(e) => {
+                      const newConfigData = {
+                        ...provider.config_data,
+                        success_url: e.target.value
+                      };
+                      updateProvider(provider.provider, { config_data: newConfigData });
+                    }}
+                    placeholder="/settings?success=true"
+                    disabled={saving === provider.provider}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Where users land after successful payment
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="cancel_url">Cancel URL</Label>
+                  <Input
+                    id="cancel_url"
+                    value={provider.config_data.cancel_url || '/settings?cancelled=true'}
+                    onChange={(e) => {
+                      const newConfigData = {
+                        ...provider.config_data,
+                        cancel_url: e.target.value
+                      };
+                      updateProvider(provider.provider, { config_data: newConfigData });
+                    }}
+                    placeholder="/settings?cancelled=true"
+                    disabled={saving === provider.provider}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Where users go if they cancel payment
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Webhook Section */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Webhooks</h4>
+              <p className="text-xs text-muted-foreground">
+                Webhooks automatically update user subscriptions when events happen in Stripe (payments, cancellations, etc.)
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="webhook_secret">Webhook Signing Secret</Label>
+                  <Input
+                    id="webhook_secret"
+                    type="password"
+                    value={provider.config_data.webhook_secret || ''}
+                    onChange={(e) => {
+                      const newConfigData = {
+                        ...provider.config_data,
+                        webhook_secret: e.target.value
+                      };
+                      updateProvider(provider.provider, { config_data: newConfigData });
+                    }}
+                    placeholder="whsec_..."
+                    disabled={saving === provider.provider}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Webhook signing secret from your Stripe dashboard (starts with whsec_)
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-xs font-medium text-blue-800 mb-2">Important: Webhook URL is different from your app domain</p>
+                  <p className="text-xs text-blue-700 mb-3">Your app runs on go.fastnow.app, but webhooks must point to your Supabase edge function.</p>
+                  <p className="text-sm font-medium text-blue-900 mb-2">Setup Instructions:</p>
+                  <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+                    <li>Go to your Stripe Dashboard → Webhooks</li>
+                    <li>Add endpoint: <code className="bg-blue-100 px-1 rounded text-xs">https://texnkijwcygodtywgedm.supabase.co/functions/v1/stripe-webhook</code></li>
+                    <li>Select events: customer.subscription.created, customer.subscription.updated, customer.subscription.deleted, invoice.payment_succeeded</li>
+                    <li>Copy the signing secret (whsec_...) and paste it above</li>
+                    <li>Test the webhook to ensure it's working properly</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
 
             {saving === provider.provider && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

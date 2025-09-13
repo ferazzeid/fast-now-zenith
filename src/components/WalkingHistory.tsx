@@ -11,6 +11,8 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useCacheManager } from '@/hooks/useCacheManager';
 import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
+import { useProfile } from '@/hooks/useProfile';
+import { formatDistance, formatSpeed } from '@/utils/unitConversions';
 
 interface WalkingSession {
   id: string;
@@ -38,6 +40,7 @@ export const WalkingHistory = () => {
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
   const { clearWalkingCache } = useCacheManager();
+  const { profile } = useProfile();
 
   useEffect(() => {
     const fetchWalkingSessions = async () => {
@@ -269,7 +272,7 @@ export const WalkingHistory = () => {
                   <MapPin className="w-4 h-4 text-green-500" />
                   <div>
                     <p className="text-sm font-medium">
-                      {session.is_edited ? 'Data removed' : `${session.distance?.toFixed(2) || 0} mi`}
+                      {session.is_edited ? 'Data removed' : formatDistance(session.distance || 0, profile?.units || 'imperial')}
                     </p>
                     <p className="text-xs text-muted-foreground">Distance</p>
                   </div>

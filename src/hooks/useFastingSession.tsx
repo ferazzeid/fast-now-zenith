@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useSessionValidator } from '@/hooks/useSessionValidator';
 import { persistFastingSession, getPersistedFastingSession } from '@/utils/timerPersistence';
 
 export interface FastingSession {
@@ -22,7 +21,6 @@ export const useFastingSession = () => {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { withValidSession } = useSessionValidator();
 
   // Load active session on mount with proper user dependency
   const loadActiveSession = useCallback(async () => {
@@ -87,18 +85,17 @@ export const useFastingSession = () => {
   }, [user, loadActiveSession]);
 
   const startFastingSession = useCallback(async (goalDurationSeconds: number, customStartTime?: Date) => {
-    return withValidSession(async () => {
-      if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to start a fasting session",
-          variant: "destructive",
-        });
-        return null;
-      }
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to start a fasting session",
+        variant: "destructive",
+      });
+      return null;
+    }
 
-      setLoading(true);
-      try {
+    setLoading(true);
+    try {
         // End any existing active sessions first
         await supabase
           .from('fasting_sessions')
@@ -152,18 +149,16 @@ export const useFastingSession = () => {
       } finally {
         setLoading(false);
       }
-    }, 'Start Fasting Session');
-  }, [user, toast, withValidSession]);
+  }, [user, toast]);
 
   const endFastingSession = useCallback(async (sessionId?: string) => {
-    return withValidSession(async () => {
-      if (!user) return null;
+    if (!user) return null;
 
-      const targetSessionId = sessionId || currentSession?.id;
-      if (!targetSessionId) return null;
+    const targetSessionId = sessionId || currentSession?.id;
+    if (!targetSessionId) return null;
 
-      setLoading(true);
-      try {
+    setLoading(true);
+    try {
         const endTime = new Date().toISOString();
         const startTime = currentSession?.start_time || new Date().toISOString();
         const durationSeconds = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
@@ -200,8 +195,7 @@ export const useFastingSession = () => {
       } finally {
         setLoading(false);
       }
-    }, 'End Fasting Session');
-  }, [user, currentSession, toast, withValidSession]);
+  }, [user, currentSession, toast]);
 
   const cancelFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;

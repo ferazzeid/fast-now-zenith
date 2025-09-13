@@ -22,6 +22,12 @@ export default {
 				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
 				mono: ['Inter', 'ui-monospace', 'SFMono-Regular', 'monospace'],
 			},
+			spacing: {
+				'safe': 'env(safe-area-inset-bottom)',
+				'safe-top': 'env(safe-area-inset-top)',
+				'safe-left': 'env(safe-area-inset-left)',
+				'safe-right': 'env(safe-area-inset-right)',
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -93,6 +99,18 @@ export default {
 				ai: {
 					DEFAULT: 'hsl(var(--ai))',
 					foreground: 'hsl(var(--ai-foreground))'
+				},
+				'chat-ai': {
+					DEFAULT: 'hsl(var(--chat-ai))'
+				},
+				'chat-user': {
+					DEFAULT: 'hsl(var(--chat-user))'
+				},
+				metaverse: {
+					bg: 'hsl(var(--metaverse-bg))',
+					border: 'hsl(var(--metaverse-border))',
+					magenta: 'hsl(var(--metaverse-magenta))',
+					green: 'hsl(var(--metaverse-green))'
 				}
 			},
 			borderRadius: {
@@ -204,5 +222,5 @@ export default {
 			}
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [require("tailwindcss-animate"), require("@tailwindcss/line-clamp")],
 } satisfies Config;

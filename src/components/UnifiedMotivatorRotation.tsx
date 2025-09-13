@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { useProfile } from '@/hooks/useProfile';
+import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 
 interface UnifiedMotivatorRotationProps {
   isActive: boolean;
@@ -19,11 +21,71 @@ export const UnifiedMotivatorRotation = ({
   onModeChange,
   className = '',
   timerDurationMs = 5000,
-  imageLeadMs = 2000,
+  imageLeadMs = 500, // Reduced delay for better synchronization
   textDurationMs = 4000,
 }: UnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
-  const items = motivators.filter(m => m?.title); // rotate through all with titles; image optional
+  const { profile } = useProfile();
+  const { quotes: quoteSettings } = useQuoteSettings();
+  
+  // Combine all content types into unified items
+  const items = useMemo(() => {
+    console.log('🎯 Building unified content list');
+    
+    // Filter motivators based on individual show_in_animations setting
+    const allMotivators = motivators.filter(item => item.is_active)
+      .filter(item => {
+        const showInAnimations = (item as any).show_in_animations;
+        return showInAnimations !== false; // Show if true or undefined/null
+      });
+
+    const goalMotivators = allMotivators
+      .filter(item => item.category !== 'saved_quote') // Only actual goals
+      .map(item => ({
+        id: `motivator-${item.id}`,
+        title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
+        content: item.content,
+        imageUrl: item.imageUrl,
+        type: 'motivator' as const
+      }));
+
+    const savedQuotes = allMotivators
+      .filter(item => item.category === 'saved_quote') // Saved quotes from motivators table
+      .map(item => ({
+        id: `saved-quote-${item.id}`,
+        title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
+        content: item.content || item.title,
+        imageUrl: item.imageUrl,
+        type: 'quote' as const
+      }));
+
+    // Add walking timer quotes only if enabled
+    const walkingQuotes = quoteSettings?.walking_timer_quotes || [];
+    const filteredQuotes = (quoteSettings?.walking_timer_quotes_enabled !== false) 
+      ? walkingQuotes.map((quote, index) => ({
+          id: `quote-${index}`,
+          title: quote.text,
+          content: quote.text,
+          imageUrl: null,
+          type: 'quote' as const
+        }))
+      : [];
+
+    // TODO: Add notes when they're available from admin system
+    // For now, we'll just use motivators and quotes
+    
+    const allItems = [...goalMotivators, ...savedQuotes, ...filteredQuotes];
+      
+    console.log('🎯 Unified content result:', {
+      goals: goalMotivators.length,
+      savedQuotes: savedQuotes.length,
+      walkingQuotes: filteredQuotes.length,
+      total: allItems.length,
+      itemDetails: allItems.map(item => ({ type: item.type, title: item.title.substring(0, 30) }))
+    });
+    
+    return allItems;
+  }, [motivators, quoteSettings]);
 
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');
@@ -31,6 +93,25 @@ export const UnifiedMotivatorRotation = ({
   const runIdRef = useRef(0);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const modeRef = useRef<'timer-focused' | 'motivator-focused'>('timer-focused');
+  const wasHiddenRef = useRef(false);
+
+  // Reset rotation to timer when page becomes visible after being hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && wasHiddenRef.current) {
+        // Page became visible after being hidden - reset to timer phase
+        setPhase('timer');
+        setIndex(0);
+        wasHiddenRef.current = false;
+        runIdRef.current += 1; // Force restart of the rotation
+      } else if (document.visibilityState === 'hidden') {
+        wasHiddenRef.current = true;
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   useEffect(() => {
     if (!isActive || items.length === 0) {
@@ -125,28 +206,43 @@ export const UnifiedMotivatorRotation = ({
         </div>
       )}
 
-      {/* Text overlay (above progress ring) */}
-      {showText && (
+      {/* Content-specific text display */}
+      {showText && current && (
         <div
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0 flex items-center justify-center p-4"
           style={{ zIndex: 15 }}
         >
-          <div className="relative">
-            {/* Pulsation rings (inspired by Admin Dev 'ring pulse') */}
-            <div className="absolute -inset-6 rounded-full border-2 border-primary/20 animate-pulse pointer-events-none" />
-            <div className="absolute -inset-3 rounded-full border border-primary/30 animate-pulse pointer-events-none" style={{ animationDelay: '0.15s' }} />
-            <div className="absolute -inset-1 rounded-full border border-primary/40 animate-pulse pointer-events-none" style={{ animationDelay: '0.3s' }} />
-
-            {/* Circular blurred background with text */}
-            <div 
-              className="w-44 h-44 rounded-full bg-black/40 text-white backdrop-blur-sm border border-white/10 shadow-lg animate-scale-in flex items-center justify-center px-6 text-center"
-              style={{ textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}
-            >
-              <span className="font-semibold text-sm tracking-wide leading-snug">
-                {current!.title!.toUpperCase()}
-              </span>
+          {(() => {
+            console.log('🎯 Rendering content:', { 
+              type: current.type, 
+              title: current.title.substring(0, 30),
+              isMotivator: current.type === 'motivator'
+            });
+            return current.type === 'motivator';
+          })() ? (
+            /* Goals: Direct white text on image, no background */
+            <div className="text-center text-white px-6 animate-fade-in">
+              <p className="text-xl font-bold leading-tight break-words uppercase" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}>
+                {current.title}
+              </p>
             </div>
-          </div>
+          ) : (
+            /* Quotes: Direct text on background, no box */
+            <div className="text-center text-white px-8 max-w-4xl w-full animate-fade-in">
+              <p 
+                className={`font-medium leading-relaxed break-words ${
+                  current.title && current.title.length > 200 
+                    ? 'text-sm' 
+                    : current.title && current.title.length > 120 
+                    ? 'text-base' 
+                    : 'text-lg'
+                }`} 
+                style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}
+              >
+                {current.title}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

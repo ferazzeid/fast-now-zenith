@@ -17,34 +17,43 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 import { useProfile } from '@/hooks/useProfile';
 import Settings from "./pages/Settings";
+import Account from "./pages/Account";
+
 import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import ResetPassword from "./pages/ResetPassword";
 import UpdatePassword from "./pages/UpdatePassword";
+
+
 // import AdminOverview from "./pages/AdminOverview";
 
 import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
+import AddFood from "./pages/AddFood";
+import MyFoods from "./pages/MyFoods";
+import WalkingHistory from "./pages/WalkingHistory";
+import FoodHistory from "./pages/FoodHistory";
+import FastingHistory from "./pages/FastingHistory";
 import { HealthCheck } from "./pages/HealthCheck";
 import { Navigation } from "./components/Navigation";
-import { AuthProvider } from "./providers/AuthProvider";
+
 
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { ThemeStabilityFix } from "./components/ThemeStabilityFix";
-import { useColorTheme } from "./hooks/useColorTheme";
-import { useDynamicFavicon } from "./hooks/useDynamicFavicon";
-import { useDynamicPWAAssets } from "./hooks/useDynamicPWAAssets";
-import { useDynamicHTMLMeta } from "./hooks/useDynamicHTMLMeta";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import { DailyStatsPanel } from "./components/DailyStatsPanel";
 import { SimpleWalkingStatsProvider } from "./contexts/SimplifiedWalkingStats";
 import { initializeAnalytics, trackPageView } from "./utils/analytics";
+import { performCompleteAuthCacheReset } from "./utils/cacheUtils";
 import { SEOManager } from "./components/SEOManager";
 import { useLocation } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { useAuthStore } from '@/stores/authStore';
-import { useConnectionStore } from '@/stores/connectionStore';
+
+import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
+import { supabase } from '@/integrations/supabase/client';
+import { useColorTheme } from '@/hooks/useColorTheme';
 
 
 
@@ -52,6 +61,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 const AdminOverview = lazy(() => import("./pages/AdminOverview"));
 const AdminOperations = lazy(() => import("./pages/admin/Operations"));
 const AdminContent = lazy(() => import("./pages/admin/Content"));
+const AdminAI = lazy(() => import("./pages/admin/AI"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 const AdminDev = lazy(() => import("./pages/admin/Dev"));
@@ -68,20 +78,24 @@ if (typeof window !== 'undefined') {
   });
 }
 
+
 const AppContent = () => {
-  // Load color theme on app startup
-  useColorTheme();
-  // Load dynamic favicon from admin settings
-  useDynamicFavicon();
-  // Load dynamic PWA assets (logo, icons)
-  useDynamicPWAAssets();
-  // Load dynamic HTML meta tags
-  useDynamicHTMLMeta();
+  // All hooks must be called consistently - no conditional hooks!
   const location = useLocation();
   const user = useAuthStore(state => state.user);
+  const loading = useAuthStore(state => state.loading);
+  const initialize = useAuthStore(state => state.initialize);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { isOnline } = useConnectionStore();
+  
+  // Initialize auth system on app startup
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+  
+  // Load colors immediately without authentication dependency
+  const { loading: colorLoading } = useColorTheme(true);
+
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
@@ -105,67 +119,51 @@ const AppContent = () => {
     trackPageView(location.pathname);
   }, [location.pathname]);
 
-  // Show onboarding if user is authenticated and profile is incomplete
+  // Show onboarding if user is authenticated and profile is incomplete (non-blocking)
   useEffect(() => {
-    // Only check onboarding for authenticated users with loaded profile data
     if (user && profile !== null) {
       const profileComplete = isProfileComplete();
-      console.log('Profile onboarding check:', {
-        user: !!user,
-        // profile omitted for security
-        profileComplete,
-        weight: profile?.weight,
-        height: profile?.height,
-        age: profile?.age
-      });
       setShowOnboarding(!profileComplete);
     } else {
-      // User not authenticated or profile not loaded yet - don't show onboarding
       setShowOnboarding(false);
     }
   }, [user, profile, isProfileComplete]);
 
-  // Handle browser back/forward navigation when offline
+  // Track page views on route changes
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      // When offline, ensure we stay within the SPA
-      if (!isOnline) {
-        // Let React Router handle the navigation naturally
-        // The service worker will serve the cached index.html
-        console.log('Offline navigation detected, using cached app shell');
-      }
-    };
+    trackPageView(location.pathname);
+  }, [location.pathname]);
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [isOnline]);
-  
+  // App is ready to render
   return (
-    <>
-      
-      
+    <div>
       {/* Desktop frame background */}
       <div className="min-h-screen bg-frame-background overflow-x-hidden">
         {/* Mobile-first centered container with phone-like frame */}
         <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
           {!isAuthRoute && <DailyStatsPanel />}
-          <Routes>
-            <Route path="/auth" element={
-              <PageErrorBoundary>
-                <Auth />
-              </PageErrorBoundary>
-            } />
-            <Route path="/reset-password" element={
-              <PageErrorBoundary>
-                <ResetPassword />
-              </PageErrorBoundary>
-            } />
-            <Route path="/update-password" element={
-              <PageErrorBoundary>
-                <UpdatePassword />
-              </PageErrorBoundary>
-            } />
+           <Routes>
+             <Route path="/auth" element={
+               <PageErrorBoundary>
+                 <Auth />
+               </PageErrorBoundary>
+             } />
+             <Route path="/auth/callback" element={
+               <PageErrorBoundary>
+                 <AuthCallback />
+               </PageErrorBoundary>
+             } />
+             <Route path="/reset-password" element={
+               <PageErrorBoundary>
+                 <ResetPassword />
+               </PageErrorBoundary>
+             } />
+             <Route path="/update-password" element={
+               <PageErrorBoundary>
+                 <UpdatePassword />
+               </PageErrorBoundary>
+             } />
             <Route path="/" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
@@ -194,6 +192,13 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
+            <Route path="/account" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <Account />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
             <Route path="/walking" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
@@ -205,6 +210,41 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <FoodTracking />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/add-food" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <AddFood />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/my-foods" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <MyFoods />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/walking-history" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <WalkingHistory />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/food-history" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <FoodHistory />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/fasting-history" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <FastingHistory />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
@@ -226,6 +266,17 @@ const AppContent = () => {
                   <PageErrorBoundary>
                     <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
                       <AdminContent />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/ai" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={<div className="p-6"><div className="h-6 w-32 rounded bg-muted animate-pulse" /></div>}>
+                      <AdminAI />
                     </Suspense>
                   </PageErrorBoundary>
                 </AdminProtectedRoute>
@@ -280,41 +331,45 @@ const AppContent = () => {
       </div>
       
       {/* Global Profile Onboarding */}
-      
       <GlobalProfileOnboarding
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
       />
-    </>
+    </div>
   );
 };
 
-const App = () => (
-  <CriticalErrorBoundary 
-    onError={(error, errorInfo) => {
-      console.error('App-level error:', error, errorInfo);
-      // Could send to error tracking service here
-    }}
-  >
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AsyncErrorBoundary>
+const App = () => {
+  // For TWA deployment, always use BrowserRouter
+  const Router = BrowserRouter;
+  
+  return (
+    <CriticalErrorBoundary 
+      onError={(error, errorInfo) => {
+        console.error('App-level error:', error, errorInfo);
+        // Could send to error tracking service here
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <HookConsistencyBoundary>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            
             <ThemeProvider>
-              <ThemeStabilityFix />
-              <AuthProvider>
-                <SimpleWalkingStatsProvider>
-                  <AppContent />
-                </SimpleWalkingStatsProvider>
-              </AuthProvider>
+              <SimpleWalkingStatsProvider>
+                <Router>
+                  <AsyncErrorBoundary>
+                    <AppContent />
+                  </AsyncErrorBoundary>
+                </Router>
+              </SimpleWalkingStatsProvider>
             </ThemeProvider>
-          </AsyncErrorBoundary>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </CriticalErrorBoundary>
-);
+          </TooltipProvider>
+        </HookConsistencyBoundary>
+      </QueryClientProvider>
+    </CriticalErrorBoundary>
+  );
+};
 
 export default App;

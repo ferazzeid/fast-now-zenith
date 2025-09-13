@@ -77,7 +77,7 @@ export const CircularMotivatorText = ({ isActive, transitionTime = 15, onModeCha
       return (
         <span
           key={index}
-          className="absolute font-semibold text-primary text-sm tracking-wide drop-shadow-lg"
+          className="absolute font-semibold text-foreground text-sm tracking-wide drop-shadow-lg"
           style={{
             transform: `translate(${x}px, ${y}px) rotate(${angle + Math.PI / 2}rad)`,
             transformOrigin: '50% 50%',

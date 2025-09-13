@@ -37,7 +37,23 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, stream = false } = await req.json();
+    const requestBody = await req.json();
+    const { messages, stream = false, message, conversationHistory, conversationMemory, context } = requestBody;
+    
+    // Handle both ModalAiChat format (messages array) and AiChat format (message + conversationHistory)
+    let processedMessages;
+    if (messages) {
+      // ModalAiChat format
+      processedMessages = messages;
+    } else if (message && conversationHistory) {
+      // AiChat format - convert to messages format
+      processedMessages = [
+        ...conversationHistory,
+        { role: 'user', content: message }
+      ];
+    } else {
+      throw new Error('Invalid request format: expected either messages array or message + conversationHistory');
+    }
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -83,24 +99,65 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
-    // 🔒 Get monthly request limit from settings
-    const { data: settings } = await supabase
+    // Fetch app philosophy/foundation from shared settings
+    const { data: philosophyData } = await supabase
       .from('shared_settings')
       .select('setting_value')
-      .eq('setting_key', 'monthly_request_limit')
+      .eq('setting_key', 'app_philosophy_foundation')
       .maybeSingle();
 
-    const monthlyLimit = parseInt(settings?.setting_value || '1000');
+    const appPhilosophy = philosophyData?.setting_value || '';
+
+    // Check if premium access is expired (except for admins)
+    const isExpired = profile.premium_expires_at ? 
+      new Date(profile.premium_expires_at) < new Date() : false;
+    const effectiveLevel = isExpired && profile.access_level !== 'admin' ? 
+      'trial' : profile.access_level;
+
+    // Get request limits from settings
+    const { data: settings } = await supabase
+      .from('shared_settings')
+      .select('setting_key, setting_value')
+      .in('setting_key', ['trial_request_limit', 'monthly_request_limit']);
+
+    const trialLimit = parseInt(settings?.find(s => s.setting_key === 'trial_request_limit')?.setting_value || '50');
+    const premiumLimit = parseInt(settings?.find(s => s.setting_key === 'monthly_request_limit')?.setting_value || '1000');
     
-    // Free users get 0 requests (only trial users get requests)
-    const userLimit = profile.user_tier === 'paid_user' ? monthlyLimit : 0;
-    
-    if (profile.monthly_ai_requests >= userLimit) {
+    // Check access permissions and limits
+    if (effectiveLevel === 'trial') {
+      if (profile.monthly_ai_requests >= trialLimit) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Your free trial has ended. Upgrade to premium to continue using AI features.',
+            limit_reached: true,
+            current_tier: 'trial'
+          }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    } else if (effectiveLevel === 'premium') {
+      if (profile.monthly_ai_requests >= premiumLimit) {
+        return new Response(
+          JSON.stringify({ 
+            error: `You've used all ${premiumLimit} AI requests this month. Your limit will reset next month.`,
+            limit_reached: true,
+            current_tier: 'premium'
+          }),
+          { 
+            status: 429, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
+      }
+    } else if (effectiveLevel !== 'admin') {
       return new Response(
         JSON.stringify({ 
-          error: `Monthly request limit of ${userLimit} reached. ${profile.user_tier === 'free_user' ? 'Please upgrade to continue using AI features.' : ''}`,
+          error: 'AI features are only available to premium users. Start your free trial or upgrade to continue.',
           limit_reached: true,
-          current_tier: profile.user_tier
+          current_tier: 'free'
         }),
         { 
           status: 429, 
@@ -108,6 +165,8 @@ serve(async (req) => {
         }
       );
     }
+
+    // Admins have unlimited access (no limit check needed)
 
     // 🔒 PROTECTED: Use standardized API key resolution
     const openaiApiKey = await resolveOpenAIApiKey(
@@ -217,15 +276,39 @@ USER PROFILE:
 - Activity level: ${profile.activity_level || 'sedentary'}
 - Default walking speed: ${profile.default_walking_speed || 3} mph`;
 
-    const enhancedSystemMessage = `You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
+    // Enhanced system message with conversation memory and clarification context
+    const baseSystemMessage = `${appPhilosophy ? `${appPhilosophy}\n\n` : ''}You are a helpful AI assistant for a fasting and health tracking app. Respond in a natural, conversational way without bullet points or numbered lists. Keep your responses concise and friendly.
 
-CRITICAL FOOD PROCESSING RULES:
-- When users mention specific food items with quantities (like "333 milliliters of Diet Pepsi", "two apples", "100g chicken"), IMMEDIATELY call add_multiple_foods function
-- Do NOT ask for confirmation or engage in discussion about adding food
-- Process the food information directly and call the function right away
-- Only engage in conversation if the user asks questions or needs clarification after processing
+${conversationMemory ? `\nCONVERSATION MEMORY AND USER CONTEXT:\n${conversationMemory}` : ''}
 
-${messages[0]?.content || ''}${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
+IMPORTANT CONVERSATION FLOW HANDLING:
+- If you recently asked a clarification question and the user is providing a direct answer, use the modify_recent_foods function to update their entries
+- Look for patterns like: You ask "What's the serving size?" → User says "150g each" → Execute modification
+- When users provide serving sizes or quantities in response to your questions, automatically apply those changes
+- Pay attention to context clues like "each", "per item", "all of them", "only X items" to determine modification type
+
+CRITICAL FOOD QUANTITY INTERPRETATION - FOLLOW EXACTLY:
+- Weight+Food = Single Serving: "1kg cucumbers", "500g chicken" → ONE entry with that serving size
+- Count+Food = Multiple Items: "3 cucumbers", "two apples", "four yogurts" → EXACTLY that number of separate entries
+- Count+Weight+Each = Multiple Items: "3 cucumbers, each 250g" → EXACTLY 3 entries, each 250g
+- Mixed Requests: Parse each item independently. "3 yogurts, 1kg cucumbers, 2 apples" = 3+1+2 = 6 total entries
+- NEVER create duplicate entries for the same request. Each mentioned food creates its specified quantity only
+- Validate totals: If user says "3 yogurts, 1kg cucumbers, 3 individual cucumbers", expect EXACTLY 7 entries (3+1+3)
+
+NUTRITION ESTIMATION REQUIREMENTS:
+- Use USDA nutrition database knowledge for accurate calorie and carb values
+- Base calculations on per-100g values, then scale by serving size
+- Common foods: Apple (52 cal/100g, 14g carbs), Chicken breast (165 cal/100g, 0g carbs), Greek yogurt (100 cal/100g, 6g carbs)
+- NEVER use 0 calories unless food truly has none (water, black coffee, plain tea)
+- NEVER use 0 carbs unless food is zero-carb (meat, fish, oils, eggs)
+- For processed foods, estimate based on similar products and ingredients
+- When unsure, err on the side of slightly higher estimates rather than underestimating
+
+CAPABILITIES: You can help users with fasting sessions, walking sessions, food tracking, motivators, and app calculations.`;
+
+    const enhancedSystemMessage = `${baseSystemMessage}
+
+${appKnowledgeContext}${foodLibraryContext}${todayFoodsContext}${recentFoodsContext}${templatesContext}${guardrailsContext}
 
 RESPONSE STYLE: 
 - Use natural, flowing conversation 
@@ -246,17 +329,28 @@ When explaining app calculations, use the exact formulas and constants above. He
     
     const systemMessages = [
       { role: 'system', content: enhancedSystemMessage },
-      ...messages.slice(1)
+      ...processedMessages.slice(1)
     ];
 
-    console.log('🤖 Calling OpenAI with messages:', messages.slice(-2)); // Log last 2 messages for debugging
+    console.log('🤖 Calling OpenAI with messages:', processedMessages.slice(-3)); // Log last 3 messages for better context debugging
+    console.log('🔒 Context mode:', context || 'full');
     
-    // Prepare OpenAI request payload
-    const requestPayload = {
-      model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
-      messages: systemMessages,
-      stream: stream,
-      tools: [
+    // Define food-only functions whitelist
+    const foodOnlyFunctions = [
+      'add_multiple_foods',
+      'modify_recent_foods', 
+      'search_foods_for_edit',
+      'edit_food_entry',
+      'edit_library_food',
+      'get_recent_foods',
+      'get_favorite_default_foods',
+      'copy_yesterday_foods',
+      'get_today_food_totals',
+      'get_daily_food_templates'
+    ];
+
+    // All available functions
+    const allFunctions = [
           // === SESSION MANAGEMENT ===
           {
             type: "function",
@@ -371,7 +465,41 @@ When explaining app calculations, use the exact formulas and constants above. He
               }
             }
           },
-          // === ADMIN FUNCTIONS ===
+          {
+            type: "function",
+            function: {
+              name: "modify_recent_foods",
+              description: "Modify recent food entries based on user clarifications about serving sizes or quantities",
+              parameters: {
+                type: "object",
+                properties: {
+                  modifications: {
+                    type: "object",
+                    properties: {
+                      serving_size_each: {
+                        type: "number",
+                        description: "New serving size per item in grams"
+                      },
+                      serving_size: {
+                        type: "number", 
+                        description: "New overall serving size in grams"
+                      },
+                      quantity: {
+                        type: "number",
+                        description: "New quantity of items"
+                      }
+                    },
+                    description: "Object containing the modifications to apply"
+                  },
+                  clarification_text: {
+                    type: "string",
+                    description: "Context text to help identify which foods to modify (e.g., 'the Greek yogurt', 'cucumbers')"
+                  }
+                },
+                required: ["modifications"]
+              }
+            }
+          },
           {
             type: "function",
             function: {
@@ -479,41 +607,75 @@ When explaining app calculations, use the exact formulas and constants above. He
             }
           },
           // === FOOD FUNCTIONS ===
+           {
+             type: "function",
+             function: {
+               name: "add_multiple_foods",
+               description: "Add food entries to the user's food log with ACCURATE NUTRITION ESTIMATION. CRITICAL QUANTITY RULES: (1) COUNT + FOOD = MULTIPLE ENTRIES: '3 yogurts', '5 eggs' → Create EXACTLY that number of separate entries. (2) WEIGHT + FOOD = SINGLE ENTRY: '1kg cucumbers', '500g chicken' → Create ONE entry with that serving size. (3) MIXED REQUESTS: '3 yogurts, 1kg cucumbers, 5 individual apples' → 3 yogurt entries + 1 cucumber entry (1000g) + 5 apple entries = 9 total entries. NEVER create duplicates. Each food mentioned should result in the EXACT number specified, no more, no less. Count each request separately and validate totals. NUTRITION ACCURACY: You MUST provide realistic, non-zero calories and carbs. Use USDA database knowledge, standard portion sizes, and food composition data. Example: 100g apple = ~52 cal, 14g carbs; 100g chicken breast = ~165 cal, 0g carbs; 100g Greek yogurt = ~100 cal, 6g carbs. Scale proportionally by serving size. NEVER use 0 calories or 0 carbs unless the food truly has none.",
+               parameters: {
+                 type: "object",
+                 properties: {
+                   foods: {
+                     type: "array",
+                     items: {
+                       type: "object",
+                       properties: {
+                         name: {
+                           type: "string",
+                           description: "Name of the food item"
+                         },
+                         serving_size: {
+                           type: "number",
+                           description: "Serving size in grams"
+                         },
+                         calories: {
+                           type: "number",
+                           description: "Number of calories in this serving - MUST be realistic and non-zero for foods with calories"
+                         },
+                         carbs: {
+                           type: "number",
+                           description: "Number of carbs in grams in this serving - MUST be realistic, use 0 only for zero-carb foods like meat/oil"
+                         }
+                       },
+                       required: ["name", "serving_size", "calories", "carbs"]
+                     }
+                   }
+                 },
+                 required: ["foods"]
+               }
+             }
+           },
           {
             type: "function",
             function: {
-              name: "add_multiple_foods",
-              description: "Add food entries to the user's food log. Create one entry per food item mentioned. Only create multiple entries when user explicitly mentions multiple items (e.g., 'two apples', 'three bananas'). For singular requests like 'a cucumber' or 'add Greek yogurt', create only ONE entry.",
+              name: "modify_recent_foods",
+              description: "Modify recently added food entries based on user clarifications (e.g., 'each yogurt has 160g', 'the Greek yogurts were actually 160g each'). IMPORTANT: Look for food items in today's entries that match the user's clarification. Search for partial name matches (e.g., 'Greek yogurt' matches 'Greek Yogurt, zero fat'). Use this when user provides corrections about food items they just mentioned.",
               parameters: {
                 type: "object",
                 properties: {
-                  foods: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: {
-                          type: "string",
-                          description: "Name of the food item"
-                        },
-                        serving_size: {
-                          type: "number",
-                          description: "Serving size in grams"
-                        },
-                        calories: {
-                          type: "number",
-                          description: "Number of calories in this serving"
-                        },
-                        carbs: {
-                          type: "number",
-                          description: "Number of carbs in grams in this serving"
-                        }
+                  modifications: {
+                    type: "object",
+                    properties: {
+                      serving_size_each: {
+                        type: "number",
+                        description: "New serving size per item (when user says 'each has X grams')"
                       },
-                      required: ["name", "serving_size", "calories", "carbs"]
+                      quantity: {
+                        type: "number",
+                        description: "New quantity of items (when user says 'there are actually X')"
+                      },
+                      serving_size_total: {
+                        type: "number",
+                        description: "Total serving size for all items"
+                      }
                     }
+                  },
+                  clarification_text: {
+                    type: "string",
+                    description: "The user's clarification message for context"
                   }
                 },
-                required: ["foods"]
+                required: ["modifications", "clarification_text"]
               }
             }
           },
@@ -852,9 +1014,55 @@ When explaining app calculations, use the exact formulas and constants above. He
               }
             }
           }
-        ],
-        tool_choice: "auto"
-      };
+        ];
+
+    // Filter functions based on context
+    const functionsToUse = context === 'food_only' 
+      ? allFunctions.filter(tool => foodOnlyFunctions.includes(tool.function.name))
+      : allFunctions;
+
+    console.log(`🔧 Using ${functionsToUse.length}/${allFunctions.length} functions for context: ${context || 'full'}`);
+    
+    // Update system message for food-only context
+    let contextAwareSystemMessage = enhancedSystemMessage;
+    
+    if (context === 'food_only') {
+      contextAwareSystemMessage = `You are a focused food tracking assistant. You can ONLY help with food-related operations:
+
+FOOD OPERATIONS YOU CAN PERFORM:
+- Add foods to today's log (add_multiple_foods)
+- Edit existing food entries (search_foods_for_edit, edit_food_entry, edit_library_food)
+- Modify recent food entries (modify_recent_foods)
+- Access food data (get_recent_foods, get_favorite_default_foods, copy_yesterday_foods, get_today_food_totals, get_daily_food_templates)
+
+CRITICAL QUANTITY HANDLING - FOLLOW EXACTLY:
+- COUNT + FOOD = MULTIPLE ENTRIES: "3 yogurts" = 3 separate yogurt entries, "5 eggs" = 5 separate egg entries
+- WEIGHT + FOOD = SINGLE ENTRY: "1kg cucumbers" = 1 entry with 1000g serving, "500g chicken" = 1 entry with 500g serving  
+- MIXED REQUESTS: Parse each item independently. "3 yogurts, 1kg cucumbers, 2 apples" = 3+1+2 = 6 total entries
+- NEVER create duplicate entries. Each mentioned food creates its specified quantity ONLY
+- VALIDATE TOTALS: "3 yogurts, 1kg cucumbers, 3 individual cucumbers" = EXACTLY 7 entries (3+1+3), not more
+- COUNT VERIFICATION: Before responding, verify your total matches the sum of all individual quantities requested
+
+EDITING/DELETING: When users want to edit/change/delete foods, FIRST use search_foods_for_edit to find the item.
+
+FORMAT RESPONSES: List foods as "Name (Xg) - Y cal, Zg carbs" with totals.
+
+LIMITATIONS: You cannot help with fasting sessions, walking, motivators, or profile updates. Focus only on food tracking operations.
+
+Keep responses brief and action-focused. Always use function calls for food operations.`;
+    }
+    
+    // Prepare OpenAI request payload
+    const requestPayload = {
+      model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
+      messages: [
+        { role: 'system', content: contextAwareSystemMessage },
+        ...processedMessages.slice(1)
+      ],
+      stream: stream,
+      tools: functionsToUse,
+      tool_choice: "auto"
+    };
 
     // Log request payload for debugging
     console.log('🚀 OpenAI Request Payload:', JSON.stringify({
@@ -950,8 +1158,101 @@ When explaining app calculations, use the exact formulas and constants above. He
     }
 
     if (stream) {
-      // Return streaming response
-      return new Response(response.body, {
+      // Handle streaming response with proper parsing
+      console.log('🌊 Processing streaming response...');
+      
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No response body available for streaming');
+      }
+
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      let buffer = '';
+      let completion = '';
+      let functionCall = null;
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              
+              if (done) {
+                // Send final response with complete data
+                const finalData = {
+                  type: 'completion',
+                  completion: completion.trim(),
+                  functionCall: functionCall,
+                  done: true
+                };
+                
+                const finalChunk = `data: ${JSON.stringify(finalData)}\n\n`;
+                controller.enqueue(encoder.encode(finalChunk));
+                controller.close();
+                break;
+              }
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  
+                  if (data === '[DONE]') {
+                    continue;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    const delta = parsed.choices?.[0]?.delta;
+                    
+                    if (delta?.content) {
+                      completion += delta.content;
+                      
+                      // Send streaming chunk
+                      const chunkData = {
+                        type: 'chunk',
+                        content: delta.content,
+                        completion: completion
+                      };
+                      
+                      const chunk = `data: ${JSON.stringify(chunkData)}\n\n`;
+                      controller.enqueue(encoder.encode(chunk));
+                    }
+                    
+                    // Handle function calls in streaming
+                    if (delta?.tool_calls?.[0]) {
+                      const toolCall = delta.tool_calls[0];
+                      if (toolCall.function?.name || toolCall.function?.arguments) {
+                        if (!functionCall) {
+                          functionCall = { name: '', arguments: '' };
+                        }
+                        if (toolCall.function.name) {
+                          functionCall.name = toolCall.function.name;
+                        }
+                        if (toolCall.function.arguments) {
+                          functionCall.arguments += toolCall.function.arguments;
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.error('❌ Error parsing streaming data:', e);
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            console.error('❌ Streaming error:', error);
+            controller.error(error);
+          }
+        }
+      });
+
+      return new Response(stream, {
         headers: {
           ...corsHeaders,
           'Content-Type': 'text/event-stream',
@@ -968,21 +1269,60 @@ When explaining app calculations, use the exact formulas and constants above. He
       let functionCall = null;
       let completion = '';
       
-      // Method 1: Standard tool_calls format (GPT-4+ with tools)
-      if (result.choices?.[0]?.message?.tool_calls?.[0]) {
+      // Method 1: Standard tool_calls format (GPT-4+ with tools) - ENHANCED for multiple calls
+      if (result.choices?.[0]?.message?.tool_calls?.length > 0) {
         console.log('📞 Processing tool_calls format...');
-        const toolCall = result.choices[0].message.tool_calls[0];
-        if (toolCall.type === 'function') {
-          try {
-            const parsedArgs = JSON.parse(toolCall.function.arguments);
-            functionCall = {
-              name: toolCall.function.name,
-              arguments: parsedArgs
-            };
-            console.log('✅ Successfully parsed tool_calls function:', functionCall);
-          } catch (parseError) {
-            console.error('❌ Failed to parse tool_calls arguments:', parseError);
-            console.error('❌ Raw arguments string:', toolCall.function.arguments);
+        const toolCalls = result.choices[0].message.tool_calls;
+        console.log(`🔧 Found ${toolCalls.length} tool calls`);
+        
+        // Check if we have multiple add_multiple_foods calls to combine
+        const addFoodCalls = toolCalls.filter(call => 
+          call.type === 'function' && call.function.name === 'add_multiple_foods'
+        );
+        
+        if (addFoodCalls.length > 1) {
+          console.log(`🔧 Combining ${addFoodCalls.length} add_multiple_foods calls`);
+          
+          // Combine all foods from multiple calls
+          const allFoods: any[] = [];
+          let destination = 'today';
+          
+          for (const call of addFoodCalls) {
+            try {
+              const parsedArgs = JSON.parse(call.function.arguments);
+              if (parsedArgs.foods && Array.isArray(parsedArgs.foods)) {
+                allFoods.push(...parsedArgs.foods);
+                if (parsedArgs.destination) destination = parsedArgs.destination;
+              }
+            } catch (parseError) {
+              console.error('❌ Failed to parse tool_call arguments:', parseError);
+            }
+          }
+          
+          functionCall = {
+            name: 'add_multiple_foods',
+            arguments: {
+              foods: allFoods,
+              destination: destination
+            }
+          };
+          
+          console.log(`✅ Combined ${addFoodCalls.length} calls into single function with ${allFoods.length} foods`);
+        } else {
+          // Single function call - process normally
+          const toolCall = toolCalls[0];
+          if (toolCall.type === 'function') {
+            try {
+              const parsedArgs = JSON.parse(toolCall.function.arguments);
+              functionCall = {
+                name: toolCall.function.name,
+                arguments: parsedArgs
+              };
+              console.log('✅ Successfully parsed tool_calls function:', functionCall);
+            } catch (parseError) {
+              console.error('❌ Failed to parse tool_calls arguments:', parseError);
+              console.error('❌ Raw arguments string:', toolCall.function.arguments);
+            }
           }
         }
       }
@@ -1060,6 +1400,59 @@ When explaining app calculations, use the exact formulas and constants above. He
               functionCall = null;
             } else {
               console.log(`✅ add_multiple_foods has ${functionCall.arguments.foods.length} food items`);
+              
+              // Validate nutrition values for each food
+              let nutritionValid = true;
+              const invalidFoods: string[] = [];
+              
+              for (const food of functionCall.arguments.foods) {
+                if (!food.name || !food.serving_size || food.calories === undefined || food.carbs === undefined) {
+                  nutritionValid = false;
+                  invalidFoods.push(`${food.name || 'unnamed'} (missing required fields)`);
+                  continue;
+                }
+                
+                // Check for unrealistic zero values (except for zero-carb foods)
+                if (food.calories === 0 && food.serving_size > 0) {
+                  // Allow zero calories only for water, black coffee, tea
+                  const zeroCalAllowed = /^(water|black coffee|tea|plain tea|unsweetened tea|black tea|green tea)$/i.test(food.name);
+                  if (!zeroCalAllowed) {
+                    nutritionValid = false;
+                    invalidFoods.push(`${food.name} (unrealistic 0 calories)`);
+                  }
+                }
+                
+                if (food.carbs === 0 && food.serving_size > 0) {
+                  // Allow zero carbs for meats, fish, oils, eggs, cheese
+                  const zeroCarbAllowed = /^.*(meat|beef|pork|chicken|fish|salmon|tuna|oil|egg|cheese|butter).*$/i.test(food.name);
+                  if (!zeroCarbAllowed && food.calories > 0) {
+                    console.warn(`⚠️ Potential zero carbs for ${food.name} - this may be correct for pure protein/fat foods`);
+                  }
+                }
+                
+                // Check for unrealistically low values
+                if (food.serving_size >= 100 && food.calories < 10 && food.calories > 0) {
+                  nutritionValid = false;
+                  invalidFoods.push(`${food.name} (unrealistically low calories for serving size)`);
+                }
+              }
+              
+              if (!nutritionValid) {
+                console.error(`❌ Nutrition validation failed for foods: ${invalidFoods.join(', ')}`);
+                functionCall = null;
+              } else {
+                console.log('✅ Nutrition validation passed for all foods');
+              }
+            }
+          }
+          
+          // Special validation for modify_recent_foods  
+          if (functionCall.name === 'modify_recent_foods') {
+            if (!functionCall.arguments.modifications || typeof functionCall.arguments.modifications !== 'object') {
+              console.error('❌ modify_recent_foods missing modifications object');
+              functionCall = null;
+            } else {
+              console.log('✅ modify_recent_foods validation passed');
             }
           }
         }
@@ -1076,6 +1469,38 @@ When explaining app calculations, use the exact formulas and constants above. He
       };
       
       console.log('📦 Final formatted result:', formattedResult);
+      
+      // If this is a modify_recent_foods function call, execute it directly
+      if (functionCall && functionCall.name === 'modify_recent_foods') {
+        console.log('🔧 Executing modify_recent_foods function...');
+        try {
+          const modifyResponse = await supabase.functions.invoke('modify-recent-foods', {
+            body: functionCall.arguments,
+            headers: {
+              'Authorization': authHeader
+            }
+          });
+          
+          if (modifyResponse.error) {
+            console.error('❌ modify_recent_foods execution failed:', modifyResponse.error);
+            formattedResult.completion = "I encountered an error while trying to modify your recent foods. Please try again.";
+            formattedResult.functionCall = null;
+          } else {
+            console.log('✅ modify_recent_foods executed successfully');
+            const result = modifyResponse.data;
+            if (result.success) {
+              formattedResult.completion = result.message || "I've updated your recent food entries with the new serving sizes.";
+            } else {
+              formattedResult.completion = result.message || "I couldn't find recent food entries to modify.";
+            }
+            formattedResult.functionCall = null;
+          }
+        } catch (error) {
+          console.error('❌ Error executing modify_recent_foods:', error);
+          formattedResult.completion = "I had trouble modifying your recent foods. Please try again.";
+          formattedResult.functionCall = null;
+        }
+      }
       
       return new Response(
         JSON.stringify(formattedResult),

@@ -34,7 +34,8 @@ export const useWalkingSessionQuery = () => {
   const walkingSessionsQuery = useQuery({
     queryKey: walkingSessionsQueryKey(user?.id || null),
     queryFn: async (): Promise<WalkingSession[]> => {
-      if (!user) return [];
+      // Never return conditionally - always execute query function consistently
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('walking_sessions')
@@ -56,7 +57,8 @@ export const useWalkingSessionQuery = () => {
   const activeSessionQuery = useQuery({
     queryKey: activeSessionQueryKey(user?.id || null),
     queryFn: async (): Promise<WalkingSession | null> => {
-      if (!user) return null;
+      // Never return conditionally - always execute query function consistently
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('walking_sessions')

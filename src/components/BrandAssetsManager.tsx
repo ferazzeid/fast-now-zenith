@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User } from "lucide-react";
-import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
+import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User, Trash2 } from "lucide-react";
+import { SmartLoadingButton } from "./SimpleLoadingComponents";
 import { AuthorTooltip } from "./AuthorTooltip";
 import { deleteImageFromStorage } from "@/utils/imageUtils";
 
@@ -17,12 +17,14 @@ const BrandAssetsManager = () => {
   const [currentAppIcon, setCurrentAppIcon] = useState<string>('');
   const [currentFavicon, setCurrentFavicon] = useState<string>('');
   const [currentLogo, setCurrentLogo] = useState<string>('');
+  const [homeScreenIcon, setHomeScreenIcon] = useState<File | null>(null);
+  const [currentHomeScreenIcon, setCurrentHomeScreenIcon] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
   
   // Author tooltip state
   const [authorData, setAuthorData] = useState({
-    image: '/lovable-uploads/default-author.png',
+    image: '/src/assets/motivator-placeholder.jpg',
     name: 'Admin',
     title: 'Personal Insight'
   });
@@ -42,7 +44,7 @@ const BrandAssetsManager = () => {
       const { data: settingsData, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['app_logo', 'app_favicon', 'app_icon_url']);
+        .in('setting_key', ['app_logo', 'app_favicon', 'app_icon_url', 'home_screen_icon']);
 
       if (error) {
         console.error('Error fetching brand assets:', error);
@@ -57,6 +59,8 @@ const BrandAssetsManager = () => {
             setCurrentLogo(setting.setting_value || '');
           } else if (setting.setting_key === 'app_icon_url') {
             setCurrentAppIcon(setting.setting_value || '');
+          } else if (setting.setting_key === 'home_screen_icon') {
+            setCurrentHomeScreenIcon(setting.setting_value || '');
           }
         });
       }
@@ -79,7 +83,7 @@ const BrandAssetsManager = () => {
         }, {} as Record<string, string>);
 
         setAuthorData({
-          image: settingsMap.author_tooltip_image || '/lovable-uploads/default-author.png',
+          image: settingsMap.author_tooltip_image || '/src/assets/motivator-placeholder.jpg',
           name: settingsMap.author_tooltip_name || 'Admin',
           title: settingsMap.author_tooltip_title || 'Personal Insight'
         });
@@ -94,7 +98,7 @@ const BrandAssetsManager = () => {
     }
   };
 
-  const handleFileSelect = (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+  const handleFileSelect = (file: File, type: 'appIcon' | 'favicon' | 'logo' | 'homeScreenIcon') => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -115,20 +119,31 @@ const BrandAssetsManager = () => {
       return;
     }
 
+    // For home screen icon, recommend JPG with white background
+    if (type === 'homeScreenIcon') {
+      toast({
+        title: "Tip",
+        description: "For best results on mobile home screens, use a JPG with white background (not transparent)",
+      });
+    }
+
     if (type === 'appIcon') {
       setAppIcon(file);
     } else if (type === 'favicon') {
       setFavicon(file);
+    } else if (type === 'homeScreenIcon') {
+      setHomeScreenIcon(file);
     } else {
       setLogo(file);
     }
   };
 
-  const uploadAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+  const uploadAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo' | 'homeScreenIcon') => {
     // Delete old asset first (non-blocking)
     let oldImageUrl = '';
     if (type === 'appIcon') oldImageUrl = currentAppIcon;
     else if (type === 'favicon') oldImageUrl = currentFavicon;
+    else if (type === 'homeScreenIcon') oldImageUrl = currentHomeScreenIcon;
     else oldImageUrl = currentLogo;
     
     if (oldImageUrl) {
@@ -188,7 +203,7 @@ const BrandAssetsManager = () => {
     setUploading(true);
     try {
       // Delete old author image first (non-blocking)
-      if (authorData.image && authorData.image !== '/lovable-uploads/default-author.png') {
+      if (authorData.image && authorData.image !== '/src/assets/motivator-placeholder.jpg') {
         const deleteResult = await deleteImageFromStorage(authorData.image, 'website-images', supabase);
         if (!deleteResult.success) {
           console.warn('Failed to delete old author image (continuing with upload):', deleteResult.error);
@@ -227,6 +242,52 @@ const BrandAssetsManager = () => {
       toast({
         title: "Upload failed",
         description: "Failed to upload the author image. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAuthorImage = async () => {
+    if (authorData.image === '/src/assets/motivator-placeholder.jpg') {
+      toast({
+        title: "Nothing to remove",
+        description: "Already using the default author image.",
+      });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      // Delete old author image from storage
+      if (authorData.image) {
+        const deleteResult = await deleteImageFromStorage(authorData.image, 'website-images', supabase);
+        if (!deleteResult.success) {
+          console.warn('Failed to delete author image from storage:', deleteResult.error);
+        }
+      }
+
+      // Reset to default placeholder in database
+      await supabase
+        .from('shared_settings')
+        .upsert({ 
+          setting_key: 'author_tooltip_image', 
+          setting_value: '/src/assets/motivator-placeholder.jpg' 
+        }, { onConflict: 'setting_key' });
+
+      // Update local state to default
+      setAuthorData(prev => ({ ...prev, image: '/src/assets/motivator-placeholder.jpg' }));
+      
+      toast({
+        title: "Author image removed",
+        description: "Reset to default placeholder image.",
+      });
+    } catch (error) {
+      console.error('Error removing author image:', error);
+      toast({
+        title: "Remove failed",
+        description: "Failed to remove the author image. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -336,7 +397,7 @@ const BrandAssetsManager = () => {
     console.log('Manifest and PWA cache updated');
   };
 
-  const saveAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo') => {
+  const saveAsset = async (file: File, type: 'appIcon' | 'favicon' | 'logo' | 'homeScreenIcon') => {
     if (!file) {
       toast({
         title: "No file selected",
@@ -356,6 +417,7 @@ const BrandAssetsManager = () => {
       let dbKey = '';
       if (type === 'appIcon') dbKey = 'app_icon_url';
       else if (type === 'favicon') dbKey = 'app_favicon';
+      else if (type === 'homeScreenIcon') dbKey = 'home_screen_icon';
       else dbKey = 'app_logo';
       
       // Save to database with conflict resolution
@@ -396,6 +458,9 @@ const BrandAssetsManager = () => {
       } else if (type === 'favicon') {
         setCurrentFavicon(assetUrl);
         setFavicon(null);
+      } else if (type === 'homeScreenIcon') {
+        setCurrentHomeScreenIcon(assetUrl);
+        setHomeScreenIcon(null);
       } else {
         setCurrentLogo(assetUrl);
         setLogo(null);
@@ -406,7 +471,8 @@ const BrandAssetsManager = () => {
       const messages = {
         appIcon: "App icon updated successfully! This will be used for PWA installation and home screen icons.",
         favicon: "Favicon uploaded successfully! The new favicon will appear on browser tabs.",
-        logo: "Logo updated successfully! This will be used for app branding and headers."
+        logo: "Logo updated successfully! This will be used for app branding and headers.",
+        homeScreenIcon: "Home screen icon updated successfully! This will be used specifically for Android and iOS home screens with proper background."
       };
 
       toast({
@@ -616,6 +682,74 @@ const BrandAssetsManager = () => {
         </CardContent>
       </Card>
 
+      {/* Home Screen Icon Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <Smartphone className="w-4 h-4" />
+            Home Screen Icon · 192x192/512x512
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Special icon for Android and iOS home screens (JPG with white background recommended to avoid black background)</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {currentHomeScreenIcon && (
+            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+              <img 
+                src={currentHomeScreenIcon} 
+                alt="Current home screen icon" 
+                className="w-12 h-12 object-contain rounded"
+                style={{ backgroundColor: 'white' }}
+              />
+              <span className="text-sm text-muted-foreground">Current home screen icon</span>
+            </div>
+          )}
+          
+          <div className="space-y-2">
+            <Label htmlFor="home-screen-icon-upload" className="text-sm font-medium">
+              Select Home Screen Icon (JPG with white background recommended)
+            </Label>
+            <div className="flex items-center gap-3">
+              <input
+                id="home-screen-icon-upload"
+                type="file"
+                accept="image/*"
+                onChange={(e) => e.target.files?.[0] && handleFileSelect(e.target.files[0], 'homeScreenIcon')}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                onClick={() => document.getElementById('home-screen-icon-upload')?.click()}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Choose File
+              </Button>
+              {homeScreenIcon && (
+                <span className="text-sm text-muted-foreground">
+                  {homeScreenIcon.name}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-sm text-amber-800">
+              <strong>Tip:</strong> This icon will only be used for Android and iOS home screens. Use a JPG with a white background to prevent the black background issue on mobile devices. Your transparent PNG logo will continue to be used everywhere else.
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => saveAsset(homeScreenIcon!, 'homeScreenIcon')} 
+              disabled={!homeScreenIcon || uploading}
+              className="flex-1 sm:flex-none"
+            >
+              {uploading ? "Uploading..." : "Save"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Author Profile Section */}
       <Card className="mt-6">
         <CardHeader>
@@ -637,26 +771,39 @@ const BrandAssetsManager = () => {
                   className="w-16 h-16 rounded-full object-cover border-2 border-border"
                 />
               </div>
-              <div className="flex-1">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleAuthorImageSelect(file);
-                  }}
-                  className="hidden"
-                  id="author-image-upload"
-                  disabled={uploading}
-                />
-                <label
-                  htmlFor="author-image-upload"
-                  className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <Upload className="w-4 h-4" />
-                  <span className="text-sm">Upload author image</span>
-                </label>
-                <p className="text-xs text-muted-foreground mt-1">
+              <div className="flex-1 space-y-2">
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleAuthorImageSelect(file);
+                    }}
+                    className="hidden"
+                    id="author-image-upload"
+                    disabled={uploading}
+                  />
+                  <label
+                    htmlFor="author-image-upload"
+                    className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors flex-1 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <Upload className="w-4 h-4" />
+                    <span className="text-sm">Upload author image</span>
+                  </label>
+                  {authorData.image !== '/src/assets/motivator-placeholder.jpg' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveAuthorImage}
+                      disabled={uploading}
+                      className="px-3"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
                   Recommended: Square image, max 5MB
                 </p>
               </div>

@@ -1,29 +1,35 @@
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
 
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Sparkles, Target, Mic, BookOpen } from 'lucide-react';
+import { Plus, Sparkles, Target, Mic, BookOpen, FileText } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
+import { useSystemMotivators } from '@/hooks/useSystemMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
-import { ModalAiChat } from '@/components/ModalAiChat';
+import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
+import { Quote } from '@/hooks/useQuoteSettings';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
-import { GoalIdeasLibrary } from '@/components/GoalIdeasLibrary';
-import { MotivatorIdeasModal } from '@/components/MotivatorIdeasModal';
-import { AdminGoalIdea } from '@/hooks/useAdminGoalIdeas';
+
+
+
 import { useToast } from '@/hooks/use-toast';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ExpandableMotivatorCard } from '@/components/ExpandableMotivatorCard';
 import { SimpleMotivatorCard } from '@/components/SimpleMotivatorCard';
+import { NotesCard } from '@/components/NotesCard';
+import { NoteFormModal } from '@/components/NoteFormModal';
 import { MotivatorSkeleton } from '@/components/LoadingStates';
 import { trackMotivatorEvent, trackAIEvent } from '@/utils/analytics';
 import { PremiumGate } from '@/components/PremiumGate';
+import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { useAccess } from '@/hooks/useAccess';
+import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 
 
 const Motivators = () => {
@@ -31,40 +37,70 @@ const Motivators = () => {
   const { toast } = useToast();
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
+  const { systemMotivators, loading: systemLoading } = useSystemMotivators();
+  const { isAdmin } = useAccess();
+  const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
+  
+  // Add useEffect to refresh data when component mounts
+  useEffect(() => {
+    console.log('🎯 Motivators page mounted, triggering refresh');
+    refreshMotivators();
+  }, []);
+  
   const [activeTab, setActiveTab] = useState('goals');
   const [showFormModal, setShowFormModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showQuoteSelectionModal, setShowQuoteSelectionModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState(null);
-  const [showGoalIdeas, setShowGoalIdeas] = useState(false);
-  const [showMotivatorIdeasModal, setShowMotivatorIdeasModal] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
+  
+  
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
-  // Filter motivators based on active tab
-  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote');
+  // Filter motivators based on active tab - only show user's personal goals
+  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
+  const personalNotes = motivators.filter(m => m.category === 'personal_note');
+  const handleSelectQuote = async (quote: Quote) => {
+    await handleCreateMotivator({
+      title: quote.text.length > 50 ? `${quote.text.substring(0, 50)}...` : quote.text,
+      content: quote.text,
+      category: 'saved_quote',
+      author: quote.author
+    });
+  };
 
   const handleCreateMotivator = async (motivatorData) => {
     try {
-      await createMotivator({
+      const result = await createMotivator({
         title: motivatorData.title,
         content: motivatorData.content,
-        category: 'personal',
+        category: motivatorData.category || 'personal',
         imageUrl: motivatorData.imageUrl
       });
       
-      trackMotivatorEvent('create', 'personal');
+      trackMotivatorEvent('create', motivatorData.category || 'personal');
       setShowFormModal(false);
+      setShowNoteModal(false);
       
+      // Simple success message and refresh
       toast({
-        title: "✅ Motivator Created!",
-        description: "Your new motivator has been saved successfully.",
+        title: "✅ Created Successfully!",
+        description: motivatorData.category === 'personal_note' 
+          ? "Your new note has been saved successfully." 
+          : "Your new motivator has been saved successfully.",
       });
       
-      refreshMotivators();
+      // No need to refresh - useMotivators already handles state updates
+      
+      return result;
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to create motivator",
+        description: motivatorData.category === 'personal_note' 
+          ? "Failed to create note" 
+          : "Failed to create motivator",
         variant: "destructive"
       });
     }
@@ -98,8 +134,8 @@ const Motivators = () => {
             description: "The goal idea has been updated successfully.",
           });
           
-          // Re-open the ideas modal to show updated content
-          setShowMotivatorIdeasModal(true);
+          // Navigate back to ideas page to show updated content
+          navigate('/motivator-ideas');
         }
       } else {
         // Update regular motivator
@@ -117,7 +153,7 @@ const Motivators = () => {
           description: "Your changes have been saved.",
         });
         
-        refreshMotivators();
+        // No need to refresh - useMotivators already handles state updates
       }
     } catch (error) {
       toast({
@@ -141,6 +177,26 @@ const Motivators = () => {
       toast({
         title: "Error",
         description: "Failed to delete motivator",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleVoiceNoteCreation = async (text) => {
+    if (!text.trim()) return;
+    
+    try {
+      const title = text.length > 50 ? text.substring(0, 50) + '...' : text;
+      await handleCreateMotivator({
+        category: 'personal_note',
+        title: title.trim(),
+        content: text.trim()
+      });
+    } catch (error) {
+      console.error('Error creating voice note:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create note via voice",
         variant: "destructive"
       });
     }
@@ -266,49 +322,31 @@ const Motivators = () => {
     }
   };
 
-  const handleEditGoalIdea = (goal: AdminGoalIdea) => {
-    // Edit the actual goal idea (admin functionality)
-    const motivatorData = {
-      id: goal.id, // Include the ID for editing
-      title: goal.title,
-      content: goal.description || '',
-      imageUrl: goal.imageUrl
-    };
-    setEditingMotivator(motivatorData);
-    setShowMotivatorIdeasModal(false);
-    // Don't set showFormModal here since we're using editingMotivator to control the modal
-  };
   
-  const handleSelectGoalIdea = async (goal: AdminGoalIdea) => {
-    try {
-      await handleCreateMotivator({
-        title: goal.title,
-        content: goal.description,
-        imageUrl: goal.imageUrl || null
-      });
-      setShowGoalIdeas(false);
-    } catch (error) {
-      console.error('Error creating motivator from goal idea:', error);
-    }
-  };
 
 
   return (
     <TooltipProvider>
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-        <div className="max-w-md mx-auto pt-10 pb-20">
+        <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
           <div className="space-y-6">
           {/* Header */}
           <div className="mb-4 mt-4 relative">
-            <div className="absolute left-0 top-0">
-              <AIVoiceButton />
-            </div>
-            <div className="pl-12 pr-12">
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
-                {activeTab === 'goals' ? 'My Goals' : 'Saved Quotes'}
+            {/* Admin Insights positioned between title and left area */}
+            {isAuthorTooltipEnabled && (
+              <div className="absolute right-0 top-0">
+                <AuthorTooltip 
+                  contentKey="motivators_insights"
+                  content="Setting clear, meaningful goals increases your success rate by 42%. Write specific, measurable goals and visualize achieving them daily. Your mindset shapes your reality!" 
+                />
+              </div>
+            )}
+            <div className={`pl-0 ${isAuthorTooltipEnabled ? 'pr-12' : 'pr-0'}`}>
+              <h1 className="text-2xl font-bold text-foreground mb-1">
+                {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
               </h1>
               <p className="text-sm text-muted-foreground text-left">
-                {activeTab === 'goals' ? 'Your personal motivators' : 'Quotes saved from timers'}
+                {activeTab === 'goals' ? 'Your personal motivators' : activeTab === 'quotes' ? 'Quotes saved from timers' : 'Your personal notes and thoughts'}
               </p>
             </div>
           </div>
@@ -319,67 +357,84 @@ const Motivators = () => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
-                    onClick={() => setShowFormModal(true)}
+                     onClick={() => {
+                       if (activeTab === 'notes') {
+                         // Show note creation modal
+                         setShowNoteModal(true);
+                       } else if (activeTab === 'quotes') {
+                        // Show quote selection modal
+                        setShowQuoteSelectionModal(true);
+                      } else {
+                        setShowFormModal(true);
+                      }
+                    }}
                     variant="action-primary"
                     size="action-tall"
                     className="w-full flex items-center justify-center"
-                    aria-label="Create motivator manually"
+                    aria-label={
+                      activeTab === 'notes' ? 'Create note' : 
+                      activeTab === 'quotes' ? 'Add quote' : 
+                      'Create motivator manually'
+                    }
                   >
                     <Plus className="w-5 h-5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Create a motivator by typing title, description, and adding images</p>
+                  <p>
+                    {activeTab === 'notes' ? 'Create a new note' : 
+                     activeTab === 'quotes' ? 'Select and save a quote from timer collections' :
+                     'Create a motivator by typing title, description, and adding images'}
+                  </p>
                 </TooltipContent>
               </Tooltip>
-              <span className="text-xs text-muted-foreground">Add Goal</span>
+              <span className="text-xs text-muted-foreground">
+                {activeTab === 'notes' ? 'Add Note' : 
+                 activeTab === 'quotes' ? 'Add Quote' : 
+                 'Add Goal'}
+              </span>
             </div>
 
-            <div className="col-span-1 flex flex-col items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => navigate('/motivator-ideas')}
-                    variant="action-secondary"
-                    size="action-tall"
-                    className="w-full flex items-center justify-center"
-                    aria-label="Browse motivator ideas"
-                  >
-                    <BookOpen className="w-5 h-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Browse professionally designed motivators and add them to your collection</p>
-                </TooltipContent>
-              </Tooltip>
-              <span className="text-xs text-muted-foreground">Library</span>
-            </div>
+            {activeTab === 'goals' && (
+              <div className="col-span-1 flex flex-col items-center gap-1">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                     <Button
+                       onClick={() => navigate('/motivator-ideas')}
+                       variant="action-secondary"
+                       size="action-tall"
+                       className="w-full flex items-center justify-center"
+                       aria-label="Browse motivator ideas"
+                     >
+                      <BookOpen className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Browse professionally designed motivators and add them to your collection</p>
+                  </TooltipContent>
+                </Tooltip>
+                <span className="text-xs text-muted-foreground">
+                  Goal Ideas
+                </span>
+              </div>
+            )}
+
           </div>
 
           {/* Tabs */}
           <div className="mb-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="goals">Goals ({goalMotivators.length})</TabsTrigger>
                 <TabsTrigger value="quotes">Quotes ({savedQuotes.length})</TabsTrigger>
+                <TabsTrigger value="notes">Notes ({personalNotes.length})</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
-          {/* Goal Ideas Library - Kept for backward compatibility but hidden */}
-          {showGoalIdeas && (
-            <div className="mb-6 bg-card border border-border rounded-lg p-4">
-              <ComponentErrorBoundary>
-                <GoalIdeasLibrary
-                  onSelectGoal={handleSelectGoalIdea}
-                  onClose={() => setShowGoalIdeas(false)}
-                />
-              </ComponentErrorBoundary>
-            </div>
-          )}
 
           {/* Content based on active tab */}
-          {loading ? (
+          {(loading || systemLoading) ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <MotivatorSkeleton key={i} />
@@ -388,33 +443,14 @@ const Motivators = () => {
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="goals">
-                {goalMotivators.length === 0 ? (
-                  <Card className="p-6 text-center">
-                    <div className="space-y-4">
-                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
-                        <Target className="w-8 h-8 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-warm-text mb-2">No goals yet</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Create your first goal to stay inspired during your fasting journey
-                        </p>
-                        <Button onClick={() => setShowFormModal(true)} variant="action-secondary" size="action-secondary">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Goal
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     {goalMotivators.map((motivator) => (
-                      <ExpandableMotivatorCard
-                        key={motivator.id}
-                        motivator={motivator}
-                        onEdit={() => handleEditMotivator(motivator)}
-                        onDelete={() => handleDeleteMotivator(motivator.id)}
-                      />
+                  <ExpandableMotivatorCard
+                    key={motivator.id}
+                    motivator={motivator}
+                    onEdit={() => handleEditMotivator(motivator)}
+                    onDelete={() => (motivator as any)._isSystemMotivator ? () => {} : () => handleDeleteMotivator(motivator.id)}
+                  />
                     ))}
                     
                     {/* Placeholder cards to encourage creating up to 3 goals */}
@@ -426,8 +462,8 @@ const Motivators = () => {
                       >
                         <CardContent className="p-6">
                           <div className="text-center space-y-3">
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                              <Plus className="w-6 h-6 text-primary/60" />
+                            <div className="w-12 h-12 bg-muted-foreground/10 rounded-full flex items-center justify-center mx-auto">
+                              <Plus className="w-6 h-6 text-muted-foreground/60" />
                             </div>
                             <div>
                               <h4 className="font-medium text-muted-foreground/70 mb-1">Create Goal #{goalMotivators.length + index + 1}</h4>
@@ -438,7 +474,6 @@ const Motivators = () => {
                       </Card>
                     ))}
                   </div>
-                )}
               </TabsContent>
 
               <TabsContent value="quotes">
@@ -459,10 +494,68 @@ const Motivators = () => {
                 ) : (
                   <div className="space-y-4">
                     {savedQuotes.map((motivator) => (
-                      <SimpleMotivatorCard
-                        key={motivator.id}
-                        motivator={motivator}
-                        onDelete={() => handleDeleteMotivator(motivator.id)}
+                        <SimpleMotivatorCard
+                          key={motivator.id}
+                          motivator={motivator}
+                          onDelete={() => handleDeleteMotivator(motivator.id)}
+                          onToggleAnimation={async (id: string, showInAnimations: boolean) => {
+                            try {
+                              await updateMotivator(id, { show_in_animations: showInAnimations });
+                            } catch (error) {
+                              console.error('Error toggling animation setting:', error);
+                            }
+                          }}
+                        />
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="notes">
+                {personalNotes.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+                        <FileText className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-warm-text mb-2">No notes yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Create your first note to capture thoughts and ideas
+                        </p>
+                         <Button 
+                           onClick={() => setShowNoteModal(true)} 
+                           variant="action-secondary" 
+                           size="action-secondary"
+                         >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Note
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {personalNotes.map((note) => (
+                      <NotesCard
+                        key={note.id}
+                        note={{
+                          id: note.id,
+                          title: note.title,
+                          content: note.content,
+                          show_in_animations: note.show_in_animations
+                        }}
+                        onUpdate={async (id, updates) => {
+                          await updateMotivator(id, updates);
+                          // Don't call refreshMotivators() here - let optimistic updates handle UI
+                          // Only show toast for non-animation updates to avoid double toasts
+                          if (!updates.hasOwnProperty('show_in_animations')) {
+                            toast({
+                              description: "Note updated successfully",
+                            });
+                          }
+                        }}
+                        onDelete={handleDeleteMotivator}
                       />
                     ))}
                   </div>
@@ -492,13 +585,37 @@ const Motivators = () => {
           )}
 
 
-          {/* Motivator Ideas Modal */}
-          <MotivatorIdeasModal
-            isOpen={showMotivatorIdeasModal}
-            onClose={() => setShowMotivatorIdeasModal(false)}
-            onSelectGoal={handleSelectGoalIdea}
-            onEditGoal={handleEditGoalIdea}
-          />
+
+           <QuoteSelectionModal
+             isOpen={showQuoteSelectionModal}
+             onClose={() => setShowQuoteSelectionModal(false)}
+             onSelectQuote={handleSelectQuote}
+           />
+
+           <NoteFormModal
+             isOpen={showNoteModal}
+             note={editingNote}
+             onClose={() => {
+               setShowNoteModal(false);
+               setEditingNote(null);
+             }}
+              onSave={async (noteData) => {
+                if (editingNote) {
+                  // Update existing note
+                  await updateMotivator(editingNote.id, {
+                    title: noteData.title,
+                    content: noteData.content
+                  });
+                  // refreshMotivators is called automatically by updateMotivator
+                } else {
+                  // Create new note - handleCreateMotivator already handles refresh
+                  await handleCreateMotivator({
+                    ...noteData,
+                    category: 'personal_note'
+                  });
+                }
+              }}
+           />
 
           {/* Onboarding Modal */}
           <PageOnboardingModal

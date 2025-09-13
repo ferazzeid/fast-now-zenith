@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
 
 interface AsyncErrorBoundaryProps {
   children: React.ReactNode;
@@ -9,7 +8,6 @@ interface AsyncErrorBoundaryProps {
 
 export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBoundaryProps) => {
   const [error, setError] = useState<Error | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Handle unhandled promise rejections
@@ -24,6 +22,18 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
           reason.includes('MetaMask') ||
           reason.includes('connect to MetaMask')) {
         console.log('Ignoring browser extension error:', reason);
+        event.preventDefault();
+        return;
+      }
+      
+      // Ignore OAuth-related legitimate errors that are handled elsewhere
+      if (reason.includes('Authentication timeout') ||
+          reason.includes('Authentication cancelled') ||
+          reason.includes('OAuth') ||
+          reason.includes('Browser already closed') ||
+          reason.includes('Error handling auth timeout') ||
+          reason.includes('Error cancelling auth')) {
+        console.log('Ignoring OAuth-related error (handled elsewhere):', reason);
         event.preventDefault();
         return;
       }
@@ -49,10 +59,7 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
             );
           }
           
-          toast({
-            title: "Database updated",
-            description: "Fixed version conflict. Please refresh the page.",
-          });
+          console.log('Database updated - refreshing page');
           
           // Auto-refresh after a short delay
           setTimeout(() => {
@@ -61,11 +68,7 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
           
         } catch (clearError) {
           console.error('Failed to clear IndexedDB:', clearError);
-          toast({
-            title: "Database issue detected",
-            description: "Please clear your browser cache or try refreshing.",
-            variant: "destructive",
-          });
+          console.log('Database issue detected - please clear cache or refresh');
         }
         
         event.preventDefault();
@@ -78,12 +81,7 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
       setError(error);
       onError?.(error);
       
-      // Show user-friendly toast with more details for debugging
-      toast({
-        title: "Something went wrong",
-        description: `Error: ${reason}`,
-        variant: "destructive",
-      });
+      console.error('Async error occurred:', reason);
       
       // Prevent the default behavior
       event.preventDefault();
@@ -116,7 +114,7 @@ export const AsyncErrorBoundary = ({ children, fallback, onError }: AsyncErrorBo
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
       window.removeEventListener('error', handleError);
     };
-  }, [onError, toast]);
+  }, [onError]);
 
   // Reset error state when children change
   useEffect(() => {

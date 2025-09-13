@@ -21,27 +21,35 @@ export const useTheme = () => {
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
     const saved = localStorage.getItem('theme');
-    // 🔧 FORCE STABLE THEME: Never auto-switch to system
-    const validTheme = (saved as Theme) || 'dark';
-    return validTheme === 'system' ? 'dark' : validTheme;
+    return (saved as Theme) || 'system';
   });
 
-  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('light');
+  const [actualTheme, setActualTheme] = useState<'light' | 'dark'>('dark');
 
   useEffect(() => {
-    // 🔧 FORCE STABLE THEME - NO system monitoring whatsoever
-    let finalTheme = theme;
+    let finalTheme: 'light' | 'dark';
     
-    // Convert system to dark for stability
     if (theme === 'system') {
-      finalTheme = 'dark';
-      setTheme('dark');
-      localStorage.setItem('theme', 'dark');
+      finalTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } else {
+      finalTheme = theme as 'light' | 'dark';
     }
     
-    // Apply theme without any system monitoring
-    setActualTheme(finalTheme as 'light' | 'dark');
+    setActualTheme(finalTheme);
     document.documentElement.classList.toggle('dark', finalTheme === 'dark');
+
+    // Listen for system theme changes when in system mode
+    if (theme === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleChange = (e: MediaQueryListEvent) => {
+        const newTheme = e.matches ? 'dark' : 'light';
+        setActualTheme(newTheme);
+        document.documentElement.classList.toggle('dark', newTheme === 'dark');
+      };
+      
+      mediaQuery.addEventListener('change', handleChange);
+      return () => mediaQuery.removeEventListener('change', handleChange);
+    }
   }, [theme]);
 
   const handleSetTheme = (newTheme: Theme) => {

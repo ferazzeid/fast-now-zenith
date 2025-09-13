@@ -1,10 +1,10 @@
-import { supabase } from '@/integrations/supabase/client';
 import { forcePWARefresh } from './pwaCache';
+import { forceManifestRefresh } from './forceManifestRefresh';
 
 export const refreshManifest = async () => {
   try {
-    // Use the enhanced PWA refresh mechanism
-    const success = await forcePWARefresh();
+    // Use the new focused manifest refresh
+    const success = await forceManifestRefresh();
     if (success) {
       console.log('PWA manifest and cache refreshed successfully');
     } else {

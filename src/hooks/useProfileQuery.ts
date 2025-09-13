@@ -15,6 +15,7 @@ export interface UserProfile {
   deficit_goal?: number;
   activity_level?: string;
   default_walking_speed?: number;
+  manual_tdee_override?: number;
   
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
@@ -32,7 +33,8 @@ export const useProfileQuery = () => {
   const profileQuery = useQuery({
     queryKey: profileQueryKey(user?.id || null),
     queryFn: async (): Promise<UserProfile | null> => {
-      if (!user) return null;
+      // Never return conditionally - always execute query function consistently
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('profiles')
@@ -124,12 +126,12 @@ export const useProfileQuery = () => {
     const weightKg = profile.weight;
     const heightCm = profile.height;
 
-    // Enhanced Mifflin-St Jeor equation with sex consideration
+    // Mifflin-St Jeor equation with sex-specific calculation
     let bmr: number;
     if (profile.sex === 'female') {
       bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age - 161);
     } else {
-      // Default to male formula if sex not specified
+      // Default to male formula if sex not specified or is male
       bmr = Math.round(10 * weightKg + 6.25 * heightCm - 5 * profile.age + 5);
     }
     return bmr;

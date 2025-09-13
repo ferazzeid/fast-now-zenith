@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, X, Edit, Mic } from 'lucide-react';
+import { Send, X, Edit, Mic, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -18,7 +18,11 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { useDailyDeficitQuery } from '@/hooks/optimized/useDailyDeficitQuery';
+import { useLocalStorageChat } from '@/hooks/useLocalStorageChat';
+import { conversationMemory } from '@/utils/conversationMemory';
 import { useGoalCalculations } from '@/hooks/useGoalCalculations';
+import { ChatSaveStatus } from '@/components/ChatSaveStatus';
+import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -51,13 +55,53 @@ export const ModalAiChat = ({
   quickReplies = [],
   onFoodAdd
 }: ModalAiChatProps) => {
+
   const [inputMessage, setInputMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   
   const [lastFoodSuggestion, setLastFoodSuggestion] = useState<any>(null);
   const [lastMotivatorSuggestion, setLastMotivatorSuggestion] = useState<any>(null);
   const [lastMotivatorsSuggestion, setLastMotivatorsSuggestion] = useState<any>(null);
+
+  // Helper function to parse expected food count from user message
+  const parseExpectedFoodCount = (message: string): number => {
+    const lowerMessage = message.toLowerCase();
+    let totalCount = 0;
+    
+    // Common number words to digits mapping
+    const numberWords: { [key: string]: number } = {
+      'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+      'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'twenty': 20
+    };
+    
+    // Replace number words with digits
+    let processedMessage = lowerMessage;
+    Object.entries(numberWords).forEach(([word, digit]) => {
+      processedMessage = processedMessage.replace(new RegExp(`\\b${word}\\b`, 'g'), digit.toString());
+    });
+    
+    // Find patterns like "6 eggs", "3 cucumbers", "five bananas"
+    const patterns = [
+      /(\d+)\s+(?:packages?\s+of\s+)?(\w+)/g,  // "6 eggs", "5 packages of ham"
+      /(\d+)\s+(\w+)/g,  // "3 bananas"
+    ];
+    
+    patterns.forEach(pattern => {
+      let match;
+      const regex = new RegExp(pattern.source, 'g');
+      while ((match = regex.exec(processedMessage)) !== null) {
+        const count = parseInt(match[1]);
+        if (!isNaN(count) && count > 0) {
+          totalCount += count;
+          console.log(`📊 Found: ${count} ${match[2]}`);
+        }
+      }
+    });
+    
+    return totalCount;
+  };
   const [editingFoodIndex, setEditingFoodIndex] = useState<number | null>(null);
   const [editingMotivatorIndex, setEditingMotivatorIndex] = useState<number | null>(null);
   const [editingMotivator, setEditingMotivator] = useState(false);
@@ -65,6 +109,7 @@ export const ModalAiChat = ({
   const [inlineEditData, setInlineEditData] = useState<{[key: number]: any}>({});
   const [inlineMotivatorEditData, setInlineMotivatorEditData] = useState<{[key: number]: any}>({});
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
+  const [showFoodSelectionModal, setShowFoodSelectionModal] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const editFormRef = useRef<HTMLDivElement>(null);
@@ -79,6 +124,18 @@ export const ModalAiChat = ({
   } = useFoodEditingActions();
   const [activeEditPreviews, setActiveEditPreviews] = useState<any[]>([]);
   
+  // Use localStorage-backed conversation hook for persistence
+  const { 
+    messages,
+    addMessage,
+    loadConversation,
+    addFoodAction, 
+    updateConversationState, 
+    getConversationContext,
+    saveStatus,
+    isOnline
+  } = useLocalStorageChat();
+  
   // Session and profile hooks
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession } = useFastingSession();
   const { 
@@ -91,74 +148,119 @@ export const ModalAiChat = ({
   const { deficitData } = useDailyDeficitQuery();
   const goalCalculations = useGoalCalculations();
 
-  useEffect(() => {
-    // Use setTimeout to ensure the DOM has updated before scrolling
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    }, 100);
-  }, [messages]);
 
-  // Auto-scroll to calorie summary when food suggestions appear
+  // Force scroll to bottom whenever messages change or modal opens
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Use setTimeout to ensure DOM is updated first
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
+    }
+  }, [messages.length, isOpen]);
+
+  // Scroll to bottom on modal open
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 200);
+    }
+  }, [isOpen]);
+
+  // Handle scroll tracking - simplified
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 50;
+    setShowScrollButton(!isNearBottom && messages.length > 0);
+  };
+
+  // Scroll to bottom function
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    setShowScrollButton(false);
+  };
+
+  // Auto-scroll to bottom when food suggestions appear
   useEffect(() => {
     if (lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0) {
       setTimeout(() => {
-        calorieSummaryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }, 100);
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 200);
     }
   }, [lastFoodSuggestion?.foods]);
 
+  // Load conversation when modal opens, preserve history when it closes
   useEffect(() => {
-    if (isOpen) {
-    // Initialize messages array
-    const initialMessages: Message[] = [];
+    console.log('🔧 ModalAiChat useEffect triggered:', { 
+      isOpen, 
+      context, 
+      proactiveMessage, 
+      conversationType,
+      isInitialized,
+      currentMessagesLength: messages.length
+    });
     
-    // Add context message if provided
-    if (context) {
-      const contextMessage: Message = {
-        role: 'assistant',
-        content: context,
-        timestamp: new Date()
-      };
-      initialMessages.push(contextMessage);
-    }
-    
-    // Add proactive message if provided
-    if (proactiveMessage) {
-      const proactiveMsg: Message = {
-        role: 'assistant',
-        content: proactiveMessage,
-        timestamp: new Date()
-      };
-      initialMessages.push(proactiveMsg);
-    }
-    
-    setMessages(initialMessages);
+    if (isOpen && !isInitialized) {
+      console.log('🚀 Loading conversation for modal');
+      
+      // Load existing conversation history
+      loadConversation().then(() => {
+        // If we have a proactive message and no existing conversation, add it
+        if (proactiveMessage && messages.length === 0) {
+          const proactiveMsg: Message = {
+            role: 'assistant',
+            content: proactiveMessage,
+            timestamp: new Date()
+          };
+          addMessage(proactiveMsg);
+        } else if (messages.length === 0) {
+          // Add welcome message for new conversations
+          let welcomeMessage = 'Hi! How can I help you today?';
+          
+          if (title === 'Food Assistant') {
+            welcomeMessage = 'I can help you add food to your daily plan. Just tell me what you ate!';
+          } else if (title === 'Motivator Assistant') {
+            welcomeMessage = 'Hi! Let\'s create some motivational goals for you. What would you like to achieve?';
+          }
+          
+          const welcomeMsg: Message = {
+            role: 'assistant',
+            content: welcomeMessage,
+            timestamp: new Date()
+          };
+          addMessage(welcomeMsg);
+        }
+      });
+      
+      setIsInitialized(true);
       setLastFoodSuggestion(null);
       setLastMotivatorSuggestion(null);
       setLastMotivatorsSuggestion(null);
       setSelectedFoodIds(new Set());
-    } else if (!isOpen) {
+    } else if (!isOpen && isInitialized) {
       // Cancel any active recording when modal closes (don't process)
       if (voiceButtonRef.current) {
         voiceButtonRef.current.cancelRecording();
       }
       
-      // Clear messages when modal closes - but only after a small delay to prevent flickering
-      setTimeout(() => {
-        setMessages([]);
-        setEditingFoodIndex(null);
-        setEditingMotivatorIndex(null);
-        setEditingMotivator(false);
-        setMotivatorEditData({title: '', content: ''});
-        setInlineEditData({});
-        setInlineMotivatorEditData({});
-        setLastFoodSuggestion(null);
-        setLastMotivatorSuggestion(null);
-        setLastMotivatorsSuggestion(null);
-        setSelectedFoodIds(new Set());
-      }, 100);
+      console.log('🔄 Modal closing - preserving chat history, clearing UI state');
+      
+      // Only clear UI-specific state, keep chat messages in database
+      setIsInitialized(false);
+      setEditingFoodIndex(null);
+      setEditingMotivatorIndex(null);
+      setEditingMotivator(false);
+      setMotivatorEditData({title: '', content: ''});
+      setInlineEditData({});
+      setInlineMotivatorEditData({});
+      setLastFoodSuggestion(null);
+      setLastMotivatorSuggestion(null);
+      setLastMotivatorsSuggestion(null);
+      setSelectedFoodIds(new Set());
+      setShowScrollButton(false);
     }
-  }, [isOpen, context, conversationType, proactiveMessage]);
+  }, [isOpen, context, conversationType, proactiveMessage, title, isInitialized]);
 
   const sendToAI = async (message: string, fromVoice = false) => {
     console.log('📤 sendToAI called:', { message, fromVoice, isProcessing });
@@ -181,16 +283,20 @@ You are a comprehensive food tracking assistant. Your goals are to:
 FOR ADDING FOODS:
 1. IMMEDIATELY process food information and call add_multiple_foods
 2. Be concise but helpful - when users ask about your reasoning or assumptions, provide brief explanations
-3. CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "two cucumbers", "three bananas", "four apples"), create SEPARATE entries for each item. DO NOT aggregate quantities.
-4. EXAMPLES OF CORRECT BEHAVIOR:
-   - "two cucumbers" → 2 separate cucumber entries (e.g., 150g each)
-   - "three bananas each 120g" → 3 separate banana entries at 120g each
-   - "400g chicken" → 1 chicken entry at 400g
+3. ⚠️ CRITICAL QUANTITY HANDLING: When users specify a COUNT of items (e.g., "six eggs", "three cucumbers", "five packages of ham"), you MUST create SEPARATE individual entries for each item. This is NON-NEGOTIABLE.
+4. ⚠️ MANDATORY EXAMPLES YOU MUST FOLLOW:
+   - "6 eggs, 3 cucumbers, 3 bananas, 5 packages of ham" → MUST create 17 SEPARATE entries:
+     * 6 individual egg entries (50g each typically)  
+     * 3 individual cucumber entries (150g each typically)
+     * 3 individual banana entries (120g each typically) 
+     * 5 individual ham package entries (100g each typically)
    - "two Greek yogurts" → 2 separate Greek yogurt entries
-   - "200g of rice" → 1 rice entry at 200g
-5. Only aggregate when NO specific count is mentioned and user gives total weight
-6. When making assumptions (like estimating portion sizes), briefly explain your reasoning when asked
-7. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
+   - "five coca zeros" → 5 separate Coca-Cola Zero entries (355ml each)
+   - "400g chicken" → 1 chicken entry at 400g (only when total weight given)
+5. ⚠️ FAILURE CONSEQUENCES: If you create only 4 items when user asks for 17 (like "6 eggs, 3 cucumbers, 3 bananas, 5 packages of ham"), this is a CRITICAL ERROR
+6. Only aggregate when NO specific count is mentioned AND user gives total weight
+7. When making assumptions (like estimating portion sizes), briefly explain your reasoning when asked
+8. Destination: default to today. If the user explicitly says template or library, pass destination accordingly
 
 FOR EDITING/DELETING FOODS:
 1. When users want to edit/change/delete/remove foods, FIRST call search_foods_for_edit to find the item
@@ -246,7 +352,8 @@ You are a motivational goal creation assistant. Your task is to:
             { role: 'system', content: enhancedSystemPrompt },
             ...conversationHistory,
             { role: 'user', content: message }
-          ]
+          ],
+          context: title === 'Food Assistant' ? 'food_only' : undefined
         }
       });
 
@@ -257,16 +364,96 @@ You are a motivational goal creation assistant. Your task is to:
       // Handle function calls for food and motivator suggestions
       if (data.functionCall) {
         if (data.functionCall.name === 'add_multiple_foods') {
-          const foods = data.functionCall.arguments?.foods || [];
+          const newFoods = data.functionCall.arguments?.foods || [];
+          console.log('📊 New foods received:', newFoods.length, 'items');
+          
+          // Log expected vs actual for debugging
+          const expectedCount = parseExpectedFoodCount(message);
+          console.log('📊 Expected food count from user message:', expectedCount);
+          console.log('📊 Actual food count received:', newFoods.length);
+          
+          // Track in conversation memory
+          addFoodAction(message, newFoods, 'add');
+          
+          // ACCUMULATE foods instead of overwriting
+          const allFoods = lastFoodSuggestion?.added === false 
+            ? [...(lastFoodSuggestion.foods || []), ...newFoods]
+            : newFoods;
+          
+          console.log('📊 Total accumulated foods:', allFoods.length);
+          
           setLastFoodSuggestion({
-            foods,
+            foods: allFoods,
             destination: data.functionCall.arguments?.destination || 'today',
             added: false
           });
-          // Initialize all foods as selected
-          setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
-          // Don't add any AI message for food suggestions - just show the interactive UI
+          
+          // Initialize all foods as selected (including new ones)
+          setSelectedFoodIds(new Set(allFoods.map((_: any, index: number) => index)));
+          
+          // Add a chronological message about the food suggestion
+          const foodSummary = allFoods.map((food: any) => 
+            `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs`
+          ).join('\n');
+          
+          const totalCalories = allFoods.reduce((sum: number, food: any) => sum + food.calories, 0);
+          const totalCarbs = allFoods.reduce((sum: number, food: any) => sum + food.carbs, 0);
+          
+          const foodMessage: Message = {
+            role: 'assistant',
+            content: `I've prepared these foods for you:\n\n${foodSummary}\n\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nReview the items above and click "Add Selected Foods" when ready.`,
+            timestamp: new Date()
+          };
+          addMessage(foodMessage);
           return;
+        } else if (data.functionCall.name === 'modify_recent_foods') {
+          const modifications = data.functionCall.arguments.modifications || {};
+          const clarificationText = data.functionCall.arguments.clarification_text || '';
+          console.log('🔄 Processing food modification:', modifications, clarificationText);
+
+          // Use conversation memory to process the modification  
+          const context = getConversationContext();
+          const recentAction = context.recentFoodActions[0];
+          
+          if (recentAction) {
+            const modifiedFoods = conversationMemory.processModification(recentAction, modifications, recentAction.foods);
+            console.log('🔄 Modified foods:', modifiedFoods);
+            
+            // Track the modification in memory
+            addFoodAction(clarificationText, modifiedFoods, 'modify');
+            
+            // Present modified foods for review
+            setLastFoodSuggestion({
+              foods: modifiedFoods,
+              destination: 'today',
+              added: false
+            });
+            setSelectedFoodIds(new Set(modifiedFoods.map((_: any, index: number) => index)));
+            
+            const foodSummary = modifiedFoods.map((food: any) => 
+              `${food.name} (${food.serving_size}g) - ${food.calories} cal, ${food.carbs}g carbs`
+            ).join('\n');
+            
+            const totalCalories = modifiedFoods.reduce((sum: number, food: any) => sum + food.calories, 0);
+            const totalCarbs = modifiedFoods.reduce((sum: number, food: any) => sum + food.carbs, 0);
+            
+            const modificationMessage: Message = {
+              role: 'assistant',
+              content: `I've updated the foods based on your clarification:\n\n${foodSummary}\n\nTotal: ${totalCalories} calories, ${totalCarbs}g carbs\n\nReview the updated items and click "Add Selected Foods" when ready.`,
+              timestamp: new Date()
+            };
+            addMessage(modificationMessage);
+            return;
+          } else {
+            // No recent food action to modify - fallback to regular response
+            const message: Message = {
+              role: 'assistant',
+              content: data.completion || "I don't see any recent food entries to modify. Could you please add some foods first?",
+              timestamp: new Date()
+            };
+            addMessage(message);
+            return;
+          }
         } else if (data.functionCall.name === 'create_multiple_motivators') {
           setLastMotivatorsSuggestion(data.functionCall.arguments);
           // Don't add any AI message for bulk motivators - just show the interactive UI
@@ -282,7 +469,7 @@ You are a motivational goal creation assistant. Your task is to:
 ${args.content}`,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, motivatorMessage]);
+          addMessage(motivatorMessage);
           return;
         } else if (data.functionCall.name === 'search_foods_for_edit') {
           // Handle food search for editing
@@ -361,7 +548,7 @@ ${args.content}`,
           content: data.completion,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, aiMessage]);
+        addMessage(aiMessage);
       }
       // If there was a function call but no completion, add a confirmation message
       else if (data.functionCall && (!data.completion || !data.completion.trim())) {
@@ -403,7 +590,7 @@ ${args.content}`,
             content: confirmationMessage,
             timestamp: new Date()
           };
-          setMessages(prev => [...prev, aiMessage]);
+          addMessage(aiMessage);
         }
       }
 
@@ -430,7 +617,7 @@ ${args.content}`,
     };
 
     console.log('👤 Adding user voice message to chat');
-    setMessages(prev => [...prev, userMessage]);
+    await addMessage(userMessage);
     await sendToAI(transcription, true);
   };
 
@@ -444,7 +631,7 @@ ${args.content}`,
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    await addMessage(userMessage);
 
     if (!presetMessage) {
       setInputMessage('');
@@ -578,7 +765,10 @@ ${args.content}`,
       
       toast({
         title: "Foods added successfully",
-        description: `Added ${selectedFoods.length} foods to your ${destination}`,
+        description: selectedFoods.map(food => 
+          `✓ ${food.name} (${food.serving_size}g, ${food.calories} cal)`
+        ).join('\n'),
+        className: "bg-card border border-border text-foreground",
       });
       
       // Close the modal after a short delay
@@ -614,14 +804,15 @@ ${args.content}`,
           content: 'Motivator created successfully! You can now view it in your motivators list.',
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, successMessage]);
+        addMessage(successMessage);
         
         // Clear the suggestion after creating
         setLastMotivatorSuggestion(null);
         
         toast({
           title: "Motivator created!",
-          description: "Your new motivator has been added to your collection"
+          description: "Your new motivator has been added to your collection",
+          className: "bg-card border border-border text-foreground",
         });
         
         // Close the modal after a short delay
@@ -742,7 +933,7 @@ ${args.content}`,
           timestamp: new Date()
         };
         
-        setMessages(prev => [...prev, confirmationMessage]);
+        addMessage(confirmationMessage);
         
         // Mark motivators as added but keep them visible
         setLastMotivatorsSuggestion(prev => ({
@@ -779,7 +970,7 @@ ${args.content}`,
           content: `I couldn't find any ${context === 'today' ? "today's entries" : context} matching "${searchTerm}". Try a different search term or check the specific location.`,
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, aiMessage]);
+        addMessage(aiMessage);
         return;
       }
 
@@ -793,7 +984,7 @@ ${args.content}`,
         content: `Found ${results.length} food(s) matching "${searchTerm}":\n\n${resultsList}\n\nTell me what you'd like to change. For example: "Change the chicken to 150g" or "Update the banana calories to 120".`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error searching foods:', error);
@@ -830,7 +1021,7 @@ ${args.content}`,
         content: `Ready to update ${item.name}: ${changesList}. Please confirm the changes below.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error creating edit preview:', error);
@@ -856,7 +1047,7 @@ ${args.content}`,
         content: `✅ Successfully updated ${preview.name}!`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       
     } catch (error) {
       console.error('Error applying edit:', error);
@@ -872,7 +1063,7 @@ ${args.content}`,
       content: `Cancelled editing ${preview.name}.`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   // Edit preview manually
@@ -884,7 +1075,7 @@ ${args.content}`,
       content: `Opening manual editor for ${preview.name}. Tell me what specific changes you'd like to make.`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   // === SESSION MANAGEMENT HANDLERS ===
@@ -898,14 +1089,14 @@ ${args.content}`,
         content: `✅ Started fasting! Your goal is ${goalHours} hours. I'll be here to support you throughout your journey.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to start fasting session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -924,14 +1115,14 @@ ${args.content}`,
           : `Fast cancelled. No worries - you can start again whenever you're ready.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to ${args.action} fasting session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -945,14 +1136,14 @@ ${args.content}`,
         content: `🚶‍♀️ Started walking at ${speed >= 4 ? 'fast' : 'normal'} pace! Enjoy your walk - I'll track your progress.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to start walking session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -965,14 +1156,14 @@ ${args.content}`,
         content: `🎉 Great walk! Session completed and calories have been logged.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to end walking session. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -999,7 +1190,7 @@ ${args.content}`,
       content: status,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   const handleGetCurrentFastDuration = async () => {
@@ -1009,7 +1200,7 @@ ${args.content}`,
         content: "You're not currently fasting. Ready to start when you are!",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1022,7 +1213,7 @@ ${args.content}`,
       content: `🕐 You've been fasting for ${hours} hours and ${minutes} minutes. Keep going strong!`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   const handleGetCurrentWalkDuration = async () => {
@@ -1032,7 +1223,7 @@ ${args.content}`,
         content: "You're not currently walking. Ready for a walk?",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1043,7 +1234,7 @@ ${args.content}`,
       content: `🚶‍♀️ You've been walking for ${duration} minutes. Great job!`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   const handleGetTodayDeficit = async () => {
@@ -1056,7 +1247,7 @@ ${args.content}`,
       content: `📊 Today's progress: ${Math.abs(deficit)} calorie ${deficit >= 0 ? 'deficit' : 'surplus'}. You've consumed ${caloriesIn} calories and burned ${caloriesOut} calories.`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiMessage]);
+    addMessage(aiMessage);
   };
 
   // === ADMIN HANDLERS ===
@@ -1067,7 +1258,7 @@ ${args.content}`,
         content: "❌ Admin access required for personal logs.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1084,14 +1275,14 @@ ${args.content}`,
         content: `✅ Added personal log for hour ${args.hour}.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to add personal log. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1102,7 +1293,7 @@ ${args.content}`,
         content: "❌ Admin access required for personal logs.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1128,7 +1319,7 @@ ${args.content}`,
             : "No personal logs found.",
           timestamp: new Date()
         };
-        setMessages(prev => [...prev, aiMessage]);
+        addMessage(aiMessage);
         return;
       }
       
@@ -1139,14 +1330,14 @@ ${args.content}`,
         content: logs,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to get personal logs. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1160,14 +1351,14 @@ ${args.content}`,
         content: `✅ Updated your weight to ${args.weight_kg} kg.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to update weight. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1180,14 +1371,14 @@ ${args.content}`,
         content: `✅ Updated your goal weight to ${args.goal_weight_kg} kg.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to update goal weight. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1208,14 +1399,14 @@ ${args.content}`,
         content: `✅ Updated your daily goals: ${messages.join(', ')}.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to update daily goals. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1226,7 +1417,7 @@ ${args.content}`,
         content: "Please set your current weight and goal weight first to get projections.",
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
       return;
     }
     
@@ -1241,14 +1432,14 @@ ${args.content}`,
         content: `📈 Weight loss projection: You need to lose ${weightToLose.toFixed(1)} kg (${fatGrams.toFixed(0)}g of fat). At your current deficit rate of ${currentDeficit} calories/day, you'll reach your goal in approximately ${daysToGoal} days.`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     } catch (error) {
       const aiMessage: Message = {
         role: 'assistant',
         content: `❌ Failed to calculate projection. ${(error as Error).message}`,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, aiMessage]);
+      addMessage(aiMessage);
     }
   };
 
@@ -1276,13 +1467,38 @@ ${args.content}`,
     <UniversalModal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title={
+        <div className="flex items-center justify-between w-full">
+          <span>{title}</span>
+          <ChatSaveStatus status={saveStatus} isOnline={isOnline} className="ml-2" />
+        </div>
+      }
       variant="standard"
       size="sm"
       showCloseButton={true}
     >
       {/* Messages with better spacing and scrolling */}
-      <div className="space-y-6 min-h-[300px] max-h-[400px] overflow-y-auto mb-4">
+      <div className="relative">
+        <div 
+          className="space-y-6 min-h-[300px] max-h-[400px] overflow-y-auto mb-4" 
+          onScroll={handleScroll}
+        >
+        {/* Emergency fallback - if modal is open but no messages, show error message */}
+        {isOpen && messages.length === 0 && (
+          <div className="flex justify-start">
+            <Card className="max-w-[85%] p-3 bg-muted">
+              <div className="text-sm whitespace-pre-line text-destructive">
+                ⚠️ System Error: No messages loaded. Please try closing and reopening the chat.
+                
+                Debug info:
+                - Modal open: {isOpen ? 'Yes' : 'No'}
+                - Initialized: {isInitialized ? 'Yes' : 'No'}
+                - Messages count: {messages.length}
+              </div>
+            </Card>
+          </div>
+        )}
+        
         {messages.map((message, index) => (
           <div
             key={index}
@@ -1393,28 +1609,23 @@ ${args.content}`,
                       arguments: updatedArgs
                     }));
                     
-                    // Update ALL motivator messages in the chat with the new content
-                    setMessages(prev => prev.map(msg => {
-                      // Find motivator messages that match the current suggestion content
-                      if (msg.role === 'assistant' && 
-                          msg.content.includes(lastMotivatorSuggestion.arguments.title) &&
-                          msg.content.includes(lastMotivatorSuggestion.arguments.content)) {
-                        return {
-                          ...msg,
-                          content: `${updatedTitle}
-
-${updatedContent}`
-                        };
-                      }
-                      return msg;
-                    }));
+                    // For the complex message update, we need to implement this differently
+                    // since we can't directly update message history with addMessage
+                    // We'll add a new updated message instead
+                    const updatedMessage: Message = {
+                      role: 'assistant',
+                      content: `Updated motivator:\n\n${updatedTitle}\n\n${updatedContent}`,
+                      timestamp: new Date()
+                    };
+                    addMessage(updatedMessage);
                     
                     setEditingMotivator(false);
                     setMotivatorEditData({title: '', content: ''});
                     
                     toast({
                       title: "Changes saved",
-                      description: "Your motivator has been updated"
+                      description: "Your motivator has been updated",
+                      className: "bg-card border border-border text-foreground",
                     });
                   }}
                   className="flex-1"
@@ -1567,191 +1778,48 @@ ${updatedContent}`
         )}
 
         {lastFoodSuggestion?.foods && lastFoodSuggestion.foods.length > 0 && (
-          <div className="space-y-2">
-            {/* Total summary - compact single line */}
-            <Card ref={calorieSummaryRef} className="p-3 bg-muted/50">
-              <div className="text-sm font-medium">
-                Selected: {Array.from(selectedFoodIds).reduce((sum: number, index) => {
-                  const food = lastFoodSuggestion.foods[index];
-                  return sum + (food?.calories || 0);
-                }, 0)} calories, {Math.round(Array.from(selectedFoodIds).reduce((sum: number, index) => {
-                  const food = lastFoodSuggestion.foods[index];
-                  return sum + (food?.carbs || 0);
-                }, 0))}g carbs
-                {lastFoodSuggestion.added && (
-                  <span className="ml-2 text-green-600 text-xs">✅ Added to log</span>
-                )}
-              </div>
-            </Card>
-            
-            {lastFoodSuggestion.foods.map((food: any, index: number) => (
-              <Card key={index} className="p-3 bg-background border">
-                {editingFoodIndex === index ? (
-                  // Inline editing mode
-                  <div className="space-y-2">
-                    <Input
-                      value={inlineEditData[index]?.name || ''}
-                      onChange={(e) => setInlineEditData(prev => ({
-                        ...prev,
-                        [index]: { ...prev[index], name: e.target.value }
-                      }))}
-                      placeholder="Food name"
-                      className="h-8 text-sm"
-                    />
-                    <div className="grid grid-cols-3 gap-1">
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Weight (g)</div>
-                        <Input
-                          type="number"
-                          value={inlineEditData[index]?.portion || ''}
-                          onChange={(e) => setInlineEditData(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], portion: e.target.value }
-                          }))}
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Calories</div>
-                        <Input
-                          type="number"
-                          value={inlineEditData[index]?.calories || ''}
-                          onChange={(e) => setInlineEditData(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], calories: e.target.value }
-                          }))}
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-1">Carbs (g)</div>
-                        <Input
-                          type="number"
-                          value={inlineEditData[index]?.carbs || ''}
-                          onChange={(e) => setInlineEditData(prev => ({
-                            ...prev,
-                            [index]: { ...prev[index], carbs: e.target.value }
-                          }))}
-                          className="h-8 text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        onClick={() => handleSaveInlineEdit(index)}
-                        className="h-8 px-3 text-sm flex-1"
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleCancelInlineEdit(index)}
-                        className="h-8 px-3 text-sm flex-1"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  // Display mode
-                  <div className="flex items-center gap-2">
-                    {!lastFoodSuggestion.added && (
-                      <Checkbox
-                        checked={selectedFoodIds.has(index)}
-                        onCheckedChange={(checked) => {
-                          const newSelected = new Set(selectedFoodIds);
-                          if (checked) {
-                            newSelected.add(index);
-                          } else {
-                            newSelected.delete(index);
-                          }
-                          setSelectedFoodIds(newSelected);
-                        }}
-                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary shrink-0"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">{food.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {food.serving_size}g • {food.calories} cal • {Math.round(food.carbs)}g carbs
-                      </div>
-                    </div>
-                    {!lastFoodSuggestion.added && (
-                      <div className="flex gap-1 shrink-0">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => handleInlineEdit(index)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={() => handleRemoveFood(index)}
-                          className="h-7 w-7 p-0 text-destructive hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </Card>
-            ))}
-            
-            {/* Sticky action bar with divider */}
-            {!lastFoodSuggestion.added && (
-              <div className="sticky bottom-0 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/70 border-t pt-3 pb-2 px-1 mt-3">
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs text-muted-foreground">Add to</span>
-                  <div className="flex gap-1">
-                    {(['today','template','library'] as const).map(dest => (
-                      <Button
-                        key={dest}
-                        size="sm"
-                        variant={ (lastFoodSuggestion.destination || 'today') === dest ? 'default' : 'outline' }
-                        className="h-7 px-2 text-xs"
-                        onClick={() => setLastFoodSuggestion((prev:any) => ({...prev, destination: dest}))}
-                      >
-                        {dest.charAt(0).toUpperCase() + dest.slice(1)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={handleAddAllFoods}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  disabled={isProcessing || selectedFoodIds.size === 0}
-                >
-                  {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''}`}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {isProcessing && (
           <div className="flex justify-start">
             <Card className="max-w-[85%] p-3 bg-muted">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                <p className="text-sm">AI is thinking...</p>
+              <div className="text-sm">
+                🍽️ I found {lastFoodSuggestion.foods.length} food item{lastFoodSuggestion.foods.length !== 1 ? 's' : ''} for you
+                {lastFoodSuggestion.added ? (
+                  <span className="block text-green-600 text-xs mt-2">✅ Added to your log</span>
+                ) : (
+                  <div className="mt-3">
+                    <Button
+                      size="sm"
+                      onClick={() => setShowFoodSelectionModal(true)}
+                      className="w-full"
+                    >
+                      Review Foods
+                    </Button>
+                  </div>
+                )}
               </div>
             </Card>
           </div>
         )}
         
-        <div ref={messagesEndRef} className="h-4" />
+        {/* Messages end ref positioned at the very bottom with minimal spacing for voice input */}
+        <div ref={messagesEndRef} className="h-1" />
+      </div>
+        
+        {/* Scroll to bottom button */}
+        {showScrollButton && (
+          <Button
+            onClick={scrollToBottom}
+            size="sm"
+            variant="secondary"
+            className="absolute bottom-2 right-2 rounded-full h-8 w-8 p-0 shadow-lg"
+          >
+            ↓
+          </Button>
+        )}
       </div>
 
-      {/* Voice Input Only - Text input removed per user request */}
+      {/* Voice Input Only - Fixed positioning to prevent overlap */}
       {editingFoodIndex === null && (
-        <div className="border-t border-border pt-4 mt-4 space-y-3">
+        <div className="bg-background border-t border-border pt-2 pb-2 mt-1 space-y-2 sticky bottom-0 z-10">
           {/* Voice Recording */}
           <div className="w-full flex justify-center">
             <PremiumGate feature="Voice Input" grayOutForFree={true}>
@@ -1766,6 +1834,34 @@ ${updatedContent}`
           </div>
         </div>
       )}
+      
+      {/* Food Selection Modal */}
+      <FoodSelectionModal
+        isOpen={showFoodSelectionModal}
+        onClose={() => setShowFoodSelectionModal(false)}
+        foodSuggestion={lastFoodSuggestion}
+        selectedFoodIds={selectedFoodIds}
+        onSelectionChange={setSelectedFoodIds}
+        onFoodUpdate={(index, updates) => {
+          if (lastFoodSuggestion?.foods) {
+            const updatedFoods = [...lastFoodSuggestion.foods];
+            updatedFoods[index] = { ...updatedFoods[index], ...updates };
+            setLastFoodSuggestion(prev => ({
+              ...prev,
+              foods: updatedFoods
+            }));
+          }
+        }}
+        onFoodRemove={handleRemoveFood}
+        onDestinationChange={(destination) => {
+          setLastFoodSuggestion((prev: any) => ({...prev, destination}));
+        }}
+        onAddFoods={async () => {
+          await handleAddAllFoods();
+          setShowFoodSelectionModal(false);
+        }}
+        isProcessing={isProcessing}
+      />
     </UniversalModal>
   );
 };

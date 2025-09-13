@@ -42,6 +42,7 @@ interface NewFoodEntry {
   serving_size: number;
   consumed?: boolean;
   image_url?: string;
+  insertAfterIndex?: number;
 }
 
 interface DailyTotals {
@@ -117,6 +118,97 @@ export const useFoodEntriesQuery = () => {
     gcTime: 30 * 60 * 1000,
   });
 
+  // PERFORMANCE: Optimistic add multiple food entries mutation (bulk insert)
+  const addMultipleFoodEntriesMutation = useMutation({
+    mutationFn: async (newEntries: NewFoodEntry[]): Promise<FoodEntry[]> => {
+      if (!user) throw new Error('User not authenticated');
+      if (newEntries.length === 0) return [];
+
+      const entriesToInsert = newEntries.map(entry => ({
+        user_id: user.id,
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        consumed: entry.consumed ?? false,
+        image_url: entry.image_url,
+      }));
+
+      const { data, error } = await supabase
+        .from('food_entries')
+        .insert(entriesToInsert)
+        .select();
+
+      if (error) throw error;
+      return data || [];
+    },
+    onMutate: async (newEntries) => {
+      // PERFORMANCE: Optimistic update for multiple entries
+      await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
+
+      // Generate optimistic entries
+      const optimisticEntries: FoodEntry[] = newEntries.map((entry, index) => ({
+        id: `optimistic-bulk-${Date.now()}-${index}`,
+        user_id: user?.id || '',
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        consumed: entry.consumed ?? false,
+        image_url: entry.image_url,
+        created_at: new Date().toISOString(),
+      }));
+
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => [...optimisticEntries, ...old]
+      );
+
+      return { previousEntries, optimisticEntries };
+    },
+    onError: (err, newEntries, context) => {
+      console.error('🔄 useFoodEntriesQuery: addMultipleFoodEntriesMutation error:', err);
+      console.error('🔄 useFoodEntriesQuery: Failed entries:', newEntries);
+      
+      // Revert optimistic update
+      if (context?.previousEntries) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          context.previousEntries
+        );
+      }
+      
+      toast({
+        variant: "destructive",
+        title: "Failed to Add Foods",
+        description: err instanceof Error ? err.message : "An error occurred while adding foods",
+      });
+    },
+    onSuccess: (data, newEntries, context) => {
+      console.log('🔄 addMultipleFoodEntriesMutation: Success, updating cache with real data');
+      
+      // Replace optimistic entries with real data
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => {
+          // Remove optimistic entries and add real ones
+          const withoutOptimistic = old.filter(entry => 
+            !context?.optimisticEntries?.some(opt => opt.id === entry.id)
+          );
+          return [...data, ...withoutOptimistic];
+        }
+      );
+
+      // Show success notification
+      toast({
+        title: "Foods Added Successfully",
+        description: `Added ${data.length} food${data.length === 1 ? '' : 's'} to your log`,
+      });
+    },
+  });
+
   // PERFORMANCE: Optimistic add food entry mutation
   const addFoodEntryMutation = useMutation({
     mutationFn: async (newEntry: NewFoodEntry): Promise<FoodEntry> => {
@@ -130,7 +222,7 @@ export const useFoodEntriesQuery = () => {
           calories: newEntry.calories,
           carbs: newEntry.carbs,
           serving_size: newEntry.serving_size,
-          consumed: newEntry.consumed ?? true,
+          consumed: newEntry.consumed ?? false,
           image_url: newEntry.image_url,
         })
         .select()
@@ -140,55 +232,108 @@ export const useFoodEntriesQuery = () => {
       return data;
     },
     onMutate: async (newEntry) => {
-      // PERFORMANCE: Optimistic update
+      // PERFORMANCE: Optimistic update with stable ID for smoother transitions
       await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
 
       const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
 
+      // Generate a more predictable temporary ID that we can easily track
+      const tempId = `optimistic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
       const optimisticEntry: FoodEntry = {
-        id: `temp-${Date.now()}`,
+        id: tempId,
         user_id: user?.id || '',
         name: newEntry.name,
         calories: newEntry.calories,
         carbs: newEntry.carbs,
         serving_size: newEntry.serving_size,
-        consumed: newEntry.consumed ?? true,
+        consumed: newEntry.consumed ?? false,
         image_url: newEntry.image_url,
         created_at: new Date().toISOString(),
       };
 
       queryClient.setQueryData(
         foodEntriesQueryKey(user?.id || null, today),
-        (old: FoodEntry[] = []) => [optimisticEntry, ...old]
+        (old: FoodEntry[] = []) => {
+          // If insertAfterIndex is specified, insert at that position + 1
+          if (newEntry.insertAfterIndex !== undefined && newEntry.insertAfterIndex >= 0) {
+            const insertIndex = Math.min(newEntry.insertAfterIndex + 1, old.length);
+            return [
+              ...old.slice(0, insertIndex),
+              optimisticEntry,
+              ...old.slice(insertIndex)
+            ];
+          }
+          // Default behavior: insert at the beginning
+          return [optimisticEntry, ...old];
+        }
       );
 
-      return { previousEntries };
+      return { previousEntries, optimisticId: tempId };
     },
     onError: (err, newEntry, context) => {
-      // Rollback on error
-      if (context?.previousEntries) {
+      console.error('🔄 useFoodEntriesQuery: addFoodEntryMutation error:', err);
+      console.error('🔄 useFoodEntriesQuery: Failed entry:', newEntry);
+      
+      // Rollback on error - remove the optimistic entry
+      if (context?.optimisticId) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          (old: FoodEntry[] = []) => old.filter(entry => entry.id !== context.optimisticId)
+        );
+      } else if (context?.previousEntries) {
         queryClient.setQueryData(
           foodEntriesQueryKey(user?.id || null, today),
           context.previousEntries
         );
       }
+      
+      // Extract error message for better user feedback
+      let errorMessage = "Please try again.";
+      if (err instanceof Error) {
+        if (err.message.includes('duplicate')) {
+          errorMessage = "This food entry already exists.";
+        } else if (err.message.includes('network') || err.message.includes('fetch')) {
+          errorMessage = "Network error. Check your connection and try again.";
+        } else if (err.message.includes('permission') || err.message.includes('auth')) {
+          errorMessage = "Authentication error. Please log in again.";
+        } else if (err.message.includes('timeout')) {
+          errorMessage = "Request timed out. Please try again.";
+        } else if (err.message.includes('constraint')) {
+          errorMessage = "Data validation error. Please check your input.";
+        } else {
+          errorMessage = err.message || "An unexpected error occurred.";
+        }
+      }
+      
       toast({
         title: "Error adding food entry",
-        description: "Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     },
-    onSuccess: (data) => {
-      // Replace optimistic update with real data
+    onSuccess: (data, variables, context) => {
+      // Do an in-place replacement to minimize visual disruption
       queryClient.setQueryData(
         foodEntriesQueryKey(user?.id || null, today),
         (old: FoodEntry[] = []) => {
-          const withoutOptimistic = old.filter(entry => !entry.id.startsWith('temp-'));
-          return [data, ...withoutOptimistic];
+          return old.map(entry => {
+            // Replace the optimistic entry with real data in-place
+            if (entry.id === context?.optimisticId) {
+              return data;
+            }
+            return entry;
+          });
         }
       );
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      
+      // Show success toast with specific context
+      toast({
+        title: "Food Added",
+        description: `Added "${variables.name}" to Today's Plan`,
+      });
     },
   });
 
@@ -256,6 +401,8 @@ export const useFoodEntriesQuery = () => {
       return data;
     },
     onMutate: async ({ id, updates }) => {
+      console.log('🔄 updateFoodEntry: Starting optimistic update for:', id, updates);
+      
       // PERFORMANCE: Optimistic update
       await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
 
@@ -271,13 +418,32 @@ export const useFoodEntriesQuery = () => {
           )
       );
 
-      return { previousEntries };
+      return { previousEntries, entryId: id };
     },
-    onSuccess: (data) => {
-      console.log('🍽️ Update successful:', data);
-      // Invalidate both queries to refresh
-      queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+    onSuccess: (data, variables, context) => {
+      console.log('🔄 updateFoodEntry: Success, updating cache in-place for:', context?.entryId);
+      
+      // Do an in-place replacement to minimize visual disruption - same pattern as addFoodEntry
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => {
+          return old.map(entry => {
+            // Replace the entry with real data from server
+            if (entry.id === context?.entryId) {
+              return data;
+            }
+            return entry;
+          });
+        }
+      );
+      
+      // Only invalidate daily totals since that's a derived calculation
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      
+      toast({
+        title: "Food entry updated",
+        description: "Your food entry has been successfully updated.",
+      });
     },
     onError: (error, variables, context) => {
       // Rollback on error
@@ -406,8 +572,23 @@ export const useFoodEntriesQuery = () => {
     },
   });
 
+  // PERFORMANCE: Clear all entries function for immediate UI update
+  const clearAllEntries = useCallback(() => {
+    // Immediately clear the cache to update UI instantly (like setTemplateFoods([]))
+    queryClient.setQueryData(foodEntriesQueryKey(user?.id || null, today), []);
+    queryClient.setQueryData(dailyTotalsQueryKey(user?.id || null, today), {
+      calories: 0,
+      carbs: 0
+    });
+  }, [queryClient, user?.id, today]);
+
   // PERFORMANCE: Optimized refresh function
   const refreshFoodEntries = useCallback(async () => {
+    // Invalidate first to clear any stale cache, then refetch
+    await queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+    await queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+    
+    // Force fresh fetch
     await queryClient.refetchQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
     await queryClient.refetchQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
   }, [queryClient, user?.id, today]);
@@ -422,13 +603,16 @@ export const useFoodEntriesQuery = () => {
     
     // Actions
     addFoodEntry: addFoodEntryMutation.mutateAsync,
+    addMultipleFoodEntries: addMultipleFoodEntriesMutation.mutateAsync,
     updateFoodEntry: updateFoodEntryMutation.mutateAsync,
     deleteFoodEntry: deleteFoodEntryMutation.mutateAsync,
     toggleConsumption: toggleConsumptionMutation.mutateAsync,
+    clearAllEntries,
     refreshFoodEntries,
     
     // Mutation states
     isAddingEntry: addFoodEntryMutation.isPending,
+    isAddingMultipleEntries: addMultipleFoodEntriesMutation.isPending,
     isUpdatingEntry: updateFoodEntryMutation.isPending,
     isDeletingEntry: deleteFoodEntryMutation.isPending,
     isTogglingConsumption: toggleConsumptionMutation.isPending,

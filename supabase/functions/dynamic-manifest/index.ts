@@ -35,19 +35,95 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    const url = new URL(req.url);
+    const type = url.searchParams.get('type');
+    const size = url.searchParams.get('size');
+
+    // Handle image requests for TWA
+    if (type === 'icon' && size) {
+      const { data: settingsData } = await supabaseClient
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['home_screen_icon', 'app_logo']);
+
+      const settings: Record<string, string> = {};
+      settingsData?.forEach(item => {
+        settings[item.setting_key] = item.setting_value;
+      });
+
+      // Prioritize home screen icon for TWA, fallback to app logo
+      const iconUrl = settings.home_screen_icon || settings.app_logo;
+      if (iconUrl) {
+        // Fetch the image and return it
+        const imageResponse = await fetch(iconUrl);
+        if (imageResponse.ok) {
+          const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+          return new Response(imageResponse.body, {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': imageResponse.headers.get('Content-Type') || 'image/png',
+              'Cache-Control': 'public, max-age=3600',
+            },
+          });
+        }
+      }
+      
+      // Fallback to default icon
+      const fallbackIconUrl = `https://go.fastnow.app/icon-${size}.png`;
+      const fallbackResponse = await fetch(fallbackIconUrl);
+      if (fallbackResponse.ok) {
+        const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+        return new Response(fallbackResponse.body, {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'image/png',
+            'Cache-Control': 'public, max-age=3600',
+          },
+        });
+      }
+    }
+
+    if (type === 'splash') {
+      const { data: settingsData } = await supabaseClient
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['home_screen_icon', 'app_logo']);
+
+      const settings: Record<string, string> = {};
+      settingsData?.forEach(item => {
+        settings[item.setting_key] = item.setting_value;
+      });
+
+      // Prioritize home screen icon for splash, fallback to app logo
+      const splashUrl = settings.home_screen_icon || settings.app_logo;
+      if (splashUrl) {
+        const imageResponse = await fetch(splashUrl);
+        if (imageResponse.ok) {
+          const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+          return new Response(imageResponse.body, {
+            headers: {
+              ...corsHeaders,
+              'Content-Type': imageResponse.headers.get('Content-Type') || 'image/png',
+              'Cache-Control': 'public, max-age=3600',
+            },
+          });
+        }
+      }
+    }
+
     // Get app logo and PWA settings from shared_settings
     const { data: settingsData } = await supabaseClient
       .from('shared_settings')
       .select('setting_key, setting_value')
-      .in('setting_key', ['app_logo', 'app_icon_url', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
+      .in('setting_key', ['app_logo', 'app_favicon', 'home_screen_icon', 'pwa_app_name', 'pwa_short_name', 'pwa_description']);
 
     const settings: Record<string, string> = {};
     settingsData?.forEach(item => {
       settings[item.setting_key] = item.setting_value;
     });
 
-    // Use app_icon_url for PWA icons, fallback to app_logo if not available
-    const appIcon = settings.app_icon_url || settings.app_logo;
+    // Use home_screen_icon for PWA icons, fallback to app_logo, then app_favicon
+    const appIcon = settings.home_screen_icon || settings.app_logo || settings.app_favicon;
     const appName = settings.pwa_app_name || 'fast now - The No-BS Fat Loss Protocol';
     const shortName = settings.pwa_short_name || 'fast now';
     const description = settings.pwa_description || 'Your mindful app with AI-powered motivation';

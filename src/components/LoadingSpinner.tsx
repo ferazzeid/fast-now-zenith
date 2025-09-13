@@ -1,35 +1,91 @@
-import { EnhancedLoadingScreen, SmartInlineLoading } from './enhanced/SmartLoadingStates';
+import React, { useState, useEffect } from 'react';
+import { Loader2, RefreshCw } from 'lucide-react';
+import { useAppLogo } from '@/hooks/useAppLogo';
+import { Button } from '@/components/ui/button';
 
-export const LoadingSpinner = ({ 
-  fullScreen = true, 
-  text = "Loading",
-  subText = "Preparing your experience" 
+export const LoadingSpinner = ({
+  fullScreen = true,
+  text = "Loading...",
+  subText,
+  showLogo = true
 }: {
   fullScreen?: boolean;
   text?: string;
   subText?: string;
+  showLogo?: boolean;
 }) => {
+  const { appLogo } = useAppLogo();
+  const [showTimeout, setShowTimeout] = useState(false);
+
+  // Show timeout after 15 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTimeout(true);
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleRetry = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
   const content = (
-    <div className="text-center space-y-4">
-      {/* Enhanced animated spinner */}
-      <div className="relative w-16 h-16 mx-auto">
-        <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-        <div className="absolute inset-0 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-        <div className="absolute inset-2 border-2 border-primary/30 rounded-full"></div>
+    <div className="space-y-6 text-center">
+      {showLogo && (
+        <div className="flex justify-center">
+          {appLogo ? (
+            <img 
+              src={appLogo} 
+              alt="App Logo" 
+              className="w-16 h-16 object-contain rounded-lg"
+              onError={() => {
+                // Hide broken images gracefully
+                const target = event?.target as HTMLImageElement;
+                if (target) target.style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+              <span className="text-primary font-bold text-2xl">F</span>
+            </div>
+          )}
+        </div>
+      )}
+      
+      <div className="flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
       
-      {/* Loading text with subtle animation */}
       <div className="space-y-2">
-        <p className="text-lg font-medium text-foreground">{text}</p>
-        <p className="text-sm text-muted-foreground">{subText}</p>
+        <p className="text-lg font-medium text-foreground">
+          {text}
+        </p>
+        {subText && (
+          <p className="text-sm text-muted-foreground">
+            {subText}
+          </p>
+        )}
       </div>
-      
-      {/* Progress dots */}
-      <div className="flex justify-center space-x-1">
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-      </div>
+
+      {showTimeout && (
+        <div className="space-y-3 pt-6 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            Taking longer than expected?
+          </p>
+          <Button 
+            onClick={handleRetry} 
+            variant="outline" 
+            size="sm"
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry Connection
+          </Button>
+        </div>
+      )}
     </div>
   );
 

@@ -18,7 +18,7 @@ export const PROTECTED_CORS_HEADERS = {
 
 // 🔑 OPENAI API CONFIGURATION - STABLE SETTINGS
 export const PROTECTED_OPENAI_CONFIG = {
-  CHAT_MODEL: 'gpt-4o-mini',
+  CHAT_MODEL: 'gpt-4.1-2025-04-14',
   IMAGE_MODEL: 'dall-e-2',
   IMAGE_SIZE: '512x512',
   IMAGE_FORMAT: 'b64_json',

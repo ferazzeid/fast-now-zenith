@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { History } from 'lucide-react';
 import { WalkingTimer } from '@/components/WalkingTimer';
-import { PremiumGatedAIVoiceButton } from '@/components/PremiumGatedAIVoiceButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -19,10 +19,15 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
+import { AuthorTooltip } from '@/components/AuthorTooltip';
+import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
+import { useAccess } from '@/hooks/useAccess';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
+import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
 
 
 const Walking = () => {
+  const navigate = useNavigate();
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
@@ -34,7 +39,7 @@ const Walking = () => {
     currentSession, 
     loading, 
     selectedSpeed, 
-    setSelectedSpeed, 
+    updateSelectedSpeed,
     isPaused,
     startWalkingSession, 
     pauseWalkingSession,
@@ -47,10 +52,11 @@ const Walking = () => {
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
   const { saveQuoteAsGoal } = useMotivators();
+  const { isAdmin } = useAccess();
 
   const isRunning = !!currentSession;
 
-  // Local timer logic - similar to fasting timer
+  // Local timer logic - immediate start like fasting timer
   useEffect(() => {
     let interval: NodeJS.Timeout;
 
@@ -58,14 +64,14 @@ const Walking = () => {
       const updateLocalTime = () => {
         const now = Date.now();
         const startTime = new Date(currentSession.start_time).getTime();
-        const pausedDuration = currentSession.total_pause_duration || 0;
+        const pausedDuration = (currentSession.total_pause_duration || 0) * 1000; // Convert to ms
         const elapsed = Math.floor((now - startTime - pausedDuration) / 1000);
         setLocalTimeElapsed(Math.max(0, elapsed));
       };
 
-      // Update immediately
+      // Update immediately for instant feedback
       updateLocalTime();
-      // Then set interval
+      // Then set interval for continuous updates
       interval = setInterval(updateLocalTime, 1000);
     } else if (!currentSession) {
       // Reset when no session
@@ -214,28 +220,25 @@ const Walking = () => {
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-      <div className="max-w-md mx-auto pt-10 pb-24">
+      <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
         {/* Header with Onboarding and History Buttons */}
-        <div className="mb-4 mt-4 relative">
-          <div className="absolute left-0 top-0">
-            <PremiumGatedAIVoiceButton />
+        <ResponsivePageHeader
+          title="Walking Timer"
+          subtitle="Track your walking session"
+          onHistoryClick={() => navigate('/walking-history')}
+          historyTitle="View walking history"
+          showAuthorTooltip={true}
+          authorTooltipContentKey="walking_timer_insights"
+          authorTooltipContent="Walking regularly helps improve cardiovascular health, builds stronger bones, and can boost your mood through the release of endorphins. Even short walks make a meaningful difference!"
+        />
+
+        
+        {/* Only show sync indicator when there's an active session */}
+        {currentSession && (
+          <div className="mt-2 flex justify-end">
+            <OutboxSyncIndicator />
           </div>
-          <div className="absolute right-0 top-0">
-            <HistoryButton onClick={() => setShowWalkingHistory(true)} title="View walking history" />
-          </div>
-          <div className="pl-12 pr-12">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent mb-1">
-              Walking Timer
-            </h1>
-            <p className="text-sm text-muted-foreground text-left">Track your walking session</p>
-          </div>
-          {/* Only show sync indicator when there's an active session */}
-          {currentSession && (
-            <div className="mt-2 flex justify-end">
-              <OutboxSyncIndicator />
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Timer Display - No Loading State Blocking */}
         <div className="relative mb-6">
@@ -252,38 +255,34 @@ const Walking = () => {
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}
             onSpeedChange={async (newSpeed) => {
-              setSelectedSpeed(newSpeed);
-              
-              // Force immediate stats update by triggering context refresh
-              if (isRunning) {
-                try {
+              try {
+                // Use the hook's updateSelectedSpeed for immediate saving and UI feedback
+                updateSelectedSpeed(newSpeed);
+                
+                // Also update the current session if one is active
+                if (isRunning) {
                   const result = await updateSessionSpeed(newSpeed);
                   if (result.error) {
                     toast({
                       variant: "destructive",
-                      title: "Speed Update Failed",
-                      description: "Unable to update walking speed. Please try again."
-                    });
-                  } else {
-                    // Show speed in neutral terms
-                    const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
-                    
-                    toast({
-                      title: "Speed Updated",
-                      description: `Speed updated to ${speedLabel}`
+                      title: "Session Update Failed",
+                      description: "Speed saved but session update failed. Will sync when online."
                     });
                   }
-                } catch (error) {
-                  toast({
-                    variant: "destructive",
-                    title: "Network Error",
-                    description: "Failed to update speed. Check your connection."
-                  });
                 }
-              } else {
+                
+                // Show immediate confirmation
+                const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
                 toast({
-                  title: "Speed Set", 
-                  description: `Speed set for next session`
+                  title: "Speed Updated",
+                  description: `Speed set to ${speedLabel}`
+                });
+              } catch (error) {
+                console.error('Error updating speed:', error);
+                toast({ 
+                  title: "Network Error", 
+                  description: "Speed will be synced when connection is restored",
+                  variant: "destructive" 
                 });
               }
             }}

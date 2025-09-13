@@ -190,29 +190,17 @@ export const ImageUpload = ({
           
           {showUploadOptionsWhenImageExists && (
             <div className="space-y-3">
-              {/* Mobile: Separate buttons */}
+              {/* Mobile: Single camera button */}
               {isMobile && (
-                <div className="grid grid-cols-2 gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={handleFileSelect}
-                    disabled={isUploading}
-                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
-                  >
-                    <Image className="w-4 h-4" />
-                    <span className="text-xs">Upload photo</span>
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={handleCameraCapture}
-                    disabled={isUploading}
-                    className="h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <span className="text-xs">Use camera</span>
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleCameraCapture}
+                  disabled={isUploading}
+                  className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span className="text-xs">Use camera</span>
+                </Button>
               )}
 
               {/* Desktop: Single upload button */}
@@ -232,11 +220,11 @@ export const ImageUpload = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Desktop: Drag & drop area */}
+          {/* Desktop: Drag & drop area - Big camera */}
           {!isMobile && (
             <div
               className={`
-                border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors
+                border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
                 ${isDragOver ? 'border-primary bg-primary/5' : 'border-ceramic-rim'}
                 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
               `}
@@ -246,62 +234,29 @@ export const ImageUpload = ({
               onClick={!isUploading ? handleFileSelect : undefined}
             >
               {isUploading ? (
-                <div className="flex flex-col items-center space-y-2">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Uploading...</p>
+                <div className="flex flex-col items-center">
+                  <Loader2 className="w-12 h-12 text-primary animate-spin" />
                 </div>
               ) : (
-                <div className="flex flex-col items-center space-y-2">
-                  <Upload className="w-8 h-8 text-muted-foreground" />
-                  <p className="text-sm font-medium text-warm-text">
-                    Upload photo
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Drag & drop or click to browse
-                  </p>
+                <div className="flex flex-col items-center">
+                  <Camera className="w-16 h-16 text-muted-foreground" />
                 </div>
               )}
             </div>
           )}
 
-          {/* Mobile: Separate buttons */}
+          {/* Mobile: Big camera button */}
           {isMobile && (
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                variant="outline"
-                onClick={handleFileSelect}
-                disabled={isUploading}
-                className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-                >
-                  <Image className="w-6 h-6" />
-                  <span className="text-sm">Upload photo</span>
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={handleCameraCapture}
-                  disabled={isUploading}
-                  className="h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
-                >
-                  <Camera className="w-6 h-6" />
-                  <span className="text-sm">Use camera</span>
-                </Button>
-            </div>
-          )}
-
-
-          {/* Desktop: Additional button if no drag & drop used */}
-          {!isMobile && (
             <Button
               variant="outline"
-              onClick={handleFileSelect}
+              onClick={handleCameraCapture}
               disabled={isUploading}
-              className="w-full bg-ceramic-base border-ceramic-rim"
+              className="w-full h-32 flex-col bg-ceramic-base border-ceramic-rim"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload photo
+              <Camera className="w-12 h-12" />
             </Button>
           )}
+
         </div>
       )}
 

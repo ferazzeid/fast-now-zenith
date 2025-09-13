@@ -1,11 +1,9 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
-import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
-import { PremiumAccessAuditReport } from "@/components/PremiumAccessAuditReport";
+import { AdminTimerDesignSelector } from "@/components/AdminTimerDesignSelector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useConnectionStore } from "@/stores/connectionStore";
@@ -14,6 +12,7 @@ import { OfflineScreen } from "@/components/OfflineScreen";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 export default function AdminDev() {
   const { isOnline, lastChecked, isTestingConnection, testConnection } = useConnectionStore();
@@ -77,36 +76,30 @@ export default function AdminDev() {
 
   return (
     <AdminProtectedRoute>
-      <main className={`container mx-auto ${isMobile ? 'p-4' : 'p-6'} space-y-6 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]`} role="main">
-        <h1 className="sr-only">Admin Dev</h1>
-        <AdminSubnav />
+      <AdminHealthCheck>
+        <main className={`container mx-auto ${isMobile ? 'p-4' : 'p-6'} space-y-6 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]`} role="main">
+          <h1 className="sr-only">Admin Dev</h1>
+          <AdminSubnav />
 
-        <section aria-label="Role Testing" className="space-y-4">
-          <h2 className="text-xl font-semibold">Role Testing</h2>
-          
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              Test how the app behaves for different user roles. Admin dashboard access remains available regardless of test role.
-            </AlertDescription>
-          </Alert>
+          <section aria-label="Timer Design" className="space-y-4">
+            <AdminTimerDesignSelector />
+          </section>
 
-          <AdminRoleTester />
-        </section>
+          <section aria-label="Role Testing" className="space-y-4 pb-24">
+            <h2 className="text-xl font-semibold">Role Testing</h2>
+            
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription>
+                Test how the app behaves for different user roles. Admin dashboard access remains available regardless of test role.
+              </AlertDescription>
+            </Alert>
 
-        <section aria-label="Premium Access Audit" className="space-y-4">
-          <h2 className="text-xl font-semibold">Premium Access Audit</h2>
-          <PremiumAccessAuditReport />
-        </section>
+            <AdminRoleTester />
+          </section>
 
-        <section aria-label="Animation Settings" className="space-y-4">
-          <h2 className="text-xl font-semibold">Animation Settings</h2>
-          <AdminAnimationSettings />
-        </section>
-
-
-
-      </main>
+        </main>
+      </AdminHealthCheck>
     </AdminProtectedRoute>
   );
 }

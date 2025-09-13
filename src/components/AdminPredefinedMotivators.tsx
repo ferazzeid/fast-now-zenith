@@ -33,25 +33,27 @@ export const AdminPredefinedMotivators = () => {
   const loadMotivators = async () => {
     try {
       const { data, error } = await supabase
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'predefined_motivators')
-        .single();
+        .from('system_motivators')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
 
       if (error) throw error;
 
-      const motivatorsList = JSON.parse(data.setting_value || '[]');
-      // Add temporary IDs for editing
-      const motivatorsWithIds = motivatorsList.map((m: PredefinedMotivator, index: number) => ({
-        ...m,
-        id: m.id || `temp_${index}`
+      // Transform system_motivators to match the PredefinedMotivator interface
+      const motivatorsWithIds = (data || []).map((m: any) => ({
+        id: m.id,
+        title: m.title,
+        content: m.content,
+        category: m.category || 'personal',
+        imageUrl: m.male_image_url || m.female_image_url // Use whichever is available
       }));
       setMotivators(motivatorsWithIds);
     } catch (error) {
-      console.error('Error loading predefined motivators:', error);
+      console.error('Error loading system motivators:', error);
       toast({
         title: "Error loading motivators",
-        description: "Could not load predefined motivators.",
+        description: "Could not load system motivators.",
         variant: "destructive",
       });
     } finally {
@@ -61,29 +63,54 @@ export const AdminPredefinedMotivators = () => {
 
   const saveMotivators = async (updatedMotivators: PredefinedMotivator[]) => {
     try {
-      // Remove temporary IDs before saving
-      const cleanMotivators = updatedMotivators.map(({ id, ...motivator }) => motivator);
-      
-      const { error } = await supabase
-        .from('shared_settings')
-        .upsert({
-          setting_key: 'predefined_motivators',
-          setting_value: JSON.stringify(cleanMotivators)
-        });
+      // Update each motivator in the system_motivators table
+      for (const motivator of updatedMotivators) {
+        if (motivator.id && !motivator.id.startsWith('temp_')) {
+          // Update existing motivator
+          const { error } = await supabase
+            .from('system_motivators')
+            .update({
+              title: motivator.title,
+              content: motivator.content,
+              category: motivator.category,
+              male_image_url: motivator.imageUrl,
+              female_image_url: motivator.imageUrl,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', motivator.id);
 
-      if (error) throw error;
+          if (error) throw error;
+        } else {
+          // Create new motivator
+          const { error } = await supabase
+            .from('system_motivators')
+            .insert({
+              title: motivator.title,
+              content: motivator.content,
+              category: motivator.category || 'personal',
+              male_image_url: motivator.imageUrl,
+              female_image_url: motivator.imageUrl,
+              is_active: true,
+              display_order: 0,
+              slug: motivator.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+            });
 
-      setMotivators(updatedMotivators);
+          if (error) throw error;
+        }
+      }
+
+      // Reload to get updated data
+      await loadMotivators();
       
       toast({
         title: "✅ Motivators Updated",
-        description: "Predefined motivators have been updated successfully.",
+        description: "System motivators have been updated successfully.",
       });
     } catch (error) {
       console.error('Error saving motivators:', error);
       toast({
         title: "Error saving motivators",
-        description: "Could not save changes to predefined motivators.",
+        description: "Could not save changes to system motivators.",
         variant: "destructive",
       });
     }
@@ -116,9 +143,31 @@ export const AdminPredefinedMotivators = () => {
     setEditingMotivator(null);
   };
 
-  const handleDeleteMotivator = (motivatorId: string) => {
-    const updatedMotivators = motivators.filter(m => m.id !== motivatorId);
-    saveMotivators(updatedMotivators);
+  const handleDeleteMotivator = async (motivatorId: string) => {
+    try {
+      // Soft delete by setting is_active to false
+      const { error } = await supabase
+        .from('system_motivators')
+        .update({ is_active: false })
+        .eq('id', motivatorId);
+
+      if (error) throw error;
+
+      // Reload to get updated data
+      await loadMotivators();
+      
+      toast({
+        title: "✅ Motivator Deleted",
+        description: "System motivator has been deactivated.",
+      });
+    } catch (error) {
+      console.error('Error deleting motivator:', error);
+      toast({
+        title: "Error deleting motivator",
+        description: "Could not delete the motivator.",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => {

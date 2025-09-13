@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from './use-toast';
-import { useLoadingManager } from './useLoadingManager';
 import { useMotivatorCache } from './useMotivatorCache';
+import { generateUniqueSlug } from '@/utils/slugUtils';
+import { validateAndFixUrl } from '@/utils/urlUtils';
 
 export interface Motivator {
   id: string;
@@ -15,6 +16,8 @@ export interface Motivator {
   created_at: string;
   updated_at: string;
   imageUrl?: string;
+  show_in_animations?: boolean;
+  linkUrl?: string;
 }
 
 export interface CreateMotivatorData {
@@ -22,18 +25,20 @@ export interface CreateMotivatorData {
   content: string;
   category: string;
   imageUrl?: string;
+  show_in_animations?: boolean;
+  linkUrl?: string;
 }
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
-  const { loading, startLoading, stopLoading } = useLoadingManager('motivators');
   const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
 
   const loadMotivators = async (forceRefresh = false) => {
     if (!user) {
-      stopLoading();
+      setLoading(false);
       return;
     }
 
@@ -41,26 +46,38 @@ export const useMotivators = () => {
     if (!forceRefresh && cachedMotivators && !shouldFetchMotivators()) {
       console.log('Using cached motivators, skipping API call');
       setMotivators(cachedMotivators);
-      stopLoading();
+      setLoading(false);
       return;
     }
 
-    startLoading();
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('motivators')
-        .select('*, image_url')
+        .select('*, image_url, link_url')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('📊 RAW DATABASE RESPONSE:', {
+        timestamp: Date.now(),
+        dataLength: (data || []).length,
+        error: error ? 'present' : 'none'
+      });
       
-      // Transform data to include imageUrl property with proper fallback
+      // Transform data to include imageUrl and linkUrl properties with proper fallback
       const transformedData = (data || []).map((item: any) => ({
         ...item,
-        imageUrl: item.image_url || item.imageUrl || null // Handle both field names and provide fallback
+        imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
+        linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
+        show_in_animations: item.show_in_animations ?? true // Default to true if not set
       }));
+      
+      console.log('🎯 TRANSFORMED MOTIVATORS:', transformedData.map(m => ({ 
+        id: m.id, 
+        title: m.title, 
+        category: m.category 
+      })));
       
       setMotivators(transformedData);
       // Cache the fresh data
@@ -82,7 +99,7 @@ export const useMotivators = () => {
         });
       }
     } finally {
-      stopLoading();
+      setLoading(false);
     }
   };
 
@@ -98,6 +115,9 @@ export const useMotivators = () => {
           content: motivatorData.content,
           category: motivatorData.category,
           image_url: motivatorData.imageUrl,
+          link_url: motivatorData.linkUrl,
+          show_in_animations: motivatorData.show_in_animations ?? true,
+          slug: generateUniqueSlug(motivatorData.title),
           is_active: true
         })
         .select()
@@ -106,8 +126,11 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        const transformedData = { ...data, imageUrl: data.image_url };
+        const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
+        
+        // No need to refresh immediately - state is already updated optimistically
+        
         toast({
           title: "✨ Motivator Created!",
           description: "Your new motivator has been saved.",
@@ -127,14 +150,22 @@ export const useMotivators = () => {
   };
 
   const updateMotivator = async (id: string, updates: Partial<CreateMotivatorData>): Promise<boolean> => {
+    console.log('🔄 Updating motivator in useMotivators:', { id, updates });
     if (!user) return false;
 
     try {
-      // Map imageUrl to image_url for database
+      // Map imageUrl to image_url and linkUrl to link_url for database and handle show_in_animations
       const dbUpdates: any = { ...updates };
       if (updates.imageUrl !== undefined) {
         dbUpdates.image_url = updates.imageUrl;
         delete dbUpdates.imageUrl;
+      }
+      if (updates.linkUrl !== undefined) {
+        dbUpdates.link_url = updates.linkUrl;
+        delete dbUpdates.linkUrl;
+      }
+      if (updates.show_in_animations !== undefined) {
+        dbUpdates.show_in_animations = updates.show_in_animations;
       }
 
       const { error } = await supabase
@@ -145,8 +176,9 @@ export const useMotivators = () => {
 
       if (error) throw error;
 
+      // Update local state immediately with optimistic update
       setMotivators(prev => 
-        prev.map(m => m.id === id ? { ...m, ...updates } : m)
+        prev.map(m => m.id === id ? { ...m, ...updates, show_in_animations: updates.show_in_animations ?? m.show_in_animations } : m)
       );
 
       toast({
@@ -175,6 +207,9 @@ export const useMotivators = () => {
         content: motivator.content,
         category: motivator.category || 'general',
         image_url: motivator.imageUrl,
+        link_url: motivator.linkUrl,
+        show_in_animations: motivator.show_in_animations ?? true,
+        slug: generateUniqueSlug(motivator.title),
         is_active: true
       }));
 
@@ -186,7 +221,7 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url }));
+        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url, linkUrl: item.link_url }));
         setMotivators(prev => [...transformedData as Motivator[], ...prev]);
         toast({
           title: "✨ Motivators Created!",
@@ -220,6 +255,8 @@ export const useMotivators = () => {
           title,
           content,
           category: 'saved_quote',
+          slug: generateUniqueSlug(title),
+          show_in_animations: true, // Default to showing saved quotes in animations
           is_active: true
         })
         .select()
@@ -228,7 +265,7 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        const transformedData = { ...data, imageUrl: data.image_url };
+        const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         toast({
           title: "📝 Quote Saved!",
@@ -281,13 +318,25 @@ export const useMotivators = () => {
   // Load cached motivators immediately on mount, then check for fresh data
   useEffect(() => {
     if (user) {
+      console.log('🔄 useMotivators useEffect triggered, user:', user.id);
+      console.log('📊 Current cached motivators:', cachedMotivators?.length || 0);
+      
       // First load cached data if available (instant)
-      if (cachedMotivators) {
+      if (cachedMotivators && cachedMotivators.length > 0) {
+        console.log('📦 Loading cached motivators immediately');
         setMotivators(cachedMotivators);
-        stopLoading();
+        setLoading(false);
+      } else {
+        console.log('📦 No cached motivators, starting fresh load');
+        setLoading(true);
       }
-      // Then check if we need fresh data (background)
-      loadMotivators();
+      
+      // Always check for fresh data (background)
+      loadMotivators(false);
+    } else {
+      console.log('❌ No user, clearing motivators');
+      setMotivators([]);
+      setLoading(false);
     }
   }, [user?.id]); // Only depend on user.id to avoid unnecessary re-runs
 
@@ -298,7 +347,7 @@ export const useMotivators = () => {
       const result = await createMotivator(motivatorData);
       if (result) {
         invalidateCache(); // Clear cache when new motivator is created
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - createMotivator already refreshes
       }
       return result;
     },
@@ -306,7 +355,7 @@ export const useMotivators = () => {
       const result = await createMultipleMotivators(motivators);
       if (result.length > 0) {
         invalidateCache(); // Clear cache when new motivators are created
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - createMultipleMotivators already refreshes
       }
       return result;
     },
@@ -314,7 +363,7 @@ export const useMotivators = () => {
       const result = await updateMotivator(id, updates);
       if (result) {
         invalidateCache(); // Clear cache when motivator is updated
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - updateMotivator already optimistically updates
       }
       return result;
     },
@@ -322,6 +371,7 @@ export const useMotivators = () => {
       const result = await deleteMotivator(id);
       if (result) {
         invalidateCache(); // Clear cache when motivator is deleted
+        // Don't need to refresh - deleteMotivator already updates local state
       }
       return result;
     },
@@ -329,10 +379,13 @@ export const useMotivators = () => {
       const result = await saveQuoteAsGoal(quote);
       if (result) {
         invalidateCache(); // Clear cache when new quote is saved
-        await loadMotivators(true); // Force refresh
+        // Don't call loadMotivators here - saveQuoteAsGoal already refreshes
       }
       return result;
     },
-    refreshMotivators: () => loadMotivators(true) // Always force refresh when manually called
+    refreshMotivators: () => {
+      console.log('🔄 Manual refresh triggered');
+      return loadMotivators(true); // Always force refresh when manually called
+    }
   };
 };

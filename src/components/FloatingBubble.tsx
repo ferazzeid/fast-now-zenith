@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import { CheckCircle } from 'lucide-react';
 
 interface FloatingBubbleProps {
   content: string;
   role: 'user' | 'assistant';
   index: number;
+  isSuccess?: boolean;
 }
 
-export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) => {
+export const FloatingBubble = ({ content, role, index, isSuccess }: FloatingBubbleProps) => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -17,6 +19,16 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
   }, [index]);
 
   const isUser = role === 'user';
+  
+  // Detect success messages
+  const isSuccessMessage = isSuccess || (
+    !isUser && (
+      content.toLowerCase().includes('added') ||
+      content.toLowerCase().includes('foods added successfully') ||
+      content.toLowerCase().includes('successfully added') ||
+      content.toLowerCase().includes('processed your request')
+    )
+  );
 
   return (
     <div
@@ -32,16 +44,16 @@ export const FloatingBubble = ({ content, role, index }: FloatingBubbleProps) =>
           "max-w-[85%] p-4 rounded-2xl shadow-lg relative",
           "border",
           isUser ? 
-            "bg-ai/90 border-ai/50 text-white rounded-tr-sm" :
-            "bg-primary/90 border-primary/50 text-white rounded-tl-sm"
+            "bg-chat-user/90 border-chat-user/50 text-white rounded-tr-sm" :
+            "bg-chat-ai/90 border-chat-ai/50 text-white rounded-tl-sm"
         )}
       >
-        <p className="text-sm leading-relaxed font-medium">{content}</p>
-        <div className={cn(
-          "absolute w-2 h-2 rounded-full",
-          isUser ? "bg-ai -bottom-1 -right-1" : "bg-primary -bottom-1 -left-1",
-          "animate-pulse"
-        )} />
+        <div className="flex items-start gap-2">
+          {isSuccessMessage && (
+            <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
+          )}
+          <p className="text-sm leading-relaxed font-medium">{content}</p>
+        </div>
       </div>
     </div>
   );

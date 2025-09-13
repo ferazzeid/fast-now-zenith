@@ -2,12 +2,14 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2, Star } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, Star, BookOpen } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
-import { useAuth } from '@/hooks/useAuth';
+import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { MotivatorContentModal } from '@/components/MotivatorContentModal';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,8 +27,11 @@ interface ExpandableMotivatorCardProps {
     id: string;
     title: string;
     content?: string;
+    excerpt?: string;
     imageUrl?: string;
     category?: string;
+    linkUrl?: string;
+    slug?: string;
   };
   onEdit: () => void;
   onDelete: () => void;
@@ -39,57 +44,126 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
-  const [isAdmin, setIsAdmin] = useState(false);
+  
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
-  const { addToDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
-  const { user } = useAuth();
+  const [showContentModal, setShowContentModal] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<{
+    id: string;
+    title: string;
+    content: string;
+    external_url?: string;
+  } | null>(null);
+  const { addToDefaultGoals, removeFromDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
+  const { originalIsAdmin, isAdmin, isTestingMode } = useAccess();
+  const { toast } = useToast();
+  
+  // Show admin features only when actually in admin mode
+  const showAdminFeatures = originalIsAdmin && (!isTestingMode || isAdmin);
   
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
 
-  // Check admin role
-  useEffect(() => {
-    const checkAdminRole = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase.rpc('is_current_user_admin');
-        
-        if (error) throw error;
-        setIsAdmin(data || false);
-      } catch (error) {
-        console.error('Error checking admin role:', error);
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminRole();
-  }, [user]);
-
-  // Check if motivator is in default goals
+  // Check if motivator is in default goals (admin feature for user motivators)
   useEffect(() => {
     const checkDefaultGoals = async () => {
-      if (!isAdmin) return;
+      if (!showAdminFeatures) return;
       const inDefaults = await checkIfInDefaultGoals(motivator.id);
       setIsInDefaultGoals(inDefaults);
     };
 
     checkDefaultGoals();
-  }, [isAdmin, motivator.id, checkIfInDefaultGoals]);
+  }, [showAdminFeatures, motivator.id, checkIfInDefaultGoals]);
 
   // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
     setCurrentImageUrl(motivator.imageUrl || '');
   }, [motivator.imageUrl]);
 
-  const handleAddToDefaultGoals = async () => {
-    const success = await addToDefaultGoals(motivator);
-    if (success) {
-      setIsInDefaultGoals(true);
+  const handleToggleDefaultGoals = async () => {
+    if (isInDefaultGoals) {
+      const success = await removeFromDefaultGoals(motivator.id);
+      if (success) {
+        setIsInDefaultGoals(false);
+      }
+    } else {
+      const success = await addToDefaultGoals(motivator);
+      if (success) {
+        setIsInDefaultGoals(true);
+      }
+    }
+  };
+
+  const handleReadMore = async () => {
+    try {
+      // First try to find the full content by slug in system_motivators
+      if (motivator.slug) {
+        const { data: systemData, error } = await supabase
+          .from('system_motivators')
+          .select('*')
+          .eq('slug', motivator.slug)
+          .single();
+
+        if (systemData && !error) {
+          setSelectedContent({
+            id: systemData.id,
+            title: systemData.title,
+            content: systemData.content,
+            external_url: systemData.link_url
+          });
+          setShowContentModal(true);
+          return;
+        }
+      }
+
+      // If no slug or not found in system_motivators, try to extract slug from linkUrl
+      if (motivator.linkUrl) {
+        // Extract slug from URL like "/content/autophagy-clean-up"
+        const urlParts = motivator.linkUrl.split('/');
+        const slug = urlParts[urlParts.length - 1];
+
+        if (slug) {
+          const { data: systemData, error } = await supabase
+            .from('system_motivators')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+
+          if (systemData && !error) {
+            setSelectedContent({
+              id: systemData.id,
+              title: systemData.title,
+              content: systemData.content,
+              external_url: systemData.link_url
+            });
+            setShowContentModal(true);
+            return;
+          }
+        }
+      }
+
+      // Fallback: use the motivator's own content (which might be an excerpt)
+      setSelectedContent({
+        id: motivator.id,
+        title: motivator.title,
+        content: motivator.content || '',
+        external_url: motivator.linkUrl
+      });
+      setShowContentModal(true);
+
+    } catch (error) {
+      console.error('Error fetching full content:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load full content. Please try again."
+      });
     }
   };
 
   // Special styling for saved quotes
   const isSavedQuote = motivator.category === 'saved_quote';
+  
+  // All motivators in this component are user motivators, so use full content
+  const displayContent = motivator.content;
   
   return (
     <Card className={`overflow-hidden relative ${isSavedQuote ? 'bg-gray-900 border-gray-700' : ''}`}>
@@ -123,111 +197,95 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                     {motivator.title}
                   </h3>
                 </div>
-                
-                {motivator.content && (
-                  <div className={`text-sm ${isSavedQuote ? 'text-gray-200' : 'text-muted-foreground'}`}>
-                    {isExpanded ? (
-                      <p className="whitespace-pre-wrap">{motivator.content}</p>
-                    ) : (
-                      <p className="line-clamp-2">{motivator.content}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-              
-              {/* Actions */}
-              <div className="flex flex-col gap-1 ml-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                     <Button
-                       size="sm"
-                       variant="ghost"
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         onEdit();
-                       }}
-                       className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
-                     >
-                      <Edit className="w-3 h-3" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Edit this motivator</p>
-                  </TooltipContent>
-                </Tooltip>
-
-                {/* Admin: Add to Default Goals Button */}
-                {isAdmin && !isInDefaultGoals && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
+               </div>
+               
+               {/* Actions */}
+               <div className="flex flex-col gap-1 ml-2">
+                 <Tooltip>
+                   <TooltipTrigger asChild>
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleAddToDefaultGoals();
+                          onEdit();
                         }}
-                        disabled={adminLoading}
-                        className="p-1 h-6 w-6 hover:bg-yellow-500/10 hover:text-yellow-600"
+                        className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
                       >
-                        <Star className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Add to default goals (Admin)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
+                       <Edit className="w-3 h-3" />
+                     </Button>
+                   </TooltipTrigger>
+                   <TooltipContent>
+                     <p>Edit this motivator</p>
+                   </TooltipContent>
+                 </Tooltip>
 
-                {/* Show badge if in default goals */}
-                {isAdmin && isInDefaultGoals && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="p-1 h-6 w-6 flex items-center justify-center">
-                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>In default goals</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                
-                <AlertDialog>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertDialogTrigger asChild>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                          className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </AlertDialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={onDelete}>
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                 {/* Admin: Toggle Default Goals Button */}
+                 {showAdminFeatures && (
+                   <Tooltip>
+                     <TooltipTrigger asChild>
+                       <Button
+                         size="sm"
+                         variant="ghost"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleToggleDefaultGoals();
+                         }}
+                         disabled={adminLoading}
+                         className={`p-1 h-6 w-6 ${
+                           isInDefaultGoals 
+                             ? 'hover:bg-red-500/10 hover:text-red-600' 
+                             : 'hover:bg-yellow-500/10 hover:text-yellow-600'
+                         }`}
+                       >
+                         <Star className={`w-3 h-3 ${
+                           isInDefaultGoals 
+                             ? 'text-yellow-500 fill-yellow-500' 
+                             : ''
+                         }`} />
+                       </Button>
+                     </TooltipTrigger>
+                     <TooltipContent>
+                       <p>{isInDefaultGoals ? 'Remove from default goals' : 'Add to default goals'} (Admin)</p>
+                     </TooltipContent>
+                   </Tooltip>
+                 )}
+                  
+                  <AlertDialog>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                             size="sm" 
+                             variant="ghost" 
+                             onClick={(e) => {
+                               e.stopPropagation();
+                             }}
+                             className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                           >
+                             <Trash2 className="w-3 h-3" />
+                           </Button>
+                         </AlertDialogTrigger>
+                       </TooltipTrigger>
+                       <TooltipContent>
+                         <p>Delete this motivator</p>
+                       </TooltipContent>
+                     </Tooltip>
+                     <AlertDialogContent>
+                       <AlertDialogHeader>
+                         <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
+                         <AlertDialogDescription>
+                           Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
+                         </AlertDialogDescription>
+                       </AlertDialogHeader>
+                       <AlertDialogFooter>
+                         <AlertDialogCancel>Cancel</AlertDialogCancel>
+                         <AlertDialogAction onClick={onDelete}>
+                           Delete
+                         </AlertDialogAction>
+                       </AlertDialogFooter>
+                     </AlertDialogContent>
+                   </AlertDialog>
               </div>
             </div>
           </div>
@@ -258,6 +316,12 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
           </div>
         )}
       </CardContent>
+      
+      <MotivatorContentModal
+        isOpen={showContentModal}
+        onClose={() => setShowContentModal(false)}
+        content={selectedContent}
+      />
     </Card>
   );
 });

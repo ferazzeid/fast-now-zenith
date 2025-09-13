@@ -12,9 +12,10 @@ interface ActivityLevelOverrideProps {
 }
 
 const ACTIVITY_LEVELS = {
-  sedentary: 'Low',
-  moderately_active: 'Medium',
-  very_active: 'High'
+  sedentary: 'Sedentary',
+  lightly_active: 'Lightly Active',
+  moderately_active: 'Moderately Active',
+  very_active: 'Very Active'
 };
 
 export const ActivityLevelOverride: React.FC<ActivityLevelOverrideProps> = ({ currentDisplayLevel }) => {

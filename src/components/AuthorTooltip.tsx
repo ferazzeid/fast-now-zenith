@@ -29,7 +29,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   const [displayContent, setDisplayContent] = useState(content);
   const [isSaving, setIsSaving] = useState(false);
   const [authorData, setAuthorData] = useState({
-    image: '/lovable-uploads/default-author.png',
+    image: '/src/assets/motivator-placeholder.jpg',
     name: 'Admin',
     title: 'Personal Insight'
   });
@@ -57,7 +57,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           }, {} as Record<string, string>);
 
           setAuthorData({
-            image: settingsMap.author_tooltip_image || '/lovable-uploads/default-author.png',
+            image: settingsMap.author_tooltip_image || '/src/assets/motivator-placeholder.jpg',
             name: settingsMap.author_tooltip_name || 'Admin',
             title: settingsMap.author_tooltip_title || 'Personal Insight'
           });
@@ -85,24 +85,36 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   }, [contentKey]);
 
   const recomputePosition = () => {
-    if (!triggerRef.current || !tooltipRef.current) return;
+    if (!triggerRef.current) return;
     
     const triggerRect = triggerRef.current.getBoundingClientRect();
-    const tooltipWidth = 280; // Known width from tooltip
-    const tooltipHeight = 160; // Estimated height for calculation
+    const tooltipWidth = 280;
+    const tooltipHeight = 200; // Slightly larger estimate
+    const margin = 16;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
     
+    // Calculate available space in all directions
     const spaceAbove = triggerRect.top;
-    const spaceBelow = window.innerHeight - triggerRect.bottom;
-    const spaceRight = window.innerWidth - triggerRect.right;
+    const spaceBelow = viewportHeight - triggerRect.bottom;
     const spaceLeft = triggerRect.left;
+    const spaceRight = viewportWidth - triggerRect.right;
     
-    // Determine vertical position (prefer top unless insufficient space)
-    setPosition(spaceAbove >= tooltipHeight ? 'top' : 'bottom');
+    // For tooltips in the top area of the screen, always position to bottom-left
+    const isInTopArea = triggerRect.top < viewportHeight * 0.4; // Top 40% of screen
     
-    // Determine horizontal alignment (prefer right-aligned, only use left if insufficient space)
-    // For right-aligned: tooltip appears to the right of trigger, extending rightward
-    // For left-aligned: tooltip appears to the left of trigger, extending leftward
-    setAlignLeft(spaceRight < tooltipWidth);
+    if (isInTopArea) {
+      // Always position bottom-left for top area tooltips
+      setPosition('bottom');
+      setAlignLeft(true);
+    } else {
+      // For other areas, use smart positioning
+      const shouldPositionBottom = spaceBelow >= tooltipHeight + margin;
+      setPosition(shouldPositionBottom ? 'bottom' : 'top');
+      
+      const shouldAlignLeft = spaceRight < tooltipWidth + margin;
+      setAlignLeft(shouldAlignLeft);
+    }
   };
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -262,12 +274,12 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             ref={tooltipRef}
             onMouseLeave={handleTooltipMouseLeave}
             className={cn(
-              "absolute z-50 px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
-              "w-[320px] max-w-[calc(100vw-32px)] text-left",
+              "absolute z-[60] px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
+              "w-[280px] max-w-[calc(100vw-32px)] text-left",
               "animate-fade-in",
               position === 'bottom' 
-                ? (alignLeft ? "top-full left-0 mt-3" : "top-full left-0 mt-3")
-                : (alignLeft ? "bottom-full left-0 mb-3" : "bottom-full left-0 mb-3")
+                ? (alignLeft ? "top-full right-0 mt-3" : "top-full left-0 mt-3")
+                : (alignLeft ? "bottom-full right-0 mb-3" : "bottom-full left-0 mb-3")
             )}
           >
             {/* Header */}
@@ -338,7 +350,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             {/* Speech bubble arrow */}
             <div className={cn(
               "absolute w-3 h-3 bg-popover border-border rotate-45",
-              "left-6", // Always position arrow consistently on left side
+              alignLeft ? "right-6" : "left-6", // Position arrow based on alignment
               position === 'bottom' 
                 ? "top-0 -mt-1.5 border-l border-t"
                 : "bottom-0 -mb-1.5 border-r border-b"

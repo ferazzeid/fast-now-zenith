@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useCopyHistoricalDay } from '@/hooks/useCopyHistoricalDay';
 import { supabase } from '@/integrations/supabase/client';
-import { SmartLoadingButton } from "./enhanced/SmartLoadingStates";
+import { SmartLoadingButton } from "./SimpleLoadingComponents";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -256,7 +256,7 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
       <Card className="w-full max-w-md mx-auto max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
         <CardHeader className="border-b border-border py-4 px-0 flex-shrink-0">
           <div className="flex justify-between items-center px-6">
-            <CardTitle className="text-lg font-semibold">Food History</CardTitle>
+            <CardTitle className="text-lg font-semibold text-left">Food History</CardTitle>
             <div className="flex gap-2">
               {/* Delete All History Button - only show if there are entries */}
               {dailySummaries.length > 0 && (
@@ -350,11 +350,10 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
                         onClick={async (e) => {
                           e.stopPropagation();
                           const result = await copyDayToToday(summary.date);
-                          if (result?.success) {
-                            // Trigger refresh in parent component
-                            if (onCopySuccess) {
-                              onCopySuccess();
-                            }
+                          if (result?.success && onCopySuccess) {
+                            // Trigger immediate refresh in parent component
+                            console.log('Triggering onCopySuccess callback to refresh food entries');
+                            await onCopySuccess();
                             onClose(); // Close the history modal after successful copy
                           }
                         }}
