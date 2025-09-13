@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ToggleLeft, ToggleRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -53,53 +52,67 @@ export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries 
 
   if (showCarbs) {
     return (
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-3 text-sm">
         <ClickableTooltip content="Carbs planned for today">
           <span className={`text-muted-foreground/80 ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
             {Math.round(totalCarbs)}g
           </span>
         </ClickableTooltip>
-        <span className="text-muted-foreground/60">/</span>
+        <span className="text-muted-foreground/60">|</span>
         <ClickableTooltip content="Carbs eaten so far">
           <span className={`font-medium ${getProgressColor(consumedCarbs, dailyCarbGoal)}`}>
             {Math.round(consumedCarbs)}g
           </span>
         </ClickableTooltip>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleView}
-          className="p-1 h-6 w-6 hover:bg-accent/50 ml-1"
-          aria-label="Switch to calories view"
-        >
-          <ToggleRight className="w-4 h-4 text-muted-foreground" />
-        </Button>
+        <span className="text-muted-foreground/60">|</span>
+        <ClickableTooltip content="Daily carb goal">
+          <span className="text-muted-foreground/70">
+            {Math.round(dailyCarbGoal)}g
+          </span>
+        </ClickableTooltip>
+        
+        <div className="flex items-center gap-2 ml-3">
+          <span className="text-xs text-muted-foreground">Carbs</span>
+          <Switch
+            checked={!showCarbs}
+            onCheckedChange={(checked) => toggleView()}
+            aria-label="Switch between calories and carbs view"
+          />
+          <span className="text-xs text-muted-foreground">Calories</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm">
+    <div className="flex items-center gap-3 text-sm">
       <ClickableTooltip content="Calories planned for today">
         <span className={`text-muted-foreground/80 ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
           {Math.round(totalCalories)}
         </span>
       </ClickableTooltip>
-      <span className="text-muted-foreground/60">/</span>
+      <span className="text-muted-foreground/60">|</span>
       <ClickableTooltip content="Calories eaten so far">
         <span className={`font-medium ${getProgressColor(consumedCalories, dailyCalorieGoal)}`}>
           {Math.round(consumedCalories)}
         </span>
       </ClickableTooltip>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={toggleView}
-        className="p-1 h-6 w-6 hover:bg-accent/50 ml-1"
-        aria-label="Switch to carbs view"
-      >
-        <ToggleLeft className="w-4 h-4 text-muted-foreground" />
-      </Button>
+      <span className="text-muted-foreground/60">|</span>
+      <ClickableTooltip content="Daily calorie goal">
+        <span className="text-muted-foreground/70">
+          {Math.round(dailyCalorieGoal)}
+        </span>
+      </ClickableTooltip>
+      
+      <div className="flex items-center gap-2 ml-3">
+        <span className="text-xs text-muted-foreground">Carbs</span>
+        <Switch
+          checked={!showCarbs}
+          onCheckedChange={(checked) => toggleView()}
+          aria-label="Switch between calories and carbs view"
+        />
+        <span className="text-xs text-muted-foreground">Calories</span>
+      </div>
     </div>
   );
 };

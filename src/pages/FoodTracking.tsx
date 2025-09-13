@@ -219,25 +219,27 @@ const FoodTracking = () => {
         </div>
 
         {/* Today Section Header with Inline Summary */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold">Today</h2>
+        <div className="bg-muted p-3 rounded-md mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold">Today</h2>
+              {todayEntries.length > 0 && (
+                <ComponentErrorBoundary>
+                  <CompactFoodSummary entries={todayEntries} />
+                </ComponentErrorBoundary>
+              )}
+            </div>
             {todayEntries.length > 0 && (
-              <ComponentErrorBoundary>
-                <CompactFoodSummary entries={todayEntries} />
-              </ComponentErrorBoundary>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-destructive hover:text-destructive/80"
+                onClick={() => setShowClearAllDialog(true)}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             )}
           </div>
-          {todayEntries.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive/80"
-              onClick={() => setShowClearAllDialog(true)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          )}
         </div>
 
         {/* Food List */}
