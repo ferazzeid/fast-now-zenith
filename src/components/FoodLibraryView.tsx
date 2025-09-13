@@ -743,7 +743,7 @@ export const FoodLibraryView = ({
 
     return (
       <div 
-        className="p-3 mx-2 rounded-lg transition-all duration-200 cursor-pointer hover:bg-ceramic-base/50"
+        className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
