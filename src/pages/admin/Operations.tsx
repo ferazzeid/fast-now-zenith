@@ -10,6 +10,7 @@ import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
+import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -42,6 +43,10 @@ export default function AdminOperations() {
 
         <section aria-label="User tiers overview">
           <AdminTierStats />
+        </section>
+
+        <section aria-label="Animation settings">
+          <AdminAnimationSettings />
         </section>
 
         <section aria-label="SEO indexing settings">

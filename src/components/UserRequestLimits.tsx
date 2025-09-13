@@ -96,7 +96,7 @@ export const UserRequestLimits: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">User Request Limits</CardTitle>
+        <CardTitle className="text-lg">User Request Limits</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <SmartInlineLoading text="Loading usage data" />
@@ -108,7 +108,7 @@ export const UserRequestLimits: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">AI Request Limits</CardTitle>
+        <CardTitle className="text-lg">AI Request Limits</CardTitle>
       </CardHeader>
       <CardContent>
         <TooltipProvider>

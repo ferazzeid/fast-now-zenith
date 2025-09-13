@@ -92,7 +92,7 @@ export const AdminAppModeSwitcher = () => {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <CardTitle>App Access Mode</CardTitle>
+        <CardTitle className="text-lg">App Access Mode</CardTitle>
         <CardDescription>
           Control how your app handles user access and premium features globally
         </CardDescription>

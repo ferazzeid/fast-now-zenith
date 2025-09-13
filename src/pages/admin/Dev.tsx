@@ -3,7 +3,6 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
-import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { AdminTimerDesignSelector } from "@/components/AdminTimerDesignSelector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -86,7 +85,7 @@ export default function AdminDev() {
             <AdminTimerDesignSelector />
           </section>
 
-          <section aria-label="Role Testing" className="space-y-4">
+          <section aria-label="Role Testing" className="space-y-4 pb-24">
             <h2 className="text-xl font-semibold">Role Testing</h2>
             
             <Alert>
@@ -99,11 +98,6 @@ export default function AdminDev() {
             <AdminRoleTester />
           </section>
 
-          <section aria-label="Animation Settings" className="space-y-4 pb-24">
-            <h2 className="text-xl font-semibold">Animation Settings</h2>
-            <AdminAnimationSettings />
-            <div className="h-8" />
-          </section>
         </main>
       </AdminHealthCheck>
     </AdminProtectedRoute>
