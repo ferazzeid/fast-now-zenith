@@ -275,26 +275,10 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const getButtonContent = () => {
     switch (captureState) {
       case 'uploading':
-        return (
-          <>
-            <ProcessingDots className="text-white" />
-            <span className="ml-2">Uploading...</span>
-          </>
-        );
       case 'analyzing':
-        return (
-          <>
-            <ProcessingDots className="text-white" />
-            <span className="ml-2">Analyzing...</span>
-          </>
-        );
+        return <ProcessingDots className="text-white" />;
       default:
-        return (
-          <>
-            <Camera className="w-4 h-4" />
-            <span className="ml-2">Photo</span>
-          </>
-        );
+        return <Camera className="w-4 h-4" />;
     }
   };
 
