@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Mic, Lock } from 'lucide-react';
+import { Mic, Lock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 import { useToast } from '@/hooks/use-toast';
@@ -100,6 +100,20 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
         variant: "destructive"
       });
     }
+  };
+
+  const cancelRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      mediaRecorderRef.current.stream?.getTracks().forEach(track => track.stop());
+    }
+    setVoiceState('idle');
+    audioChunksRef.current = [];
+    
+    toast({
+      title: "Recording cancelled",
+      description: "Voice input has been cancelled",
+    });
   };
 
   const stopRecording = () => {
@@ -327,30 +341,45 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
 
   return (
     <>
-      <Button 
-        variant="outline"
-        size="action-tall"
-        className={cn(
-          "w-full flex items-center justify-center transition-colors border-0",
-          getButtonStyles()
+      <div className="relative">
+        <Button 
+          variant="outline"
+          size="action-tall"
+          className={cn(
+            "w-full flex items-center justify-center transition-colors border-0",
+            getButtonStyles()
+          )}
+          onClick={handleButtonClick}
+          disabled={voiceState === 'processing'}
+          title={hasAccess ? "AI Voice Assistant" : "AI Voice Assistant (Premium Feature)"}
+          aria-label={hasAccess ? "AI voice input" : "AI voice input - premium feature"}
+        >
+          {voiceState === 'processing' ? (
+            <div className="flex items-center space-x-1">
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+            </div>
+          ) : hasAccess ? (
+            <Mic className="w-11 h-11" />
+          ) : (
+            <Lock className="w-11 h-11" />
+          )}
+        </Button>
+
+        {/* Cancel button - shows during listening and processing */}
+        {(voiceState === 'listening' || voiceState === 'processing') && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive hover:bg-destructive/90 text-white p-0 shadow-md"
+            onClick={cancelRecording}
+            aria-label="Cancel recording"
+          >
+            <X className="h-3 w-3" />
+          </Button>
         )}
-        onClick={handleButtonClick}
-        disabled={voiceState === 'processing'}
-        title={hasAccess ? "AI Voice Assistant" : "AI Voice Assistant (Premium Feature)"}
-        aria-label={hasAccess ? "AI voice input" : "AI voice input - premium feature"}
-      >
-        {voiceState === 'processing' ? (
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-            <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-            <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
-          </div>
-        ) : hasAccess ? (
-          <Mic className="w-11 h-11" />
-        ) : (
-          <Lock className="w-11 h-11" />
-        )}
-      </Button>
+      </div>
 
       {/* Food Selection Modal */}
       <FoodSelectionModal
