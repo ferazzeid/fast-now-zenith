@@ -9,6 +9,7 @@ import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 import { AdminInsightDisplay } from './AdminInsightDisplay';
 import { useAccess } from '@/hooks/useAccess';
 import { useNavigate } from 'react-router-dom';
+import { useAdminPersonalLogEnabled } from '@/hooks/useAdminPersonalLogEnabled';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -24,6 +25,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const { data: hours, isLoading } = useFastingHoursQuery();
   const queryClient = useQueryClient();
   const { isAdmin } = useAccess();
+  const { isEnabled: isPersonalLogEnabled } = useAdminPersonalLogEnabled();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -144,18 +146,20 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
       )}
 
       {/* Admin Personal Log Interface */}
-      <AdminPersonalLogInterface
-        key={`admin-log-${selectedHour}-${selected?.admin_personal_log}`} // Force re-render when data changes
-        currentHour={selectedHour}
-        existingLog={selected?.admin_personal_log}
-        onLogSaved={async () => {
-          // Force a complete data refresh to ensure UI updates
-          queryClient.removeQueries({ queryKey: fastingHoursKey });
-          await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
-          await queryClient.refetchQueries({ queryKey: fastingHoursKey });
-          console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
-        }}
-       />
+      {isAdmin && isPersonalLogEnabled && (
+        <AdminPersonalLogInterface
+          key={`admin-log-${selectedHour}-${selected?.admin_personal_log}`} // Force re-render when data changes
+          currentHour={selectedHour}
+          existingLog={selected?.admin_personal_log}
+          onLogSaved={async () => {
+            // Force a complete data refresh to ensure UI updates
+            queryClient.removeQueries({ queryKey: fastingHoursKey });
+            await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
+            await queryClient.refetchQueries({ queryKey: fastingHoursKey });
+            console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
+          }}
+         />
+      )}
     </div>
   );
 };

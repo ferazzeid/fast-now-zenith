@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { useQueryClient } from '@tanstack/react-query';
 import { fastingHoursKey } from '@/hooks/optimized/useFastingHoursQuery';
+import { useAdminPersonalLogEnabled } from '@/hooks/useAdminPersonalLogEnabled';
 
 interface AdminPersonalLogInterfaceProps {
   currentHour: number;
@@ -25,6 +26,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   const { toast } = useToast();
   const { currentSession } = useFastingSession();
   const queryClient = useQueryClient();
+  const { isEnabled: isPersonalLogEnabled, isLoading: isPersonalLogLoading } = useAdminPersonalLogEnabled();
   const [logText, setLogText] = useState(existingLog);
   const [originalText, setOriginalText] = useState(existingLog); // Store original for cancel
   const [isEditing, setIsEditing] = useState(!existingLog);
@@ -44,8 +46,8 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
     }
   }, [existingLog, currentHour]);
 
-  // Don't show for non-admins
-  if (!isAdmin) return null;
+  // Don't show for non-admins or if disabled or still loading
+  if (!isAdmin || !isPersonalLogEnabled || isPersonalLogLoading) return null;
 
 
   const handleSaveLog = async () => {
