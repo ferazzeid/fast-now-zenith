@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Save, History, Edit, Trash2, X, Mic, Info, Footprints, ChevronDown, ChevronUp, Utensils, MoreVertical, Check, Camera, Brain, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
-import { AIVoiceButton } from '@/components/AIVoiceButton';
+import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -357,7 +357,7 @@ const FoodTracking = () => {
           <div className="col-span-1 flex flex-col items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <AIVoiceButton />
+                <DirectVoiceFoodInput onFoodAdded={handleSaveUnifiedEntry} />
               </TooltipTrigger>
               <TooltipContent>
                 <p>Use voice to add food with AI assistance</p>
