@@ -279,9 +279,9 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   return (
     <>
       <Button 
-        variant="outline"
+        variant="action-secondary"
         size="action-tall"
-        className={`w-full flex items-center justify-center transition-colors border-0 ${
+        className={`w-full flex items-center justify-center transition-colors ${
           captureState !== 'idle' 
             ? 'bg-ai hover:bg-ai/90 text-white'
             : canUseAIAnalysis 

@@ -343,10 +343,10 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
     <>
       <div className="relative">
         <Button 
-          variant="outline"
+          variant="action-secondary"
           size="action-tall"
           className={cn(
-            "w-full flex items-center justify-center transition-colors border-0",
+            "w-full flex items-center justify-center transition-colors",
             getButtonStyles()
           )}
           onClick={handleButtonClick}
