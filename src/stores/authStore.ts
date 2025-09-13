@@ -54,7 +54,7 @@ export const useAuthStore = create<AuthState>()(
         const timeoutId = setTimeout(() => {
           authLogger.warn('Auth initialization timeout - forcing loading: false');
           set({ loading: false, session: null, user: null });
-        }, 10000); // 10 second timeout
+        }, 3000); // 3 second timeout
         
         try {
           // Set up auth state listener first
