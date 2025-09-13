@@ -754,12 +754,12 @@ export const FoodLibraryView = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                  className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
                   title="More options"
                   aria-label="More options"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical className="w-4 h-4 text-muted-foreground" />
+                  <MoreVertical className="w-5 h-5 text-muted-foreground" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent 
@@ -926,7 +926,7 @@ export const FoodLibraryView = ({
                       await toggleFavorite(food.id, food.is_favorite || false);
                    }}
                    disabled={!isInteractionSafe}
-                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                 >
@@ -959,7 +959,7 @@ export const FoodLibraryView = ({
                      toggleDefaultFoodFavorite(food.id, food.is_favorite || false);
                    }}
                    disabled={!isInteractionSafe}
-                  className="min-w-[44px] min-h-[44px] p-2 hover:bg-secondary/80 rounded-md flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                 >
@@ -985,11 +985,11 @@ export const FoodLibraryView = ({
                 
                 await handleQuickSelect(food as UserFood, false);
               }}
-              className="min-w-[44px] min-h-[44px] p-2 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors"
+              className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
               title="Add to today's plan"
               aria-label="Add to today's plan"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3 h-3 text-primary-foreground" />
             </Button>
           </div>
         </div>
@@ -1053,7 +1053,7 @@ export const FoodLibraryView = ({
                 )}
               </TabsTrigger>
               <TabsTrigger value="suggested" className="flex items-center gap-1 text-xs">
-                <Database className="w-3 h-3" />
+                Default
               </TabsTrigger>
             </TabsList>
           </div>
@@ -1148,30 +1148,45 @@ export const FoodLibraryView = ({
               ) : (
                 <div className="space-y-1 overflow-x-hidden">
                   {templateFoods.map((food) => (
-                    <div key={food.id} className="p-3 mx-2 rounded-lg transition-all duration-200">
+                    <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
                       <div className="flex items-center gap-2">
+                        {/* Template Food Image */}
+                        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                          {food.image_url ? (
+                            <img 
+                              src={food.image_url} 
+                              alt={food.name}
+                              className="w-10 h-10 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <Utensils className="w-5 h-5 text-muted-foreground" />
+                          )}
+                        </div>
+
                         {/* Template Food Info */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-sm truncate">{food.name}</h3>
+                          <div className="mb-0">
+                            <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                            <span>{Math.round(food.calories)} cal</span>
-                            <span>{Math.round(food.carbs)}g carbs</span>
-                            <span>{Math.round(food.serving_size)}g</span>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-medium">{Math.round(food.serving_size)}g</span>
+                            <span className="text-muted-foreground/60">•</span>
+                            <span className="font-medium">{Math.round(food.calories)}</span>
+                            <span className="text-muted-foreground/60">•</span>
+                            <span className="font-medium">{Math.round(food.carbs)}g</span>
                           </div>
                         </div>
 
                         {/* Template Actions */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-4 flex-shrink-0">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="min-w-[32px] min-h-[32px] p-0 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                                className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
                               >
-                                <MoreVertical className="w-4 h-4" />
+                                <MoreVertical className="w-5 h-5 text-muted-foreground" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent 
@@ -1202,10 +1217,10 @@ export const FoodLibraryView = ({
                               image_url: food.image_url,
                               variations: []
                             }, false)}
-                            className="min-w-[32px] min-h-[32px] p-0 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors"
+                            className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
                             title="Add to today's plan"
                           >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-3 h-3 text-primary-foreground" />
                           </Button>
                         </div>
                       </div>

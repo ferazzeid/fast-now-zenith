@@ -228,6 +228,22 @@ const FoodTracking = () => {
           </ComponentErrorBoundary>
         </div>
 
+        {/* Today Section Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Today</h2>
+          {todayEntries.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive/80"
+              onClick={() => setShowClearAllDialog(true)}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Clear All
+            </Button>
+          )}
+        </div>
+
         {/* Food List */}
         <div className="space-y-6">
           <div className="mt-4">
@@ -239,18 +255,6 @@ const FoodTracking = () => {
               </div>
             ) : (
               <div className="space-y-1">
-                {/* Clear All Button */}
-                <div className="flex justify-end mb-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:text-destructive/80"
-                    onClick={() => setShowClearAllDialog(true)}
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Clear All
-                  </Button>
-                </div>
                 
                 {todayEntries.map((entry) => (
                   <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim ${
