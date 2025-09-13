@@ -288,9 +288,6 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             </div>
           ))}
           
-          {/* Thinking status hidden per user request */}
-          
-          
           <div ref={messagesEndRef} />
       </div>
 

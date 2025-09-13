@@ -1800,11 +1800,9 @@ ${args.content}`,
           </div>
         )}
         
-        {/* Thinking status hidden per user request */}
-        </div>
-        
         {/* Messages end ref positioned at the very bottom with minimal spacing for voice input */}
         <div ref={messagesEndRef} className="h-1" />
+      </div>
         
         {/* Scroll to bottom button */}
         {showScrollButton && (

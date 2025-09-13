@@ -336,7 +336,6 @@ export const CircularVoiceButton = React.forwardRef<
         title: "Got it!",
         description: "Converting your speech...",
         duration: 2000,
-        className: "bg-blue-50 border-blue-200"
       });
       
       // Validate audio data before sending with better error message
@@ -391,7 +390,6 @@ export const CircularVoiceButton = React.forwardRef<
         toast({
           title: "✓",
           description: "",
-          className: "w-16 h-8 p-2 text-center bg-green-600 text-white border-0 fixed bottom-4 right-4 text-xs",
           duration: 1500,
         });
         audioChunksRef.current = [];
