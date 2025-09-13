@@ -1148,83 +1148,90 @@ export const FoodLibraryView = ({
               ) : (
                 <div className="space-y-1 overflow-x-hidden">
                   {templateFoods.map((food) => (
-                    <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
-                      <div className="flex items-center gap-2">
-                        {/* Template Food Image */}
-                        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                          {food.image_url ? (
-                            <img 
-                              src={food.image_url} 
-                              alt={food.name}
-                              className="w-10 h-10 object-cover rounded-lg"
-                            />
-                          ) : (
-                            <Utensils className="w-5 h-5 text-muted-foreground" />
-                          )}
-                        </div>
+                     <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
+                       <div className="flex items-center gap-2">
+                         {/* Options Dropdown */}
+                         <div className="flex-shrink-0">
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button
+                                 variant="ghost"
+                                 size="sm"
+                                 className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
+                               >
+                                 <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent 
+                               align="start" 
+                               side="bottom" 
+                               sideOffset={8}
+                               avoidCollisions={true}
+                               collisionPadding={16}
+                               className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
+                               style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
+                               onCloseAutoFocus={(e) => e.preventDefault()}
+                             >
+                               <DropdownMenuItem
+                                 onClick={() => onDeleteTemplateFood?.(food.id)}
+                                 className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                               >
+                                 <Trash2 className="w-4 h-4 mr-3" />
+                                 Delete from Template
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         </div>
 
-                        {/* Template Food Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="mb-0">
-                            <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="font-medium">{Math.round(food.serving_size)}g</span>
-                            <span className="text-muted-foreground/60">•</span>
-                            <span className="font-medium">{Math.round(food.calories)}</span>
-                            <span className="text-muted-foreground/60">•</span>
-                            <span className="font-medium">{Math.round(food.carbs)}g</span>
-                          </div>
-                        </div>
+                         {/* Template Food Image */}
+                         <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                           {food.image_url ? (
+                             <img 
+                               src={food.image_url} 
+                               alt={food.name}
+                               className="w-10 h-10 object-cover rounded-lg"
+                             />
+                           ) : (
+                             <Utensils className="w-5 h-5 text-muted-foreground" />
+                           )}
+                         </div>
 
-                        {/* Template Actions */}
-                        <div className="flex items-center gap-4 flex-shrink-0">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
-                              >
-                                <MoreVertical className="w-5 h-5 text-muted-foreground" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent 
-                              align="end" 
-                              className="w-48 bg-background border shadow-lg z-50"
-                              sideOffset={5}
-                            >
-                              <DropdownMenuItem
-                                onClick={() => onDeleteTemplateFood?.(food.id)}
-                                className="flex items-center gap-2 text-destructive focus:text-destructive cursor-pointer"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Delete from Template
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                         {/* Template Food Info */}
+                         <div className="flex-1 min-w-0">
+                           <div className="mb-0">
+                             <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+                           </div>
+                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                             <span className="font-medium">{Math.round(food.serving_size)}g</span>
+                             <span className="text-muted-foreground/60">•</span>
+                             <span className="font-medium">{Math.round(food.calories)}</span>
+                             <span className="text-muted-foreground/60">•</span>
+                             <span className="font-medium">{Math.round(food.carbs)}g</span>
+                           </div>
+                         </div>
 
-                          {/* Add to Today Button */}
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => handleQuickSelect({
-                              id: food.id,
-                              name: food.name,
-                              calories_per_100g: (food.calories / food.serving_size) * 100,
-                              carbs_per_100g: (food.carbs / food.serving_size) * 100,
-                              is_favorite: false,
-                              image_url: food.image_url,
-                              variations: []
-                            }, false)}
-                            className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
-                            title="Add to today's plan"
-                          >
-                            <Plus className="w-3 h-3 text-primary-foreground" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                         {/* Add to Today Button */}
+                         <div className="flex-shrink-0">
+                           <Button
+                             variant="default"
+                             size="sm"
+                             onClick={() => handleQuickSelect({
+                               id: food.id,
+                               name: food.name,
+                               calories_per_100g: (food.calories / food.serving_size) * 100,
+                               carbs_per_100g: (food.carbs / food.serving_size) * 100,
+                               is_favorite: false,
+                               image_url: food.image_url,
+                               variations: []
+                             }, false)}
+                             className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                             title="Add to today's plan"
+                           >
+                             <Plus className="w-3 h-3 text-primary-foreground" />
+                           </Button>
+                         </div>
+                       </div>
+                     </div>
                   ))}
                 </div>
               )}
