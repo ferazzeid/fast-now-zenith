@@ -21,7 +21,7 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'app.fastnow.go.twa',
+    applicationId: 'com.fastnow.zenith',
     hostName: 'go.fastnow.app', // The domain being opened in the TWA.
     launchUrl: 'echo "/" | npx @bubblewrap/cli init --manifest=https://go.fastnow.app/manifest.json', // The start path for the TWA. Must be relative to the domain.
     name: 'FastNow - The No-BS Fat Loss Protocol', // The application name.
@@ -41,11 +41,14 @@ def twaManifest = [
     // - icon: Name of the resource in the drawable folder to use as an icon.
     shortcuts: [],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
-    splashScreenFadeOutDuration: 300,
+    splashScreenFadeOutDuration: 50,
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
     // The fallback strategy for when Trusted Web Activity is not available. Possible values are
     // 'customtabs' and 'webview'.
     fallbackType: 'customtabs',
+    // Improve loading performance
+    enableUrlBarHiding: true,
+    additionalTrustedOrigins: ['https://go.fastnow.app'],
     enableSiteSettingsShortcut: 'true',
     orientation: 'portrait-primary',
 ]
@@ -54,11 +57,11 @@ android {
     compileSdkVersion 36
     namespace "app.fastnow.go.twa"
     defaultConfig {
-        applicationId "app.fastnow.go.twa"
+        applicationId "com.fastnow.zenith"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 1
-        versionName "1"
+        versionCode 100223
+        versionName "100223"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name
