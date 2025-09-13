@@ -1,20 +1,16 @@
-import React, { useState, useRef } from 'react';
-import { Camera, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
+import { FoodSelectionModal } from '@/components/FoodSelectionModal';
+import { ProcessingDots } from '@/components/ProcessingDots';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useSessionGuard } from '@/hooks/useSessionGuard';
-import { uploadImageToCloud } from '@/utils/imageUtils';
 import { useAccess } from '@/hooks/useAccess';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
-
-type CaptureState = 'idle' | 'uploading' | 'analyzing' | 'results';
+import { useSessionGuard } from '@/hooks/useSessionGuard';
+import { useToast } from '@/hooks/use-toast';
 
 interface DirectPhotoCaptureButtonProps {
-  onFoodAdded: (foodData: any) => void;
+  onFoodAdded?: (food: any) => void;
   className?: string;
 }
 
@@ -29,28 +25,35 @@ interface AnalysisResult {
   description?: string;
 }
 
-export const DirectPhotoCaptureButton = ({ 
-  onFoodAdded,
-  className = ""
-}: DirectPhotoCaptureButtonProps) => {
-  const [captureState, setCaptureState] = useState<CaptureState>('idle');
-  const [showResultsModal, setShowResultsModal] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [imageUrl, setImageUrl] = useState<string>('');
-  
+interface FoodItem {
+  name: string;
+  serving_size: number;
+  calories: number;
+  carbs: number;
+  protein?: number;
+  fat?: number;
+}
+
+interface FoodSuggestion {
+  foods: FoodItem[];
+  destination: 'today' | 'library';
+  isProcessed: boolean;
+}
+
+export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
+  const [captureState, setCaptureState] = useState<'idle' | 'uploading' | 'analyzing'>('idle');
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
+  const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
+  const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  
   const { user } = useAuth();
-  const { hasPremiumFeatures, hasAIAccess, access_level, testRole, isTestingMode } = useAccess();
-  
-  // Use test role if in testing mode, otherwise use actual access level
-  const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full') : hasAIAccess;
-  
+  const { access_level, hasAIAccess } = useAccess();
+  const sessionGuard = useSessionGuard();
+  const { toast } = useToast();
+
   // Check if user has access to AI analysis features
-  const canUseAIAnalysis = effectiveLevel === 'admin' || effectiveHasAIAccess;
-  const { withSessionGuard } = useSessionGuard();
-  const isMobile = useIsMobile();
+  const canUseAIAnalysis = access_level === 'admin' || hasAIAccess;
 
   const handleCameraClick = () => {
     if (!user) {
@@ -95,17 +98,28 @@ export const DirectPhotoCaptureButton = ({
       return;
     }
 
-    await withSessionGuard(async () => {
+    if (!sessionGuard.withSessionGuard) return;
+
+    await sessionGuard.withSessionGuard(async () => {
       try {
         setCaptureState('uploading');
         
-        const result = await uploadImageToCloud(file, user!.id, supabase);
+        // Upload image to Supabase storage
+        const fileName = `${Date.now()}_${Math.random().toString().replace('.', '')}.jpg`;
+        const filePath = `${user!.id}/${fileName}`;
         
-        if (!result.success) {
-          throw new Error(result.error || 'Upload failed');
-        }
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('motivator-images')
+          .upload(filePath, file);
 
-        setImageUrl(result.url);
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('motivator-images')
+          .getPublicUrl(filePath);
+
+        const imageUrl = urlData.publicUrl;
 
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
@@ -118,35 +132,67 @@ export const DirectPhotoCaptureButton = ({
 
           try {
             const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-              body: { imageUrl: result.url },
+              body: { imageUrl: imageUrl },
             });
             
             if (error) throw error;
             
-            setCaptureState('results');
-            setAnalysisResult(data);
-            setShowResultsModal(true);
+            const result = data as AnalysisResult;
+            
+            // Convert analysis result to FoodSuggestion format
+            if (result) {
+              const servingSize = result.estimated_serving_size || 100;
+              const totalCalories = Math.round((result.calories_per_100g || 0) * servingSize / 100);
+              const totalCarbs = Math.round((result.carbs_per_100g || 0) * servingSize / 100 * 10) / 10;
+              const totalProtein = Math.round((result.protein_per_100g || 0) * servingSize / 100 * 10) / 10;
+              const totalFat = Math.round((result.fat_per_100g || 0) * servingSize / 100 * 10) / 10;
+
+              const foodItem: FoodItem = {
+                name: result.name || 'Unknown Food',
+                serving_size: servingSize,
+                calories: totalCalories,
+                carbs: totalCarbs,
+                protein: totalProtein,
+                fat: totalFat
+              };
+
+              const suggestion: FoodSuggestion = {
+                foods: [foodItem],
+                destination: 'today',
+                isProcessed: true
+              };
+
+              setFoodSuggestion(suggestion);
+              setSelectedFoodIds(new Set([0])); // Select the first (and only) food by default
+              setShowSelectionModal(true);
+              setCaptureState('idle');
+            } else {
+              // Show error and allow retry
+              toast({
+                title: "Analysis Failed",
+                description: "Could not analyze the image. Please try again or add food manually.",
+                variant: "destructive"
+              });
+              setCaptureState('idle');
+            }
 
           } catch (analysisError) {
             console.error('Analysis error:', analysisError);
             setCaptureState('idle');
             
-            // Show manual entry as fallback
-            handleManualEntry(result.url);
-            
             toast({
               title: "Analysis failed",
-              description: "You can still add food details manually",
-              variant: "default",
+              description: "Could not analyze the image. Please try again.",
+              variant: "destructive",
             });
           }
         } else {
-          // Show manual entry for non-premium users
-          handleManualEntry(result.url);
-          
+          // Show error for non-premium users
+          setCaptureState('idle');
           toast({
-            title: "Image captured",
-            description: "Premium users get AI analysis. You can add details manually!",
+            title: "Premium Feature",
+            description: "AI photo analysis requires a premium subscription.",
+            variant: "destructive",
           });
         }
 
@@ -163,70 +209,94 @@ export const DirectPhotoCaptureButton = ({
     }, 'Photo Capture');
   };
 
-  const handleManualEntry = (uploadedImageUrl: string) => {
-    setCaptureState('idle');
-    // Trigger manual entry with the uploaded image
-    onFoodAdded({
-      image_url: uploadedImageUrl,
-      requiresManualEntry: true
-    });
+  // Handle selection changes in modal
+  const handleSelectionChange = (selectedIds: Set<number>) => {
+    setSelectedFoodIds(selectedIds);
   };
 
-  const handleConfirmAnalysis = (result: AnalysisResult) => {
-    const servingSize = result.estimated_serving_size || 100;
-    const totalCalories = Math.round((result.calories_per_100g || 0) * servingSize / 100);
-    const totalCarbs = Math.round((result.carbs_per_100g || 0) * servingSize / 100 * 10) / 10;
-    
-    const foodData = {
-      name: result.name || 'Unknown Food',
-      calories: totalCalories,
-      carbs: totalCarbs,
-      serving_size: servingSize,
-      image_url: imageUrl
-    };
-    
-    onFoodAdded(foodData);
-    setShowResultsModal(false);
-    setCaptureState('idle');
-    setAnalysisResult(null);
-    setImageUrl('');
-  };
-
-  const handleRejectAnalysis = () => {
-    setShowResultsModal(false);
-    setCaptureState('idle');
-    
-    // Show manual entry with the captured image
-    handleManualEntry(imageUrl);
-  };
-
-  const getButtonContent = () => {
-    switch (captureState) {
-      case 'uploading':
-        return {
-          icon: <Loader2 className="w-5 h-5 animate-spin" />,
-          text: 'Uploading...'
-        };
-      case 'analyzing':
-        return {
-          icon: <Sparkles className="w-5 h-5 animate-pulse text-purple-500" />,
-          text: 'Analyzing...'
-        };
-      case 'results':
-        return {
-          icon: <CheckCircle className="w-5 h-5 text-green-500" />,
-          text: 'Complete!'
-        };
-      default:
-        return {
-          icon: <Camera className="w-5 h-5" />,
-          text: 'Photo'
-        };
+  // Handle food updates in modal
+  const handleFoodUpdate = (index: number, updates: Partial<FoodItem>) => {
+    if (foodSuggestion) {
+      const updatedFoods = [...foodSuggestion.foods];
+      updatedFoods[index] = { ...updatedFoods[index], ...updates };
+      setFoodSuggestion({
+        ...foodSuggestion,
+        foods: updatedFoods
+      });
     }
   };
 
-  const { icon, text } = getButtonContent();
-  const isProcessing = captureState !== 'idle';
+  // Handle food removal in modal
+  const handleFoodRemove = (index: number) => {
+    if (foodSuggestion) {
+      const updatedFoods = foodSuggestion.foods.filter((_, i) => i !== index);
+      setFoodSuggestion({
+        ...foodSuggestion,
+        foods: updatedFoods
+      });
+      
+      // Update selected IDs after removal
+      const newSelectedIds = new Set<number>();
+      selectedFoodIds.forEach(id => {
+        if (id < index) newSelectedIds.add(id);
+        else if (id > index) newSelectedIds.add(id - 1);
+      });
+      setSelectedFoodIds(newSelectedIds);
+    }
+  };
+
+  // Handle adding selected foods
+  const handleAddFoods = async () => {
+    if (foodSuggestion) {
+      const selectedFoods = foodSuggestion.foods.filter((_, index) => selectedFoodIds.has(index));
+      
+      selectedFoods.forEach(food => {
+        const foodEntry = {
+          ...food,
+          source: 'photo_analysis'
+        };
+        onFoodAdded?.(foodEntry);
+      });
+
+      setShowSelectionModal(false);
+      setFoodSuggestion(null);
+      setSelectedFoodIds(new Set());
+      setCaptureState('idle');
+
+      toast({
+        title: "✓ Food Added",
+        description: `${selectedFoods.length} food${selectedFoods.length > 1 ? 's' : ''} added to your log`,
+        className: "bg-green-600 text-white border-0",
+      });
+    }
+  };
+
+  // Get button content based on state
+  const getButtonContent = () => {
+    switch (captureState) {
+      case 'uploading':
+        return (
+          <>
+            <ProcessingDots className="text-white" />
+            <span className="ml-2">Uploading...</span>
+          </>
+        );
+      case 'analyzing':
+        return (
+          <>
+            <ProcessingDots className="text-white" />
+            <span className="ml-2">Analyzing...</span>
+          </>
+        );
+      default:
+        return (
+          <>
+            <Camera className="w-4 h-4" />
+            <span className="ml-2">Photo</span>
+          </>
+        );
+    }
+  };
 
   return (
     <>
@@ -235,10 +305,10 @@ export const DirectPhotoCaptureButton = ({
         size="action-tall"
         className={`w-full flex items-center justify-center ${className}`}
         onClick={handleCameraClick}
-        disabled={isProcessing}
+        disabled={captureState !== 'idle'}
         aria-label="Take photo to add food"
       >
-        {icon}
+        {getButtonContent()}
       </Button>
 
       {/* Hidden camera input */}
@@ -251,19 +321,30 @@ export const DirectPhotoCaptureButton = ({
         className="hidden"
       />
 
-      {/* Analysis Results Modal */}
-      <Dialog open={showResultsModal} onOpenChange={setShowResultsModal}>
-        <DialogContent className="max-w-md p-0">
-          {analysisResult && (
-            <FoodAnalysisResults
-              result={analysisResult}
-              imageUrl={imageUrl}
-              onConfirm={handleConfirmAnalysis}
-              onReject={handleRejectAnalysis}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Food Selection Modal */}
+      {foodSuggestion && (
+        <FoodSelectionModal
+          isOpen={showSelectionModal}
+          onClose={() => {
+            setShowSelectionModal(false);
+            setFoodSuggestion(null);
+            setSelectedFoodIds(new Set());
+            setCaptureState('idle');
+          }}
+          foodSuggestion={foodSuggestion}
+          selectedFoodIds={selectedFoodIds}
+          onSelectionChange={handleSelectionChange}
+          onFoodUpdate={handleFoodUpdate}
+          onFoodRemove={handleFoodRemove}
+          onDestinationChange={(destination: 'today' | 'library') => {
+            if (foodSuggestion) {
+              setFoodSuggestion({ ...foodSuggestion, destination });
+            }
+          }}
+          onAddFoods={handleAddFoods}
+          isProcessing={captureState !== 'idle'}
+        />
+      )}
     </>
   );
 };

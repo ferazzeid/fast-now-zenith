@@ -324,13 +324,6 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
     }
   };
 
-  const ProcessingDots = () => (
-    <div className="flex items-center space-x-1">
-      <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-      <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-      <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
-    </div>
-  );
 
   return (
     <>
@@ -347,7 +340,11 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
         aria-label={hasAccess ? "AI voice input" : "AI voice input - premium feature"}
       >
         {voiceState === 'processing' ? (
-          <ProcessingDots />
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+            <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+            <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+          </div>
         ) : hasAccess ? (
           <Mic className="w-5 h-5" />
         ) : (
