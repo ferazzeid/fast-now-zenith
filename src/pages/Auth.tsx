@@ -35,9 +35,15 @@ const Auth = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Show loading screen while auth is loading to prevent login form flash
+  // Show loading screen while auth is loading, but with enhanced fallback
   if (authLoading) {
-    return <LoadingSpinner />;
+    return (
+      <LoadingSpinner 
+        text="Connecting..."
+        subText="Loading your account"
+        showLogo={false}
+      />
+    );
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -67,15 +73,25 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background/80 to-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-8">
-        {/* Logo/Brand */}
+        {/* Logo/Brand - Progressive Loading */}
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-3 mb-2">
-            {appLogo && (
+            {/* Show logo if loaded, fallback letter if not */}
+            {appLogo ? (
               <img 
                 src={appLogo} 
                 alt="App Logo" 
                 className="w-12 h-12 object-contain rounded-lg"
+                onError={() => {
+                  // Hide broken images gracefully
+                  const target = event?.target as HTMLImageElement;
+                  if (target) target.style.display = 'none';
+                }}
               />
+            ) : (
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <span className="text-2xl font-bold text-primary">F</span>
+              </div>
             )}
             <h1 className="text-4xl font-bold text-foreground">
               FastNow

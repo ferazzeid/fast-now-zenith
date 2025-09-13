@@ -4,23 +4,32 @@ import { useAppLogo } from '@/hooks/useAppLogo';
 export const LoadingSpinner = ({ 
   fullScreen = true, 
   text = "Loading",
-  subText = "Preparing your experience" 
+  subText = "Preparing your experience",
+  showLogo = true
 }: {
   fullScreen?: boolean;
   text?: string;
   subText?: string;
+  showLogo?: boolean;
 }) => {
-  const { appLogo } = useAppLogo();
+  const { appLogo, loading: logoLoading } = useAppLogo();
   
   const content = (
     <div className="text-center space-y-4">
-      {/* App Logo */}
-      {appLogo && (
+      {/* App Logo - Don't block loading on logo */}
+      {showLogo && appLogo && !logoLoading && (
         <img 
           src={appLogo} 
           alt="App Logo" 
           className="w-16 h-16 object-contain rounded-lg mx-auto"
         />
+      )}
+      
+      {/* Fallback logo placeholder */}
+      {showLogo && !appLogo && !logoLoading && (
+        <div className="w-16 h-16 bg-primary/10 rounded-lg mx-auto flex items-center justify-center">
+          <span className="text-2xl font-bold text-primary">F</span>
+        </div>
       )}
       
       {/* Enhanced animated spinner */}

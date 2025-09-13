@@ -50,11 +50,12 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Starting auth initialization');
         set({ initialized: true, loading: true });
         
-        // Add timeout to prevent infinite loading
+        // Add timeout to prevent infinite loading - extended for mobile networks
         const timeoutId = setTimeout(() => {
-          authLogger.warn('Auth initialization timeout - forcing loading: false');
-          set({ loading: false, session: null, user: null });
-        }, 3000); // 3 second timeout
+          authLogger.warn('Auth initialization timeout - this may indicate network issues');
+          // Don't force loading false immediately, let it continue trying
+          // Only log the timeout for debugging
+        }, 20000); // Extended to 20 seconds for mobile networks
         
         try {
           // Set up auth state listener first
@@ -86,16 +87,20 @@ export const useAuthStore = create<AuthState>()(
             }
           );
 
-          // Get current session with timeout protection
-          const sessionPromise = supabase.auth.getSession();
-          const { data: { session }, error } = await sessionPromise;
+          // Get current session with better error handling
+          const { data: { session }, error } = await supabase.auth.getSession();
           
           clearTimeout(timeoutId); // Clear timeout on completion
           
           if (error) {
             authLogger.error('Error getting session:', error);
-            // Clear any stored tokens that might be causing issues
-            localStorage.removeItem('sb-texnkijwcygodtywgedm-auth-token');
+            // Clear corrupted auth tokens
+            const keys = Object.keys(localStorage);
+            keys.forEach(key => {
+              if (key.startsWith('sb-') && key.includes('auth-token')) {
+                localStorage.removeItem(key);
+              }
+            });
             set({ 
               session: null, 
               user: null, 
@@ -103,6 +108,7 @@ export const useAuthStore = create<AuthState>()(
             });
           } else {
             // Update initial session state
+            authLogger.info('Initial session loaded', { hasSession: !!session });
             set({
               session,
               user: session?.user ?? null,
