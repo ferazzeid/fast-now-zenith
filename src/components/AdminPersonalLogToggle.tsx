@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
 
 export const AdminPersonalLogToggle = () => {
   const [isEnabled, setIsEnabled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,7 +33,6 @@ export const AdminPersonalLogToggle = () => {
   };
 
   const handleToggle = async (enabled: boolean) => {
-    setIsSaving(true);
     try {
       const { error } = await supabase
         .from('shared_settings')
@@ -48,47 +46,32 @@ export const AdminPersonalLogToggle = () => {
       setIsEnabled(enabled);
       toast({
         title: "Setting updated",
-        description: `Admin personal log ${enabled ? 'enabled' : 'disabled'}`,
+        description: `Personal log display ${enabled ? 'enabled' : 'disabled'}`,
       });
     } catch (error) {
-      console.error('Error updating admin personal log setting:', error);
+      console.error('Error updating personal log setting:', error);
       toast({
         title: "Error updating setting",
         description: "Please try again",
         variant: "destructive",
       });
-    } finally {
-      setIsSaving(false);
     }
   };
 
+  if (isLoading) return null;
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          Admin Personal Log Display
-          {(isLoading || isSaving) && (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          )}
-        </CardTitle>
-        <CardDescription>
-          Toggle the visibility of admin personal log interface in fasting timelines
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center space-x-2">
+      <CardContent className="pt-6">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="personal-log-display" className="text-sm font-medium">
+            Personal Log Display
+          </Label>
           <Switch
-            id="admin-personal-log-toggle"
+            id="personal-log-display"
             checked={isEnabled}
             onCheckedChange={handleToggle}
-            disabled={isLoading || isSaving}
           />
-          <label 
-            htmlFor="admin-personal-log-toggle" 
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          >
-            {isEnabled ? 'Enabled' : 'Disabled'}
-          </label>
         </div>
       </CardContent>
     </Card>

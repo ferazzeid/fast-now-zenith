@@ -14,8 +14,8 @@ import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 
 export default function AdminOperations() {
   usePageSEO({
-    title: "Admin Operations – Engagement, SEO & Monitoring",
-    description: "Monitor engagement, manage SEO indexing, and operational thresholds.",
+    title: "Admin Operations – Animation, SEO & Monitoring",
+    description: "Manage animation settings, SEO indexing, and operational thresholds.",
     canonicalPath: "/admin/operations",
   });
 

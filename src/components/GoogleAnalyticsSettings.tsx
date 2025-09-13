@@ -55,7 +55,7 @@ export const GoogleAnalyticsSettings = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Google Analytics</CardTitle>
+        <CardTitle className="text-lg">Google Analytics</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center gap-2">

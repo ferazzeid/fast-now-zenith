@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Sparkles, Heart, Timer } from 'lucide-react';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 
@@ -46,22 +45,16 @@ export const AdminAnimationSettings = () => {
   };
 
   return (
-    <Card className="bg-ceramic-plate border-ceramic-rim">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-warm-text">
-          <Sparkles className="w-5 h-5" />
-          Animation Controls
-        </CardTitle>
+        <CardTitle className="text-lg">Animation Settings</CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Heart className="w-4 h-4 text-primary" />
-              <Label htmlFor="fasting-slideshow" className="text-warm-text">
-                Fasting Motivator Slideshow
-              </Label>
-            </div>
+            <Label htmlFor="fasting-slideshow">
+              Fasting Motivator Slideshow
+            </Label>
             <Switch
               id="fasting-slideshow"
               checked={enableFastingSlideshow}
@@ -73,12 +66,9 @@ export const AdminAnimationSettings = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Heart className="w-4 h-4 text-primary" />
-              <Label htmlFor="walking-slideshow" className="text-warm-text">
-                Walking Motivator Slideshow
-              </Label>
-            </div>
+            <Label htmlFor="walking-slideshow">
+              Walking Motivator Slideshow
+            </Label>
             <Switch
               id="walking-slideshow"
               checked={enableWalkingSlideshow}
@@ -90,12 +80,9 @@ export const AdminAnimationSettings = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Timer className="w-4 h-4 text-primary" />
-              <Label htmlFor="ceramic-animations" className="text-warm-text">
-                Hourly Ceramic Timer Animations
-              </Label>
-            </div>
+            <Label htmlFor="ceramic-animations">
+              Hourly Ceramic Timer Animations
+            </Label>
             <Switch
               id="ceramic-animations"
               checked={enableCeramicAnimations}
@@ -107,12 +94,9 @@ export const AdminAnimationSettings = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Heart className="w-4 h-4 text-primary" />
-              <Label htmlFor="quotes-in-animations" className="text-warm-text">
-                Show Quotes in Timer Animations
-              </Label>
-            </div>
+            <Label htmlFor="quotes-in-animations">
+              Show Quotes in Timer Animations
+            </Label>
             <Switch
               id="quotes-in-animations"
               checked={enableQuotesInAnimations}
@@ -124,12 +108,9 @@ export const AdminAnimationSettings = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <Heart className="w-4 h-4 text-primary" />
-              <Label htmlFor="notes-in-animations" className="text-warm-text">
-                Show Notes in Timer Animations
-              </Label>
-            </div>
+            <Label htmlFor="notes-in-animations">
+              Show Notes in Timer Animations
+            </Label>
             <Switch
               id="notes-in-animations"
               checked={enableNotesInAnimations}
