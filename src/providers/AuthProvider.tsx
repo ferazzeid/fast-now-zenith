@@ -3,6 +3,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStateMonitor } from '@/hooks/useAuthStateMonitor';
+import { storageReady } from '@/integrations/supabase/storage';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -28,7 +29,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Small delay to prevent race conditions
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        // Then initialize auth
+        // Then initialize auth after storage is ready
+        await storageReady;
         await initialize();
         
         // Start auth state monitoring
