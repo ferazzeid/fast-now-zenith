@@ -258,9 +258,6 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
           <div className="flex justify-between items-center px-6">
             <CardTitle className="text-lg font-semibold text-left">Food History</CardTitle>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
-                <X className="w-8 h-8" />
-              </Button>
               {/* Delete All History Button - only show if there are entries */}
               {dailySummaries.length > 0 && (
                 <AlertDialog>
@@ -292,6 +289,9 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
                   </AlertDialogContent>
                 </AlertDialog>
               )}
+              <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
+                <X className="w-8 h-8" />
+              </Button>
             </div>
           </div>
         </CardHeader>
