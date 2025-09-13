@@ -4,6 +4,7 @@ import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
+import { AdminTimerDesignSelector } from "@/components/AdminTimerDesignSelector";
 import { PremiumAccessAuditReport } from "@/components/PremiumAccessAuditReport";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -81,6 +82,10 @@ export default function AdminDev() {
         <main className={`container mx-auto ${isMobile ? 'p-4' : 'p-6'} space-y-6 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]`} role="main">
           <h1 className="sr-only">Admin Dev</h1>
           <AdminSubnav />
+
+          <section aria-label="Timer Design" className="space-y-4">
+            <AdminTimerDesignSelector />
+          </section>
 
           <section aria-label="Role Testing" className="space-y-4">
             <h2 className="text-xl font-semibold">Role Testing</h2>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminRoleTester } from "@/components/AdminRoleTester";
@@ -7,17 +7,8 @@ import { CancellationTracker } from "@/components/CancellationTracker";
 import { AdminTierStats } from "@/components/AdminTierStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { ClearSubscriptionCacheButton } from "@/components/ClearSubscriptionCacheButton";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
-import { AdminTimerDesignSelector } from "@/components/AdminTimerDesignSelector";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -36,10 +27,6 @@ export default function AdminOperations() {
           <AdminAppModeSwitcher />
         </section>
 
-        <section aria-label="Timer design settings">
-          <AdminTimerDesignSelector />
-        </section>
-
         <section aria-label="Real-time analytics">
           <SimpleAnalyticsWidget />
         </section>
@@ -56,25 +43,8 @@ export default function AdminOperations() {
           <AdminTierStats />
         </section>
 
-        <section aria-label="Google Analytics settings">
+        <section aria-label="Google Analytics settings" className="pb-24">
           <GoogleAnalyticsSettings />
-        </section>
-        
-        <section aria-label="Cache management" className="pb-24">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Cache Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  Clear subscription cache if users are experiencing incorrect premium access on mobile devices.
-                </p>
-                <ClearSubscriptionCacheButton />
-              </div>
-            </CardContent>
-          </Card>
-          <div className="h-8" />
         </section>
       </main>
     </AdminHealthCheck>
