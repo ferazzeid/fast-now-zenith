@@ -7,7 +7,7 @@
  * Migration complete on: 2024-12-XX
  */
 
-import { useAccess } from './useAccess';
+import { useAccess } from '../../src/hooks/useAccess';
 
 export const useSubscription = () => {
   console.warn('🚨 useSubscription is DEPRECATED. Use useAccess instead.');

@@ -11,6 +11,10 @@ Fast Now is a comprehensive nutrition and meal tracking application that helps y
 - **Progress Insights**: Track your nutritional goals and progress over time
 - **Cross-Platform**: Available on web, iOS, and Android
 
+## Access & Subscriptions
+
+Use the `useAccess` hook to handle user access levels and subscription state. Legacy hooks such as `useSubscription` and `useUnifiedSubscription` have been moved to `legacy/hooks` for reference and should not be used in new code.
+
 ## Building the Android AAB
 
 To build the Android App Bundle (AAB) from a fresh git clone:

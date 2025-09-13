@@ -11,7 +11,7 @@
  * - Direct Supabase functions for subscription management
  */
 
-import { useAccess } from './useAccess';
+import { useAccess } from '../../src/hooks/useAccess';
 
 export const useUnifiedSubscription = () => {
   console.warn('🚨 useUnifiedSubscription is DEPRECATED. Use useAccess instead.');
