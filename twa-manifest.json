@@ -13,8 +13,8 @@
   "backgroundColor": "#F5F2EA",
   "enableNotifications": true,
   "startUrl": "https://go.fastnow.app/",
-  "iconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
-  "maskableIconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
+  "iconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
+  "maskableIconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "C:\\Users\\socia\\Desktop\\fastnownonative\\android.keystore",
@@ -24,7 +24,7 @@
   "appVersionCode": 100216,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest",
+  "webManifestUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
   "fallbackType": "customtabs",
   "features": {},
   "alphaDependencies": {
