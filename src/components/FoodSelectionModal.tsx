@@ -271,27 +271,11 @@ export const FoodSelectionModal = ({
 
         {/* Action Bar */}
         {!foodSuggestion.added && (
-          <div className="border-t pt-3 space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs text-muted-foreground">Add to</span>
-              <div className="flex gap-1">
-                {(['today','template','library'] as const).map(dest => (
-                  <Button
-                    key={dest}
-                    size="sm"
-                    variant={ (foodSuggestion.destination || 'today') === dest ? 'default' : 'outline' }
-                    className="h-7 px-2 text-xs"
-                    onClick={() => onDestinationChange(dest)}
-                  >
-                    {dest.charAt(0).toUpperCase() + dest.slice(1)}
-                  </Button>
-                ))}
-              </div>
-            </div>
+          <div className="border-t pt-3">
             <Button
               size="sm"
               onClick={handleAddSelectedFoods}
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={isProcessing || selectedFoodIds.size === 0}
             >
               {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''}`}

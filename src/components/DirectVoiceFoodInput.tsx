@@ -318,7 +318,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
       case 'listening':
         return 'bg-red-500 hover:bg-red-600 text-white animate-pulse';
       case 'processing':
-        return 'bg-ai hover:bg-ai/90 text-ai-foreground';
+        return 'bg-ai hover:bg-ai/90 text-white';
       default:
         return hasAccess ? 'bg-ai hover:bg-ai/90 text-ai-foreground' : 'bg-ai/50 text-ai-foreground opacity-50';
     }

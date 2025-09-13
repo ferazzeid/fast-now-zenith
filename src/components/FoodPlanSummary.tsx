@@ -35,9 +35,8 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
   };
 
   return (
-    <div className="bg-muted/20 rounded-lg p-2 mb-4">
-      <Card className="p-3">
-        <div className="space-y-3">
+    <Card className="rounded-lg p-2 mb-1 bg-card border border-ceramic-rim">
+      <div className="p-3 space-y-3">
           {/* Header Row */}
           <div className="grid grid-cols-3 gap-2 items-center">
             <div></div>
@@ -71,7 +70,6 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
             </span>
           </div>
         </div>
-      </Card>
-    </div>
+    </Card>
   );
 };
