@@ -346,15 +346,9 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
             <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
           </div>
         ) : hasAccess ? (
-          <div className="flex items-center justify-center gap-2">
-            <Mic className="w-11 h-11" />
-            <span className="text-sm font-medium">Add Food</span>
-          </div>
+          <Mic className="w-11 h-11" />
         ) : (
-          <div className="flex items-center justify-center gap-2">
-            <Lock className="w-11 h-11" />
-            <span className="text-sm font-medium">Add Food</span>
-          </div>
+          <Lock className="w-11 h-11" />
         )}
       </Button>
 

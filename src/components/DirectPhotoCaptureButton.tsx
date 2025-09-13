@@ -272,12 +272,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       case 'analyzing':
         return <ProcessingDots className="text-white" />;
       default:
-        return (
-          <div className="flex items-center justify-center gap-2">
-            <Camera className="w-9 h-9" />
-            <span className="text-sm font-medium">Add Food</span>
-          </div>
-        );
+        return <Camera className="w-9 h-9" />;
     }
   };
 
