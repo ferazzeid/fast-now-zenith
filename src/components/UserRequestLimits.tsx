@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { SmartInlineLoading } from './enhanced/SmartLoadingStates';
+import { SmartInlineLoading } from './SimpleLoadingComponents';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import { useAccess } from '@/hooks/useAccess';

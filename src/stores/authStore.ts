@@ -50,12 +50,11 @@ export const useAuthStore = create<AuthState>()(
         authLogger.info('Starting auth initialization');
         set({ initialized: true, loading: true });
         
-        // Add timeout to prevent infinite loading - extended for mobile networks
+        // Single timeout for auth initialization
         const timeoutId = setTimeout(() => {
-          authLogger.warn('Auth initialization timeout - this may indicate network issues');
-          // Don't force loading false immediately, let it continue trying
-          // Only log the timeout for debugging
-        }, 20000); // Extended to 20 seconds for mobile networks
+          authLogger.warn('Auth initialization timeout after 12 seconds');
+          set({ loading: false });
+        }, 12000);
         
         try {
           // Set up auth state listener first

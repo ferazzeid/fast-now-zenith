@@ -1,10 +1,12 @@
-import { EnhancedLoadingScreen, SmartInlineLoading } from './enhanced/SmartLoadingStates';
+import React, { useState, useEffect } from 'react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { useAppLogo } from '@/hooks/useAppLogo';
+import { Button } from '@/components/ui/button';
 
-export const LoadingSpinner = ({ 
-  fullScreen = true, 
-  text = "Loading",
-  subText = "Preparing your experience",
+export const LoadingSpinner = ({
+  fullScreen = true,
+  text = "Loading...",
+  subText,
   showLogo = true
 }: {
   fullScreen?: boolean;
@@ -12,45 +14,81 @@ export const LoadingSpinner = ({
   subText?: string;
   showLogo?: boolean;
 }) => {
-  const { appLogo, loading: logoLoading } = useAppLogo();
-  
+  const { appLogo } = useAppLogo();
+  const [dots, setDots] = useState('');
+  const [showTimeout, setShowTimeout] = useState(false);
+
+  // Animate the dots
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Show timeout after 15 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowTimeout(true);
+    }, 15000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleRetry = () => {
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
   const content = (
-    <div className="text-center space-y-4">
-      {/* App Logo - Don't block loading on logo */}
-      {showLogo && appLogo && !logoLoading && (
+    <div className="space-y-4 text-center">
+      {showLogo && appLogo && (
         <img 
           src={appLogo} 
           alt="App Logo" 
-          className="w-16 h-16 object-contain rounded-lg mx-auto"
+          className="w-12 h-12 object-contain rounded-lg mx-auto"
         />
       )}
       
-      {/* Fallback logo placeholder */}
-      {showLogo && !appLogo && !logoLoading && (
-        <div className="w-16 h-16 bg-primary/10 rounded-lg mx-auto flex items-center justify-center">
-          <span className="text-2xl font-bold text-primary">F</span>
+      {showLogo && !appLogo && (
+        <div className="w-12 h-12 bg-primary/10 rounded-lg mx-auto flex items-center justify-center">
+          <span className="text-primary font-bold text-xl">F</span>
         </div>
       )}
       
-      {/* Enhanced animated spinner */}
-      <div className="relative w-16 h-16 mx-auto">
-        <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-        <div className="absolute inset-0 border-4 border-transparent border-t-primary rounded-full animate-spin"></div>
-        <div className="absolute inset-2 border-2 border-primary/30 rounded-full"></div>
+      <div className="flex justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
       
-      {/* Loading text with subtle animation */}
-      <div className="space-y-2">
-        <p className="text-lg font-medium text-foreground">{text}</p>
-        <p className="text-sm text-muted-foreground">{subText}</p>
+      <div className="space-y-1">
+        <p className="text-sm font-medium text-foreground">
+          {text}{dots}
+        </p>
+        {subText && (
+          <p className="text-xs text-muted-foreground">
+            {subText}
+          </p>
+        )}
       </div>
-      
-      {/* Progress dots */}
-      <div className="flex justify-center space-x-1">
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-        <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-      </div>
+
+      {showTimeout && (
+        <div className="space-y-3 pt-4 border-t">
+          <p className="text-xs text-muted-foreground">
+            Taking longer than expected?
+          </p>
+          <Button 
+            onClick={handleRetry} 
+            variant="outline" 
+            size="sm"
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Retry
+          </Button>
+        </div>
+      )}
     </div>
   );
 

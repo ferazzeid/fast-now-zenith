@@ -7,15 +7,6 @@ export {
 } from './ComprehensiveErrorBoundary';
 
 export {
-  EnhancedLoadingScreen,
-  SmartLoadingButton,
-  SmartUploadButton,
-  SmartInlineLoading,
-  LoadingCard,
-  LoadingList
-} from './SmartLoadingStates';
-
-export {
   OfflineIndicator,
   RetryableAction
 } from './ConnectionRecovery';
