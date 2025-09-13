@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Mic } from 'lucide-react';
+import { Mic, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FoodSelectionModal } from '@/components/FoodSelectionModal';
-import { PremiumGate } from '@/components/PremiumGate';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAccess } from '@/hooks/useAccess';
+import { showAIAccessError } from '@/components/AIRequestLimitToast';
 import { cn } from '@/lib/utils';
 
 interface DirectVoiceFoodInputProps {
@@ -37,6 +38,16 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
   const audioChunksRef = useRef<Blob[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
+  
+  // Premium access control
+  const { access_level, hasAIAccess, createSubscription, testRole, isTestingMode } = useAccess();
+  
+  // Use test role if in testing mode, otherwise use actual access level
+  const effectiveLevel = isTestingMode ? testRole : access_level;
+  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full') : hasAIAccess;
+  
+  // Check if user has access to AI voice features
+  const hasAccess = effectiveLevel === 'admin' || effectiveHasAIAccess;
 
   // Check microphone permissions on mount
   React.useEffect(() => {
@@ -170,7 +181,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
         if (foods.length > 0) {
           setFoodSuggestion({
             foods,
-            destination: 'today',
+            destination: 'today', // Auto-set to today
             added: false
           });
           setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
@@ -289,6 +300,12 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
   };
 
   const handleButtonClick = () => {
+    // Check access first
+    if (!hasAccess) {
+      showAIAccessError(toast, createSubscription);
+      return;
+    }
+    
     if (voiceState === 'idle') {
       startRecording();
     } else if (voiceState === 'listening') {
@@ -296,35 +313,47 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
     }
   };
 
-  const getButtonColor = () => {
+  const getButtonStyles = () => {
     switch (voiceState) {
       case 'listening':
-        return 'bg-red-500 hover:bg-red-600';
+        return 'bg-red-500 hover:bg-red-600 text-white animate-pulse';
       case 'processing':
-        return 'bg-yellow-500 hover:bg-yellow-600';
+        return 'bg-ai hover:bg-ai/90 text-ai-foreground';
       default:
-        return 'bg-primary hover:bg-primary/90';
+        return hasAccess ? 'bg-ai hover:bg-ai/90 text-ai-foreground' : 'bg-ai/50 text-ai-foreground opacity-50';
     }
   };
 
+  const ProcessingDots = () => (
+    <div className="flex items-center space-x-1">
+      <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+      <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+      <div className="w-2 h-2 bg-current rounded-full animate-bounce"></div>
+    </div>
+  );
+
   return (
     <>
-      <PremiumGate feature="AI Voice Input" showUpgrade={false}>
-        <Button 
-          variant="outline"
-          size="action-tall"
-          className={cn(
-            "w-full flex items-center justify-center transition-colors border-0",
-            getButtonColor(),
-            voiceState === 'listening' && "animate-pulse",
-            "text-white"
-          )}
-          onClick={handleButtonClick}
-          aria-label="Add food with voice"
-        >
+      <Button 
+        variant="outline"
+        size="action-tall"
+        className={cn(
+          "w-full flex items-center justify-center transition-colors border-0",
+          getButtonStyles()
+        )}
+        onClick={handleButtonClick}
+        disabled={voiceState === 'processing'}
+        title={hasAccess ? "AI Voice Assistant" : "AI Voice Assistant (Premium Feature)"}
+        aria-label={hasAccess ? "AI voice input" : "AI voice input - premium feature"}
+      >
+        {voiceState === 'processing' ? (
+          <ProcessingDots />
+        ) : hasAccess ? (
           <Mic className="w-5 h-5" />
-        </Button>
-      </PremiumGate>
+        ) : (
+          <Lock className="w-5 h-5" />
+        )}
+      </Button>
 
       {/* Food Selection Modal */}
       <FoodSelectionModal
