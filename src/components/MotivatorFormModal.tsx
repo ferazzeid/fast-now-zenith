@@ -20,7 +20,6 @@ interface Motivator {
   content: string;
   category?: string;
   imageUrl?: string;
-  linkUrl?: string;
 }
 
 interface MotivatorFormModalProps {
@@ -33,7 +32,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [title, setTitle] = useState(motivator?.title || '');
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
-  const [linkUrl, setLinkUrl] = useState(motivator?.linkUrl || '');
   const [tempMotivatorId, setTempMotivatorId] = useState<string | null>(null);
   
   const { toast } = useToast();
@@ -47,7 +45,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       setTitle(motivator.title || '');
       setContent(motivator.content || '');
       setImageUrl(motivator.imageUrl || '');
-      setLinkUrl(motivator.linkUrl || '');
     }
   }, [motivator]);
 
@@ -67,8 +64,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       id: motivator?.id || tempMotivatorId || '',
       title: title.trim(),
       content: content.trim(),
-      imageUrl: imageUrl || undefined,
-      linkUrl: linkUrl.trim() || undefined
+      imageUrl: imageUrl || undefined
     };
 
     // If we have a temporary motivator, update it instead of creating new
@@ -79,8 +75,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           .update({
             title: motivatorData.title,
             content: motivatorData.content,
-            image_url: motivatorData.imageUrl,
-            link_url: motivatorData.linkUrl
+            image_url: motivatorData.imageUrl
           })
           .eq('id', tempMotivatorId);
         
@@ -177,7 +172,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="title" className="text-warm-text font-medium">
-                Title *
+                Title
               </Label>
               <CircularVoiceButton
                 onTranscription={handleVoiceTranscription}
@@ -188,14 +183,13 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="What motivates you to fast?"
             />
           </div>
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="content" className="text-warm-text font-medium">
-                Description (Optional)
+                Description
               </Label>
               <CircularVoiceButton
                 onTranscription={handleVoiceTranscription}
@@ -207,27 +201,9 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[40px]"
-              placeholder="Optional: Add more details about this motivation..."
             />
           </div>
 
-          {isAdmin && (
-            <div className="space-y-2">
-              <Label htmlFor="linkUrl" className="text-warm-text font-medium">
-                Link URL (Optional)
-              </Label>
-              <Input
-                id="linkUrl"
-                type="url"
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                placeholder="https://example.com/more-info"
-              />
-              <p className="text-xs text-muted-foreground">
-                Optional URL for additional information or resources
-              </p>
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label className="text-warm-text font-medium">Image (Optional)</Label>
