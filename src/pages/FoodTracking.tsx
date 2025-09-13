@@ -207,7 +207,7 @@ const FoodTracking = () => {
                   onClick={() => navigate('/my-foods')}
                   aria-label="Browse food library"
                 >
-                  <BookOpen className="w-5 h-5" />
+                  <BookOpen className="w-11 h-11" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
