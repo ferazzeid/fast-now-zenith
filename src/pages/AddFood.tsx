@@ -20,7 +20,6 @@ import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { PremiumGatedAddFoodVoiceButton } from '@/components/PremiumGatedAddFoodVoiceButton';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
-import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 
 interface AnalysisResult {
@@ -46,9 +45,7 @@ export default function AddFood() {
   // Image and analysis state
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showAnalysisResults, setShowAnalysisResults] = useState(false);
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'uploaded' | 'analyzing' | 'analyzed' | 'error'>('idle');
   
   // Form state
@@ -78,9 +75,7 @@ export default function AddFood() {
   const handleImageUpload = async (url: string) => {
     // Image upload successful - immediately show the image
     setImageUrl(url);
-    setAnalysisResult(null);
     setError(null);
-    setShowAnalysisResults(false);
     setUploadState('uploaded');
     
     // Image is now ready for manual food entry regardless of analysis
@@ -94,20 +89,7 @@ export default function AddFood() {
   };
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
-    setAnalysisResult(result);
-    setAnalyzing(false);
-    setUploadState('analyzed');
-    setShowAnalysisResults(true);
-  };
-
-  const handleAnalysisError = (errorMessage: string) => {
-    setError(errorMessage);
-    setAnalyzing(false);
-    setUploadState('error');
-  };
-
-  const handleAnalysisConfirm = (result: AnalysisResult) => {
-    // Populate form fields with confirmed analysis results
+    // Directly populate form fields from analysis results
     if (result.name) setName(result.name);
     if (result.estimated_serving_size) {
       setServingAmount(result.estimated_serving_size.toString());
@@ -124,23 +106,22 @@ export default function AddFood() {
       setCarbs(totalCarbs.toString());
     }
     
-    setShowAnalysisResults(false);
-    console.log('✅ Analysis confirmed, data populated:', result);
+    setAnalyzing(false);
+    setUploadState('analyzed');
     
-    toast({ 
-      title: '✨ Analysis confirmed', 
-      description: 'Data populated! Review and add to your food list.',
-      className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
+    // Show single unified confirmation
+    toast({
+      title: "✨ AI analysis complete",
+      description: `Detected: ${result.name}. Review and add to your food plan.`,
     });
   };
 
-  const handleAnalysisReject = () => {
-    setShowAnalysisResults(false);
-    toast({ 
-      title: 'Edit mode', 
-      description: 'Fill in the details manually or try another photo.',
-    });
+  const handleAnalysisError = (errorMessage: string) => {
+    setError(errorMessage);
+    setAnalyzing(false);
+    setUploadState('error');
   };
+
 
   const handleAiEstimate = async () => {
     if (!name || !servingAmount) {
@@ -295,9 +276,7 @@ export default function AddFood() {
 
   const resetForm = () => {
     setImageUrl(null);
-    setAnalysisResult(null);
     setError(null);
-    setShowAnalysisResults(false);
     setUploadState('idle');
     setName('');
     setServingAmount('100');
@@ -309,9 +288,7 @@ export default function AddFood() {
 
   const handleRetakePhoto = () => {
     setImageUrl(null);
-    setAnalysisResult(null);
     setError(null);
-    setShowAnalysisResults(false);
     setUploadState('idle');
   };
 
@@ -337,21 +314,7 @@ export default function AddFood() {
           
           <div className="p-6">
           
-          <div className="relative">
-            {/* Analysis Results Overlay */}
-            {showAnalysisResults && analysisResult && (
-              <div className="absolute inset-0 z-50 bg-background rounded-lg">
-                <FoodAnalysisResults
-                  result={analysisResult}
-                  imageUrl={imageUrl || ''}
-                  onConfirm={handleAnalysisConfirm}
-                  onReject={handleAnalysisReject}
-                />
-              </div>
-            )}
-
-            {/* Main Form Content */}
-            <div className={`${showAnalysisResults ? 'opacity-30 pointer-events-none' : ''} transition-opacity duration-200 space-y-6`}>
+          <div className="space-y-6">
               {/* Image section */}
               {!imageUrl ? (
                 <div>
@@ -584,7 +547,6 @@ export default function AddFood() {
               </div>
               </div>
             </div>
-          </div>
         </div>
       </div>
     </div>

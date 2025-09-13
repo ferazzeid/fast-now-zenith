@@ -115,7 +115,6 @@ export const ProgressiveImageUpload = ({
         toast({
           title: "✅ Image uploaded",
           description: "Image ready! You can now add food details.",
-          className: "bg-gradient-to-r from-green-500 to-blue-500 text-white border-0",
         });
 
         // Only attempt analysis if user has AI access
@@ -147,12 +146,7 @@ export const ProgressiveImageUpload = ({
             setInternalState('analyzed');
             onAnalysisComplete?.(data);
             
-            toast({
-              title: "🎉 Analysis complete!",
-              description: "Review the detected food information",
-              className: "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0",
-              duration: 2000,
-            });
+            // No toast here - let the parent handle confirmation
 
           } catch (analysisError) {
             // Analysis failed, but image is still uploaded - this is OK
