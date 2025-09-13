@@ -272,19 +272,25 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       case 'analyzing':
         return <ProcessingDots className="text-white" />;
       default:
-        return <Camera className="w-4 h-4" />;
+        return <Camera className="w-6 h-6" />;
     }
   };
 
   return (
     <>
       <Button 
-        variant="action-primary"
+        variant="outline"
         size="action-tall"
-        className={`w-full flex items-center justify-center ${className}`}
+        className={`w-full flex items-center justify-center transition-colors border-0 ${
+          captureState !== 'idle' 
+            ? 'bg-ai hover:bg-ai/90 text-white'
+            : canUseAIAnalysis 
+              ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
+              : 'bg-ai/50 text-ai-foreground opacity-50'
+        }`}
         onClick={handleCameraClick}
         disabled={captureState !== 'idle'}
-        aria-label="Take photo to add food"
+        aria-label="AI photo analysis to add food"
       >
         {getButtonContent()}
       </Button>
