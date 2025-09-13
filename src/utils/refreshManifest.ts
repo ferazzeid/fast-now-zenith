@@ -1,4 +1,3 @@
-import { forcePWARefresh } from './pwaCache';
 import { forceManifestRefresh } from './forceManifestRefresh';
 
 export const refreshManifest = async () => {

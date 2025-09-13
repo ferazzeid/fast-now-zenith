@@ -1,6 +1,6 @@
 // Performance optimization utilities
 
-export const debounceValue = <T>(value: T, delay: number = 1000): T => {
+export const debounceValue = <T>(value: T): T => {
   // Simple value debouncing for numbers that change frequently
   if (typeof value === 'number') {
     return Math.round(value) as T;

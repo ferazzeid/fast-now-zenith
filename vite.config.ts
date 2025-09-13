@@ -6,16 +6,16 @@ import { swVersionPlugin } from "./scripts/sw-version-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(async ({ mode }) => {
-  const isProduction = mode === 'production' || process.env.NODE_ENV === 'production';
   
   const plugins: PluginOption[] = [react(), swVersionPlugin()];
-  
+
   if (mode === 'development') {
     try {
       const { componentTagger } = await import('lovable-tagger');
       plugins.push(componentTagger());
-    } catch (e: any) {
-      console.warn('lovable-tagger not available:', e?.message || 'Unknown error');
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Unknown error';
+      console.warn('lovable-tagger not available:', message);
     }
   }
   
