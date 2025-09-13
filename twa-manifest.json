@@ -13,8 +13,8 @@
   "backgroundColor": "#F5F2EA",
   "enableNotifications": true,
   "startUrl": "https://go.fastnow.app/",
-  "iconUrl": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest",
-  "maskableIconUrl": "https://go.fastnow.app/supabase/functions/v1/dynamic-manifest",
+  "iconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
+  "maskableIconUrl": "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "C:\\Users\\socia\\Desktop\\fastnownonative\\android.keystore",
