@@ -444,14 +444,14 @@ const Motivators = () => {
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsContent value="goals">
                 <div className="space-y-4">
-                    {goalMotivators.map((motivator) => (
+                     {goalMotivators.map((motivator) => (
                   <ExpandableMotivatorCard
                     key={motivator.id}
                     motivator={motivator}
                     onEdit={() => handleEditMotivator(motivator)}
-                    onDelete={() => (motivator as any)._isSystemMotivator ? () => {} : () => handleDeleteMotivator(motivator.id)}
+                    onDelete={() => handleDeleteMotivator(motivator.id)}
                   />
-                    ))}
+                     ))}
                     
                     {/* Placeholder cards to encourage creating up to 3 goals */}
                     {goalMotivators.length < 3 && [...Array(3 - goalMotivators.length)].map((_, index) => (
