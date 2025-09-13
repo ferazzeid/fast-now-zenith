@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClearSubscriptionCacheButton } from "@/components/ClearSubscriptionCacheButton";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
+import { AdminTimerDesignSelector } from "@/components/AdminTimerDesignSelector";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -33,6 +34,10 @@ export default function AdminOperations() {
 
         <section aria-label="App mode settings">
           <AdminAppModeSwitcher />
+        </section>
+
+        <section aria-label="Timer design settings">
+          <AdminTimerDesignSelector />
         </section>
 
         <section aria-label="Real-time analytics">

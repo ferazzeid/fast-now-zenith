@@ -105,6 +105,12 @@ export default {
 				},
 				'chat-user': {
 					DEFAULT: 'hsl(var(--chat-user))'
+				},
+				metaverse: {
+					bg: 'hsl(var(--metaverse-bg))',
+					border: 'hsl(var(--metaverse-border))',
+					magenta: 'hsl(var(--metaverse-magenta))',
+					green: 'hsl(var(--metaverse-green))'
 				}
 			},
 			borderRadius: {
