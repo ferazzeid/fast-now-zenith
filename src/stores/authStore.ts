@@ -149,32 +149,50 @@ export const useAuthStore = create<AuthState>()(
 
       signOut: async () => {
         authLogger.info('Signing out');
-        
+
         const { error } = await supabase.auth.signOut();
-        if (!error) {
-          set({ 
-            user: null, 
-            session: null,
+
+        // Always clear auth state regardless of sign out result
+        set({
+          user: null,
+          session: null,
+        });
+
+        // Clear all authentication caches on sign out
+        if (typeof window !== 'undefined') {
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (
+              key.startsWith('cache_profile_') ||
+              key.startsWith('dedupe_profile_') ||
+              key.startsWith('cache_access_') ||
+              key.startsWith('dedupe_access_')
+            ) {
+              localStorage.removeItem(key);
+            }
           });
-          
-          // Clear all authentication caches on sign out
-          if (typeof window !== 'undefined') {
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-              if (key.startsWith('cache_profile_') || 
-                  key.startsWith('dedupe_profile_') ||
-                  key.startsWith('cache_access_') ||
-                  key.startsWith('dedupe_access_')) {
-                localStorage.removeItem(key);
-              }
-            });
-          }
-          
-          authLogger.info('Sign out successful');
-        } else {
-          authLogger.error('Sign out failed:', error);
         }
-        
+
+        if (error) {
+          authLogger.error('Sign out failed:', error);
+
+          // Retry sign out in background when connection is restored
+          if (typeof window !== 'undefined') {
+            const retry = async () => {
+              const { error: retryError } = await supabase.auth.signOut();
+              if (retryError) {
+                authLogger.error('Background sign out retry failed:', retryError);
+              } else {
+                authLogger.info('Background sign out successful');
+              }
+              window.removeEventListener('online', retry);
+            };
+            window.addEventListener('online', retry);
+          }
+        } else {
+          authLogger.info('Sign out successful');
+        }
+
         return { error };
       },
 
