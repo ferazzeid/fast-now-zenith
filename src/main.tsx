@@ -16,11 +16,14 @@ if (process.env.NODE_ENV === 'production') {
   // Keep console.error and console.warn for debugging critical issues
 }
 
-// Initialize offline storage only (no dynamic assets during startup)
-initOfflineStorage();
-
-// Initialize PWA features conditionally (web only, never in native)
-conditionalPWAInit();
+// Defer heavy operations to not block initial render
+setTimeout(() => {
+  // Initialize offline storage after app renders
+  initOfflineStorage();
+  
+  // Initialize PWA features conditionally (web only, never in native)
+  conditionalPWAInit();
+}, 100);
 
 // Simplified App wrapper - no dynamic loading during startup
 const SimplifiedApp = () => {

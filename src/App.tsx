@@ -65,17 +65,19 @@ const AdminAI = lazy(() => import("./pages/admin/AI"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 const AdminDev = lazy(() => import("./pages/admin/Dev"));
-// Persist React Query cache to storage for offline reads
+// Defer React Query cache persistence to not block startup
 if (typeof window !== 'undefined') {
-  const persister = createSyncStoragePersister({
-    storage: window.localStorage,
-    throttleTime: 1000,
-  });
-  persistQueryClient({
-    queryClient,
-    persister,
-    maxAge: 1000 * 60 * 60 * 24, // 24 hours
-  });
+  setTimeout(() => {
+    const persister = createSyncStoragePersister({
+      storage: window.localStorage,
+      throttleTime: 1000,
+    });
+    persistQueryClient({
+      queryClient,
+      persister,
+      maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    });
+  }, 500);
 }
 
 
@@ -88,12 +90,12 @@ const AppContent = () => {
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
   
-  // Initialize auth system on app startup
+  // Initialize auth system on app startup (critical)
   useEffect(() => {
     initialize();
   }, [initialize]);
   
-  // Load colors immediately without authentication dependency
+  // Load colors immediately without authentication dependency (critical for UI)
   const { loading: colorLoading } = useColorTheme(true);
 
 
@@ -110,8 +112,8 @@ const AppContent = () => {
       }
     };
     
-    // Defer analytics initialization to not block app startup
-    setTimeout(initAnalytics, 1000);
+    // Defer analytics initialization even longer to not block app startup
+    setTimeout(initAnalytics, 2000);
   }, []);
   
   // Track page views on route changes
@@ -119,14 +121,19 @@ const AppContent = () => {
     trackPageView(location.pathname);
   }, [location.pathname]);
 
-  // Show onboarding if user is authenticated and profile is incomplete (non-blocking)
+  // Show onboarding if user is authenticated and profile is incomplete (deferred)
   useEffect(() => {
-    if (user && profile !== null) {
-      const profileComplete = isProfileComplete();
-      setShowOnboarding(!profileComplete);
-    } else {
-      setShowOnboarding(false);
-    }
+    // Defer onboarding check to not block initial render
+    const checkOnboarding = () => {
+      if (user && profile !== null) {
+        const profileComplete = isProfileComplete();
+        setShowOnboarding(!profileComplete);
+      } else {
+        setShowOnboarding(false);
+      }
+    };
+    
+    setTimeout(checkOnboarding, 300);
   }, [user, profile, isProfileComplete]);
 
   // Track page views on route changes
