@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
+import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
 import { HistoryButton } from '@/components/HistoryButton';
 import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
@@ -53,8 +54,14 @@ const FoodTracking = () => {
     }
   }, [location.pathname]);
 
-  const handleUnifiedEntry = () => {
-    navigate('/add-food');
+  const handlePhotoCapture = (data: any) => {
+    if (data.requiresManualEntry) {
+      // Navigate to manual entry with the uploaded image
+      navigate('/add-food', { state: { imageUrl: data.image_url } });
+    } else {
+      // Direct food data from AI analysis
+      handleSaveUnifiedEntry(data);
+    }
   };
 
   const handleSaveUnifiedEntry = async (data: any | any[]) => {
@@ -169,21 +176,13 @@ const FoodTracking = () => {
           <div className="col-span-1 flex flex-col items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="action-primary"
-                  size="action-tall"
-                  className="w-full flex items-center justify-center"
-                  onClick={handleUnifiedEntry}
-                  aria-label="Add food manually"
-                >
-                  <Plus className="w-5 h-5" />
-                </Button>
+                <DirectPhotoCaptureButton onFoodAdded={handlePhotoCapture} />
               </TooltipTrigger>
               <TooltipContent>
-                <p>Add food by typing name, calories, and other details</p>
+                <p>Take a photo to automatically detect food and nutrition</p>
               </TooltipContent>
             </Tooltip>
-            <span className="text-xs text-muted-foreground">Add Food</span>
+            <span className="text-xs text-muted-foreground">Photo</span>
           </div>
 
           <div className="col-span-1 flex flex-col items-center gap-1">
