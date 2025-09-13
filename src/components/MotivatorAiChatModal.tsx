@@ -179,6 +179,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             toast({
               title: "✨ Motivator Created!",
               description: `"${motivatorData.title}" has been added to your motivators.`,
+              className: "bg-card border border-border text-foreground",
             });
 
             // Note: AI image generation has been removed from this app
@@ -287,16 +288,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             </div>
           ))}
           
-          {isLoading && (
-            <div className="flex justify-start">
-              <Card className="max-w-[85%] p-3 bg-muted">
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                  <p className="text-sm">AI is thinking...</p>
-                </div>
-              </Card>
-            </div>
-          )}
+          {/* Thinking status hidden per user request */}
           
           
           <div ref={messagesEndRef} />

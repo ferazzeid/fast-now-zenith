@@ -764,6 +764,7 @@ ${args.content}`,
       toast({
         title: "Foods added successfully",
         description: `Added ${selectedFoods.length} foods to your ${destination}`,
+        className: "bg-card border border-border text-foreground",
       });
       
       // Close the modal after a short delay
@@ -806,7 +807,8 @@ ${args.content}`,
         
         toast({
           title: "Motivator created!",
-          description: "Your new motivator has been added to your collection"
+          description: "Your new motivator has been added to your collection",
+          className: "bg-card border border-border text-foreground",
         });
         
         // Close the modal after a short delay
@@ -1618,7 +1620,8 @@ ${args.content}`,
                     
                     toast({
                       title: "Changes saved",
-                      description: "Your motivator has been updated"
+                      description: "Your motivator has been updated",
+                      className: "bg-card border border-border text-foreground",
                     });
                   }}
                   className="flex-1"
@@ -1939,16 +1942,7 @@ ${args.content}`,
           </div>
         )}
         
-        {isProcessing && (
-          <div className="flex justify-start">
-            <Card className="max-w-[85%] p-3 bg-muted">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-                <p className="text-sm">AI is thinking...</p>
-              </div>
-            </Card>
-          </div>
-        )}
+        {/* Thinking status hidden per user request */}
         </div>
         
         {/* Messages end ref positioned at the very bottom with minimal spacing for voice input */}
