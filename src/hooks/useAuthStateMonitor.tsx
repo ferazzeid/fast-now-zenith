@@ -6,34 +6,34 @@ import { useToast } from '@/hooks/use-toast';
  * Continuously monitors auth.uid() in database context to detect synchronization failures
  * and automatically repairs them to prevent lockouts
  */
+export interface AuthValidationResult {
+  authWorking: boolean;
+  error: unknown | null;
+}
+
+export const validateDatabaseAuth = async (): Promise<AuthValidationResult> => {
+  try {
+    // Basic auth context check without requiring admin privileges
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data?.user) {
+      return { authWorking: false, error };
+    }
+
+    return { authWorking: true, error: null };
+  } catch (error) {
+    console.error('Auth validation error:', error);
+    return { authWorking: false, error };
+  }
+};
+
 export const useAuthStateMonitor = () => {
   const { toast } = useToast();
   const monitoringRef = useRef<NodeJS.Timeout | null>(null);
   const failureCountRef = useRef(0);
   const lastRepairRef = useRef(0);
 
-  const validateDatabaseAuth = useCallback(async () => {
-    try {
-      // Test auth.uid() in database context
-      const { data, error } = await supabase.rpc('is_current_user_admin');
-      
-      if (error) {
-        // Check if it's an auth.uid() = NULL error
-        if (error.message?.includes('permission denied') || 
-            error.message?.includes('insufficient_privilege') ||
-            error.message?.includes('new row violates')) {
-          return { authWorking: false, error };
-        }
-        // Other errors might not be auth-related
-        return { authWorking: true, error: null };
-      }
-      
-      return { authWorking: true, error: null };
-    } catch (error) {
-      console.error('Auth validation error:', error);
-      return { authWorking: false, error };
-    }
-  }, []);
+  const validateDatabaseAuthFn = useCallback(validateDatabaseAuth, []);
 
   const repairAuthState = useCallback(async () => {
     const now = Date.now();
@@ -63,7 +63,7 @@ export const useAuthStateMonitor = () => {
       }
       
       // Test if repair worked
-      const validation = await validateDatabaseAuth();
+      const validation = await validateDatabaseAuthFn();
       if (validation.authWorking) {
         console.log('✅ Auth state repair successful');
         failureCountRef.current = 0;
@@ -75,7 +75,7 @@ export const useAuthStateMonitor = () => {
       console.error('Auth repair failed:', error);
       return false;
     }
-  }, [validateDatabaseAuth, toast]);
+  }, [validateDatabaseAuthFn, toast]);
 
   const startMonitoring = useCallback(() => {
     if (monitoringRef.current) {
@@ -93,7 +93,7 @@ export const useAuthStateMonitor = () => {
         return;
       }
       
-      const validation = await validateDatabaseAuth();
+      const validation = await validateDatabaseAuthFn();
       
       if (!validation.authWorking) {
         failureCountRef.current++;
@@ -121,7 +121,7 @@ export const useAuthStateMonitor = () => {
         }
       }
     }, 10000); // Check every 10 seconds
-  }, [validateDatabaseAuth, repairAuthState, toast]);
+  }, [validateDatabaseAuthFn, repairAuthState, toast]);
 
   const stopMonitoring = useCallback(() => {
     if (monitoringRef.current) {
@@ -152,7 +152,7 @@ export const useAuthStateMonitor = () => {
   return {
     startMonitoring,
     stopMonitoring,
-    validateDatabaseAuth,
+    validateDatabaseAuth: validateDatabaseAuthFn,
     repairAuthState
   };
 };

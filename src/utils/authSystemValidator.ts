@@ -2,7 +2,8 @@
  * Authentication System Validation Utility
  * 
  * This utility helps verify that the unified authentication system is working correctly
- * after the comprehensive authentication chaos cleanup.
+ * after the comprehensive authentication chaos cleanup. It includes a basic auth
+ * health check using `supabase.auth.getUser()` before running admin-specific tests.
  */
 
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,12 @@ export const validateAuthSystem = async (userId: string): Promise<AuthSystemStat
   const warnings: string[] = [];
   
   try {
+    // Health Check: Ensure session is valid without requiring admin privileges
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      errors.push(`Basic auth check failed: ${userError?.message ?? 'no user'}`);
+    }
+
     // Test 1: Check unified admin function
     const { data: isAdminData, error: adminError } = await supabase.rpc('is_current_user_admin');
     if (adminError) {
