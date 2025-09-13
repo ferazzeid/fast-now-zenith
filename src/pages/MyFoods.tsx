@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { FoodLibraryView } from '@/components/FoodLibraryView';
 import { useToast } from '@/hooks/use-toast';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
+import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { SEOManager } from '@/components/SEOManager';
 
 const MyFoods = () => {
@@ -12,6 +13,18 @@ const MyFoods = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { addFoodEntry } = useFoodEntriesQuery();
+  
+  // Daily template functionality
+  const { 
+    templateFoods, 
+    loading: templateLoading,
+    saveAsTemplate,
+    addToTemplate,
+    clearTemplate,
+    applyTemplate,
+    loadTemplate: forceLoadTemplate,
+    deleteTemplateFood
+  } = useDailyFoodTemplate();
 
   // SEO optimization
   useEffect(() => {
@@ -73,6 +86,14 @@ const MyFoods = () => {
         <FoodLibraryView
           onSelectFood={handleSelectFood}
           onBack={handleBack}
+          templateFoods={templateFoods}
+          templateLoading={templateLoading}
+          onSaveAsTemplate={saveAsTemplate}
+          onAddToTemplate={addToTemplate}
+          onClearTemplate={clearTemplate}
+          onApplyTemplate={applyTemplate}
+          onDeleteTemplateFood={deleteTemplateFood}
+          onForceLoadTemplate={forceLoadTemplate}
         />
       </div>
     </div>

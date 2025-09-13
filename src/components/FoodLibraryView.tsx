@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save, Database, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -49,12 +49,41 @@ interface DefaultFood {
   is_favorite?: boolean;
 }
 
+interface TemplateFood {
+  id: string;
+  name: string;
+  calories: number;
+  carbs: number;
+  serving_size: number;
+  image_url?: string;
+}
+
 interface FoodLibraryViewProps {
   onSelectFood: (food: UserFood, consumed?: boolean) => void;
   onBack: () => void;
+  // Template functionality props
+  templateFoods?: TemplateFood[];
+  templateLoading?: boolean;
+  onSaveAsTemplate?: (foods: any[]) => Promise<any>;
+  onAddToTemplate?: (foods: any[], insertAfterIndex?: number) => Promise<any>;
+  onClearTemplate?: () => Promise<any>;
+  onApplyTemplate?: () => Promise<any>;
+  onDeleteTemplateFood?: (foodId: string) => Promise<any>;
+  onForceLoadTemplate?: () => Promise<void>;
 }
 
-export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) => {
+export const FoodLibraryView = ({ 
+  onSelectFood, 
+  onBack,
+  templateFoods = [],
+  templateLoading = false,
+  onSaveAsTemplate,
+  onAddToTemplate,
+  onClearTemplate,
+  onApplyTemplate,
+  onDeleteTemplateFood,
+  onForceLoadTemplate
+}: FoodLibraryViewProps) => {
   const location = useLocation();
   const { user, loading } = useAuth();
 
@@ -72,7 +101,9 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
   const [searchTerm, setSearchTerm] = useState('');
   const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [activeTab, setActiveTab] = useState<'my-foods' | 'suggested'>('my-foods');
+  const [activeTab, setActiveTab] = useState<'my-foods' | 'template' | 'suggested'>('my-foods');
+  const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
+  const [showApplyTemplateDialog, setShowApplyTemplateDialog] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showDeleteDefaultFoodConfirm, setShowDeleteDefaultFoodConfirm] = useState(false);
   const [defaultFoodToDelete, setDefaultFoodToDelete] = useState<DefaultFood | null>(null);
@@ -993,11 +1024,11 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'suggested')} className="h-full flex flex-col">
+          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'my-foods' | 'template' | 'suggested')} className="h-full flex flex-col">
           <div className="mb-4">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="my-foods" className="flex items-center gap-2">
-                MyFoods
+            <TabsList className="grid w-full grid-cols-3 text-xs">
+              <TabsTrigger value="my-foods" className="flex items-center gap-1 text-xs">
+                My Foods
                 {filteredUserFoods.length > 0 && (
                   <Trash2 
                     className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
@@ -1009,7 +1040,21 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
                   />
                 )}
               </TabsTrigger>
-              <TabsTrigger value="suggested">Default</TabsTrigger>
+              <TabsTrigger value="template" className="flex items-center gap-1 text-xs">
+                Template
+                {templateFoods.length > 0 && (
+                  <Trash2 
+                    className="w-3 h-3 text-destructive cursor-pointer hover:text-destructive/80" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowClearTemplateDialog(true);
+                    }}
+                  />
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="suggested" className="flex items-center gap-1 text-xs">
+                <Database className="w-3 h-3" />
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -1055,6 +1100,121 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
             )}
           </div>
         </TabsContent>
+
+          {/* Template Tab */}
+          <TabsContent value="template" className="flex-1 overflow-y-auto mt-0">
+            <div className="space-y-2 mt-1">
+              {/* Apply Template Button */}
+              {templateFoods.length > 0 && (
+                <div className="mb-4">
+                  <Button
+                    onClick={() => setShowApplyTemplateDialog(true)}
+                    className="w-full flex items-center gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                    size="sm"
+                  >
+                    <Play className="w-4 h-4" />
+                    Apply Template to Today
+                  </Button>
+                </div>
+              )}
+
+              {/* Template Foods List */}
+              {templateLoading ? (
+                <div className="space-y-1">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="p-2 rounded-lg bg-muted/20 border-0 animate-pulse mb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg bg-muted" />
+                        <div className="flex-1 space-y-1">
+                          <div className="h-3 bg-muted rounded w-3/4" />
+                          <div className="h-2 bg-muted rounded w-1/2" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-muted rounded" />
+                          <div className="w-5 h-5 bg-muted rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : templateFoods.length === 0 ? (
+                <div className="text-center py-12">
+                  <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground">Your template is empty</p>
+                  <p className="text-muted-foreground text-sm">
+                    Go to Food Tracking and save today's plan as a template
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1 overflow-x-hidden">
+                  {templateFoods.map((food) => (
+                    <div key={food.id} className="p-3 mx-2 rounded-lg transition-all duration-200">
+                      <div className="flex items-center gap-2">
+                        {/* Template Food Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-sm truncate">{food.name}</h3>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            <span>{Math.round(food.calories)} cal</span>
+                            <span>{Math.round(food.carbs)}g carbs</span>
+                            <span>{Math.round(food.serving_size)}g</span>
+                          </div>
+                        </div>
+
+                        {/* Template Actions */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="min-w-[32px] min-h-[32px] p-0 hover:bg-secondary/80 rounded-md flex items-center justify-center"
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent 
+                              align="end" 
+                              className="w-48 bg-background border shadow-lg z-50"
+                              sideOffset={5}
+                            >
+                              <DropdownMenuItem
+                                onClick={() => onDeleteTemplateFood?.(food.id)}
+                                className="flex items-center gap-2 text-destructive focus:text-destructive cursor-pointer"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Delete from Template
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+
+                          {/* Add to Today Button */}
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleQuickSelect({
+                              id: food.id,
+                              name: food.name,
+                              calories_per_100g: (food.calories / food.serving_size) * 100,
+                              carbs_per_100g: (food.carbs / food.serving_size) * 100,
+                              is_favorite: false,
+                              image_url: food.image_url,
+                              variations: []
+                            }, false)}
+                            className="min-w-[32px] min-h-[32px] p-0 flex-shrink-0 rounded-md flex items-center justify-center hover:bg-primary/90 transition-colors"
+                            title="Add to today's plan"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
 
           {/* Suggested Foods Tab */}
           <TabsContent value="suggested" className="flex-1 overflow-y-auto mt-0">
@@ -1145,6 +1305,48 @@ export const FoodLibraryView = ({ onSelectFood, onBack }: FoodLibraryViewProps) 
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete Food
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Clear Template Confirmation Dialog */}
+      <AlertDialog open={showClearTemplateDialog} onOpenChange={setShowClearTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear Template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all {templateFoods.length} foods from your daily template. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onClearTemplate?.()}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Clear Template
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Apply Template Confirmation Dialog */}
+      <AlertDialog open={showApplyTemplateDialog} onOpenChange={setShowApplyTemplateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Apply Template?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will add all {templateFoods.length} foods from your template to today's plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onApplyTemplate?.()}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+            >
+              Apply Template
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
