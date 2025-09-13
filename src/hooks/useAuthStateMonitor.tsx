@@ -13,11 +13,18 @@ export interface AuthValidationResult {
 
 export const validateDatabaseAuth = async (): Promise<AuthValidationResult> => {
   try {
-    // Basic auth context check without requiring admin privileges
-    const { data, error } = await supabase.auth.getUser();
+    // Verify session via auth service first
+    const { data: authData, error: authError } = await supabase.auth.getUser();
 
-    if (error || !data?.user) {
-      return { authWorking: false, error };
+    if (authError || !authData?.user) {
+      return { authWorking: false, error: authError };
+    }
+
+    // Ping database to ensure auth.uid() is available in Postgres context
+    const { data, error } = await supabase.rpc('test_auth_uid');
+
+    if (error || data !== authData.user.id) {
+      return { authWorking: false, error: error ?? new Error('Auth UID mismatch') };
     }
 
     return { authWorking: true, error: null };

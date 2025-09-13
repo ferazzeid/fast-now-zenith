@@ -13,9 +13,10 @@ const { validateDatabaseAuth } = await import("./useAuthStateMonitor");
 const { supabase } = await import("../integrations/supabase/client");
 
 describe("validateDatabaseAuth", () => {
-  it("uses auth.getUser without calling admin RPC", async () => {
+  it("pings database with test_auth_uid to verify auth context", async () => {
     let getUserCalled = false;
     let rpcCalled = false;
+    let rpcName: string | null = null;
 
     // @ts-ignore - override for testing
     supabase.auth.getUser = async () => {
@@ -24,15 +25,17 @@ describe("validateDatabaseAuth", () => {
     };
 
     // @ts-ignore - override for testing
-    supabase.rpc = async () => {
+    supabase.rpc = async (fn: string) => {
       rpcCalled = true;
-      return { data: null, error: null } as any;
+      rpcName = fn;
+      return { data: "123", error: null } as any;
     };
 
     const result = await validateDatabaseAuth();
 
     expect(getUserCalled).toBe(true);
-    expect(rpcCalled).toBe(false);
+    expect(rpcCalled).toBe(true);
+    expect(rpcName).toBe('test_auth_uid');
     expect(result.authWorking).toBe(true);
   });
 });
