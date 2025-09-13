@@ -38,7 +38,7 @@ export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries 
       {/* Calories Section */}
       <div className="flex items-center gap-2">
         <ClickableTooltip content={`Calories planned: ${Math.round(totalCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
-          <span className={`text-muted-foreground/80 ${getProgressColor(totalCalories, dailyCalorieGoal)}`}>
+          <span className={getProgressColor(totalCalories, dailyCalorieGoal)}>
             {Math.round(totalCalories)}
           </span>
         </ClickableTooltip>
@@ -54,7 +54,7 @@ export const CompactFoodSummary: React.FC<CompactFoodSummaryProps> = ({ entries 
       {/* Carbs Section */}
       <div className="flex items-center gap-2">
         <ClickableTooltip content={`Carbs planned: ${Math.round(totalCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
-          <span className={`text-muted-foreground/80 ${getProgressColor(totalCarbs, dailyCarbGoal)}`}>
+          <span className={getProgressColor(totalCarbs, dailyCarbGoal)}>
             {Math.round(totalCarbs)}
           </span>
         </ClickableTooltip>
