@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info } from 'lucide-react';
+import { Camera, Loader2, Sparkles, X, RefreshCcw, Plus, Minus, ToggleLeft, ToggleRight, Info, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +17,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { getServingUnitsForUser, getDefaultServingSizeUnit, getUnitDisplayName } from '@/utils/foodConversions';
 import { trackFoodEvent } from '@/utils/analytics';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
-import { PremiumGatedAddFoodVoiceButton } from '@/components/PremiumGatedAddFoodVoiceButton';
+import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
+import { AccessGate } from '@/components/AccessGate';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
@@ -370,25 +371,40 @@ export default function AddFood() {
                     className="h-9 flex-1"
                     required
                   />
-                  <PremiumGatedAddFoodVoiceButton
-                    onFoodParsed={(result) => {
-                      // Just populate basic food information from voice
-                      if (result.foodName) {
-                        setName(result.foodName);
-                      }
-                      if (result.amount) {
-                        setServingAmount(result.amount.toString());
-                      }
-                      if (result.unit) {
-                        // Make sure the unit is available
-                        const availableUnits = getServingUnitsForUser();
-                        if (availableUnits.some(unit => unit.value === result.unit)) {
-                          setServingUnit(result.unit!);
-                        }
-                      }
-                    }}
-                    onProcessingStateChange={setVoiceProcessingState}
-                  />
+                  <AccessGate feature="ai">
+                    {({ hasAccess, requestUpgrade }) => (
+                      hasAccess ? (
+                        <EnhancedVoiceFoodInput
+                          onFoodParsed={(result) => {
+                            // Just populate basic food information from voice
+                            if (result.foodName) {
+                              setName(result.foodName);
+                            }
+                            if (result.amount) {
+                              setServingAmount(result.amount.toString());
+                            }
+                            if (result.unit) {
+                              // Make sure the unit is available
+                              const availableUnits = getServingUnitsForUser();
+                              if (availableUnits.some(unit => unit.value === result.unit)) {
+                                setServingUnit(result.unit!);
+                              }
+                            }
+                          }}
+                          onProcessingStateChange={setVoiceProcessingState}
+                        />
+                      ) : (
+                        <button
+                          onClick={requestUpgrade}
+                          className="w-8 h-8 rounded-full bg-muted/50 flex items-center justify-center opacity-50"
+                          title="AI Voice Assistant (Premium Feature)"
+                          aria-label="AI voice input - premium feature"
+                        >
+                          <Lock className="w-4 h-4 text-muted-foreground" />
+                        </button>
+                      )
+                    )}
+                  </AccessGate>
                 </div>
               </div>
 
