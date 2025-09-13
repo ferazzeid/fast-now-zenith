@@ -64,6 +64,7 @@ const Motivators = () => {
     user_id: '', // System motivators don't have user_id
     title: sm.title,
     content: sm.content,
+    excerpt: sm.excerpt, // Include excerpt for display logic
     category: sm.category || 'system',
     is_active: sm.is_active,
     created_at: sm.created_at,

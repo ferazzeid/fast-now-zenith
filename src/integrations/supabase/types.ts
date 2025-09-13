@@ -228,6 +228,7 @@ export type Database = {
           title_de: string | null
           title_ru: string | null
           updated_at: string
+          video_url: string | null
         }
         Insert: {
           author?: string
@@ -256,6 +257,7 @@ export type Database = {
           title_de?: string | null
           title_ru?: string | null
           updated_at?: string
+          video_url?: string | null
         }
         Update: {
           author?: string
@@ -284,6 +286,7 @@ export type Database = {
           title_de?: string | null
           title_ru?: string | null
           updated_at?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -1100,7 +1103,7 @@ export type Database = {
           meta_description: string | null
           meta_title: string | null
           show_in_animations: boolean
-          slug: string
+          slug: string | null
           title: string
           updated_at: string
           user_id: string
@@ -1120,7 +1123,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           show_in_animations?: boolean
-          slug: string
+          slug?: string | null
           title: string
           updated_at?: string
           user_id: string
@@ -1140,7 +1143,7 @@ export type Database = {
           meta_description?: string | null
           meta_title?: string | null
           show_in_animations?: boolean
-          slug?: string
+          slug?: string | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -1669,6 +1672,7 @@ export type Database = {
           content_ru: string | null
           created_at: string
           display_order: number
+          excerpt: string | null
           female_image_url: string | null
           id: string
           is_active: boolean
@@ -1691,6 +1695,7 @@ export type Database = {
           content_ru?: string | null
           created_at?: string
           display_order?: number
+          excerpt?: string | null
           female_image_url?: string | null
           id?: string
           is_active?: boolean
@@ -1713,6 +1718,7 @@ export type Database = {
           content_ru?: string | null
           created_at?: string
           display_order?: number
+          excerpt?: string | null
           female_image_url?: string | null
           id?: string
           is_active?: boolean

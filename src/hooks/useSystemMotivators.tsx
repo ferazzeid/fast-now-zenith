@@ -6,6 +6,7 @@ type SystemMotivator = {
   id: string;
   title: string;
   content: string;
+  excerpt: string | null;
   category: string | null;
   male_image_url: string | null;
   female_image_url: string | null;

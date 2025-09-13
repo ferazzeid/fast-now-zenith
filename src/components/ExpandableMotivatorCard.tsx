@@ -27,6 +27,7 @@ interface ExpandableMotivatorCardProps {
     id: string;
     title: string;
     content?: string;
+    excerpt?: string;
     imageUrl?: string;
     category?: string;
     linkUrl?: string;
@@ -163,6 +164,14 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const isSavedQuote = motivator.category === 'saved_quote';
   const isSystemMotivator = motivator._isSystemMotivator;
   
+  // Determine what content to display in the card
+  const displayContent = isSystemMotivator 
+    ? (motivator.excerpt || motivator.content) // Use excerpt for system motivators, fallback to content
+    : motivator.content; // Use full content for user motivators
+    
+  // Show "Read More" button only for system motivators that have linkUrl
+  const showReadMoreButton = isSystemMotivator && motivator.linkUrl;
+  
   return (
     <Card className={`overflow-hidden relative ${isSavedQuote ? 'bg-gray-900 border-gray-700' : ''}`}>
       <CardContent className="p-0">
@@ -196,18 +205,18 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   </h3>
                 </div>
                 
-                {motivator.content && (
+                {displayContent && (
                   <div className={`text-sm ${isSavedQuote ? 'text-gray-200' : 'text-muted-foreground'}`}>
                     {isExpanded ? (
-                      <p className="whitespace-pre-wrap">{motivator.content}</p>
+                      <p className="whitespace-pre-wrap">{displayContent}</p>
                     ) : (
-                      <p className="line-clamp-2">{motivator.content}</p>
+                      <p className="line-clamp-2">{displayContent}</p>
                     )}
                   </div>
                 )}
                 
-                {/* Read More Link */}
-                {motivator.linkUrl && (
+                {/* Read More Link - Only for system motivators */}
+                {showReadMoreButton && (
                   <div className="mt-3">
                     <Button
                       variant="link"
