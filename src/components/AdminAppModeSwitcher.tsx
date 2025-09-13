@@ -99,27 +99,16 @@ export const AdminAppModeSwitcher = () => {
   return (
     <Card className="bg-card border-border">
       <CardHeader>
-        <div className="flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-primary" />
-          <CardTitle>App Access Mode</CardTitle>
-        </div>
+        <CardTitle>App Access Mode</CardTitle>
         <CardDescription>
           Control how your app handles user access and premium features globally
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label htmlFor="app-mode-select" className="text-sm font-medium">
-              Current Mode:
-            </label>
-            {currentModeOption && (
-              <Badge variant="secondary" className="flex items-center space-x-1">
-                {currentModeOption.icon}
-                <span>{currentModeOption.label}</span>
-              </Badge>
-            )}
-          </div>
+          <label htmlFor="app-mode-select" className="text-sm font-medium">
+            Current Mode:
+          </label>
           
           <Select 
             value={currentMode || 'trial_premium'} 
@@ -129,38 +118,18 @@ export const AdminAppModeSwitcher = () => {
             <SelectTrigger id="app-mode-select" className="w-full">
               <SelectValue placeholder="Select app mode..." />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-50 bg-background border">
               {appModeOptions.map((mode) => (
                 <SelectItem key={mode.value} value={mode.value}>
-                  <div className="flex items-center space-x-2">
-                    {mode.icon}
-                    <div>
-                      <div className="font-medium">{mode.label}</div>
-                      <div className="text-xs text-muted-foreground">{mode.description}</div>
-                    </div>
+                  <div>
+                    <div className="font-medium">{mode.label}</div>
+                    <div className="text-xs text-muted-foreground">{mode.description}</div>
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
-
-        {currentModeOption && (
-          <div className="space-y-3 p-4 rounded-lg bg-muted/50">
-            <h4 className="font-medium flex items-center space-x-2">
-              <Users className="w-4 h-4" />
-              <span>Current Mode Features</span>
-            </h4>
-            <ul className="space-y-1">
-              {currentModeOption.features.map((feature, index) => (
-                <li key={index} className="text-sm flex items-center space-x-2">
-                  <Shield className="w-3 h-3 text-green-500" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
 
         <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
           <p className="text-sm text-amber-800 dark:text-amber-200">
