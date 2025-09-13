@@ -347,6 +347,11 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
           size="action-tall"
           className={cn(
             "w-full flex items-center justify-center transition-colors",
+            voiceState === 'processing' 
+              ? 'bg-ai hover:bg-ai/90 text-white'
+              : hasAccess 
+                ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
+                : 'bg-ai/50 text-ai-foreground opacity-50',
             getButtonStyles()
           )}
           onClick={handleButtonClick}
