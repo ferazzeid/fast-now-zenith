@@ -182,7 +182,7 @@ const FoodTracking = () => {
                 <p>Take a photo to automatically detect food and nutrition</p>
               </TooltipContent>
             </Tooltip>
-            <span className="text-xs text-muted-foreground">AI Photo</span>
+            <span className="text-xs text-muted-foreground">Add Food</span>
           </div>
 
           <div className="col-span-1 flex flex-col items-center gap-1">
@@ -194,7 +194,7 @@ const FoodTracking = () => {
                 <p>Use voice to add food with AI assistance</p>
               </TooltipContent>
             </Tooltip>
-            <span className="text-xs text-muted-foreground">AI Voice</span>
+            <span className="text-xs text-muted-foreground">Add Food</span>
           </div>
 
           <div className="col-span-1 flex flex-col items-center gap-1">
