@@ -138,7 +138,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-muted-foreground' : ''}`}>
+          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-ceramic-rim' : ''}`}>
             <div className="flex items-center space-x-2">
               {appLogo ? (
                 <img 
@@ -184,8 +184,8 @@ export const DailyStatsPanel = memo(() => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-muted-foreground">
-              <div className="px-8 py-4 space-y-4">
+            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-ceramic-rim">
+              <div className="px-6 py-3 space-y-3">
                 {/* Main Deficit Display */}
                 <AccessGate feature="food">
                   {({ hasAccess, requestUpgrade }) =>
@@ -320,12 +320,12 @@ export const DailyStatsPanel = memo(() => {
 
 
                   {/* Manual Calorie Burn Addition */}
-                 <div className="mt-4">
+                 <div className="mt-2">
                    <ManualCalorieModal onCalorieAdded={refreshDeficit} />
                  </div>
 
                  {/* Bottom Close Button */}
-                 <div className="flex justify-center pt-4">
+                 <div className="flex justify-center pt-2">
                    <button
                      onClick={() => setIsExpanded(false)}
                      className="flex items-center justify-center p-2 rounded-full bg-card hover:bg-card/80 transition-colors"
