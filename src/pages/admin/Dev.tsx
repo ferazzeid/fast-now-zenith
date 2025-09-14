@@ -2,7 +2,6 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import AdminProtectedRoute from "@/components/AdminProtectedRoute";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AdminRoleTester } from "@/components/AdminRoleTester";
 import { AdminTimerDesignSelector } from "@/components/AdminTimerDesignSelector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,7 @@ export default function AdminDev() {
   
   usePageSEO({
     title: "Admin Dev",
-    description: "Developer tools and role testing.",
+    description: "Developer tools and utilities.",
     canonicalPath: "/admin/dev",
   });
 
@@ -85,17 +84,23 @@ export default function AdminDev() {
             <AdminTimerDesignSelector />
           </section>
 
-          <section aria-label="Role Testing" className="space-y-4 pb-24">
-            <h2 className="text-xl font-semibold">Role Testing</h2>
+          <section aria-label="Development Tools" className="space-y-4 pb-24">
+            <h2 className="text-xl font-semibold">Development Tools</h2>
             
             <Alert>
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Test how the app behaves for different user roles. Admin dashboard access remains available regardless of test role.
+                Developer utilities and testing tools for administrators.
               </AlertDescription>
             </Alert>
 
-            <AdminRoleTester />
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-muted-foreground">
+                  Role testing functionality has been removed. Use separate test accounts for testing different user perspectives.
+                </p>
+              </CardContent>
+            </Card>
           </section>
 
         </main>

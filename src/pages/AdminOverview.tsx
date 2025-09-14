@@ -18,7 +18,6 @@ import { CancellationTracker } from "@/components/CancellationTracker";
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
-import { AdminRoleTester } from '@/components/AdminRoleTester';
 import { AdminAppModeSwitcher } from '@/components/AdminAppModeSwitcher';
 import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
 
@@ -211,10 +210,8 @@ const AdminOverview = () => {
         <AdminAppModeSwitcher />
       </section>
       
-      {/* Role Testing Section */}
-      <section aria-label="Role testing">
-        <AdminRoleTester />
-      </section>
+      {/* Remove Role Testing Section */}
+      {/* Role testing functionality has been removed */}
       
       {/* Real-Time Analytics Dashboard */}
       <section aria-label="Real-time analytics">

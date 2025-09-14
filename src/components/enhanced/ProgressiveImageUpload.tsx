@@ -32,14 +32,10 @@ export const ProgressiveImageUpload = ({
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasPremiumFeatures, hasAIAccess, access_level, testRole, isTestingMode } = useAccess();
-  
-  // Use test role if in testing mode, otherwise use actual access level
-  const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full') : hasAIAccess;
+  const { hasPremiumFeatures, hasAIAccess, access_level } = useAccess();
   
   // Check if user has access to AI analysis features
-  const canUseAIAnalysis = effectiveLevel === 'admin' || effectiveHasAIAccess;
+  const canUseAIAnalysis = access_level === 'admin' || hasAIAccess;
   const { withSessionGuard } = useSessionGuard();
   const isMobile = useIsMobile();
 

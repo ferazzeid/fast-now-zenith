@@ -11,7 +11,6 @@ export interface AccessData {
   hasFoodAccess: boolean;
   hasAIAccess: boolean;
   isAdmin: boolean;
-  originalIsAdmin?: boolean; // CRITICAL: Preserves original admin status during role testing
   isTrial: boolean;
   isPremium: boolean;
   isFree: boolean;
@@ -19,10 +18,6 @@ export interface AccessData {
   isFreeFood: boolean;
   daysRemaining: number | null;
   globalAccessMode: string;
-  // Role testing properties
-  testRole?: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null;
-  setTestRole?: (role: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null) => void;
-  isTestingMode?: boolean;
 }
 
 const fetchAccessData = async (userId: string): Promise<AccessData> => {
@@ -118,48 +113,16 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
 export const useAccess = () => {
   const { user } = useAuth();
   
-  // Auto-clear role testing only on fresh login, not on every page navigation
+  // Clean up any existing role testing data from localStorage
   React.useEffect(() => {
-    if (user && typeof window !== 'undefined') {
-      const sessionKey = `role_testing_cleared_${user.id}`;
-      const alreadyCleared = sessionStorage.getItem(sessionKey);
-      
-      if (!alreadyCleared) {
-        const hasRoleTesting = localStorage.getItem('admin_role_testing');
-        if (hasRoleTesting) {
-          console.log('🧹 Auto-clearing role testing on fresh login');
-          localStorage.removeItem('admin_role_testing');
-        }
-        sessionStorage.setItem(sessionKey, 'true');
-      }
-    }
-  }, [user?.id]); // Only clear once per browser session per user
-  
-  // Internal role testing state with localStorage persistence
-  const [testRole, setTestRoleState] = useState<'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null>(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('admin_role_testing');
-      console.log('🔍 Loading role testing from localStorage:', stored);
-      return stored ? (stored as 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only') : null;
-    }
-    return null;
-  });
-  
-  const setTestRole = (role: 'admin' | 'paid_user' | 'free_user' | 'free_full' | 'free_food_only' | null) => {
-    console.log('🔧 Setting test role:', role);
-    setTestRoleState(role);
-    if (typeof window !== 'undefined') {
-      if (role) {
-        localStorage.setItem('admin_role_testing', role);
-        console.log('💾 Saved to localStorage:', role);
-      } else {
+      const hasRoleTesting = localStorage.getItem('admin_role_testing');
+      if (hasRoleTesting) {
+        console.log('🧹 Cleaning up role testing from localStorage');
         localStorage.removeItem('admin_role_testing');
-        console.log('🗑️ Removed from localStorage');
       }
     }
-  };
-  
-  const isTestingMode = testRole !== null;
+  }, []);
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['access', user?.id],
@@ -203,60 +166,8 @@ export const useAccess = () => {
     refetch
   };
 
-  // Apply role testing override if active
-  if (isTestingMode && testRole) {
-    const testAccessLevel = testRole === 'admin' ? 'admin' : 
-                           testRole === 'paid_user' ? 'premium' : 
-                           testRole === 'free_full' ? 'free_full' :
-                           testRole === 'free_food_only' ? 'free_food_only' : 'free';
-    
-    const testHasPremiumFeatures = testRole === 'admin' || testRole === 'paid_user';
-    const testHasFoodAccess = testRole !== 'free_user';
-    const testHasAIAccess = testRole === 'admin' || testRole === 'paid_user' || testRole === 'free_full';
-    
-    return {
-      ...actualData,
-      access_level: testAccessLevel,
-      hasAccess: testHasPremiumFeatures || testHasFoodAccess,
-      hasPremiumFeatures: testHasPremiumFeatures,
-      hasFoodAccess: testHasFoodAccess,
-      hasAIAccess: testHasAIAccess,
-      isAdmin: testAccessLevel === 'admin',
-      originalIsAdmin: actualData.isAdmin, // CRITICAL: Preserve original admin status
-      isTrial: false,
-      isPremium: testRole === 'paid_user',
-      isFree: testRole === 'free_user',
-      isFreeFull: testRole === 'free_full',
-      isFreeFood: testRole === 'free_food_only',
-      // Role testing functions
-      setTestRole,
-      testRole,
-      isTestingMode,
-      // Helper functions
-      createSubscription: async () => {
-        const { data, error } = await supabase.functions.invoke('create-subscription');
-        if (data?.url) {
-          window.open(data.url, '_blank');
-        }
-        return { data, error };
-      },
-      openCustomerPortal: async () => {
-        const { data, error } = await supabase.functions.invoke('customer-portal');
-        if (data?.url) {
-          window.open(data.url, '_blank');
-        }
-        return { data, error };
-      }
-    };
-  }
-
   return {
     ...actualData,
-    originalIsAdmin: actualData.isAdmin, // CRITICAL: Always preserve original admin status
-    // Role testing functions
-    setTestRole,
-    testRole,
-    isTestingMode,
     // Helper functions
     createSubscription: async () => {
       const { data, error } = await supabase.functions.invoke('create-subscription');

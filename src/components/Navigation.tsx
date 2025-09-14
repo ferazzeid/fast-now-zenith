@@ -28,7 +28,7 @@ export const Navigation = () => {
   const { currentSession: walkingSession } = useWalkingSession();
   const { isAnimationsSuspended } = useAnimationControl();
   const { isOnline } = useConnectionStore();
-  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch, testRole, isTestingMode } = useAccess();
+  const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch } = useAccess();
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -179,13 +179,9 @@ export const Navigation = () => {
                 }
               };
 
-              // Handle premium gating for Food navigation with role testing support
-              const currentAccessLevel = isTestingMode ? testRole : access_level;
-              const currentHasFoodAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_food_only' || testRole === 'free_full') : hasFoodAccess;
-              
+              // Handle premium gating for Food navigation
               const handleFoodClick = (e: React.MouseEvent) => {
-                const hasAccess = currentAccessLevel === 'admin' || currentHasFoodAccess;
-                if (!hasAccess && label === 'Food') {
+                if (access_level !== 'admin' && !hasFoodAccess) {
                   e.preventDefault();
                   e.stopPropagation();
                   showFoodTrackingLimitError(toast, createSubscription);
@@ -193,7 +189,7 @@ export const Navigation = () => {
                 }
               };
               
-              const hasAccess = currentAccessLevel === 'admin' || currentHasFoodAccess;
+              const hasAccess = access_level === 'admin' || hasFoodAccess;
               const isLocked = label === 'Food' && !hasAccess;
               
               const content = (

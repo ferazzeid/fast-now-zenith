@@ -54,11 +54,11 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     external_url?: string;
   } | null>(null);
   const { addToDefaultGoals, removeFromDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
-  const { originalIsAdmin, isAdmin, isTestingMode } = useAccess();
+  const { isAdmin } = useAccess();
   const { toast } = useToast();
   
-  // Show admin features only when actually in admin mode
-  const showAdminFeatures = originalIsAdmin && (!isTestingMode || isAdmin);
+  // Access control logic - only show admin features to admins
+  const showAdminFeatures = isAdmin;
   
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
 

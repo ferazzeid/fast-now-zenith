@@ -18,8 +18,6 @@ export const SettingsSubscription = () => {
     createSubscription, 
     openCustomerPortal, 
     loading,
-    testRole, 
-    isTestingMode,
     refetch,
   } = useAccess();
   const { clearAllSubscriptionCache } = useCacheManager();
@@ -101,13 +99,11 @@ export const SettingsSubscription = () => {
       access_level,
       isTrial,
       daysRemaining,
-      isTestingMode,
-      testRole,
       computedAccountType: hasPremiumFeatures ? 'Premium User' : isTrial ? 'Free Trial' : 'Free User',
       shouldShowTrial: isTrial && daysRemaining,
       timestamp: new Date().toISOString()
     });
-  }, [hasPremiumFeatures, access_level, isTrial, daysRemaining, isTestingMode, testRole]);
+  }, [hasPremiumFeatures, access_level, isTrial, daysRemaining]);
 
   return (
     <div className="space-y-6">
@@ -127,31 +123,11 @@ export const SettingsSubscription = () => {
         <CardContent className="space-y-6">
           {/* Account Information */}
           <div className="space-y-4">
-            {/* Role Testing Indicator */}
-            {isTestingMode && (
-              <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                <TestTube className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    Role Testing Active: {testRole}
-                  </p>
-                  <p className="text-xs text-yellow-600 dark:text-yellow-400">
-                    Actual account data (trial/subscription) shown below
-                  </p>
-                </div>
-              </div>
-            )}
-
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium">Account Type</p>
                 <p className="text-sm text-muted-foreground">
                   {hasPremiumFeatures ? 'Premium User' : isTrial ? 'Free Trial' : 'Free User'}
-                  {isTestingMode && (
-                    <span className="ml-2 text-xs text-yellow-600 dark:text-yellow-400">
-                      (Real status, not test role)
-                    </span>
-                  )}
                 </p>
               </div>
               <Badge variant={getStatusBadgeVariant(access_level)}>

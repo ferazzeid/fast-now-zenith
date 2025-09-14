@@ -13,7 +13,7 @@ interface AdminProtectedRouteProps {
 
 const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const { user, loading } = useAuth();
-  const { isAdmin, originalIsAdmin, loading: accessLoading } = useAccess();
+  const { isAdmin, loading: accessLoading } = useAccess();
   const { isConnected, checkConnection } = useConnectionMonitor();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -27,7 +27,7 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
     if (!loading && !accessLoading) {
       if (!user) {
         navigate('/auth');
-      } else if (!originalIsAdmin) {
+      } else if (!isAdmin) {
         toast({
           title: 'Admins only',
           description: 'You do not have access to this section.',
@@ -90,7 +90,7 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   }
 
   // Not authorized
-  if (!user || !originalIsAdmin) {
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full mx-auto animate-spin" />

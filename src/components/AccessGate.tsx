@@ -16,29 +16,17 @@ interface AccessGateProps {
 }
 
 export const AccessGate = ({ feature, children }: AccessGateProps) => {
-  const { access_level, hasAIAccess, hasFoodAccess, hasPremiumFeatures, createSubscription, testRole, isTestingMode } = useAccess();
+  const { access_level, hasAIAccess, hasFoodAccess, hasPremiumFeatures, createSubscription } = useAccess();
   const { toast } = useToast();
-
-  // Determine effective level when testing
-  const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasAIAccess = isTestingMode
-    ? testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full'
-    : hasAIAccess;
-  const effectiveHasFoodAccess = isTestingMode
-    ? testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full' || testRole === 'free_food_only'
-    : hasFoodAccess;
-  const effectiveHasPremium = isTestingMode
-    ? testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full'
-    : hasPremiumFeatures;
 
   // Compute access based on feature
   let hasAccess = false;
   if (feature === 'ai') {
-    hasAccess = effectiveLevel === 'admin' || effectiveHasAIAccess;
+    hasAccess = access_level === 'admin' || hasAIAccess;
   } else if (feature === 'food') {
-    hasAccess = effectiveLevel === 'admin' || effectiveHasFoodAccess;
+    hasAccess = access_level === 'admin' || hasFoodAccess;
   } else {
-    hasAccess = effectiveLevel === 'admin' || effectiveHasPremium;
+    hasAccess = access_level === 'admin' || hasPremiumFeatures;
   }
 
   const requestUpgrade = () => {

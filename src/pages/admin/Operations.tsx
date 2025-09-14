@@ -1,7 +1,6 @@
 import React from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { AdminRoleTester } from "@/components/AdminRoleTester";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { CancellationTracker } from "@/components/CancellationTracker";
 import { AdminTierStats } from "@/components/AdminTierStats";

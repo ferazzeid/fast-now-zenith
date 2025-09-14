@@ -40,14 +40,10 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
   const { user } = useAuth();
   
   // Premium access control
-  const { access_level, hasAIAccess, createSubscription, testRole, isTestingMode } = useAccess();
-  
-  // Use test role if in testing mode, otherwise use actual access level
-  const effectiveLevel = isTestingMode ? testRole : access_level;
-  const effectiveHasAIAccess = isTestingMode ? (testRole === 'paid_user' || testRole === 'admin' || testRole === 'free_full') : hasAIAccess;
+  const { access_level, hasAIAccess, createSubscription } = useAccess();
   
   // Check if user has access to AI voice features
-  const hasAccess = effectiveLevel === 'admin' || effectiveHasAIAccess;
+  const hasAccess = access_level === 'admin' || hasAIAccess;
 
   // Check microphone permissions on mount
   React.useEffect(() => {

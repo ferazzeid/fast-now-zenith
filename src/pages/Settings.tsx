@@ -51,7 +51,7 @@ const Settings = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isAdmin: accessIsAdmin, originalIsAdmin, ...access } = useAccess();
+  const { isAdmin: accessIsAdmin, ...access } = useAccess();
   const isWebPlatform = true; // Default to web for now
   const platformName = 'Stripe'; // Default to Stripe for now
   
@@ -472,7 +472,7 @@ const Settings = () => {
                 <h1 className="text-2xl font-bold text-foreground mb-1">
                   Settings
                 </h1>
-                {(isAdmin || originalIsAdmin) && (
+                {(accessIsAdmin) && (
                   <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
                     Admin Dashboard
                   </Button>

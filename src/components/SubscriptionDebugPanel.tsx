@@ -92,10 +92,6 @@ export const SubscriptionDebugPanel = () => {
                     <div><strong>Loading:</strong> {String(unified.loading)}</div>
                     <div><strong>Is Premium:</strong> {String(unified.isPremium)}</div>
                     <div><strong>Is Free:</strong> {String(unified.isFree)}</div>
-                    <div><strong>Testing Mode:</strong> {String(unified.isTestingMode)}</div>
-                    {unified.testRole && (
-                      <div><strong>Test Role:</strong> {unified.testRole}</div>
-                    )}
                   </div>
                 </TabsContent>
               </Tabs>
