@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 import { useQueryClient } from '@tanstack/react-query';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 interface DailyFoodTemplate {
   id: string;
@@ -28,7 +29,7 @@ interface NewFoodTemplate {
 
 export const useDailyFoodTemplate = () => {
   const [templateFoods, setTemplateFoods] = useState<DailyFoodTemplate[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
   const { executeWithRetry } = useRetryableSupabase();
   const queryClient = useQueryClient();
@@ -37,12 +38,10 @@ export const useDailyFoodTemplate = () => {
     console.log('🍽️ loadTemplate called, user:', user?.id);
     if (!user) {
       console.log('🍽️ No user, stopping loading');
-      setLoading(false);
       return;
     }
     
-    setLoading(true);
-    try {
+    await execute(async () => {
       console.log('🍽️ Fetching daily food templates for user:', user.id);
       const result = await executeWithRetry(async () => {
         return await supabase
@@ -60,12 +59,13 @@ export const useDailyFoodTemplate = () => {
 
       setTemplateFoods(data || []);
       console.log('🍽️ Template foods set:', data?.length || 0, 'items');
-    } catch (error) {
-      console.error('🍽️ Error loading daily food template:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user, executeWithRetry]);
+      return data || [];
+    }, {
+      onError: (error) => {
+        console.error('🍽️ Error loading daily food template:', error);
+      }
+    });
+  }, [user, executeWithRetry, execute]);
 
   const saveAsTemplate = useCallback(async (foodEntries: Array<{
     name: string;
@@ -76,8 +76,7 @@ export const useDailyFoodTemplate = () => {
   }>, appendMode = false) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       if (!appendMode) {
         console.log('🍽️ Saving template - clearing existing for user:', user.id);
         // Clear existing template
@@ -116,20 +115,20 @@ export const useDailyFoodTemplate = () => {
       // Add a small delay and force refresh to ensure data consistency
       await new Promise(resolve => setTimeout(resolve, 500));
       await loadTemplate();
-      return { error: null };
-    } catch (error: any) {
-      console.error('🍽️ Error saving daily template:', error);
-      return { error };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, loadTemplate, templateFoods.length]);
+      return null;
+    }, {
+      onError: (error: any) => {
+        console.error('🍽️ Error saving daily template:', error);
+      }
+    });
+
+    return result.success ? { error: null } : { error: result.error };
+  }, [user, loadTemplate, templateFoods.length, execute]);
 
   const clearTemplate = useCallback(async () => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       const { error } = await supabase
         .from('daily_food_templates')
         .delete()
@@ -138,14 +137,15 @@ export const useDailyFoodTemplate = () => {
       if (error) throw error;
 
       setTemplateFoods([]);
-      return { error: null };
-    } catch (error: any) {
-      console.error('Error clearing daily template:', error);
-      return { error };
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+      return null;
+    }, {
+      onError: (error: any) => {
+        console.error('Error clearing daily template:', error);
+      }
+    });
+
+    return result.success ? { error: null } : { error: result.error };
+  }, [user, execute]);
 
   const deleteTemplateFood = useCallback(async (foodId: string) => {
     if (!user) return { error: { message: 'User not authenticated' } };
@@ -188,8 +188,7 @@ export const useDailyFoodTemplate = () => {
   const applyTemplate = useCallback(async () => {
     if (!user || templateFoods.length === 0) return { error: { message: 'No template available' } };
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // Get today's date for query key alignment
       const today = new Date().toISOString().split('T')[0];
       const foodEntriesQueryKey = ['food-entries', user.id, today];
@@ -253,24 +252,24 @@ export const useDailyFoodTemplate = () => {
       queryClient.invalidateQueries({ queryKey: ['daily-totals', user.id, today] });
 
       console.log('🍽️ Successfully applied template and updated cache with real data');
-      return { error: null };
-    } catch (error: any) {
-      console.error('Error applying daily template:', error);
-      
-      // Rollback optimistic update on error
-      const today = new Date().toISOString().split('T')[0];
-      const foodEntriesQueryKey = ['food-entries', user.id, today];
-      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey);
-      
-      if (previousEntries) {
-        queryClient.setQueryData(foodEntriesQueryKey, previousEntries);
+      return null;
+    }, {
+      onError: (error: any) => {
+        console.error('Error applying daily template:', error);
+        
+        // Rollback optimistic update on error
+        const today = new Date().toISOString().split('T')[0];
+        const foodEntriesQueryKey = ['food-entries', user.id, today];
+        const previousEntries = queryClient.getQueryData(foodEntriesQueryKey);
+        
+        if (previousEntries) {
+          queryClient.setQueryData(foodEntriesQueryKey, previousEntries);
+        }
       }
-      
-      return { error };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, templateFoods, queryClient]);
+    });
+
+    return result.success ? { error: null } : { error: result.error };
+  }, [user, templateFoods, queryClient, execute]);
 
   useEffect(() => {
     loadTemplate();
@@ -286,8 +285,7 @@ export const useDailyFoodTemplate = () => {
   }[], insertAfterIndex?: number) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       let sortOrder: number;
       let templateData: any[];
 
@@ -347,18 +345,19 @@ export const useDailyFoodTemplate = () => {
       console.log('🍽️ Template item(s) added successfully, reloading...');
       await new Promise(resolve => setTimeout(resolve, 300));
       await loadTemplate();
-      return { error: null };
-    } catch (error: any) {
-      console.error('🍽️ Error adding to template:', error);
-      return { error };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, loadTemplate, templateFoods]);
+      return null;
+    }, {
+      onError: (error: any) => {
+        console.error('🍽️ Error adding to template:', error);
+      }
+    });
+
+    return result.success ? { error: null } : { error: result.error };
+  }, [user, loadTemplate, templateFoods, execute]);
 
   return {
     templateFoods,
-    loading,
+    loading: isLoading,
     saveAsTemplate,
     addToTemplate,
     clearTemplate,

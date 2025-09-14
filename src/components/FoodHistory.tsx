@@ -10,17 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SmartLoadingButton } from "./SimpleLoadingComponents";
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { ListLoadingSkeleton } from '@/components/LoadingStates';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface DailySummary {
   date: string;
@@ -45,6 +35,8 @@ interface FoodHistoryProps {
 export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
   const { data: dailySummaries, isLoading, execute, setData } = useStandardizedLoading<DailySummary[]>([]);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [showDeleteDayModal, setShowDeleteDayModal] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
@@ -237,34 +229,14 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
             <div className="flex gap-2">
               {/* Delete All History Button - only show if there are entries */}
               {dailySummaries && dailySummaries.length > 0 && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete All Food History</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete ALL food history? This will permanently remove all food entries from all days. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={deleteAllHistory}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete All History
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                  onClick={() => setShowDeleteAllModal(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               )}
               <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
                 <X className="w-8 h-8" />
@@ -340,35 +312,17 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
                         Copy to Today
                       </Button>
                       
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            onClick={(e) => e.stopPropagation()}
-                            className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete all food entries for {new Date(summary.date).toLocaleDateString()}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteEntireDay(summary.date)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete Day
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowDeleteDayModal(summary.date);
+                        }}
+                        className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   </CardContent>
                 )}
@@ -392,6 +346,34 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
         )}
       </CardContent>
     </Card>
+
+    <ConfirmationModal
+      isOpen={showDeleteAllModal}
+      onClose={() => setShowDeleteAllModal(false)}
+      onConfirm={() => {
+        deleteAllHistory();
+        setShowDeleteAllModal(false);
+      }}
+      title="Delete All Food History"
+      description="Are you sure you want to delete ALL food history? This will permanently remove all food entries from all days. This action cannot be undone."
+      confirmText="Delete All History"
+      variant="destructive"
+    />
+
+    <ConfirmationModal
+      isOpen={!!showDeleteDayModal}
+      onClose={() => setShowDeleteDayModal(null)}
+      onConfirm={() => {
+        if (showDeleteDayModal) {
+          deleteEntireDay(showDeleteDayModal);
+          setShowDeleteDayModal(null);
+        }
+      }}
+      title="Delete Entire Day"
+      description={`Are you sure you want to delete all food entries for ${showDeleteDayModal ? new Date(showDeleteDayModal).toLocaleDateString() : ''}? This action cannot be undone.`}
+      confirmText="Delete Day"
+      variant="destructive"
+    />
     </div>
   );
 };

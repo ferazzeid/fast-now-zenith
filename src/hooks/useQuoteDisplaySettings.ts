@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface QuoteDisplaySettings {
   fastingQuotesEnabled: boolean;
@@ -8,18 +9,17 @@ export interface QuoteDisplaySettings {
 }
 
 export const useQuoteDisplaySettings = (): QuoteDisplaySettings => {
-  const [fastingQuotesEnabled, setFastingQuotesEnabled] = useState(true);
-  const [walkingQuotesEnabled, setWalkingQuotesEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
+  const { data: settings, isLoading, execute } = useStandardizedLoading<{
+    fastingQuotesEnabled: boolean;
+    walkingQuotesEnabled: boolean;
+  }>({ fastingQuotesEnabled: true, walkingQuotesEnabled: true });
 
   useEffect(() => {
     loadSettings();
   }, []);
 
   const loadSettings = async () => {
-    try {
-      setLoading(true);
-      
+    await execute(async () => {
       // Load both settings
       const [fastingResult, walkingResult] = await Promise.all([
         supabase
@@ -34,21 +34,21 @@ export const useQuoteDisplaySettings = (): QuoteDisplaySettings => {
           .single()
       ]);
 
-      setFastingQuotesEnabled(fastingResult.data?.setting_value !== 'false');
-      setWalkingQuotesEnabled(walkingResult.data?.setting_value !== 'false');
-    } catch (error) {
-      // Default both to true if settings don't exist
-      console.log('Quote display settings not found, using defaults');
-      setFastingQuotesEnabled(true);
-      setWalkingQuotesEnabled(true);
-    } finally {
-      setLoading(false);
-    }
+      const fastingQuotesEnabled = fastingResult.data?.setting_value !== 'false';
+      const walkingQuotesEnabled = walkingResult.data?.setting_value !== 'false';
+      
+      return { fastingQuotesEnabled, walkingQuotesEnabled };
+    }, {
+      onError: (error) => {
+        // Default both to true if settings don't exist
+        console.log('Quote display settings not found, using defaults');
+      }
+    });
   };
 
   return {
-    fastingQuotesEnabled,
-    walkingQuotesEnabled,
-    loading
+    fastingQuotesEnabled: settings?.fastingQuotesEnabled ?? true,
+    walkingQuotesEnabled: settings?.walkingQuotesEnabled ?? true,
+    loading: isLoading
   };
 };

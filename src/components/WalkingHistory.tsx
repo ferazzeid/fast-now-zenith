@@ -3,7 +3,7 @@ import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, ChevronDown, ChevronUp, Tr
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -37,6 +37,7 @@ export const WalkingHistory = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [editingSession, setEditingSession] = useState<WalkingSession | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
@@ -215,36 +216,15 @@ export const WalkingHistory = () => {
                   >
                     <Edit3 className="w-3 h-3" />
                   </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        disabled={deletingId === session.id}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Walking Session</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete this walking session from {format(date, 'MMM d, yyyy')}? 
-                          This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteSession(session.id)}
-                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    disabled={deletingId === session.id}
+                    onClick={() => setShowDeleteModal(session.id)}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
                 </div>
               </div>
               
@@ -323,6 +303,22 @@ export const WalkingHistory = () => {
           </Button>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={!!showDeleteModal}
+        onClose={() => setShowDeleteModal(null)}
+        onConfirm={() => {
+          if (showDeleteModal) {
+            handleDeleteSession(showDeleteModal);
+            setShowDeleteModal(null);
+          }
+        }}
+        title="Delete Walking Session"
+        description={`Are you sure you want to delete this walking session from ${showDeleteModal ? format(new Date(sessions?.find(s => s.id === showDeleteModal)?.start_time || ''), 'MMM d, yyyy') : ''}? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
+        isLoading={!!deletingId}
+      />
 
       {editingSession && (
         <EditWalkingSessionTimeModal

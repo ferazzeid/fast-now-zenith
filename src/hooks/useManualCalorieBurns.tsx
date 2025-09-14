@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 interface ManualCalorieBurn {
   id: string;
@@ -14,14 +15,13 @@ interface ManualCalorieBurn {
 export const useManualCalorieBurns = () => {
   const [manualBurns, setManualBurns] = useState<ManualCalorieBurn[]>([]);
   const [todayTotal, setTodayTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
 
   const loadTodayManualBurns = useCallback(async () => {
     if (!user) return;
     
-    setLoading(true);
-    try {
+    await execute(async () => {
       // FIX: Use same date logic as deficit query for consistency
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       
@@ -61,14 +61,16 @@ export const useManualCalorieBurns = () => {
           matches: d.created_at.split('T')[0] === today
         }))
       });
-    } catch (error) {
-      console.error('Error loading manual calorie burns:', error);
-      setManualBurns([]);
-      setTodayTotal(0);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+
+      return { todayEntries, total };
+    }, {
+      onError: (error) => {
+        console.error('Error loading manual calorie burns:', error);
+        setManualBurns([]);
+        setTodayTotal(0);
+      }
+    });
+  }, [user, execute]);
 
   useEffect(() => {
     loadTodayManualBurns();
@@ -97,7 +99,7 @@ export const useManualCalorieBurns = () => {
   return {
     manualBurns,
     todayTotal,
-    loading,
+    loading: isLoading,
     refreshManualBurns: loadTodayManualBurns,
     deleteManualBurn
   };

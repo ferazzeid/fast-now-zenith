@@ -8,9 +8,10 @@ import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useFastingSession } from '@/hooks/useFastingSession';
 import { toast } from 'sonner';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export const useDeficitAnalysis = () => {
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const [analysis, setAnalysis] = useState<string | null>(null);
   const { user } = useAuth();
   const { deficitData } = useDailyDeficitQuery();
@@ -30,8 +31,7 @@ export const useDeficitAnalysis = () => {
       return;
     }
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       // Package all relevant data
       const contextData = {
         deficit: {
@@ -129,19 +129,19 @@ Please provide a brief analysis with specific suggestions for the rest of my day
 
       setAnalysis(data.completion);
       toast.success('Analysis complete!');
-
-    } catch (error) {
-      console.error('Error analyzing deficit:', error);
-      toast.error('Failed to analyze your data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+      return data.completion;
+    }, {
+      onError: (error) => {
+        console.error('Error analyzing deficit:', error);
+        toast.error('Failed to analyze your data. Please try again.');
+      }
+    });
   };
 
   return {
     analyzeDeficit,
     analysis,
-    loading,
+    loading: isLoading,
     clearAnalysis: () => setAnalysis(null)
   };
 };

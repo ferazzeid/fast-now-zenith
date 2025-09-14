@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 // Temporary type definition until Supabase types are regenerated
 type SystemMotivator = {
@@ -27,15 +28,11 @@ interface UseSystemMotivatorsResult {
 }
 
 export const useSystemMotivators = (): UseSystemMotivatorsResult => {
-  const [systemMotivators, setSystemMotivators] = useState<SystemMotivator[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: systemMotivators, isLoading, execute } = useStandardizedLoading<SystemMotivator[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const fetchSystemMotivators = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
+    await execute(async () => {
       // Direct query with type assertion since table isn't in generated types yet
       const { data, error } = await supabase
         .from('system_motivators' as any)
@@ -45,15 +42,16 @@ export const useSystemMotivators = (): UseSystemMotivatorsResult => {
 
       if (error) throw error;
 
-      setSystemMotivators((data as unknown as SystemMotivator[]) || []);
-    } catch (err) {
-      console.error('Error fetching system motivators:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch system motivators');
-      // Set empty array as fallback
-      setSystemMotivators([]);
-    } finally {
-      setLoading(false);
-    }
+      return (data as unknown as SystemMotivator[]) || [];
+    }, {
+      onError: (err) => {
+        console.error('Error fetching system motivators:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch system motivators');
+      },
+      onSuccess: () => {
+        setError(null);
+      }
+    });
   };
 
   useEffect(() => {
@@ -61,8 +59,8 @@ export const useSystemMotivators = (): UseSystemMotivatorsResult => {
   }, []);
 
   return {
-    systemMotivators,
-    loading,
+    systemMotivators: systemMotivators || [],
+    loading: isLoading,
     error,
     refetch: fetchSystemMotivators
   };
