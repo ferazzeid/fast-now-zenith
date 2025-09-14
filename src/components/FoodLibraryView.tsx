@@ -169,25 +169,15 @@ export const FoodLibraryView = ({
   const loadDefaultFoods = async () => {
     console.log('🍽️ Loading default foods...');
     try {
-      // Use fetch instead of Supabase client to allow service worker caching
-      const supabaseUrl = 'https://texnkijwcygodtywgedm.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI';
-      
-      const response = await fetch(`${supabaseUrl}/rest/v1/default_foods?select=*&order=name`, {
-        method: 'GET',
-        headers: {
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        }
-      });
+      const { data, error } = await supabase
+        .from('default_foods')
+        .select('*')
+        .order('name');
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        throw error;
       }
 
-      const data = await response.json();
       console.log('🍽️ Default foods loaded:', data?.length, data);
       setDefaultFoods(data || []);
     } catch (error) {
