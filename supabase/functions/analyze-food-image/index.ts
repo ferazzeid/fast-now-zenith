@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { resolveOpenAIApiKey } from '../_shared/protected-config.ts';
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
   .split(',')
@@ -194,23 +195,9 @@ serve(async (req) => {
       }
     }
 
-    // Get OpenAI API key from shared settings or environment
-    let openaiApiKey = Deno.env.get('OPENAI_API_KEY');
-    
-    if (!openaiApiKey) {
-      // Get from shared settings
-      const { data: sharedKey } = await dataClient
-        .from('shared_settings')
-        .select('setting_value')
-        .eq('setting_key', 'shared_api_key')
-        .maybeSingle();
-      
-      openaiApiKey = sharedKey?.setting_value;
-    }
-
-    if (!openaiApiKey) {
-      throw new Error('OpenAI API key not configured. Please contact support.');
-    }
+    // 🔑 SIMPLIFIED: Get OpenAI API key using standardized resolution
+    console.log('🔑 Resolving OpenAI API key for food analysis...');
+    const openaiApiKey = await resolveOpenAIApiKey(supabase);
 
     console.log('Analyzing food image with OpenAI Vision API');
 

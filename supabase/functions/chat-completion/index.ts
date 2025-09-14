@@ -168,13 +168,9 @@ serve(async (req) => {
 
     // Admins have unlimited access (no limit check needed)
 
-    // 🔒 PROTECTED: Use standardized API key resolution
-    const openaiApiKey = await resolveOpenAIApiKey(
-      supabase,
-      profile,
-      undefined,
-      req.headers.get('X-OpenAI-API-Key')
-    );
+    // 🔑 SIMPLIFIED: Get OpenAI API key using standardized resolution
+    console.log('🔑 Resolving OpenAI API key for chat completion...');
+    const openAIApiKey = await resolveOpenAIApiKey(supabase);
 
     // Get comprehensive food context for the user
     const today = new Date().toISOString().split('T')[0];
@@ -1109,7 +1105,7 @@ Keep responses brief and action-focused. Always use function calls for food oper
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
+        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(requestPayload),

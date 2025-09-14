@@ -105,19 +105,22 @@ serve(async (req) => {
   try {
     const { title = "", content = "", apiKey } = await req.json().catch(() => ({ title: "", content: "", apiKey: null }));
 
-    // Use provided API key or fallback to environment variable
-    const openaiKey = apiKey || Deno.env.get('OPENAI_API_KEY');
-
-    let concept = "";
-    console.log(`Processing title: "${title}", content: "${content}"`);
+    // 🔑 SIMPLIFIED: Get OpenAI API key using standardized resolution
+    console.log('🔑 Resolving OpenAI API key for motivator concept extraction...');
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
     
-    if (openaiKey) {
+    try {
+      const openaiKey = await resolveOpenAIApiKey(supabase);
       console.log('OpenAI key found, trying AI extraction...');
       const aiConcept = await extractConceptWithAI(String(title), String(content), openaiKey);
       console.log(`AI extraction result: "${aiConcept}"`);
       if (aiConcept) concept = aiConcept;
-    } else {
-      console.log('No OpenAI key found, skipping AI extraction');
+    } catch (error) {
+      console.error('AI extraction failed:', error);
+      console.log('Falling back to heuristic extraction...');
     }
 
     if (!concept) {

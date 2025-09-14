@@ -9,10 +9,10 @@
  * Status: ✅ WORKING
  */
 
-// 🛡️ CORS CONFIGURATION - PROVEN TO WORK
+// 🛡️ CORS CONFIGURATION - SIMPLIFIED (NO CLIENT API KEYS)
 export const PROTECTED_CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-openai-api-key',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 } as const;
 
@@ -39,24 +39,11 @@ export function validateOpenAIConfig(config: Record<string, unknown>): boolean {
   );
 }
 
-// 🔧 API KEY RESOLUTION - PROTECTED LOGIC (SHARED KEY ONLY)
-export async function resolveOpenAIApiKey(
-  supabase: any,
-  userProfile?: any,
-  providedApiKey?: string,
-  headerApiKey?: string
-): Promise<string> {
-  // 1. Header API key (for backwards compatibility)
-  if (headerApiKey) {
-    return headerApiKey;
-  }
+// 🔧 API KEY RESOLUTION - SIMPLIFIED (SINGLE SOURCE)
+export async function resolveOpenAIApiKey(supabase: any): Promise<string> {
+  console.log('🔑 Resolving OpenAI API key...');
   
-  // 2. Provided API key (legacy support)
-  if (providedApiKey) {
-    return providedApiKey;
-  }
-  
-  // 3. Shared settings (primary method)
+  // 1. Shared settings (primary and preferred method)
   try {
     const { data: sharedKey } = await supabase
       .from('shared_settings')
@@ -65,18 +52,22 @@ export async function resolveOpenAIApiKey(
       .maybeSingle();
     
     if (sharedKey?.setting_value) {
+      console.log('✅ Found API key in shared settings (admin-configured)');
       return sharedKey.setting_value;
     }
   } catch (error) {
-    console.warn('Failed to fetch shared API key:', error);
+    console.error('❌ Failed to fetch shared API key from database:', error);
   }
   
-  // 4. Environment variable (fallback)
+  // 2. Environment variable (server fallback only - not recommended)
   const envKey = Deno.env.get('OPENAI_API_KEY');
   if (envKey) {
+    console.warn('⚠️  Using environment variable API key (fallback mode)');
     return envKey;
   }
   
+  // No key available
+  console.error('🚫 No OpenAI API key available');
   throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
 }
 
