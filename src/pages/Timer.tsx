@@ -12,11 +12,10 @@ import { WalkingTimer } from '@/components/WalkingTimer';
 import { useTimerDesign } from '@/hooks/useTimerDesign';
 import { FastSelector } from '@/components/FastSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
 import { FastingHistory } from '@/components/FastingHistory';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { useAuth } from '@/hooks/useAuth';
 import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
@@ -55,6 +54,7 @@ const Timer = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
+  const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
   const { user } = useAuth();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
@@ -247,14 +247,28 @@ const Timer = () => {
 
   const handleFastingStart = async () => {
     resetMilestones(); // Reset celebration state for new fast
-    const result = await startFastingSession({ goal_duration_seconds: fastDuration });
-    if (result) {
-      trackFastingEvent('start', fastType, fastDuration);
-      toast({
-        title: "Fast started",
-        description: `Your ${formatTimeFasting(fastDuration)} fast has begun!`
-      });
-    }
+    await executeFastingAction(async () => {
+      const result = await startFastingSession({ goal_duration_seconds: fastDuration });
+      if (result) {
+        trackFastingEvent('start', fastType, fastDuration);
+        return result;
+      }
+      throw new Error('Failed to start fasting session');
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Fast started",
+          description: `Your ${formatTimeFasting(fastDuration)} fast has begun!`
+        });
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: "Failed to start fasting session. Please try again.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const handleFastingStop = async () => {
@@ -268,26 +282,26 @@ const Timer = () => {
       return;
     }
     
-    try {
+    await executeFastingAction(async () => {
       if (stopAction === 'cancel') {
         // Cancel fast - doesn't save to history
         await cancelFastingSession(fastingSession.id);
         trackFastingEvent('stop', fastType, timeElapsed);
-        // Don't show success toast - the mutation handles it
       } else {
         // Finish fast - saves to history
         await endFastingSession(fastingSession.id);
         trackFastingEvent('stop', fastType, timeElapsed);
-        // Don't show success toast - the mutation handles it
       }
-    } catch (error) {
-      console.error('Error stopping fasting session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to stop fasting session. Please try again.",
-        variant: "destructive",
-      });
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error stopping fasting session:', error);
+        toast({
+          title: "Error",
+          description: "Failed to stop fasting session. Please try again.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const handleWalkingStart = async () => {

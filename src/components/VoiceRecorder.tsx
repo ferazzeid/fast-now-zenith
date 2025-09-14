@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Mic, Square, Play, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VoiceRecorderProps {
@@ -17,13 +18,14 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   isDisabled = false,
 }) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [audioURL, setAudioURL] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  
   const { toast } = useToast();
+  const { execute: executeTranscription, isLoading: isProcessing } = useStandardizedLoading();
 
   const startRecording = async () => {
     try {
@@ -105,8 +107,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const transcribeAudio = async () => {
     if (!audioURL) return;
 
-    setIsProcessing(true);
-    try {
+    await executeTranscription(async () => {
       // Convert audio to base64
       const audioResponse = await fetch(audioURL);
       const audioBlob = await audioResponse.blob();
@@ -141,23 +142,26 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
 
       if (data?.text) {
         onTranscription(data.text);
+        return data.text;
+      } else {
+        throw new Error('No transcription received');
+      }
+    }, {
+      onSuccess: () => {
         toast({
           title: "✨ Transcription Complete",
           description: "Your voice has been converted to text!",
         });
-      } else {
-        throw new Error('No transcription received');
+      },
+      onError: (error) => {
+        console.error('Transcription error:', error);
+        toast({
+          title: "Transcription Failed",
+          description: "Failed to transcribe audio. Please try again.",
+          variant: "destructive"
+        });
       }
-    } catch (error) {
-      console.error('Transcription error:', error);
-      toast({
-        title: "Transcription Failed",
-        description: "Failed to transcribe audio. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsProcessing(false);
-    }
+    });
   };
 
   const resetRecording = () => {

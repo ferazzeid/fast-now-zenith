@@ -9,7 +9,7 @@ import { PageOnboardingModal } from '@/components/PageOnboardingModal';
 import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
@@ -17,6 +17,7 @@ import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useFoodWalkingCalculation } from '@/hooks/useFoodWalkingCalculation';
 import { useProfile } from '@/hooks/useProfile';
@@ -40,6 +41,7 @@ const FoodTracking = () => {
 
   const { user } = useAuth();
   const { toast } = useToast();
+  const { execute: executeClearAll, isLoading: isClearingAll } = useStandardizedLoading();
   const { profile, updateProfile } = useProfile();
   const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
@@ -126,7 +128,7 @@ const FoodTracking = () => {
   };
 
   const handleClearAllEntries = async () => {
-    try {
+    const result = await executeClearAll(async () => {
       clearAllEntries();
 
       const todayDate = new Date();
@@ -142,20 +144,25 @@ const FoodTracking = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "All Foods Cleared",
-        description: "All food entries for today have been removed"
-      });
-    } catch (error) {
-      console.error('Error clearing foods:', error);
-      await refreshFoodEntries();
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to clear food entries"
-      });
-    }
-    setShowClearAllDialog(false);
+      return true;
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "All Foods Cleared",
+          description: "All food entries for today have been removed"
+        });
+        setShowClearAllDialog(false);
+      },
+      onError: async (error) => {
+        console.error('Error clearing foods:', error);
+        await refreshFoodEntries();
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to clear food entries"
+        });
+      }
+    });
   };
 
   return (
@@ -474,23 +481,17 @@ const FoodTracking = () => {
               </PageOnboardingModal>
             </TooltipProvider>
 
-            {/* Clear All Confirmation Dialog */}
-            <AlertDialog open={showClearAllDialog} onOpenChange={setShowClearAllDialog}>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Clear All Foods?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will remove all food entries for today. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleClearAllEntries}>
-                    Clear All
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+        {/* Clear All Confirmation Dialog */}
+        <ConfirmationModal
+          isOpen={showClearAllDialog}
+          onClose={() => setShowClearAllDialog(false)}
+          onConfirm={handleClearAllEntries}
+          title="Clear All Foods?"
+          description="This will remove all food entries for today. This action cannot be undone."
+          confirmText="Clear All"
+          variant="destructive"
+          isLoading={isClearingAll}
+        />
           </div>
         ) : (
           <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">

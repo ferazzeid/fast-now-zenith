@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppLogo } from '@/hooks/useAppLogo';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { Loader2, ChevronDown, Mail } from 'lucide-react';
@@ -16,9 +17,10 @@ import { useToast } from '@/hooks/use-toast';
 const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  
+  const { execute: executeAuth, isLoading } = useStandardizedLoading();
   
   const { signIn, signUp, signInWithGoogle, user, loading: authLoading } = useAuth();
   const { appLogo } = useAppLogo();
@@ -45,25 +47,22 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    await signIn(email, password);
-    setLoading(false);
+    await executeAuth(async () => {
+      await signIn(email, password);
+    });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    await signUp(email, password);
-    setLoading(false);
+    await executeAuth(async () => {
+      await signUp(email, password);
+    });
   };
 
   const handleGoogleSignIn = async () => {
-    setLoading(true);
-    try {
+    await executeAuth(async () => {
       await signInWithGoogle();
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
 
@@ -106,9 +105,9 @@ const Auth = () => {
               size="lg"
               className="w-full h-12 text-base bg-gradient-to-r from-primary to-primary-glow hover:from-primary-hover hover:to-primary shadow-lg"
               onClick={handleGoogleSignIn}
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? (
+              {isLoading ? (
                 <Loader2 className="mr-3 h-5 w-5 animate-spin" />
               ) : (
                 <svg className="mr-3 h-5 w-5" viewBox="0 0 24 24">
@@ -172,7 +171,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      disabled={loading}
+                      disabled={isLoading}
                     />
                   </div>
                   <div className="space-y-2">
@@ -184,11 +183,11 @@ const Auth = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      disabled={loading}
+                      disabled={isLoading}
                     />
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? (
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         {isSignUp ? 'Creating Account...' : 'Signing In...'}
