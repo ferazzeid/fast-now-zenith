@@ -6,24 +6,51 @@ import { useToast } from "@/hooks/use-toast";
 export const StaticBrandAssetsManager = () => {
   const { toast } = useToast();
 
-  const currentSettings = {
-    appLogo: "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
-    favicon: "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/favicon-1754812729411.png",
-    homeScreenIcon: "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg"
+  const brandAssets = {
+    logo: {
+      name: "App Logo",
+      url: "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png",
+      usage: "Main branding, social sharing"
+    },
+    favicon: {
+      name: "Favicon",
+      url: "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/favicon-1754812729411.png",
+      usage: "Browser tab icon"
+    },
+    homeScreenIcon: {
+      name: "Home Screen Icon",
+      url: "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg",
+      usage: "PWA home screen, app icons"
+    },
+    icon192: {
+      name: "PWA Icon 192x192",
+      url: "/icon-192.png",
+      usage: "PWA manifest, small screens"
+    },
+    icon512: {
+      name: "PWA Icon 512x512", 
+      url: "/icon-512.png",
+      usage: "PWA manifest, large screens"
+    },
+    faviconTransparent: {
+      name: "Transparent Favicon",
+      url: "/favicon-transparent.png",
+      usage: "Alternative favicon"
+    }
   };
 
   const generateIndexHtmlCode = () => {
     return `<!-- Update these lines in index.html -->
-<meta property="og:image" content="${currentSettings.appLogo}" />
-<link rel="apple-touch-icon" href="${currentSettings.homeScreenIcon}">
-<link rel="apple-touch-icon" sizes="152x152" href="${currentSettings.homeScreenIcon}">
-<link rel="apple-touch-icon" sizes="180x180" href="${currentSettings.homeScreenIcon}">
-<link rel="apple-touch-icon" sizes="167x167" href="${currentSettings.homeScreenIcon}">
-<link rel="icon" type="image/png" sizes="32x32" href="${currentSettings.favicon}">
-<link rel="icon" type="image/png" sizes="16x16" href="${currentSettings.favicon}">
-<link rel="icon" href="${currentSettings.favicon}" type="image/png" sizes="192x192">
-<link rel="icon" href="${currentSettings.appLogo}" type="image/png" sizes="512x512">
-<link rel="shortcut icon" href="${currentSettings.favicon}" type="image/png">`;
+<meta property="og:image" content="${brandAssets.logo.url}" />
+<link rel="apple-touch-icon" href="${brandAssets.homeScreenIcon.url}">
+<link rel="apple-touch-icon" sizes="152x152" href="${brandAssets.homeScreenIcon.url}">
+<link rel="apple-touch-icon" sizes="180x180" href="${brandAssets.homeScreenIcon.url}">
+<link rel="apple-touch-icon" sizes="167x167" href="${brandAssets.homeScreenIcon.url}">
+<link rel="icon" type="image/png" sizes="32x32" href="${brandAssets.favicon.url}">
+<link rel="icon" type="image/png" sizes="16x16" href="${brandAssets.favicon.url}">
+<link rel="icon" href="${brandAssets.icon192.url}" type="image/png" sizes="192x192">
+<link rel="icon" href="${brandAssets.icon512.url}" type="image/png" sizes="512x512">
+<link rel="shortcut icon" href="${brandAssets.favicon.url}" type="image/png">`;
   };
 
   const generateManifestCode = () => {
@@ -42,15 +69,27 @@ export const StaticBrandAssetsManager = () => {
   "version": "1.0.0",
   "icons": [
     {
-      "src": "${currentSettings.homeScreenIcon}",
+      "src": "${brandAssets.icon192.url}",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "${brandAssets.icon512.url}",
+      "sizes": "512x512", 
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "${brandAssets.homeScreenIcon.url}",
       "sizes": "192x192",
       "type": "image/jpeg",
       "purpose": "maskable any"
     },
     {
-      "src": "${currentSettings.homeScreenIcon}",
-      "sizes": "512x512", 
-      "type": "image/jpeg",
+      "src": "${brandAssets.homeScreenIcon.url}",
+      "sizes": "512x512",
+      "type": "image/jpeg", 
       "purpose": "maskable any"
     }
   ]
@@ -60,7 +99,7 @@ export const StaticBrandAssetsManager = () => {
   const generateStaticLogoCode = () => {
     return `// Update src/hooks/useStaticLogo.tsx
 export const useStaticLogo = () => {
-  const appLogo = "${currentSettings.appLogo}";
+  const appLogo = "${brandAssets.logo.url}";
   
   return {
     appLogo,
@@ -90,13 +129,34 @@ export const useStaticLogo = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <h4 className="font-medium">Current Assets</h4>
-            <div className="text-sm space-y-1 text-muted-foreground">
-              <div>Logo: {currentSettings.appLogo}</div>
-              <div>Favicon: {currentSettings.favicon}</div>
-              <div>Home Screen: {currentSettings.homeScreenIcon}</div>
+        <div className="grid gap-6">
+          <div className="space-y-4">
+            <h4 className="font-medium">Brand Assets Preview</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(brandAssets).map(([key, asset]) => (
+                <div key={key} className="border rounded-lg p-3 space-y-2">
+                  <div className="aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                    <img 
+                      src={asset.url} 
+                      alt={asset.name}
+                      className="max-w-full max-h-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = '<div class="text-xs text-muted-foreground">Preview unavailable</div>';
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <h5 className="font-medium text-sm">{asset.name}</h5>
+                    <p className="text-xs text-muted-foreground">{asset.usage}</p>
+                    <p className="text-xs font-mono break-all">{asset.url}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
