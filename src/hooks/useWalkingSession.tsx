@@ -261,6 +261,8 @@ export const useWalkingSession = () => {
       setIsPaused(false);
       // Clear persisted session from localStorage
       persistWalkingSession(null);
+      // Also clear the localStorage key directly as failsafe
+      localStorage.removeItem('walking_session');
       triggerRefresh();
       return finalData;
     });
@@ -291,6 +293,8 @@ export const useWalkingSession = () => {
       setIsPaused(false);
       // Clear persisted session from localStorage
       persistWalkingSession(null);
+      // Also clear the localStorage key directly as failsafe
+      localStorage.removeItem('walking_session');
       triggerRefresh();
       return data;
     });
