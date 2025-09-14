@@ -109,7 +109,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
-                  calories
+                  cal
                 </div>
               </div>
             </ClickableTooltip>
