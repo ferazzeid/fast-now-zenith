@@ -1,8 +1,7 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import BrandAssetsManager from "@/components/BrandAssetsManager";
-import { ColorManagement } from "@/components/ColorManagement";
-
+import { StaticBrandAssetsManager } from "@/components/StaticBrandAssetsManager";
+import { StaticColorManager } from "@/components/StaticColorManager";
 import { AppIdentitySettings } from "@/components/AppIdentitySettings";
 import { PWAManagementCard } from "@/components/PWAManagementCard";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
@@ -25,16 +24,16 @@ export default function AdminBranding() {
           <AppIdentitySettings />
         </section>
 
-        <section aria-label="Brand assets">
-          <BrandAssetsManager />
+        <section aria-label="Static brand assets development tool">
+          <StaticBrandAssetsManager />
         </section>
 
         <section aria-label="PWA management">
           <PWAManagementCard />
         </section>
 
-        <section aria-label="Color management" className="pb-24">
-          <ColorManagement />
+        <section aria-label="Static color management development tool" className="pb-24">
+          <StaticColorManager />
         </section>
       </main>
     </AdminHealthCheck>

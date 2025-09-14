@@ -6,7 +6,7 @@
   "display": "standalone",
   "scope": "/",
   "background_color": "#F5F2EA",
-  "theme_color": "#8B7355",
+  "theme_color": "#1e40af",
   "orientation": "portrait-primary",
   "categories": ["health", "wellness", "lifestyle"],
   "lang": "en",

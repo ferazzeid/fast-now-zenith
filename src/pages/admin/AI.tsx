@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
-import { PromptManagement } from "@/components/PromptManagement";
+import { StaticPromptManagement } from "@/components/StaticPromptManagement";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,7 +92,7 @@ export default function AdminAI() {
         </section>
 
         <section aria-label="AI prompt management" className="pb-24">
-          <PromptManagement />
+          <StaticPromptManagement />
         </section>
 
       </main>

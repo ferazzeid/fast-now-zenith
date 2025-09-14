@@ -53,7 +53,6 @@ import { useAuthStore } from '@/stores/authStore';
 
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
-import { useColorTheme } from '@/hooks/useColorTheme';
 import { InstallationProgress } from './components/InstallationProgress';
 import { useInstallationProgress } from './utils/installationManager';
 
@@ -110,9 +109,7 @@ const AppContent = () => {
     initialize();
   }, [initialize]);
   
-  // Load colors immediately without authentication dependency (critical for UI)
-  const { loading: colorLoading } = useColorTheme();
-
+  // Colors are now static in CSS - no loading needed
 
   // Hide navigation on auth routes
   const isAuthRoute = location.pathname === '/auth' || location.pathname === '/reset-password' || location.pathname === '/update-password';
