@@ -15,7 +15,7 @@ class InstallationManager {
   private callbacks: Set<InstallationCallback> = new Set();
   private currentProgress: InstallationProgress = {
     stage: 'installing',
-    message: 'Preparing app...',
+    message: 'Starting...',
     progress: 0
   };
 
@@ -27,11 +27,11 @@ class InstallationManager {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'INSTALL_COMPLETE') {
-          this.updateProgress({
-            stage: 'complete',
-            message: 'App ready with offline data!',
-            progress: 100
-          });
+        this.updateProgress({
+          stage: 'complete',
+          message: 'Ready!',
+          progress: 100
+        });
         }
       });
 
@@ -56,21 +56,21 @@ class InstallationManager {
         case 'installing':
           this.updateProgress({
             stage: 'installing',
-            message: 'Installing app components...',
+            message: 'Installing...',
             progress: 25
           });
           break;
         case 'installed':
           this.updateProgress({
             stage: 'preloading',
-            message: 'Loading essential data...',
+            message: 'Preparing data...',
             progress: 75
           });
           break;
         case 'activated':
           this.updateProgress({
             stage: 'complete',
-            message: 'App ready!',
+            message: 'Ready!',
             progress: 100
           });
           break;
@@ -126,7 +126,7 @@ class InstallationManager {
         
         this.updateProgress({
           stage: 'installing',
-          message: 'Reinstalling with fresh data...',
+          message: 'Reinstalling...',
           progress: 10
         });
       }

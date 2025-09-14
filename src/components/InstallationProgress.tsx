@@ -93,27 +93,6 @@ export const InstallationProgress = ({
           />
         </div>
 
-        {/* Status Details */}
-        <div className="text-xs text-muted-foreground space-y-1">
-          <div className="flex justify-between">
-            <span>App Shell:</span>
-            <span className={progress.progress >= 25 ? 'text-green-500' : ''}>
-              {progress.progress >= 25 ? '✓' : '○'} Ready
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Critical Data:</span>
-            <span className={progress.progress >= 75 ? 'text-green-500' : ''}>
-              {progress.progress >= 75 ? '✓' : '○'} {hasOfflineData ? 'Cached' : 'Loading'}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Offline Ready:</span>
-            <span className={progress.stage === 'complete' ? 'text-green-500' : ''}>
-              {progress.stage === 'complete' ? '✓' : '○'} Available
-            </span>
-          </div>
-        </div>
 
         {/* Error Actions */}
         {progress.stage === 'error' && (
@@ -140,7 +119,7 @@ export const InstallationProgress = ({
         {progress.stage === 'complete' && !showOnlyDuringInstall && (
           <div className="text-center">
             <p className="text-sm text-green-600 dark:text-green-400 mb-3">
-              🎉 App installed with offline data!
+              🎉 App ready!
             </p>
             <Button 
               onClick={onComplete}
@@ -151,14 +130,10 @@ export const InstallationProgress = ({
           </div>
         )}
 
-        {/* Installation Benefits */}
-        {progress.stage !== 'error' && (
-          <div className="text-xs text-muted-foreground bg-muted/50 rounded p-3 space-y-1">
-            <div className="font-medium mb-1">What's being installed:</div>
-            <div>• 51 default foods for instant tracking</div>
-            <div>• Motivational content library</div>
-            <div>• Offline app functionality</div>
-            <div>• Faster loading for all features</div>
+        {/* Simple Installation Note */}
+        {progress.stage !== 'error' && progress.stage !== 'complete' && (
+          <div className="text-xs text-center text-muted-foreground">
+            Preparing app for offline use...
           </div>
         )}
       </div>

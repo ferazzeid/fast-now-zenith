@@ -84,7 +84,7 @@ self.addEventListener('install', (event) => {
           clients.forEach(client => {
             client.postMessage({ 
               type: 'INSTALL_COMPLETE',
-              message: 'App installed with critical data preloaded!'
+              message: 'App ready!'
             });
           });
         });
