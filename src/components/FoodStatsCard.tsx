@@ -22,6 +22,8 @@ interface FoodStatsCardProps {
 export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
   const { profile } = useProfile();
 
+  console.log('🍽️ FoodStatsCard received entries:', entries?.length, entries);
+
   // Calculate totals
   const totalCalories = entries.reduce((sum, entry) => sum + entry.calories, 0);
   const consumedCalories = entries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.calories, 0);
@@ -29,7 +31,9 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
   const consumedCarbs = entries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0);
 
   const dailyCalorieGoal = profile?.daily_calorie_goal || 2000;
-  const dailyCarbGoal = profile?.daily_carb_goal || 150;
+  const dailyCarbGoal = profile?.daily_carb_goal || 30;
+
+  console.log('🍽️ Calculated totals:', { totalCalories, consumedCalories, totalCarbs, consumedCarbs, dailyCalorieGoal, dailyCarbGoal });
 
   const calorieProgress = Math.min((consumedCalories / dailyCalorieGoal) * 100, 100);
   const carbProgress = Math.min((consumedCarbs / dailyCarbGoal) * 100, 100);
@@ -48,6 +52,40 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
     return 'bg-primary';
   };
 
+  // Calculate TDEE and remaining calories for tooltips
+  const calculateTDEE = () => {
+    if (!profile?.weight || !profile?.height || !profile?.age || !profile?.sex || !profile?.activity_level) return 2000;
+    
+    // Mifflin-St Jeor equation
+    const weight = profile.weight;
+    const height = profile.height;
+    const age = profile.age;
+    const sex = profile.sex;
+    
+    let bmr;
+    if (sex === 'male') {
+      bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+    } else {
+      bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+    }
+    
+    const activityMultipliers = {
+      sedentary: 1.2,
+      lightly_active: 1.375,
+      moderately_active: 1.55,
+      very_active: 1.725,
+      extra_active: 1.9
+    };
+    
+    const multiplier = activityMultipliers[profile.activity_level as keyof typeof activityMultipliers] || 1.375;
+    return Math.round(bmr * multiplier);
+  };
+
+  const tdee = calculateTDEE();
+  const targetDeficit = 500; // Default target deficit
+  const dailyAllowance = tdee - targetDeficit;
+  const remainingCalories = dailyAllowance - consumedCalories;
+
   return (
     <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
       {/* Main Content */}
@@ -56,9 +94,13 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
         <div className="grid grid-cols-2 gap-4 w-full mb-4">
           {/* Calories Eaten */}
           <div className="text-center">
-            <ClickableTooltip content={`Calories eaten: ${Math.round(consumedCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Utensils className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Eaten</span>
+            </div>
+            <ClickableTooltip content={`Calories eaten: ${Math.round(consumedCalories)} | TDEE: ${tdee} | Target: ${dailyAllowance} | Remaining: ${Math.max(0, remainingCalories)}`}>
               <div 
-                className="text-4xl font-mono font-bold text-warm-text mb-1 tracking-wide cursor-pointer"
+                className={`text-5xl font-mono font-bold mb-1 tracking-wide cursor-pointer ${consumedCalories > dailyAllowance ? 'text-destructive' : 'text-warm-text'}`}
                 style={{ 
                   fontFeatureSettings: '"tnum" 1',
                   textShadow: '0 1px 2px rgba(0,0,0,0.1)'
@@ -67,20 +109,18 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                 {Math.round(consumedCalories)}
               </div>
             </ClickableTooltip>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Utensils className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Eaten</span>
-              </div>
-              <span className="text-xs text-foreground">calories</span>
-            </div>
+            <span className="text-xs text-foreground">calories</span>
           </div>
 
           {/* Carbs Eaten */}
           <div className="text-center">
-            <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Utensils className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Eaten</span>
+            </div>
+            <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g | Remaining: ${Math.max(0, dailyCarbGoal - consumedCarbs)}g`}>
               <div 
-                className="text-4xl font-mono font-bold text-warm-text mb-1 tracking-wide cursor-pointer"
+                className={`text-5xl font-mono font-bold mb-1 tracking-wide cursor-pointer ${consumedCarbs > dailyCarbGoal ? 'text-destructive' : 'text-warm-text'}`}
                 style={{ 
                   fontFeatureSettings: '"tnum" 1',
                   textShadow: '0 1px 2px rgba(0,0,0,0.1)'
@@ -89,13 +129,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                 {Math.round(consumedCarbs)}
               </div>
             </ClickableTooltip>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <Utensils className="w-4 h-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Eaten</span>
-              </div>
-              <span className="text-xs text-foreground">g carbs</span>
-            </div>
+            <span className="text-xs text-foreground">g carbs</span>
           </div>
         </div>
 
@@ -107,8 +141,8 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
               <Target className="w-4 h-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Planned</span>
             </div>
-            <ClickableTooltip content={`Calories planned: ${Math.round(totalCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
-              <div className={`text-lg font-semibold ${getProgressColor(totalCalories, dailyCalorieGoal)} cursor-pointer`}>
+            <ClickableTooltip content={`Calories planned: ${Math.round(totalCalories)} | Daily target: ${dailyAllowance}`}>
+              <div className={`text-lg font-semibold ${getProgressColor(totalCalories, dailyAllowance)} cursor-pointer`}>
                 {Math.round(totalCalories)}
               </div>
             </ClickableTooltip>
@@ -130,9 +164,9 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
           </div>
         </div>
 
-        {/* Empty State */}
-        {entries.length === 0 && (
-          <div className="text-center text-muted-foreground">
+        {/* Empty State - Only show if truly no entries */}
+        {(!entries || entries.length === 0) && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground">
             <Utensils className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No foods tracked yet</p>
           </div>

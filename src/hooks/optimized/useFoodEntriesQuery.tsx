@@ -79,12 +79,15 @@ export const useFoodEntriesQuery = () => {
 
       console.log('🍽️ Fetching food entries from', today.toISOString(), 'to', tomorrow.toISOString(), 'for user:', user.id);
 
+      // Get today's date string for source_date filtering
+      const todayDateString = new Date().toISOString().split('T')[0];
+      console.log('🍽️ Using date filter:', todayDateString);
+
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
         .eq('user_id', user.id)
-        .gte('created_at', today.toISOString())
-        .lt('created_at', tomorrow.toISOString())
+        .eq('source_date', todayDateString)
         .order('consumed', { ascending: true })
         .order('created_at', { ascending: false });
 
