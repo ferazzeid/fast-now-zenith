@@ -19,6 +19,7 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
+import { useQuoteDisplaySettings } from '@/hooks/useQuoteDisplaySettings';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { useAccess } from '@/hooks/useAccess';
@@ -51,6 +52,7 @@ const Walking = () => {
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
+  const { walkingQuotesEnabled } = useQuoteDisplaySettings();
   const { saveQuoteAsGoal } = useMotivators();
   const { isAdmin } = useAccess();
 
@@ -297,12 +299,14 @@ const Walking = () => {
 
 
         {/* Inspirational Quote */}
-        <InspirationQuote 
-          quotes={quotes.walking_timer_quotes} 
-          className="mt-8"
-          onSaveQuote={saveQuoteAsGoal}
-          compact={true}
-        />
+        {walkingQuotesEnabled && (
+          <InspirationQuote 
+            quotes={quotes.walking_timer_quotes} 
+            className="mt-8"
+            onSaveQuote={saveQuoteAsGoal}
+            compact={true}
+          />
+        )}
 
 
         <ProfileCompletionPrompt 

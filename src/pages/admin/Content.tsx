@@ -5,6 +5,7 @@ import { AdminQuoteSettings } from "@/components/AdminQuoteSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAuthorTooltipToggle } from "@/components/AdminAuthorTooltipToggle";
 import { AdminPersonalLogToggle } from "@/components/AdminPersonalLogToggle";
+import { AdminQuoteDisplayToggle } from "@/components/AdminQuoteDisplayToggle";
 
 export default function AdminContent() {
   usePageSEO({
@@ -22,6 +23,8 @@ export default function AdminContent() {
         <AdminAuthorTooltipToggle />
 
         <AdminPersonalLogToggle />
+
+        <AdminQuoteDisplayToggle />
 
         <section aria-label="Timeline management">
           <AdminTimelineSettings />

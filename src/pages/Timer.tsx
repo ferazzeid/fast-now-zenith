@@ -28,6 +28,7 @@ import { trackFastingEvent } from '@/utils/analytics';
 import { FastingInspirationRotator } from '@/components/FastingInspirationRotator';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
+import { useQuoteDisplaySettings } from '@/hooks/useQuoteDisplaySettings';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
@@ -58,6 +59,7 @@ const Timer = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
+  const { fastingQuotesEnabled } = useQuoteDisplaySettings();
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { isAdmin } = useAccess();
@@ -546,7 +548,7 @@ const Timer = () => {
         )}
 
         {/* Inspirational Content */}
-        {profile?.enable_fasting_slideshow ? (
+        {profile?.enable_fasting_slideshow && fastingQuotesEnabled ? (
           <FastingInspirationRotator 
             quotes={quotes.fasting_timer_quotes}
             currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
