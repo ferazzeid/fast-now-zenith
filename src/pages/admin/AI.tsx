@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
-
+import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,36 +13,36 @@ import { supabase } from "@/integrations/supabase/client";
 
 function SharedKeySettings() {
   const [sharedKey, setSharedKey] = useState("");
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { isLoading, execute } = useStandardizedLoading();
 
   useEffect(() => {
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'shared_api_key')
-          .maybeSingle();
-        if (!error && data?.setting_value) setSharedKey(data.setting_value);
-      } catch (e) {
-        console.warn('Failed to load shared key');
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    execute(async () => {
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
+      if (!error && data?.setting_value) setSharedKey(data.setting_value);
+      return data;
+    });
+  }, [execute]);
 
   const save = async () => {
-    try {
+    await execute(async () => {
       const { error } = await supabase
         .from('shared_settings')
         .upsert({ setting_key: 'shared_api_key', setting_value: sharedKey });
       if (error) throw error;
-      toast({ title: 'Saved', description: 'Shared OpenAI API key updated.' });
-    } catch (e: any) {
-      toast({ title: 'Error', description: e.message || 'Failed to save key', variant: 'destructive' });
-    }
+      return true;
+    }, {
+      onSuccess: () => {
+        toast({ title: 'Saved', description: 'Shared OpenAI API key updated.' });
+      },
+      onError: (error) => {
+        toast({ title: 'Error', description: error.message || 'Failed to save key', variant: 'destructive' });
+      }
+    });
   };
 
   return (
@@ -59,11 +59,13 @@ function SharedKeySettings() {
             value={sharedKey}
             onChange={(e) => setSharedKey(e.target.value)}
             placeholder="sk-..."
-            disabled={loading}
+            disabled={isLoading}
             className="font-mono"
           />
         </div>
-        <Button onClick={save} className="w-full sm:w-auto">Save</Button>
+        <Button onClick={save} className="w-full sm:w-auto" disabled={isLoading}>
+          {isLoading ? "Saving..." : "Save"}
+        </Button>
       </CardContent>
     </Card>
   );

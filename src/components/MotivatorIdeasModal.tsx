@@ -9,17 +9,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface MotivatorIdeasModalProps {
   isOpen: boolean;
@@ -31,6 +21,8 @@ interface MotivatorIdeasModalProps {
 export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal }: MotivatorIdeasModalProps) => {
   const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [goalToDelete, setGoalToDelete] = useState<AdminGoalIdea | null>(null);
   const { goalIdeas, loading, refreshGoalIdeas, removeGoalIdea } = useAdminGoalIdeas();
   const { user } = useAuth();
 
@@ -210,48 +202,29 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                                   </Tooltip>
                                 )}
 
-                                {/* Admin Delete Button */}
-                                {isAdmin && (
-                                  <AlertDialog>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <AlertDialogTrigger asChild>
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                            }}
-                                            disabled={loading}
-                                            className="h-8 w-8 p-0 rounded-md hover:bg-destructive/10 hover:text-destructive"
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                          </Button>
-                                        </AlertDialogTrigger>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Remove from default goals (Admin)</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Remove Default Goal</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to remove "{goal.title}" from the default goal ideas? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => handleDeleteGoal(goal.id)}
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                        >
-                                          Remove
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                )}
+                                 {/* Admin Delete Button */}
+                                 {isAdmin && (
+                                   <Tooltip>
+                                     <TooltipTrigger asChild>
+                                       <Button
+                                         size="sm"
+                                         variant="ghost"
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           setGoalToDelete(goal);
+                                           setDeleteModalOpen(true);
+                                         }}
+                                         disabled={loading}
+                                         className="h-8 w-8 p-0 rounded-md hover:bg-destructive/10 hover:text-destructive"
+                                       >
+                                         <Trash2 className="w-4 h-4" />
+                                       </Button>
+                                     </TooltipTrigger>
+                                     <TooltipContent>
+                                       <p>Remove from default goals (Admin)</p>
+                                     </TooltipContent>
+                                   </Tooltip>
+                                 )}
                               </div>
                             </div>
                           </div>

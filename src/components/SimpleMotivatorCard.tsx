@@ -3,17 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Trash2, Eye, EyeOff } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface SimpleMotivatorCardProps {
   motivator: {
@@ -34,6 +24,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
 }) => {
   const [localShowInAnimations, setLocalShowInAnimations] = useState(motivator.show_in_animations);
   const [isToggling, setIsToggling] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     setLocalShowInAnimations(motivator.show_in_animations);
@@ -108,40 +99,36 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
               </Tooltip>
             )}
             
-            <AlertDialog>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="p-2 h-8 w-8 text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Delete this quote</p>
-                </TooltipContent>
-              </Tooltip>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Quote</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this saved quote? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={onDelete}>
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={() => setDeleteModalOpen(true)}
+                  className="p-2 h-8 w-8 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Delete this quote</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
+        
+        <ConfirmationModal
+          isOpen={deleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={() => {
+            onDelete();
+            setDeleteModalOpen(false);
+          }}
+          title="Delete Quote"
+          description="Are you sure you want to delete this saved quote? This action cannot be undone."
+          confirmText="Delete"
+          variant="destructive"
+        />
       </CardContent>
     </Card>
   );

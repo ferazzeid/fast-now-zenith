@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 export interface FoodContext {
   todayCalories: number;
@@ -20,14 +21,13 @@ export interface FoodContext {
 
 export const useFoodContext = () => {
   const [context, setContext] = useState<FoodContext | null>(null);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
+  const { isLoading, execute } = useStandardizedLoading();
 
   const fetchFoodContext = async (): Promise<FoodContext | null> => {
     if (!user) return null;
 
-    setLoading(true);
-    try {
+    return await execute(async () => {
       // Get user profile for goals
       const { data: profile } = await supabase
         .from('profiles')
@@ -111,12 +111,7 @@ export const useFoodContext = () => {
 
       setContext(foodContext);
       return foodContext;
-    } catch (error) {
-      console.error('Error fetching food context:', error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const buildContextString = (ctx: FoodContext): string => {
@@ -159,7 +154,7 @@ export const useFoodContext = () => {
 
   return {
     context,
-    loading,
+    loading: isLoading,
     buildContextString,
     refreshContext: fetchFoodContext
   };

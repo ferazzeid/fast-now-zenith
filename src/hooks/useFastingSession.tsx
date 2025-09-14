@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { persistFastingSession, getPersistedFastingSession } from '@/utils/timerPersistence';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 export interface FastingSession {
   id: string;
@@ -18,20 +19,18 @@ export interface FastingSession {
 
 export const useFastingSession = () => {
   const [currentSession, setCurrentSession] = useState<FastingSession | null>(null);
-  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isLoading, execute } = useStandardizedLoading();
 
   // Load active session on mount with proper user dependency
   const loadActiveSession = useCallback(async () => {
     if (!user) {
       setCurrentSession(null);
-      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       // Try to get from server first
       const { data, error } = await supabase
         .from('fasting_sessions')
@@ -60,27 +59,22 @@ export const useFastingSession = () => {
           user_id: serverSession.user_id,
         });
       }
-    } catch (error) {
-      console.error('Error loading active session:', error);
-      
+
       // Fall back to persisted session if network fails
       const persistedSession = getPersistedFastingSession();
-      if (persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
+      if (!serverSession && persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
         setCurrentSession(persistedSession as FastingSession);
-      } else {
-        setCurrentSession(null);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+      
+      return serverSession;
+    });
+  }, [user, execute]);
 
   useEffect(() => {
     if (user) {
       loadActiveSession();
     } else {
       setCurrentSession(null);
-      setLoading(false);
     }
   }, [user, loadActiveSession]);
 
@@ -94,62 +88,51 @@ export const useFastingSession = () => {
       return null;
     }
 
-    setLoading(true);
-    try {
-        // End any existing active sessions first
-        await supabase
-          .from('fasting_sessions')
-          .update({ 
-            status: 'cancelled',
-            end_time: new Date().toISOString()
-          })
-          .eq('user_id', user.id)
-          .eq('status', 'active');
+    return await execute(async () => {
+      // End any existing active sessions first
+      await supabase
+        .from('fasting_sessions')
+        .update({ 
+          status: 'cancelled',
+          end_time: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
 
-        // Use custom start time or current time
-        const startTime = customStartTime ? customStartTime.toISOString() : new Date().toISOString();
+      // Use custom start time or current time
+      const startTime = customStartTime ? customStartTime.toISOString() : new Date().toISOString();
 
-        // Create new session
-        const { data, error } = await supabase
-          .from('fasting_sessions')
-          .insert([
-            {
-              user_id: user.id,
-              start_time: startTime,
-              goal_duration_seconds: goalDurationSeconds,
-              status: 'active'
-            }
-          ])
-          .select()
-          .single();
+      // Create new session
+      const { data, error } = await supabase
+        .from('fasting_sessions')
+        .insert([
+          {
+            user_id: user.id,
+            start_time: startTime,
+            goal_duration_seconds: goalDurationSeconds,
+            status: 'active'
+          }
+        ])
+        .select()
+        .single();
 
-        if (error) throw error;
+      if (error) throw error;
 
-        const session = data as FastingSession;
-        setCurrentSession(session);
-        
-        // Persist to local storage
-        persistFastingSession({
-          id: session.id,
-          start_time: session.start_time,
-          goal_duration_seconds: session.goal_duration_seconds,
-          status: session.status,
-          user_id: session.user_id,
-        });
-        
-        return session;
-      } catch (error) {
-        console.error('Error starting fasting session:', error);
-        toast({
-          title: "Error",
-          description: "Failed to start fasting session",
-          variant: "destructive",
-        });
-        return null;
-      } finally {
-        setLoading(false);
-      }
-  }, [user, toast]);
+      const session = data as FastingSession;
+      setCurrentSession(session);
+      
+      // Persist to local storage
+      persistFastingSession({
+        id: session.id,
+        start_time: session.start_time,
+        goal_duration_seconds: session.goal_duration_seconds,
+        status: session.status,
+        user_id: session.user_id,
+      });
+      
+      return session;
+    });
+  }, [user, toast, execute]);
 
   const endFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;
@@ -157,45 +140,34 @@ export const useFastingSession = () => {
     const targetSessionId = sessionId || currentSession?.id;
     if (!targetSessionId) return null;
 
-    setLoading(true);
-    try {
-        const endTime = new Date().toISOString();
-        const startTime = currentSession?.start_time || new Date().toISOString();
-        const durationSeconds = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
-        
-        // When manually ending a session, determine status based on whether goal was reached
-        const goalDurationSeconds = currentSession?.goal_duration_seconds || 0;
-        const status = durationSeconds >= goalDurationSeconds ? 'completed' : 'cancelled';
+    return await execute(async () => {
+      const endTime = new Date().toISOString();
+      const startTime = currentSession?.start_time || new Date().toISOString();
+      const durationSeconds = Math.floor((new Date(endTime).getTime() - new Date(startTime).getTime()) / 1000);
+      
+      // When manually ending a session, determine status based on whether goal was reached
+      const goalDurationSeconds = currentSession?.goal_duration_seconds || 0;
+      const status = durationSeconds >= goalDurationSeconds ? 'completed' : 'cancelled';
 
-        const { data, error } = await supabase
-          .from('fasting_sessions')
-          .update({
-            status,
-            end_time: endTime,
-            duration_seconds: durationSeconds
-          })
-          .eq('id', targetSessionId)
-          .eq('user_id', user.id)
-          .select()
-          .single();
+      const { data, error } = await supabase
+        .from('fasting_sessions')
+        .update({
+          status,
+          end_time: endTime,
+          duration_seconds: durationSeconds
+        })
+        .eq('id', targetSessionId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
 
-        if (error) throw error;
+      if (error) throw error;
 
-        setCurrentSession(null);
-        persistFastingSession(null); // Clear persisted session
-        return data;
-      } catch (error) {
-        console.error('Error ending fasting session:', error);
-        toast({
-          title: "Error",
-          description: "Failed to end fasting session",
-          variant: "destructive",
-        });
-        return null;
-      } finally {
-        setLoading(false);
-      }
-  }, [user, currentSession, toast]);
+      setCurrentSession(null);
+      persistFastingSession(null); // Clear persisted session
+      return data;
+    });
+  }, [user, currentSession, toast, execute]);
 
   const cancelFastingSession = useCallback(async (sessionId?: string) => {
     if (!user) return null;
@@ -203,8 +175,7 @@ export const useFastingSession = () => {
     const targetSessionId = sessionId || currentSession?.id;
     if (!targetSessionId) return null;
 
-    setLoading(true);
-    try {
+    return await execute(async () => {
       const { data, error } = await supabase
         .from('fasting_sessions')
         .update({
@@ -221,23 +192,13 @@ export const useFastingSession = () => {
       setCurrentSession(null);
       persistFastingSession(null); // Clear persisted session
       return data;
-    } catch (error) {
-      console.error('Error cancelling fasting session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to cancel fasting session",
-        variant: "destructive",
-      });
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession, toast]);
+    });
+  }, [user, currentSession, toast, execute]);
 
 
   return {
     currentSession,
-    loading,
+    loading: isLoading,
     startFastingSession,
     endFastingSession,
     cancelFastingSession,

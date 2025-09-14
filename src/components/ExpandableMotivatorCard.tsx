@@ -10,17 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MotivatorContentModal } from '@/components/MotivatorContentModal';
 import { useToast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface ExpandableMotivatorCardProps {
   motivator: {
@@ -44,6 +34,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
   const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
   const [showContentModal, setShowContentModal] = useState(false);
@@ -249,43 +240,26 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                        <p>{isInDefaultGoals ? 'Remove from default goals' : 'Add to default goals'} (Admin)</p>
                      </TooltipContent>
                    </Tooltip>
-                 )}
-                  
-                  <AlertDialog>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                             size="sm" 
-                             variant="ghost" 
-                             onClick={(e) => {
-                               e.stopPropagation();
-                             }}
-                             className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                           >
-                             <Trash2 className="w-3 h-3" />
-                           </Button>
-                         </AlertDialogTrigger>
-                       </TooltipTrigger>
-                       <TooltipContent>
-                         <p>Delete this motivator</p>
-                       </TooltipContent>
-                     </Tooltip>
-                     <AlertDialogContent>
-                       <AlertDialogHeader>
-                         <AlertDialogTitle>Delete Motivator</AlertDialogTitle>
-                         <AlertDialogDescription>
-                           Are you sure you want to delete "{motivator.title}"? This action cannot be undone.
-                         </AlertDialogDescription>
-                       </AlertDialogHeader>
-                       <AlertDialogFooter>
-                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                         <AlertDialogAction onClick={onDelete}>
-                           Delete
-                         </AlertDialogAction>
-                       </AlertDialogFooter>
-                     </AlertDialogContent>
-                   </AlertDialog>
+                  )}
+                   
+                   <Tooltip>
+                     <TooltipTrigger asChild>
+                       <Button
+                         size="sm" 
+                         variant="ghost" 
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setIsDeleteModalOpen(true);
+                         }}
+                         className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                       >
+                         <Trash2 className="w-3 h-3" />
+                       </Button>
+                     </TooltipTrigger>
+                     <TooltipContent>
+                       <p>Delete this motivator</p>
+                     </TooltipContent>
+                   </Tooltip>
               </div>
             </div>
           </div>
@@ -321,6 +295,19 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
         isOpen={showContentModal}
         onClose={() => setShowContentModal(false)}
         content={selectedContent}
+      />
+
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={() => {
+          onDelete();
+          setIsDeleteModalOpen(false);
+        }}
+        title="Delete Motivator"
+        description={`Are you sure you want to delete "${motivator.title}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
       />
     </Card>
   );

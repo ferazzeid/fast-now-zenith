@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,9 +10,9 @@ import { Lock } from 'lucide-react';
 const UpdatePassword = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const { updatePassword, session } = useAuth();
   const navigate = useNavigate();
+  const { isLoading, execute } = useStandardizedLoading();
 
   useEffect(() => {
     // If no session, redirect to auth
@@ -31,15 +32,15 @@ const UpdatePassword = () => {
       return;
     }
 
-    setLoading(true);
+    const result = await execute(async () => {
+      const { error } = await updatePassword(password);
+      if (error) throw new Error(error.message);
+      return true;
+    });
 
-    const { error } = await updatePassword(password);
-    
-    if (!error) {
+    if (result.success) {
       navigate('/');
     }
-    
-    setLoading(false);
   };
 
   const passwordsMatch = password === confirmPassword;
@@ -67,7 +68,7 @@ const UpdatePassword = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                disabled={loading}
+                disabled={isLoading}
                 minLength={6}
               />
               {password && !isValidPassword && (
@@ -81,7 +82,7 @@ const UpdatePassword = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                disabled={loading}
+                disabled={isLoading}
                 minLength={6}
               />
               {confirmPassword && !passwordsMatch && (
@@ -91,9 +92,9 @@ const UpdatePassword = () => {
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={loading || !canSubmit}
+              disabled={isLoading || !canSubmit}
             >
-              {loading ? "Updating..." : "Update Password"}
+              {isLoading ? "Updating..." : "Update Password"}
             </Button>
           </form>
         </CardContent>

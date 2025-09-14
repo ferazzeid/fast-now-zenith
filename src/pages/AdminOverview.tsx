@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AdminTierStats } from "@/components/AdminTierStats";
 import { ColorManagement } from "@/components/ColorManagement";
@@ -40,7 +41,6 @@ interface UsageStats {
 }
 
 const AdminOverview = () => {
-  const [loading, setLoading] = useState(true);
   const [usageStats, setUsageStats] = useState<UsageStats>({
     total_users: 0,
     active_users: 0,
@@ -52,14 +52,14 @@ const AdminOverview = () => {
   const [gaTrackingId, setGaTrackingId] = useState('');
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const { toast } = useToast();
+  const { isLoading, execute } = useStandardizedLoading();
 
   useEffect(() => {
     fetchAdminData();
   }, []);
 
   const fetchAdminData = async () => {
-    try {
-      setLoading(true);
+    await execute(async () => {
       
       // Fetch users from profiles table for stats only
       const { data: usersData, error: usersError } = await supabase
@@ -106,16 +106,17 @@ const AdminOverview = () => {
         setUsageStats(stats);
       }
 
-    } catch (error) {
-      console.error('Error fetching admin data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch admin data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      return usageStats;
+    }, {
+      onError: (error) => {
+        console.error('Error fetching admin data:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch admin data",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const saveApiKey = async () => {
@@ -193,7 +194,7 @@ const AdminOverview = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return null; // Let ProtectedRoute handle loading
   }
 

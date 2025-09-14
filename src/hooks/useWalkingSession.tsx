@@ -5,6 +5,7 @@ import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 import { estimateSteps } from '@/utils/stepEstimation';
 import { enqueueOperation } from '@/utils/outbox';
 import { persistWalkingSession, getPersistedWalkingSession } from '@/utils/timerPersistence';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface WalkingSession {
   id: string;
@@ -23,12 +24,12 @@ interface WalkingSession {
 
 export const useWalkingSession = () => {
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
-  const [loading, setLoading] = useState(false);
   const [selectedSpeed, setSelectedSpeed] = useState<number | null>(null); // Initialize as null to avoid race condition
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
   const { profile, calculateWalkingCalories } = useOptimizedProfile();
+  const { isLoading, execute } = useStandardizedLoading();
 
   const triggerRefresh = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,22 +9,23 @@ import { ArrowLeft, Mail } from 'lucide-react';
 
 const ResetPassword = () => {
   const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const { resetPassword } = useAuth();
   const navigate = useNavigate();
+  const { isLoading, execute } = useStandardizedLoading();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
-    const { error } = await resetPassword(email);
     
-    if (!error) {
+    const result = await execute(async () => {
+      const { error } = await resetPassword(email);
+      if (error) throw new Error(error.message);
+      return true;
+    });
+
+    if (result.success) {
       setSent(true);
     }
-    
-    setLoading(false);
   };
 
   if (sent) {
@@ -80,11 +82,11 @@ const ResetPassword = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={loading}
+                disabled={isLoading}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading || !email}>
-              {loading ? "Sending..." : "Send Reset Link"}
+            <Button type="submit" className="w-full" disabled={isLoading || !email}>
+              {isLoading ? "Sending..." : "Send Reset Link"}
             </Button>
           </form>
         </CardContent>
