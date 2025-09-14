@@ -169,12 +169,6 @@ All colors MUST be HSL.
     /* Frame background colors */
     --frame-background: 0 0% 75%;
     --warm-text: 0 0% 15%;
-
-    /* Metaverse timer colors - Light Mode */
-    --metaverse-bg: 220 15% 95% / 0.1;
-    --metaverse-border: 220 10% 80%;
-    --metaverse-magenta: 300 70% 60%;
-    --metaverse-green: 140 60% 50%;
   }
 
   .dark {
@@ -246,12 +240,6 @@ All colors MUST be HSL.
     /* Frame background colors for dark mode */
     --frame-background: 0 0% 6%;
     --warm-text: 0 0% 85%;
-
-    /* Metaverse timer colors - Dark Mode */
-    --metaverse-bg: 220 15% 15% / 0.2;
-    --metaverse-border: 220 10% 40%;
-    --metaverse-magenta: 300 70% 65%;
-    --metaverse-green: 140 60% 55%;
   }
 }
 

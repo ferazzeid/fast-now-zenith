@@ -253,7 +253,7 @@ export const FoodLibraryView = ({
       return;
     }
     
-    console.log('🔄 FoodLibrary: Adding food to today:', food.name);
+    // Adding food to today
     
     const userFood = 'variations' in food ? food : {
       ...food,
@@ -276,7 +276,7 @@ export const FoodLibraryView = ({
       return;
     }
     
-    console.log('🍽️ FoodLibrary - handleAddToTemplate called with:', food);
+    // Adding food to template
     
     try {
       const { data, error } = await supabase
@@ -297,7 +297,7 @@ export const FoodLibraryView = ({
         throw error;
       }
 
-      console.log('🍽️ FoodLibrary - handleAddToTemplate success:', data);
+      // Template addition successful
       
       toast({
         title: "Added to templates",
@@ -333,7 +333,7 @@ export const FoodLibraryView = ({
 
     // Check if we can perform database operations
     if (!isInteractionSafe) {
-      console.log('❤️ FoodLibrary - Database not ready or unsafe route, showing loading state');
+      // Database not ready, showing loading state
       toast({
         title: "Please wait",
         description: "System is loading, please try again in a moment"

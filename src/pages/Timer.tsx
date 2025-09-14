@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { CeramicTimer } from '@/components/CeramicTimer';
-import { MetaverseTimer } from '@/components/MetaverseTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { useTimerDesign } from '@/hooks/useTimerDesign';
 import { FastSelector } from '@/components/FastSelector';
@@ -62,7 +61,6 @@ const Timer = () => {
   const { fastingQuotesEnabled } = useQuoteDisplaySettings();
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
-  const { isAdmin } = useAccess();
   const { timerDesign } = useTimerDesign();
 
 
@@ -434,40 +432,21 @@ const Timer = () => {
         <div className="relative mb-12 mt-12">
           {currentMode === 'fasting' ? (
             <>
-              {timerDesign === 'metaverse' ? (
-                <MetaverseTimer
-                  progress={getProgress()}
-                  displayTime={getDisplayTime()}
-                  isActive={isRunning}
-                  showSlideshow={profile?.enable_fasting_slideshow ?? false}
-                  countDirection={countDirection}
-                  onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
-                  fastType={fastType}
-                  goalDuration={fastDuration / 3600}
-                  elapsedSeconds={timeElapsed}
-                  celebrationAnimation={celebration.isVisible ? {
-                    isActive: celebration.isVisible,
-                    type: celebration.animationType,
-                    onAnimationEnd: closeCelebration
-                  } : undefined}
-                />
-              ) : (
-                <CeramicTimer 
-                  progress={getProgress()}
-                  displayTime={getDisplayTime()}
-                  isActive={isRunning}
-                  showSlideshow={profile?.enable_fasting_slideshow ?? false}
-                  countDirection={countDirection}
-                  onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
-                  fastType={fastType}
-                  goalDuration={fastDuration / 3600}
-                  celebrationAnimation={celebration.isVisible ? {
-                    isActive: celebration.isVisible,
-                    type: celebration.animationType,
-                    onAnimationEnd: closeCelebration
-                  } : undefined}
-                />
-              )}
+              <CeramicTimer
+                progress={getProgress()}
+                displayTime={getDisplayTime()}
+                isActive={isRunning}
+                showSlideshow={profile?.enable_fasting_slideshow ?? false}
+                countDirection={countDirection}
+                onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
+                fastType={fastType}
+                goalDuration={fastDuration / 3600}
+                celebrationAnimation={celebration.isVisible ? {
+                  isActive: celebration.isVisible,
+                  type: celebration.animationType,
+                  onAnimationEnd: closeCelebration
+                } : undefined}
+              />
             </>
           ) : (
             <WalkingTimer

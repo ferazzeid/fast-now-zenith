@@ -1,14 +1,14 @@
 import { STATIC_COLORS, STATIC_ASSETS } from '@/utils/staticAssets';
 
-export type TimerDesign = 'ceramic' | 'metaverse';
+export type TimerDesign = 'ceramic';
 
 export const useTimerDesign = () => {
-  // Return static timer design - no database dependency
+  // Return static ceramic timer design only
   return {
     timerDesign: 'ceramic' as TimerDesign,
     isLoading: false,
     updateTimerDesign: () => {
-      console.log('Timer design is now static - no updates needed');
+      // Timer design is now static ceramic only
     },
     isUpdating: false,
   };

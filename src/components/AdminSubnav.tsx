@@ -8,7 +8,6 @@ const items = [
   { label: "AI", to: "/admin/ai" },
   { label: "Brand", to: "/admin/branding" },
   { label: "Pay", to: "/admin/payments" },
-  { label: "Dev", to: "/admin/dev" },
 ];
 
 export function AdminSubnav() {

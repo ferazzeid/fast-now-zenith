@@ -156,7 +156,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
             queryClient.removeQueries({ queryKey: fastingHoursKey });
             await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
             await queryClient.refetchQueries({ queryKey: fastingHoursKey });
-            console.log('🔄 TIMELINE REFRESH: Forced complete refresh after log save for hour', selectedHour);
+            // Timeline refresh after log save
           }}
          />
       )}
