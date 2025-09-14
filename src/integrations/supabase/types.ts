@@ -2182,6 +2182,7 @@ export type Database = {
         | "admin"
         | "free_full"
         | "free_food_only"
+        | "user"
       app_role: "admin" | "user"
       user_tier: "api_user" | "paid_user" | "granted_user" | "free_user"
     }
@@ -2318,6 +2319,7 @@ export const Constants = {
         "admin",
         "free_full",
         "free_food_only",
+        "user",
       ],
       app_role: ["admin", "user"],
       user_tier: ["api_user", "paid_user", "granted_user", "free_user"],
