@@ -17,10 +17,9 @@ interface FoodEntry {
 
 interface FoodStatsCardProps {
   entries: FoodEntry[];
-  onClearAll?: () => void;
 }
 
-export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries, onClearAll }) => {
+export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
   const { profile } = useProfile();
 
   // Calculate totals
@@ -51,24 +50,24 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries, onClearAl
 
   return (
     <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
-      {/* Clear All Button */}
-      {entries.length > 0 && onClearAll && (
-        <div className="absolute top-3 right-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
-            onClick={onClearAll}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
-      )}
-
       {/* Main Content */}
       <div className="flex flex-col justify-center items-center h-full space-y-4">
         {/* Statistics Grid */}
         <div className="grid grid-cols-2 gap-4 w-full">
+          {/* Calories Eaten */}
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-1 mb-1">
+              <Utensils className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Eaten</span>
+            </div>
+            <ClickableTooltip content={`Calories eaten: ${Math.round(consumedCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
+              <div className={`text-lg font-semibold ${getProgressColor(consumedCalories, dailyCalorieGoal)} cursor-pointer`}>
+                {Math.round(consumedCalories)}
+              </div>
+            </ClickableTooltip>
+            <div className="text-xs text-muted-foreground">cal</div>
+          </div>
+
           {/* Calories Planned */}
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
@@ -83,26 +82,18 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries, onClearAl
             <div className="text-xs text-muted-foreground">cal</div>
           </div>
 
-          {/* Calories Consumed */}
+          {/* Carbs Eaten */}
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
-              <Flame className="w-4 h-4 text-muted-foreground" />
+              <Utensils className="w-4 h-4 text-muted-foreground" />
               <span className="text-xs text-muted-foreground">Eaten</span>
             </div>
-            <ClickableTooltip content={`Calories eaten: ${Math.round(consumedCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
-              <div className={`text-lg font-semibold ${getProgressColor(consumedCalories, dailyCalorieGoal)} cursor-pointer`}>
-                {Math.round(consumedCalories)}
+            <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
+              <div className={`text-lg font-semibold ${getProgressColor(consumedCarbs, dailyCarbGoal)} cursor-pointer`}>
+                {Math.round(consumedCarbs)}
               </div>
             </ClickableTooltip>
-            <div className="text-xs text-muted-foreground">cal</div>
-            <div className="mt-1 w-full">
-              <div className="w-full bg-secondary/30 rounded-full h-1.5">
-                <div 
-                  className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(consumedCalories, dailyCalorieGoal)}`}
-                  style={{ width: `${calorieProgress}%` }}
-                />
-              </div>
-            </div>
+            <div className="text-xs text-muted-foreground">g carbs</div>
           </div>
 
           {/* Carbs Planned */}
@@ -117,28 +108,6 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries, onClearAl
               </div>
             </ClickableTooltip>
             <div className="text-xs text-muted-foreground">g carbs</div>
-          </div>
-
-          {/* Carbs Consumed */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Utensils className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Eaten</span>
-            </div>
-            <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
-              <div className={`text-lg font-semibold ${getProgressColor(consumedCarbs, dailyCarbGoal)} cursor-pointer`}>
-                {Math.round(consumedCarbs)}
-              </div>
-            </ClickableTooltip>
-            <div className="text-xs text-muted-foreground">g carbs</div>
-            <div className="mt-1 w-full">
-              <div className="w-full bg-secondary/30 rounded-full h-1.5">
-                <div 
-                  className={`h-1.5 rounded-full transition-all duration-300 ${getProgressBarColor(consumedCarbs, dailyCarbGoal)}`}
-                  style={{ width: `${carbProgress}%` }}
-                />
-              </div>
-            </div>
           </div>
         </div>
 

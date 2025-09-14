@@ -178,6 +178,8 @@ const FoodTracking = () => {
                 subtitle="Track your food intake"
                 onHistoryClick={() => navigate('/food-history')}
                 historyTitle="View food history"
+                onMyFoodsClick={() => navigate('/my-foods')}
+                myFoodsTitle="Browse food library"
                 showAuthorTooltip={true}
                 authorTooltipContentKey="food_tracking_insights"
                 authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
@@ -186,16 +188,13 @@ const FoodTracking = () => {
               {/* Food Statistics Card */}
               <div className="mb-6">
                 <ComponentErrorBoundary>
-                  <FoodStatsCard 
-                    entries={todayEntries} 
-                    onClearAll={() => setShowClearAllDialog(true)}
-                  />
+                  <FoodStatsCard entries={todayEntries} />
                 </ComponentErrorBoundary>
               </div>
 
-              {/* Action Buttons - Three Column Layout */}
-              <div className="mb-6 grid grid-cols-3 gap-4">
-                <div className="col-span-1 flex flex-col items-center gap-1">
+              {/* Action Buttons - Two Column Layout */}
+              <div className="mb-6 grid grid-cols-2 gap-6">
+                <div className="flex flex-col items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DirectPhotoCaptureButton onFoodAdded={handlePhotoCapture} />
@@ -204,10 +203,9 @@ const FoodTracking = () => {
                       <p>Take a photo to automatically detect food and nutrition</p>
                     </TooltipContent>
                   </Tooltip>
-                  <span className="text-xs text-muted-foreground">Add Food</span>
                 </div>
 
-                <div className="col-span-1 flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DirectVoiceFoodInput onFoodAdded={handleSaveUnifiedEntry} />
@@ -216,27 +214,6 @@ const FoodTracking = () => {
                       <p>Use voice to add food with AI assistance</p>
                     </TooltipContent>
                   </Tooltip>
-                  <span className="text-xs text-muted-foreground">Add Food</span>
-                </div>
-
-                <div className="col-span-1 flex flex-col items-center gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="action-secondary"
-                        size="action-tall"
-                        className="w-full flex items-center justify-center"
-                        onClick={() => navigate('/my-foods')}
-                        aria-label="Browse food library"
-                      >
-                        <BookOpen className="w-11 h-11" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Browse and select from your saved food library</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <span className="text-xs text-muted-foreground">My Foods</span>
                 </div>
               </div>
 
@@ -394,6 +371,21 @@ const FoodTracking = () => {
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Clear All Button - positioned at the bottom right */}
+                      {todayEntries.length > 0 && (
+                        <div className="flex justify-end mt-4 pr-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-3"
+                            onClick={() => setShowClearAllDialog(true)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Clear All
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { HistoryButton } from '@/components/HistoryButton';
+import { MyFoodsButton } from '@/components/MyFoodsButton';
 import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 import { ReactNode } from 'react';
 
@@ -9,6 +10,8 @@ interface ResponsivePageHeaderProps {
   leftButton?: ReactNode;
   onHistoryClick?: () => void;
   historyTitle?: string;
+  onMyFoodsClick?: () => void;
+  myFoodsTitle?: string;
   showAuthorTooltip?: boolean;
   authorTooltipContent?: string;
   authorTooltipContentKey?: string;
@@ -21,6 +24,8 @@ export const ResponsivePageHeader = ({
   leftButton,
   onHistoryClick,
   historyTitle = "View past entries",
+  onMyFoodsClick,
+  myFoodsTitle = "Browse food library",
   showAuthorTooltip = false,
   authorTooltipContent,
   authorTooltipContentKey,
@@ -53,9 +58,14 @@ export const ResponsivePageHeader = ({
           <h1 className="text-2xl font-bold text-foreground">
             {title}
           </h1>
-          {onHistoryClick && (
-            <HistoryButton onClick={onHistoryClick} title={historyTitle} />
-          )}
+          <div className="flex items-center gap-2">
+            {onHistoryClick && (
+              <HistoryButton onClick={onHistoryClick} title={historyTitle} />
+            )}
+            {onMyFoodsClick && (
+              <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground text-left">{subtitle}</p>
       </div>
