@@ -4,7 +4,6 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { CancellationTracker } from "@/components/CancellationTracker";
 import { AdminTierStats } from "@/components/AdminTierStats";
-import { UserRequestLimits } from "@/components/UserRequestLimits";
 
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
@@ -34,10 +33,6 @@ export default function AdminOperations() {
 
         <section aria-label="Cancellation tracking">
           <CancellationTracker />
-        </section>
-
-        <section aria-label="User request limits">
-          <UserRequestLimits />
         </section>
 
         <section aria-label="User tiers overview">

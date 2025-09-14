@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { OpenAIApiStats } from "@/components/OpenAIApiStats";
+import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -87,6 +88,10 @@ export default function AdminAI() {
 
         <section aria-label="OpenAI API configuration">
           <SharedKeySettings />
+        </section>
+
+        <section aria-label="AI request limits">
+          <UserRequestLimits />
         </section>
 
         <section aria-label="OpenAI API statistics">
