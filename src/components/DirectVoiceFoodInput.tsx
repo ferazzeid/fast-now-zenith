@@ -339,17 +339,17 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
         <Button 
           variant="action-secondary"
           size="start-button"
-          className={cn(
-            "w-full h-full flex items-center justify-center transition-colors",
-            voiceState === 'listening'
-              ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
-              : voiceState === 'processing' 
-                ? 'bg-ai hover:bg-ai/90 text-white'
-                : hasAccess 
-                  ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
-                  : 'bg-ai/50 text-ai-foreground opacity-50',
-            voiceState !== 'listening' ? getButtonStyles() : ''
-          )}
+            className={cn(
+              "w-full h-full flex items-center justify-center transition-colors",
+              voiceState === 'listening'
+                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                : voiceState === 'processing' 
+                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                  : hasAccess 
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                    : 'bg-primary/50 text-primary-foreground opacity-50',
+              voiceState !== 'listening' ? getButtonStyles() : ''
+            )}
           onClick={handleButtonClick}
           disabled={voiceState === 'processing'}
           title={hasAccess ? "AI Voice Assistant" : "AI Voice Assistant (Premium Feature)"}

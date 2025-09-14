@@ -281,10 +281,10 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         size="start-button"
         className={`w-full flex items-center justify-center transition-colors ${
           isUploading || uploadState === 'analyzing'
-            ? 'bg-ai hover:bg-ai/90 text-white'
+            ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
             : canUseAIAnalysis 
-              ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
-              : 'bg-ai/50 text-ai-foreground opacity-50'
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+              : 'bg-primary/50 text-primary-foreground opacity-50'
         }`}
         onClick={handleCameraClick}
         disabled={isUploading || uploadState === 'analyzing'}

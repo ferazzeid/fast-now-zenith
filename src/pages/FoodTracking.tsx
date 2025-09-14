@@ -377,23 +377,27 @@ const FoodTracking = () => {
                               >
                                 <Check className="w-3 h-3" />
                               </Button>
-                              
-                              {/* Delete Button - at the same level as tick boxes */}
-                              {todayEntries.length > 0 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-5 w-5 p-1"
-                                  onClick={() => setShowClearAllDialog(true)}
-                                  title="Delete all foods"
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              )}
                             </div>
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Delete All Button - Outside food entries, aligned with checkboxes */}
+                      {todayEntries.length > 0 && (
+                        <div className="flex justify-start mt-2">
+                          <div className="w-7"></div> {/* Spacer to align with checkboxes */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-1"
+                            onClick={() => setShowClearAllDialog(true)}
+                            title="Delete all foods"
+                            aria-label="Delete all foods"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
