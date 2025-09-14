@@ -13,20 +13,24 @@ const APP_SHELL_URLS = [
   '/icon-512.png'
 ];
 
-// Critical data endpoints to preload during installation
+// Critical data endpoints to preload during installation - Enhanced for mobile
 const CRITICAL_DATA_ENDPOINTS = [
-  // Default foods - essential for food tracking (MUST match the exact URL used in app)
+  // Default foods - essential for food tracking
   'https://texnkijwcygodtywgedm.supabase.co/rest/v1/default_foods?select=*&order=name',
-  // App settings and global configuration
+  // App settings and global configuration - including colors
   'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=*',
+  // Color settings specifically for immediate UI
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=setting_key,setting_value&setting_key=in.(brand_primary_color,brand_primary_hover,brand_accent_color,brand_ai_color,chat_ai_color,chat_user_color)',
   // System motivators
-  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=setting_value&eq.setting_key=predefined_motivators'
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=setting_value&setting_key=eq.predefined_motivators',
+  // SEO settings for mobile
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=setting_key,setting_value&setting_key=in.(seo_index_homepage,seo_index_other_pages)'
 ];
 
-// Headers for Supabase requests
+// Headers for Supabase requests - Updated to match client API key
 const SUPABASE_HEADERS = {
-  'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2ODEzMzEsImV4cCI6MjA1MjI1NzMzMX0.vQx8rOKT2jnLxKGRdz4T8zPFqWrUhgFKSRvZqOKfZQE',
-  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2ODEzMzEsImV4cCI6MjA1MjI1NzMzMX0.vQx8rOKT2jnLxKGRdz4T8zPFqWrUhgFKSRvZqOKfZQE',
+  'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
+  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI',
   'Content-Type': 'application/json'
 };
 
@@ -68,12 +72,26 @@ self.addEventListener('install', (event) => {
             if (response.ok) {
               const data = await response.text();
               console.log(`📊 Response size: ${data.length} bytes for ${endpoint}`);
+              
+              // Store both response and metadata for better cache management
               await dataCache.put(endpoint, new Response(data, {
                 status: response.status,
                 statusText: response.statusText,
-                headers: response.headers
+                headers: {
+                  ...Object.fromEntries(response.headers),
+                  'x-cached-at': new Date().toISOString(),
+                  'x-cache-source': 'service-worker-install'
+                }
               }));
               console.log(`✅ Cached: ${endpoint}`);
+            } else {
+              console.warn(`⚠️  Failed to preload ${endpoint}: ${response.status}`);
+            }
+          } catch (error) {
+            console.error(`❌ Error preloading ${endpoint}:`, error);
+            // Don't let individual endpoint failures break the entire install
+          }
+        });
             } else {
               console.warn(`⚠️  Failed to cache ${endpoint}: ${response.status} ${response.statusText}`);
             }

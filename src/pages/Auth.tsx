@@ -39,7 +39,6 @@ const Auth = () => {
       <LoadingSpinner 
         text="Connecting..."
         subText="Loading your account"
-        showLogo={false}
       />
     );
   }

@@ -16,14 +16,14 @@ if (process.env.NODE_ENV === 'production') {
   // Keep console.error and console.warn for debugging critical issues
 }
 
-// Defer heavy operations to not block initial render
+// Defer heavy operations to not block initial render - enhanced for mobile
 setTimeout(() => {
-  // Initialize offline storage after app renders
+  // Initialize offline storage immediately for mobile performance
   initOfflineStorage();
   
   // Initialize PWA features conditionally (web only, never in native)
   conditionalPWAInit();
-}, 100);
+}, 50); // Reduced delay for mobile responsiveness
 
 // Simplified App wrapper - no dynamic loading during startup
 const SimplifiedApp = () => {

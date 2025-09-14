@@ -148,10 +148,12 @@ class InstallationManager {
       const cache = await caches.open('fastnow-data-v1757846000000');
       const keys = await cache.keys();
       
-      // Check if we have the essential endpoints cached
+      // Check if we have the essential endpoints cached - expanded for mobile
       const essentialEndpoints = [
         'default_foods',
-        'shared_settings'
+        'shared_settings', 
+        'brand_primary_color', // Color data is critical for UI
+        'predefined_motivators'
       ];
 
       const cachedUrls = keys.map(req => req.url);
@@ -162,7 +164,8 @@ class InstallationManager {
       console.log('Offline data availability check:', {
         hasEssentialData,
         cachedEndpoints: cachedUrls.length,
-        essentialEndpoints
+        essentialEndpoints,
+        cachedUrls: cachedUrls.map(url => url.split('/').pop()).slice(0, 10) // Show first 10 for debugging
       });
 
       return hasEssentialData;

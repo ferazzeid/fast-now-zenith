@@ -107,7 +107,7 @@ const AppContent = () => {
   }, [initialize]);
   
   // Load colors immediately without authentication dependency (critical for UI)
-  const { loading: colorLoading } = useColorTheme(true);
+  const { loading: colorLoading } = useColorTheme();
 
 
   // Hide navigation on auth routes

@@ -11,16 +11,12 @@ interface ColorSettings {
   chat_user_color?: string;
 }
 
-export const useColorTheme = (shouldLoad: boolean = true) => {
+export const useColorTheme = () => {
   const [colorSettings, setColorSettings] = useState<ColorSettings>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const loadColors = async () => {
-    // Skip loading if we shouldn't load yet (during startup)
-    if (!shouldLoad) {
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
     
     try {
       const { data, error } = await supabase
@@ -163,11 +159,11 @@ export const useColorTheme = (shouldLoad: boolean = true) => {
       applyNeutralDefaults();
     }
     
-    // Load fresh colors from database when ready
-    if (shouldLoad) {
+    // Always try to load fresh colors from database (no auth dependency)
+    setTimeout(() => {
       loadColors();
-    }
-  }, [shouldLoad]);
+    }, 100);
+  }, []);
 
   return { colorSettings, loading, loadColors, applyColors };
 };
