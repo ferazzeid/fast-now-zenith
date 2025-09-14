@@ -94,7 +94,7 @@ const SquareTimerComponent = ({
         <div className="w-full space-y-4">
           
           {/* Main Timer Card */}
-          <Card className="p-6 text-center relative overflow-hidden">
+          <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
             {/* Unified motivator rotation (images + titles) */}
             {showSlideshow && isActive && (
               <div className="absolute inset-0 rounded-lg overflow-hidden">
@@ -132,7 +132,7 @@ const SquareTimerComponent = ({
             {/* Main time display */}
             <div 
               className={cn(
-                "mb-4 transition-opacity duration-1000 relative flex flex-col justify-center items-center",
+                "mb-2 transition-opacity duration-1000 relative flex flex-col justify-center items-center",
                 motivatorMode === 'motivator-focused' ? 'opacity-0 pointer-events-none' : 'opacity-100'
               )}
               style={{ zIndex: 13 }}
