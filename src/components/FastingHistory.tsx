@@ -36,8 +36,7 @@ interface FastingHistoryProps {
 }
 
 export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
-  const [sessions, setSessions] = useState<FastingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sessions, isLoading, execute, setData } = useStandardizedLoading<FastingSession[]>([]);
   const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -121,8 +120,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
   const loadFastingHistory = async (offsetValue = 0, append = false) => {
     if (!user) return;
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       console.log('Loading fasting history for user:', user.id);
       const { data: fastingSessions, error } = await supabase
         .from('fasting_sessions')
@@ -147,14 +145,13 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       if (append) {
         const currentData = sessions || [];
         const newData = [...currentData, ...typedSessions];
+        setHasMore((fastingSessions?.length || 0) === ITEMS_PER_PAGE);
         return newData;
       } else {
         setHasMore((fastingSessions?.length || 0) === ITEMS_PER_PAGE);
         return typedSessions;
       }
-    } catch (error) {
-      console.error('Error in loadFastingHistory:', error);
-    }
+    });
   };
 
   const loadMore = () => {
@@ -184,8 +181,10 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
 
       if (error) throw error;
 
-      const updatedSessions = sessions?.filter(s => s.id !== sessionId) || [];
-      return updatedSessions;
+      await execute(async () => {
+        const updatedSessions = sessions?.filter(s => s.id !== sessionId) || [];
+        return updatedSessions;
+      });
 
       toast({
         title: "Session deleted",
