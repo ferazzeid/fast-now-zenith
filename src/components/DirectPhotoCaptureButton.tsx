@@ -278,7 +278,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     <>
       <Button 
         variant="action-secondary"
-        size="action-tall"
+        size="start-button"
         className={`w-full flex items-center justify-center transition-colors ${
           isUploading || uploadState === 'analyzing'
             ? 'bg-ai hover:bg-ai/90 text-white'

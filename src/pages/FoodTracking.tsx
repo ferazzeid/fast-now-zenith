@@ -10,7 +10,6 @@ import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { FoodHistory } from '@/components/FoodHistory';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
@@ -35,7 +34,6 @@ const FoodTracking = () => {
   const navigate = useNavigate();
   const [consumedNow, setConsumedNow] = useState(true);
   const [editingEntry, setEditingEntry] = useState<any>(null);
-  const [showHistory, setShowHistory] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
@@ -52,7 +50,6 @@ const FoodTracking = () => {
   // Close modals when navigating to auth routes to prevent OAuth interaction errors
   useEffect(() => {
     if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
-      setShowHistory(false);
       setShowUnifiedEntry(false);
       setShowOnboarding(false);
     }
@@ -361,11 +358,15 @@ const FoodTracking = () => {
                                 size="sm"
                                 variant="default"
                                 onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                                className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                                className={`h-5 w-5 p-1 rounded ${
+                                  entry.consumed 
+                                    ? 'bg-muted hover:bg-muted/90 text-muted-foreground' 
+                                    : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                                }`}
                                 title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
                                 aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
                               >
-                                <Check className="w-3 h-3 text-primary-foreground" />
+                                <Check className="w-3 h-3" />
                               </Button>
                             </div>
                           </div>
@@ -436,23 +437,6 @@ const FoodTracking = () => {
                 onSave={handleSaveUnifiedEntry}
               />
 
-              {/* Food History - Direct component, not a modal */}
-              {showHistory && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                  <div className="bg-background rounded-lg max-w-md w-full max-h-[90vh] overflow-hidden">
-                    <FoodHistory 
-                      onClose={() => setShowHistory(false)}
-                      onCopySuccess={() => {
-                        setShowHistory(false);
-                        toast({
-                          title: "Foods Copied",
-                          description: "Foods have been added to today"
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
 
               {/* Page Onboarding Modal */}
               <PageOnboardingModal

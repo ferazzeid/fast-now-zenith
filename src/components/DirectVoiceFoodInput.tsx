@@ -338,7 +338,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
       <div className="relative w-full h-full">
         <Button 
           variant="action-secondary"
-          size="action-tall"
+          size="start-button"
           className={cn(
             "w-full h-full flex items-center justify-center transition-colors",
             voiceState === 'listening'

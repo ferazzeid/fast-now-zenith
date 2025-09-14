@@ -52,22 +52,55 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
     <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
       {/* Main Content */}
       <div className="flex flex-col justify-center items-center h-full space-y-4">
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-2 gap-4 w-full">
+        {/* Top Row - Eaten (Large Numbers) */}
+        <div className="grid grid-cols-2 gap-4 w-full mb-4">
           {/* Calories Eaten */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Utensils className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Eaten</span>
-            </div>
             <ClickableTooltip content={`Calories eaten: ${Math.round(consumedCalories)} | Daily goal: ${Math.round(dailyCalorieGoal)}`}>
-              <div className={`text-lg font-semibold ${getProgressColor(consumedCalories, dailyCalorieGoal)} cursor-pointer`}>
+              <div 
+                className="text-4xl font-mono font-bold text-warm-text mb-1 tracking-wide cursor-pointer"
+                style={{ 
+                  fontFeatureSettings: '"tnum" 1',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                }}
+              >
                 {Math.round(consumedCalories)}
               </div>
             </ClickableTooltip>
-            <div className="text-xs text-muted-foreground">cal</div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Utensils className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Eaten</span>
+              </div>
+              <span className="text-xs text-foreground">calories</span>
+            </div>
           </div>
 
+          {/* Carbs Eaten */}
+          <div className="text-center">
+            <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
+              <div 
+                className="text-4xl font-mono font-bold text-warm-text mb-1 tracking-wide cursor-pointer"
+                style={{ 
+                  fontFeatureSettings: '"tnum" 1',
+                  textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                }}
+              >
+                {Math.round(consumedCarbs)}
+              </div>
+            </ClickableTooltip>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Utensils className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Eaten</span>
+              </div>
+              <span className="text-xs text-foreground">g carbs</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Row - Planned (Current Size) */}
+        <div className="grid grid-cols-2 gap-4 w-full">
           {/* Calories Planned */}
           <div className="text-center">
             <div className="flex items-center justify-center gap-1 mb-1">
@@ -80,20 +113,6 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
               </div>
             </ClickableTooltip>
             <div className="text-xs text-muted-foreground">cal</div>
-          </div>
-
-          {/* Carbs Eaten */}
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Utensils className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Eaten</span>
-            </div>
-            <ClickableTooltip content={`Carbs eaten: ${Math.round(consumedCarbs)}g | Daily goal: ${Math.round(dailyCarbGoal)}g`}>
-              <div className={`text-lg font-semibold ${getProgressColor(consumedCarbs, dailyCarbGoal)} cursor-pointer`}>
-                {Math.round(consumedCarbs)}
-              </div>
-            </ClickableTooltip>
-            <div className="text-xs text-muted-foreground">g carbs</div>
           </div>
 
           {/* Carbs Planned */}
