@@ -145,26 +145,6 @@ export const GooglePlayConfigPanel: React.FC = () => {
         </div>
 
         <div className="space-y-3">
-          <div className="p-4 bg-muted rounded-lg">
-            <h4 className="text-sm font-medium mb-2">Setup Instructions:</h4>
-            <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-              <li>Go to Google Cloud Console</li>
-              <li>Enable Google Play Developer API</li>
-              <li>Create a service account</li>
-              <li>Download the JSON key file</li>
-              <li>Add service account email to Google Play Console</li>
-              <li>Paste the JSON content below</li>
-            </ol>
-            <Button
-              variant="link"
-              className="p-0 h-auto text-xs"
-              onClick={() => window.open('https://developers.google.com/android-publisher/getting_started', '_blank')}
-            >
-              <ExternalLink className="w-3 h-3 mr-1" />
-              View Full Documentation
-            </Button>
-          </div>
-
           <div className="space-y-2">
             <label className="text-sm font-medium">Service Account JSON</label>
             <Textarea
@@ -202,13 +182,6 @@ export const GooglePlayConfigPanel: React.FC = () => {
               Test Config
             </Button>
           </div>
-        </div>
-
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            <strong>Security Note:</strong> Service account keys are encrypted and stored securely. 
-            Never share these keys or commit them to version control.
-          </p>
         </div>
       </CardContent>
     </Card>
