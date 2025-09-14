@@ -7,7 +7,7 @@ import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
-import { CeramicTimer } from '@/components/CeramicTimer';
+import { SquareTimer } from '@/components/SquareTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
 import { useTimerDesign } from '@/hooks/useTimerDesign';
 import { FastSelector } from '@/components/FastSelector';
@@ -446,20 +446,30 @@ const Timer = () => {
         <div className="relative mb-12 mt-12">
           {currentMode === 'fasting' ? (
             <>
-              <CeramicTimer
+              <SquareTimer
                 progress={getProgress()}
                 displayTime={getDisplayTime()}
                 isActive={isRunning}
-                showSlideshow={profile?.enable_fasting_slideshow ?? false}
+                onStart={() => setShowFastSelector(true)}
+                onStop={() => {
+                  setStopAction('finish');
+                  setShowStopConfirmDialog(true);
+                }}
+                onCancel={() => {
+                  setStopAction('cancel');
+                  setShowStopConfirmDialog(true);
+                }}
                 countDirection={countDirection}
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
                 fastType={fastType}
-                goalDuration={fastDuration / 3600}
+                goalDuration={fastDuration}
+                showSlideshow={profile?.enable_fasting_slideshow ?? false}
                 celebrationAnimation={celebration.isVisible ? {
                   isActive: celebration.isVisible,
-                  type: celebration.animationType,
+                  type: celebration.animationType as any,
                   onAnimationEnd: closeCelebration
                 } : undefined}
+                startTime={fastingSession?.start_time}
               />
             </>
           ) : (
@@ -476,69 +486,6 @@ const Timer = () => {
         </div>
 
 
-
-        {/* Control Buttons - Only show for fasting mode */}
-        {currentMode === 'fasting' && (
-          <div className="space-y-4">
-            
-            {!isRunning ? (
-              <div className="space-y-3">
-                <Button 
-                  onClick={() => setShowFastSelector(true)}
-                  variant="action-primary"
-                  size="start-button"
-                  className="w-full"
-                >
-                  <Play className="w-8 h-8 mr-3" />
-                  Start Fasting
-                </Button>
-              </div>
-            ) : (
-              <TooltipProvider>
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Cancel Fast Button */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setStopAction('cancel');
-                          setShowStopConfirmDialog(true);
-                        }}
-                        variant="outline"
-                        size="action-main"
-                      >
-                        <X className="w-5 h-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Cancel your fast without saving it to history</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {/* Finish Fast Button */}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        onClick={() => {
-                          setStopAction('finish');
-                          setShowStopConfirmDialog(true);
-                        }}
-                        variant="action-primary"
-                        size="action-main"
-                      >
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                        Finish
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Complete your fast and save it to history</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-              </TooltipProvider>
-            )}
-          </div>
-        )}
 
         {/* Inspirational Content */}
         {profile?.enable_fasting_slideshow && fastingQuotesEnabled ? (
