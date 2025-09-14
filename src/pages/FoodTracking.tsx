@@ -26,6 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { trackFoodEvent } from '@/utils/analytics';
 import { CompactFoodSummary } from '@/components/CompactFoodSummary';
+import { FoodStatsCard } from '@/components/FoodStatsCard';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { AccessGate } from '@/components/AccessGate';
 
@@ -182,6 +183,16 @@ const FoodTracking = () => {
                 authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
               />
 
+              {/* Food Statistics Card */}
+              <div className="mb-6">
+                <ComponentErrorBoundary>
+                  <FoodStatsCard 
+                    entries={todayEntries} 
+                    onClearAll={() => setShowClearAllDialog(true)}
+                  />
+                </ComponentErrorBoundary>
+              </div>
+
               {/* Action Buttons - Three Column Layout */}
               <div className="mb-6 grid grid-cols-3 gap-4">
                 <div className="col-span-1 flex flex-col items-center gap-1">
@@ -229,26 +240,6 @@ const FoodTracking = () => {
                 </div>
               </div>
 
-              {/* Header with Inline Summary */}
-              <div className="bg-muted p-3 rounded-md mb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <ComponentErrorBoundary>
-                      <CompactFoodSummary entries={todayEntries} />
-                    </ComponentErrorBoundary>
-                  </div>
-                  {todayEntries.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive/80"
-                      onClick={() => setShowClearAllDialog(true)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
 
               {/* Food List */}
               <div className="space-y-6">
