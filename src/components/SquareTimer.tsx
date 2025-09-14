@@ -206,7 +206,7 @@ const SquareTimerComponent = ({
                       className="w-full"
                     >
                       <CheckCircle className="w-5 h-5 mr-2" />
-                      Finish Fast
+                      Finish
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent collisionPadding={16}>
@@ -217,88 +217,6 @@ const SquareTimerComponent = ({
             </div>
           )}
 
-          {/* Statistics Cards - only show when active */}
-          {isActive && progressStats && (
-            <div className="space-y-3">
-              {/* Progress & Next Milestone Row */}
-              <div className="grid grid-cols-2 gap-3">
-                <Card className="p-3 relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <Activity className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-warm-text">Progress</span>
-                    </div>
-                    <div className={`w-3 h-3 rounded-full ${isActive && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive ? 'bg-accent' : 'bg-muted'}`} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xl font-bold text-foreground">
-                      {progressStats.progressPercent}%
-                    </div>
-                    <ClickableTooltip content="Progress toward your fasting goal based on elapsed time.">
-                      <Activity className="w-4 h-4 text-muted-foreground" />
-                    </ClickableTooltip>
-                  </div>
-                </Card>
-
-                <Card className="p-3 relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-warm-text">Next Goal</span>
-                    </div>
-                    <div className={`w-3 h-3 rounded-full ${isActive && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive ? 'bg-accent' : 'bg-muted'}`} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xl font-bold text-foreground">
-                      {progressStats.nextMilestone}h
-                    </div>
-                    <ClickableTooltip content="Next hourly milestone in your fasting journey.">
-                      <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                    </ClickableTooltip>
-                  </div>
-                </Card>
-              </div>
-
-              {/* Time Stats Row */}
-              <div className="grid grid-cols-2 gap-3">
-                <Card className="p-3 relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-warm-text">Elapsed</span>
-                    </div>
-                    <div className={`w-3 h-3 rounded-full ${isActive && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive ? 'bg-accent' : 'bg-muted'}`} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xl font-bold text-foreground">
-                      {progressStats.elapsedHours}h
-                    </div>
-                    <ClickableTooltip content="Total hours fasted so far.">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                    </ClickableTooltip>
-                  </div>
-                </Card>
-
-                <Card className="p-3 relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center space-x-2">
-                      <Activity className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-warm-text">Remaining</span>
-                    </div>
-                    <div className={`w-3 h-3 rounded-full ${isActive && !isAnimationsSuspended ? 'bg-accent animate-pulse' : isActive ? 'bg-accent' : 'bg-muted'}`} />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-xl font-bold text-foreground">
-                      {progressStats.remainingHours}h
-                    </div>
-                    <ClickableTooltip content="Hours remaining to reach your fasting goal.">
-                      <Activity className="w-4 h-4 text-muted-foreground" />
-                    </ClickableTooltip>
-                  </div>
-                </Card>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Start Button - only shown when not active */}
