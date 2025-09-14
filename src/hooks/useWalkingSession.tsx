@@ -24,7 +24,7 @@ interface WalkingSession {
 
 export const useWalkingSession = () => {
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
-  const [selectedSpeed, setSelectedSpeed] = useState<number | null>(null); // Initialize as null to avoid race condition
+  const [selectedSpeed, setSelectedSpeed] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
@@ -38,194 +38,114 @@ export const useWalkingSession = () => {
   const loadActiveSession = useCallback(async () => {
     if (!user) return;
     
-    setLoading(true);
-    try {
+    await execute(async () => {
+      // Try to get from server first
       const { data, error } = await supabase
         .from('walking_sessions')
         .select('*')
         .eq('user_id', user.id)
-        .eq('status', 'active')
+        .in('status', ['active', 'paused'])
         .order('start_time', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) {
-        console.error('Error loading active walking session:', error);
-        // Don't clear state on error - fall back to persisted data
-        const persistedSession = getPersistedWalkingSession();
-        if (persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
-          setCurrentSession(persistedSession);
-          setIsPaused(persistedSession.session_state === 'paused');
-        }
-        return;
+        console.error('Error loading walking session:', error);
+        // Don't throw - fall back to persisted session
       }
 
-      const session = data || null;
-      setCurrentSession(session);
-      setIsPaused(session?.session_state === 'paused');
+      const serverSession = data as WalkingSession || null;
+      setCurrentSession(serverSession);
       
+      // Check if session is paused
+      if (serverSession?.session_state === 'paused') {
+        setIsPaused(true);
+      } else {
+        setIsPaused(false);
+      }
+
       // Persist to local storage for offline fallback
-      if (session) {
+      if (serverSession) {
         persistWalkingSession({
-          id: session.id,
-          user_id: session.user_id,
-          start_time: session.start_time,
-          status: session.status,
-          speed_mph: session.speed_mph,
-          session_state: session.session_state,
-          pause_start_time: session.pause_start_time,
-          total_pause_duration: session.total_pause_duration,
+          id: serverSession.id,
+          start_time: serverSession.start_time,
+          status: serverSession.status,
+          user_id: serverSession.user_id,
+          speed_mph: serverSession.speed_mph,
+          session_state: serverSession.session_state,
         });
       }
-    } catch (error) {
-      console.error('Error loading active walking session:', error);
+
       // Fall back to persisted session if network fails
       const persistedSession = getPersistedWalkingSession();
-      if (persistedSession && persistedSession.user_id === user.id && persistedSession.status === 'active') {
-        setCurrentSession(persistedSession);
-        setIsPaused(persistedSession.session_state === 'paused');
+      if (!serverSession && persistedSession && persistedSession.user_id === user.id && ['active', 'paused'].includes(persistedSession.status)) {
+        setCurrentSession(persistedSession as WalkingSession);
       }
-    } finally {
-      setLoading(false);
+      
+      return serverSession;
+    });
+  }, [user, execute]);
+
+  // Load active session on mount
+  useEffect(() => {
+    if (user) {
+      loadActiveSession();
+    } else {
+      setCurrentSession(null);
     }
-  }, [user]);
+  }, [user, loadActiveSession]);
 
-  const startWalkingSession = useCallback(async (speedMph?: number): Promise<{data: any, error: any}> => {
-    if (!user) return { error: { message: 'User not authenticated' }, data: null };
+  const startWalkingSession = useCallback(async () => {
+    if (!user) return null;
 
-    // Use provided speed, or selectedSpeed, or fall back to 3
-    const speed = speedMph || selectedSpeed || 3;
-    const startTimeIso = new Date().toISOString();
-    
-    console.log('Starting walking session with speed:', { speedMph, selectedSpeed, finalSpeed: speed });
-    
-    // Create optimistic session immediately for instant UI feedback
-    const optimisticSession: WalkingSession = {
-      id: `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      user_id: user.id,
-      start_time: startTimeIso,
-      status: 'active',
-      session_state: 'active',
-      total_pause_duration: 0,
-      speed_mph: speed,
-    };
+    return await execute(async () => {
+      // End any existing active sessions first
+      await supabase
+        .from('walking_sessions')
+        .update({ 
+          status: 'cancelled',
+          end_time: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
+        .in('status', ['active', 'paused']);
 
-    // Set optimistic state immediately
-    setCurrentSession(optimisticSession);
-    if (selectedSpeed === null) {
-      setSelectedSpeed(speed); // Initialize selectedSpeed if it's null
-    }
-    setIsPaused(false);
-
-    const offlineStart = async () => {
-      // Update optimistic session with proper offline ID
-      const localId = `local-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const localSession = { ...optimisticSession, id: localId };
-      setCurrentSession(localSession);
-
-      // Enqueue start op
-      await enqueueOperation({
-        entity: 'walking_session',
-        action: 'start',
-        user_id: user.id,
-        payload: {
-          local_id: localId,
-          start_time: startTimeIso,
-          speed_mph: speed,
-          status: 'active',
-          session_state: 'active',
-          total_pause_duration: 0,
-        },
-      });
-      return { data: localSession, error: null };
-    };
-
-    setLoading(true);
-    try {
-      // If offline, handle offline flow
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        const res = await offlineStart();
-        return res;
-      }
-
-      // Online flow - but we already have optimistic UI
+      // Create new session
       const { data, error } = await supabase
         .from('walking_sessions')
-        .insert({
-          user_id: user.id,
-          start_time: startTimeIso,
-          status: 'active',
-          speed_mph: speed,
-          session_state: 'active',
-          total_pause_duration: 0,
-        })
+        .insert([
+          {
+            user_id: user.id,
+            start_time: new Date().toISOString(),
+            status: 'active',
+            speed_mph: selectedSpeed || 3.1,
+          }
+        ])
         .select()
         .single();
 
       if (error) throw error;
 
-      console.log('Walking session started successfully:', data);
-      
-      // Update with real session data from database
-      setCurrentSession(data);
+      const session = data as WalkingSession;
+      setCurrentSession(session);
+      setIsPaused(false);
       
       // Persist to local storage
       persistWalkingSession({
-        id: data.id,
-        user_id: data.user_id,
-        start_time: data.start_time,
-        status: data.status,
-        speed_mph: data.speed_mph,
-        session_state: data.session_state,
-        pause_start_time: data.pause_start_time,
-        total_pause_duration: data.total_pause_duration,
+        id: session.id,
+        start_time: session.start_time,
+        status: session.status,
+        user_id: session.user_id,
+        speed_mph: session.speed_mph,
       });
-
-      // Force immediate refresh of the context
-      console.log('Triggering refresh after session start');
-      triggerRefresh();
-
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error starting walking session:', error);
-      // Fallback to offline if network error
-      if (error?.message?.includes('fetch')) {
-        const res = await offlineStart();
-        return res;
-      }
-      // Revert optimistic update on error
-      setCurrentSession(null);
-      setIsPaused(false);
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, selectedSpeed, triggerRefresh]);
-
-  const pauseWalkingSession = useCallback(async (): Promise<{data: any, error: any}> => {
-    if (!user || !currentSession) return { error: { message: 'No active session' }, data: null };
-
-    const offlinePause = async () => {
-      const pauseTime = new Date().toISOString();
-      const updatedSession = { ...currentSession, session_state: 'paused', pause_start_time: pauseTime };
-      setCurrentSession(updatedSession);
-      setIsPaused(true);
       
-      await enqueueOperation({
-        entity: 'walking_session',
-        action: 'pause',
-        user_id: user.id,
-        payload: { session_id: currentSession.id, pause_start_time: pauseTime },
-      });
-      return { data: updatedSession, error: null };
-    };
+      return session;
+    });
+  }, [user, selectedSpeed, execute]);
 
-    setLoading(true);
-    try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return await offlinePause();
-      }
+  const pauseWalkingSession = useCallback(async () => {
+    if (!user || !currentSession || currentSession.status !== 'active' || isPaused) return null;
 
+    return await execute(async () => {
       const { data, error } = await supabase
         .from('walking_sessions')
         .update({
@@ -233,416 +153,270 @@ export const useWalkingSession = () => {
           pause_start_time: new Date().toISOString()
         })
         .eq('id', currentSession.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
       if (error) throw error;
 
-      setCurrentSession(data);
+      const updatedSession = data as WalkingSession;
       setIsPaused(true);
-      triggerRefresh();
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error pausing walking session:', error);
-      if (error.message?.includes('fetch')) {
-        return await offlinePause();
-      }
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession, triggerRefresh]);
-
-  const resumeWalkingSession = useCallback(async (): Promise<{data: any, error: any}> => {
-    if (!user || !currentSession) return { error: { message: 'No active session' }, data: null };
-
-    const offlineResume = async () => {
-      const pauseDuration = currentSession.pause_start_time 
-        ? Math.floor((new Date().getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000)
-        : 0;
-      
-      const updatedSession = { 
-        ...currentSession, 
-        session_state: 'active', 
-        pause_start_time: null,
-        total_pause_duration: (currentSession.total_pause_duration || 0) + pauseDuration
-      };
-      
       setCurrentSession(updatedSession);
-      setIsPaused(false);
-      
-      await enqueueOperation({
-        entity: 'walking_session',
-        action: 'resume',
-        user_id: user.id,
-        payload: { session_id: currentSession.id, pause_duration_seconds: pauseDuration },
-      });
-      return { data: updatedSession, error: null };
-    };
+      return updatedSession;
+    });
+  }, [user, currentSession, isPaused, execute]);
 
-    setLoading(true);
-    try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return await offlineResume();
-      }
+  const resumeWalkingSession = useCallback(async () => {
+    if (!user || !currentSession || currentSession.status !== 'active' || !isPaused) return null;
 
-      const pauseDuration = currentSession.pause_start_time 
-        ? Math.floor((new Date().getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000)
-        : 0;
+    return await execute(async () => {
+      const pauseStartTime = currentSession.pause_start_time ? new Date(currentSession.pause_start_time) : new Date();
+      const totalPauseDuration = (currentSession.total_pause_duration || 0) + 
+        Math.floor((new Date().getTime() - pauseStartTime.getTime()) / 1000);
 
       const { data, error } = await supabase
         .from('walking_sessions')
         .update({
           session_state: 'active',
           pause_start_time: null,
-          total_pause_duration: (currentSession.total_pause_duration || 0) + pauseDuration
+          total_pause_duration: totalPauseDuration
         })
         .eq('id', currentSession.id)
+        .eq('user_id', user.id)
         .select()
         .single();
 
       if (error) throw error;
 
-      setCurrentSession(data);
+      const updatedSession = data as WalkingSession;
       setIsPaused(false);
-      triggerRefresh();
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error resuming walking session:', error);
-      if (error.message?.includes('fetch')) {
-        return await offlineResume();
-      }
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession, triggerRefresh]);
+      setCurrentSession(updatedSession);
+      return updatedSession;
+    });
+  }, [user, currentSession, isPaused, execute]);
 
-  const endWalkingSession = useCallback(async (manualDurationMinutes?: number): Promise<{data: any, error: any}> => {
-    console.log('Ending walking session...');
-    if (!user || !currentSession) return { error: { message: 'No active session' }, data: null };
+  const endWalkingSession = useCallback(async (sessionId?: string, finalSpeed?: number) => {
+    if (!user) return null;
+    
+    const targetSessionId = sessionId || currentSession?.id;
+    if (!targetSessionId) return null;
 
-    const calculateEndData = () => {
-      const endTime = new Date();
-      const startTime = new Date(currentSession.start_time);
+    return await execute(async () => {
+      const endTime = new Date().toISOString();
+      const speed = finalSpeed || selectedSpeed || currentSession?.speed_mph || 3.1;
       
-      let activeDurationMinutes: number;
-      let isManualEdit = false;
-      
-      if (manualDurationMinutes) {
-        activeDurationMinutes = manualDurationMinutes;
-        isManualEdit = true;
-      } else {
-        let totalDurationMs = endTime.getTime() - startTime.getTime();
-        let totalPauseDuration = currentSession.total_pause_duration || 0;
-        
-        if (isPaused && currentSession.pause_start_time) {
-          const currentPauseDuration = Math.floor((endTime.getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000);
-          totalPauseDuration += currentPauseDuration;
-        }
-        
-        activeDurationMinutes = (totalDurationMs / (1000 * 60)) - (totalPauseDuration / 60);
-      }
-      
-      const speedMph = currentSession.speed_mph || selectedSpeed || 3;
-      const newEndTime = isManualEdit 
-        ? new Date(startTime.getTime() + activeDurationMinutes * 60 * 1000)
-        : endTime;
-      
-      let updateData: any = {
-        end_time: newEndTime.toISOString(),
-        status: 'completed',
-        session_state: 'completed'
-      };
-      
-      if (isManualEdit) {
-        updateData = {
-          ...updateData,
-          calories_burned: null,
-          distance: null,
-          estimated_steps: null,
-          is_edited: true,
-          edit_reason: 'Manual duration correction'
-        };
-      } else {
-        const calories = calculateWalkingCalories(activeDurationMinutes, speedMph);
-        const distance = (activeDurationMinutes / 60) * speedMph;
-        const userHeight = profile?.height || 175; // Default 175cm
-        const units = 'metric' as const;
-        const estimatedSteps = estimateSteps({
-          durationMinutes: activeDurationMinutes,
-          speedMph,
-          userHeight,
-          units
-        });
-        
-        updateData = {
-          ...updateData,
-          calories_burned: calories,
-          distance: Math.round(distance * 100) / 100,
-          estimated_steps: estimatedSteps,
-          total_pause_duration: currentSession.total_pause_duration || 0
-        };
-      }
-      
-      return updateData;
-    };
+      // Get session data for calculations
+      const { data: sessionData } = await supabase
+        .from('walking_sessions')
+        .select('*')
+        .eq('id', targetSessionId)
+        .single();
 
-    const offlineEnd = async () => {
-      const updateData = calculateEndData();
-      setCurrentSession(null);
-      setIsPaused(false);
+      if (!sessionData) throw new Error('Session not found');
+
+      const startTime = new Date(sessionData.start_time);
+      const endTimeDate = new Date(endTime);
+      const totalPauseDuration = sessionData.total_pause_duration || 0;
       
-      await enqueueOperation({
-        entity: 'walking_session',
-        action: 'end',
-        user_id: user.id,
-        payload: { session_id: currentSession.id, updateData },
+      // Calculate active duration (excluding pauses)
+      const totalDurationMs = endTimeDate.getTime() - startTime.getTime();
+      const activeDurationMs = totalDurationMs - (totalPauseDuration * 1000);
+      const durationMinutes = Math.max(1, Math.floor(activeDurationMs / (1000 * 60))); // At least 1 minute
+      
+      // Calculate distance and calories
+      const distanceMiles = (speed * durationMinutes) / 60;
+      const caloriesBurned = profile && calculateWalkingCalories 
+        ? calculateWalkingCalories(durationMinutes, speed)
+        : Math.round(durationMinutes * 3.5); // Fallback calculation
+      
+      const estimatedSteps = estimateSteps({ 
+        durationMinutes, 
+        speedMph: speed,
+        userHeight: profile?.height || 175
       });
-      
-      triggerRefresh();
-      return { data: { ...currentSession, ...updateData }, error: null };
-    };
 
-    setLoading(true);
-    try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return await offlineEnd();
-      }
-
-      const updateData = calculateEndData();
+      const updateData = {
+        status: 'completed',
+        end_time: endTime,
+        speed_mph: speed,
+        distance: distanceMiles,
+        calories_burned: caloriesBurned,
+        estimated_steps: estimatedSteps,
+        session_state: null,
+        pause_start_time: null
+      };
 
       const { data, error } = await supabase
         .from('walking_sessions')
         .update(updateData)
-        .eq('id', currentSession.id)
+        .eq('id', targetSessionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const finalData = data as WalkingSession;
+      setCurrentSession(null);
+      setSelectedSpeed(null);
+      setIsPaused(false);
+      triggerRefresh();
+      return finalData;
+    });
+  }, [user, currentSession, profile, calculateWalkingCalories, selectedSpeed, triggerRefresh, execute]);
+
+  const cancelWalkingSession = useCallback(async (sessionId?: string) => {
+    if (!user) return null;
+    
+    const targetSessionId = sessionId || currentSession?.id;
+    if (!targetSessionId) return null;
+
+    return await execute(async () => {
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({
+          status: 'cancelled',
+          end_time: new Date().toISOString()
+        })
+        .eq('id', targetSessionId)
+        .eq('user_id', user.id)
         .select()
         .single();
 
       if (error) throw error;
 
       setCurrentSession(null);
+      setSelectedSpeed(null);
       setIsPaused(false);
-      persistWalkingSession(null); // Clear persisted session
       triggerRefresh();
-      
-      setTimeout(() => {
-        loadActiveSession();
-      }, 100);
-      
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error ending walking session:', error);
-      if (error.message?.includes('fetch')) {
-        return await offlineEnd();
+      return data;
+    });
+  }, [user, currentSession, triggerRefresh, execute]);
+
+  const updateSessionCalories = useCallback(async (sessionId: string, speed: number) => {
+    if (!user || !profile) return null;
+
+    return await execute(async () => {
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({ speed_mph: speed })
+        .eq('id', sessionId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (currentSession && currentSession.id === sessionId) {
+        setCurrentSession(data as WalkingSession);
       }
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession, selectedSpeed, calculateWalkingCalories, isPaused, profile, triggerRefresh, loadActiveSession]);
-
-  const cancelWalkingSession = useCallback(async (): Promise<{data: any, error: any}> => {
-    console.log('Cancelling walking session...');
-    if (!user || !currentSession) return { error: { message: 'No active session' }, data: null };
-
-    const offlineCancel = async () => {
-      setCurrentSession(null);
-      setIsPaused(false);
       
-      await enqueueOperation({
-        entity: 'walking_session',
-        action: 'cancel',
-        user_id: user.id,
-        payload: { session_id: currentSession.id },
-      });
+      return data;
+    });
+  }, [user, profile, currentSession, execute]);
+
+  const editSessionTime = useCallback(async (sessionId: string, newStartTime: Date, newEndTime: Date, reason?: string) => {
+    if (!user) return null;
+
+    return await execute(async () => {
+      const durationMinutes = Math.floor((newEndTime.getTime() - newStartTime.getTime()) / (1000 * 60));
       
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({
+          start_time: newStartTime.toISOString(),
+          end_time: newEndTime.toISOString(),
+          is_edited: true,
+          edit_reason: reason,
+          original_duration_minutes: durationMinutes
+        })
+        .eq('id', sessionId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedSession = data as WalkingSession;
       triggerRefresh();
-      return { data: true, error: null };
-    };
+      return updatedSession;
+    });
+  }, [user, triggerRefresh, execute]);
 
-    setLoading(true);
-    try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return await offlineCancel();
-      }
+  const deleteWalkingSession = useCallback(async (sessionId: string) => {
+    if (!user) return false;
 
+    const result = await execute(async () => {
       const { error } = await supabase
         .from('walking_sessions')
         .delete()
-        .eq('id', currentSession.id);
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 
-      setCurrentSession(null);
-      setIsPaused(false);
-      persistWalkingSession(null); // Clear persisted session
+      if (currentSession && currentSession.id === sessionId) {
+        setCurrentSession(null);
+        setSelectedSpeed(null);
+        setIsPaused(false);
+      }
+      
       triggerRefresh();
-      
-      return { data: true, error: null };
-    } catch (error: any) {
-      console.error('Error cancelling walking session:', error);
-      if (error.message?.includes('fetch')) {
-        return await offlineCancel();
-      }
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession, triggerRefresh]);
-
-  // Load active session on mount
-  useEffect(() => {
-    let mounted = true;
-    
-    const load = async () => {
-      if (mounted) {
-        await loadActiveSession();
-      }
-    };
-    
-    load();
-    
-    return () => {
-      mounted = false;
-    };
-  }, [loadActiveSession]);
-
-  // Initialize selectedSpeed from profile - always prioritize profile data when available
-  useEffect(() => {
-    console.log('Speed initialization effect triggered:', { 
-      profileSpeed: profile?.default_walking_speed, 
-      currentSelectedSpeed: selectedSpeed,
-      user: user?.id 
-    });
-
-    if (profile?.default_walking_speed != null) {
-      // Normalize profile speed to exact option values
-      const profileSpeed = profile.default_walking_speed;
-      const normalizedSpeed = profileSpeed > 3.7 ? 4.3 : 3.1;
-      console.log('Setting selectedSpeed from profile:', { profileSpeed, normalizedSpeed });
-      setSelectedSpeed(normalizedSpeed);
-    } else if (selectedSpeed === null) {
-      // Only set default if no profile speed and no current speed
-      console.log('Setting default selectedSpeed to 3.1 (no profile speed available)');
-      setSelectedSpeed(3.1);
-    }
-  }, [profile?.default_walking_speed, user]); // Add user as dependency to re-run when user changes
-
-  const updateSessionSpeed = useCallback(async (newSpeed: number): Promise<{data: any, error: any}> => {
-    if (!currentSession || !user) return { error: null, data: null };
-
-    const offlineUpdate = async () => {
-      const updatedSession = { ...currentSession, speed_mph: newSpeed };
-      setCurrentSession(updatedSession);
-      
-      await enqueueOperation({
-        entity: 'walking_session',
-        action: 'update_speed',
-        user_id: user.id,
-        payload: { session_id: currentSession.id, speed_mph: newSpeed },
-      });
-      return { data: updatedSession, error: null };
-    };
-
-    console.log('Updating session speed:', { currentSpeed: currentSession.speed_mph, newSpeed });
-    setLoading(true);
-    try {
-      if (typeof navigator !== 'undefined' && !navigator.onLine) {
-        return await offlineUpdate();
-      }
-
-      const { data, error } = await supabase
-        .from('walking_sessions')
-        .update({ speed_mph: newSpeed })
-        .eq('id', currentSession.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Database error updating session speed:', error);
-        throw error;
-      }
-
-      console.log('Successfully updated session speed:', data);
-      setCurrentSession(data);
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error updating session speed:', error);
-      if (error.message?.includes('fetch')) {
-        return await offlineUpdate();
-      }
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, currentSession]);
-
-  // Save selected speed to profile
-  const saveSpeedToProfile = useCallback(async (newSpeed: number): Promise<boolean> => {
-    if (!user) return false;
-    
-    try {
-      // Use upsert pattern like activity override for reliability
-      const { data, error } = await supabase
-        .from('profiles')
-        .update({ default_walking_speed: newSpeed })
-        .eq('user_id', user.id);
-      
-      if (error) {
-        console.error('Database error saving walking speed:', error);
-        throw error;
-      }
-      
       return true;
-    } catch (error) {
-      console.error('Error saving walking speed to profile:', error);
-      return false;
-    }
-  }, [user]);
+    });
+    
+    return result.success;
+  }, [user, currentSession, triggerRefresh, execute]);
 
-  // Enhanced setSelectedSpeed with immediate optimistic updates like activity override
+  // Enhanced speed update function with profile saving
   const updateSelectedSpeed = useCallback(async (newSpeed: number) => {
-    // Normalize speed to exact option values to prevent display issues
-    const normalizedSpeed = newSpeed > 3.7 ? 4.3 : 3.1;
+    setSelectedSpeed(newSpeed);
     
-    // Immediate UI update for optimistic behavior (like activity override)
-    setSelectedSpeed(normalizedSpeed);
-    
-    try {
-      // Save to user's profile in background
-      const success = await saveSpeedToProfile(normalizedSpeed);
-      
-      if (success) {
-        // Keep the optimistic update - success!
-        console.log('Walking speed saved successfully:', normalizedSpeed);
-      } else {
-        // Could show error toast here like activity override does
-        console.error('Failed to save walking speed, keeping optimistic update');
-      }
-    } catch (error) {
-      console.error('Error saving walking speed:', error);
-      // Keep optimistic UI update for better UX (like activity override pattern)
-    }
-  }, [saveSpeedToProfile]);
+    // Update current session speed if there's an active session
+    if (currentSession && user) {
+      await execute(async () => {
+        const { error } = await supabase
+          .from('walking_sessions')
+          .update({ speed_mph: newSpeed })
+          .eq('id', currentSession.id)
+          .eq('user_id', user.id);
 
-  // triggerRefresh defined earlier
+        if (error) throw error;
+        
+        setCurrentSession(prev => prev ? { ...prev, speed_mph: newSpeed } : null);
+        return true;
+      });
+    }
+    
+    // Save to profile as default walking speed
+    if (user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({ default_walking_speed: newSpeed })
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.error('Error saving walking speed to profile:', error);
+      }
+    }
+  }, [currentSession, user, execute]);
 
   return {
     currentSession,
-    loading,
-    selectedSpeed: selectedSpeed ?? 3.1, // Ensure we never return null to components, default to normal speed
-    setSelectedSpeed: updateSelectedSpeed, // Use the enhanced version
-    updateSelectedSpeed, // Also export directly for explicit use
+    loading: isLoading,
+    selectedSpeed: selectedSpeed ?? 3.1, // Default to normal walking speed
+    setSelectedSpeed: updateSelectedSpeed,
+    updateSelectedSpeed,
+    updateSessionSpeed: updateSelectedSpeed, // Alias for backwards compatibility
     isPaused,
+    refreshTrigger,
     startWalkingSession,
     pauseWalkingSession,
     resumeWalkingSession,
     endWalkingSession,
     cancelWalkingSession,
+    updateSessionCalories,
+    editSessionTime,
+    deleteWalkingSession,
     loadActiveSession,
-    updateSessionSpeed,
-    refreshTrigger,
-    triggerRefresh
+    triggerRefresh,
   };
 };

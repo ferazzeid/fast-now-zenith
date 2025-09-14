@@ -27,7 +27,7 @@ export const useFoodContext = () => {
   const fetchFoodContext = async (): Promise<FoodContext | null> => {
     if (!user) return null;
 
-    return await execute(async () => {
+    const result = await execute(async () => {
       // Get user profile for goals
       const { data: profile } = await supabase
         .from('profiles')
@@ -112,6 +112,13 @@ export const useFoodContext = () => {
       setContext(foodContext);
       return foodContext;
     });
+    
+    if (result.success && result.data) {
+      setContext(result.data);
+      return result.data;
+    }
+    
+    return null;
   };
 
   const buildContextString = (ctx: FoodContext): string => {

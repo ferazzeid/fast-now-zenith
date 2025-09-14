@@ -92,7 +92,7 @@ const Walking = () => {
   const handleStart = async () => {
     try {
       // Remove profile dependency - start immediately
-      await startWalkingSession(selectedSpeed);
+      await startWalkingSession();
       toast({
         title: "Walking session started",
         description: "Good luck on your walk!",
@@ -170,7 +170,7 @@ const Walking = () => {
       description: "Saving with manual duration."
     });
     
-    const result = await endWalkingSession(durationMinutes);
+    const result = await endWalkingSession();
     if (result.error) {
       toast({
         variant: "destructive",
@@ -263,14 +263,7 @@ const Walking = () => {
                 
                 // Also update the current session if one is active
                 if (isRunning) {
-                  const result = await updateSessionSpeed(newSpeed);
-                  if (result.error) {
-                    toast({
-                      variant: "destructive",
-                      title: "Session Update Failed",
-                      description: "Speed saved but session update failed. Will sync when online."
-                    });
-                  }
+                  await updateSessionSpeed(newSpeed);
                 }
                 
                 // Show immediate confirmation
