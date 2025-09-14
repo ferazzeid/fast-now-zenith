@@ -81,13 +81,13 @@ export const useStaticLogo = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="text-lg flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Static Brand Assets - Development Tool
+          Static Brand Assets Generator
         </CardTitle>
-        <CardDescription>
-          Generate code snippets to update static brand assets in your files. No database dependencies.
-        </CardDescription>
+        <p className="text-sm text-muted-foreground">
+          Development tool to generate static asset configuration code
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4">
@@ -114,9 +114,11 @@ export const useStaticLogo = () => {
                   Copy HTML
                 </Button>
               </div>
-              <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                {generateIndexHtmlCode()}
-              </pre>
+              <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateIndexHtmlCode()}
+                </pre>
+              </div>
             </div>
 
             <div>
@@ -132,9 +134,11 @@ export const useStaticLogo = () => {
                   Copy JSON
                 </Button>
               </div>
-              <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                {generateManifestCode()}
-              </pre>
+              <div className="max-h-48 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateManifestCode()}
+                </pre>
+              </div>
             </div>
 
             <div>
@@ -150,9 +154,11 @@ export const useStaticLogo = () => {
                   Copy Code
                 </Button>
               </div>
-              <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                {generateStaticLogoCode()}
-              </pre>
+              <div className="max-h-32 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateStaticLogoCode()}
+                </pre>
+              </div>
             </div>
           </div>
         </div>

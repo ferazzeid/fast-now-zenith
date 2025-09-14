@@ -130,12 +130,11 @@ self.addEventListener('fetch', event => {
               <Code className="w-4 h-4" />
               Manifest.json (PWA Configuration)
             </Label>
-            <Textarea
-              value={generateManifestCode()}
-              readOnly
-              rows={10}
-              className="font-mono text-xs"
-            />
+            <div className="max-h-48 overflow-y-auto bg-muted rounded-md">
+              <pre className="text-xs p-3 whitespace-pre-wrap">
+                {generateManifestCode()}
+              </pre>
+            </div>
             <Button
               onClick={() => copyToClipboard(generateManifestCode(), "PWA Manifest")}
               size="sm"
@@ -151,12 +150,11 @@ self.addEventListener('fetch', event => {
               <Code className="w-4 h-4" />
               HTML PWA Meta Tags
             </Label>
-            <Textarea
-              value={generateHTMLPWACode()}
-              readOnly
-              rows={8}
-              className="font-mono text-xs"
-            />
+            <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
+              <pre className="text-xs p-3 whitespace-pre-wrap">
+                {generateHTMLPWACode()}
+              </pre>
+            </div>
             <Button
               onClick={() => copyToClipboard(generateHTMLPWACode(), "PWA HTML")}
               size="sm"
@@ -172,12 +170,11 @@ self.addEventListener('fetch', event => {
               <Code className="w-4 h-4" />
               Service Worker (Optional)
             </Label>
-            <Textarea
-              value={generateServiceWorkerCode()}
-              readOnly
-              rows={12}
-              className="font-mono text-xs"
-            />
+            <div className="max-h-48 overflow-y-auto bg-muted rounded-md">
+              <pre className="text-xs p-3 whitespace-pre-wrap">
+                {generateServiceWorkerCode()}
+              </pre>
+            </div>
             <Button
               onClick={() => copyToClipboard(generateServiceWorkerCode(), "Service Worker")}
               size="sm"

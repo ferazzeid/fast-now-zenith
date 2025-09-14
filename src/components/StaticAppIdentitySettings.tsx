@@ -130,12 +130,11 @@ export const StaticAppIdentitySettings: React.FC = () => {
                 <Code className="w-4 h-4" />
                 public/manifest.json
               </Label>
-              <Textarea
-                value={generateManifestCode()}
-                readOnly
-                rows={15}
-                className="font-mono text-xs"
-              />
+              <div className="max-h-48 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateManifestCode()}
+                </pre>
+              </div>
               <Button
                 onClick={() => copyToClipboard(generateManifestCode(), "Manifest JSON")}
                 size="sm"
@@ -153,12 +152,11 @@ export const StaticAppIdentitySettings: React.FC = () => {
                 <Code className="w-4 h-4" />
                 index.html &lt;head&gt; section
               </Label>
-              <Textarea
-                value={generateHTMLMetaCode()}
-                readOnly
-                rows={12}
-                className="font-mono text-xs"
-              />
+              <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateHTMLMetaCode()}
+                </pre>
+              </div>
               <Button
                 onClick={() => copyToClipboard(generateHTMLMetaCode(), "HTML Meta Tags")}
                 size="sm"

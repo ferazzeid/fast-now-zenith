@@ -55,13 +55,13 @@ export const StaticColorManager = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="text-lg flex items-center gap-2">
           <Palette className="h-5 w-5" />
-          Static Color System - Development Tool
+          Static Color Code Generator
         </CardTitle>
-        <CardDescription>
-          Generate CSS code to update color variables directly in your files. No database dependencies.
-        </CardDescription>
+        <p className="text-sm text-muted-foreground">
+          Development tool to generate CSS color variable code
+        </p>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid gap-4">
@@ -101,9 +101,11 @@ export const StaticColorManager = () => {
                   Copy CSS
                 </Button>
               </div>
-              <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                {generateCSSCode()}
-              </pre>
+              <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateCSSCode()}
+                </pre>
+              </div>
             </div>
 
             <div>
@@ -119,9 +121,11 @@ export const StaticColorManager = () => {
                   Copy HTML
                 </Button>
               </div>
-              <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
-                {generateThemeColorCode()}
-              </pre>
+              <div className="max-h-32 overflow-y-auto bg-muted rounded-md">
+                <pre className="text-xs p-3 whitespace-pre-wrap">
+                  {generateThemeColorCode()}
+                </pre>
+              </div>
             </div>
           </div>
         </div>
