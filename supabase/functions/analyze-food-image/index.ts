@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { resolveOpenAIApiKey } from '../_shared/protected-config.ts';
+// Remove this import - we'll implement the resolution inline
 
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
   .split(',')
@@ -195,9 +195,33 @@ serve(async (req) => {
       }
     }
 
-    // 🔑 SIMPLIFIED: Get OpenAI API key using standardized resolution
+    // 🔑 Get OpenAI API key from shared settings or environment
     console.log('🔑 Resolving OpenAI API key for food analysis...');
-    const openaiApiKey = await resolveOpenAIApiKey(supabase);
+    let openaiApiKey: string;
+    
+    try {
+      const { data: sharedKey } = await dataClient
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
+      
+      if (sharedKey?.setting_value) {
+        openaiApiKey = sharedKey.setting_value;
+        console.log('✅ Found API key in shared settings');
+      } else {
+        const envKey = Deno.env.get('OPENAI_API_KEY');
+        if (envKey) {
+          openaiApiKey = envKey;
+          console.warn('⚠️ Using environment variable API key (fallback mode)');
+        } else {
+          throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to resolve OpenAI API key:', error);
+      throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
+    }
 
     console.log('Analyzing food image with OpenAI Vision API');
 

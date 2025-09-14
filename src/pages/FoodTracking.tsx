@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown, Target } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -177,6 +177,146 @@ const FoodTracking = () => {
     });
   };
 
+  const renderFoodEntryCard = (entry: any) => (
+    <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim ${
+      entry.consumed ? 'opacity-60' : ''
+    }`}>
+      <div className="flex items-center gap-2">
+        
+        {/* More Options Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-7 w-7 p-0 flex-shrink-0 text-muted-foreground hover:text-foreground" 
+              aria-label="More options"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="bottom">
+            <DropdownMenuItem
+              onClick={() => setEditingEntry(entry)}
+              className="py-2.5 px-3 focus:text-foreground"
+            >
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                try {
+                  const duplicatedFood = {
+                    name: `${entry.name} (copy)`,
+                    calories: entry.calories,
+                    carbs: entry.carbs,
+                    serving_size: entry.serving_size,
+                    consumed: false
+                  };
+                  await addFoodEntry(duplicatedFood);
+                  toast({
+                    title: "Food Duplicated",
+                    description: `${entry.name} has been duplicated`
+                  });
+                } catch (error) {
+                  console.error('Error duplicating food:', error);
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to duplicate food"
+                  });
+                }
+              }}
+              className="py-2.5 px-3 focus:text-foreground"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                try {
+                  await handleDeleteEntry(entry.id);
+                } catch (error) {
+                  console.error('Error deleting entry:', error);
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to delete food"
+                  });
+                }
+              }}
+              className="py-2.5 px-3 text-destructive focus:text-destructive"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        {/* Entry Image */}
+        <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+          {entry.image_url ? (
+            <img 
+              src={entry.image_url} 
+              alt={entry.name}
+              className="w-10 h-10 object-cover rounded-lg"
+            />
+          ) : (
+            <Utensils className="w-5 h-5 text-muted-foreground" />
+          )}
+        </div>
+        
+        {/* Entry Content */}
+        <div className="flex-1 min-w-0 relative">
+          <div className="mb-0 flex items-center gap-2 min-w-0">
+            <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
+              entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
+            }`}>
+              {entry.name}
+            </h3>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className={`font-medium ${
+              Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
+            }`}>
+              {Math.round(entry.serving_size)}g
+            </span>
+            <span className="text-muted-foreground/60">•</span>
+            <ClickableTooltip content="Calories">
+              <span className={`font-medium cursor-pointer ${
+                Math.round(entry.calories) === 0 ? 'text-destructive' : ''
+              }`}>
+                {Math.round(entry.calories)}
+              </span>
+            </ClickableTooltip>
+            <span className="text-muted-foreground/60">•</span>
+            <ClickableTooltip content="Carbs">
+              <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
+            </ClickableTooltip>
+          </div>
+        </div>
+        
+        {/* Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            size="sm"
+            variant="default"
+            onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
+            className={`h-5 w-5 p-1 rounded ${
+              entry.consumed 
+                ? 'bg-muted hover:bg-muted/90 text-muted-foreground' 
+                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+            }`}
+            title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+            aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
+          >
+            <Check className="w-3 h-3" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <AccessGate feature="food">
       {({ hasAccess, requestUpgrade }) => 
@@ -230,176 +370,65 @@ const FoodTracking = () => {
                 </div>
               </div>
 
-              {/* Food Entries List */}
-              <div className="mb-6">
-                <div className="bg-card rounded-lg border border-ceramic-rim p-4">
-                  {todayEntries.length === 0 ? (
+              {/* Food Entries List - Split into Planned and Eaten sections */}
+              <div className="mb-6 space-y-4">
+                {todayEntries.length === 0 ? (
+                  <div className="bg-card rounded-lg border border-ceramic-rim p-4">
                     <div className="text-center text-muted-foreground py-8 space-y-2">
                       <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                       <p>No foods added yet</p>
                       <p className="text-sm mt-2">Add foods using the buttons above</p>
                     </div>
-                  ) : (
-                    <div className="space-y-1">
-                      
-                      {todayEntries.map((entry) => (
-                        <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim ${
-                          entry.consumed ? 'opacity-60' : ''
-                        }`}>
-                          <div className="flex items-center gap-2">
-                            
-                            {/* More Options Menu */}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="h-7 w-7 p-0 flex-shrink-0 text-muted-foreground hover:text-foreground" 
-                                  aria-label="More options"
-                                >
-                                  <MoreVertical className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="start" side="bottom">
-                                <DropdownMenuItem
-                                  onClick={() => setEditingEntry(entry)}
-                                  className="py-2.5 px-3 focus:text-foreground"
-                                >
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    try {
-                                      const duplicatedFood = {
-                                        name: `${entry.name} (copy)`,
-                                        calories: entry.calories,
-                                        carbs: entry.carbs,
-                                        serving_size: entry.serving_size,
-                                        consumed: false
-                                      };
-                                      await addFoodEntry(duplicatedFood);
-                                      toast({
-                                        title: "Food Duplicated",
-                                        description: `${entry.name} has been duplicated`
-                                      });
-                                    } catch (error) {
-                                      console.error('Error duplicating food:', error);
-                                      toast({
-                                        variant: "destructive",
-                                        title: "Error",
-                                        description: "Failed to duplicate food"
-                                      });
-                                    }
-                                  }}
-                                  className="py-2.5 px-3 focus:text-foreground"
-                                >
-                                  <Plus className="w-4 h-4 mr-2" />
-                                  Duplicate
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={async () => {
-                                    try {
-                                      await handleDeleteEntry(entry.id);
-                                    } catch (error) {
-                                      console.error('Error deleting entry:', error);
-                                      toast({
-                                        variant: "destructive",
-                                        title: "Error",
-                                        description: "Failed to delete food"
-                                      });
-                                    }
-                                  }}
-                                  className="py-2.5 px-3 text-destructive focus:text-destructive"
-                                >
-                                  <Trash2 className="w-4 h-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                            
-                            {/* Entry Image */}
-                            <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                              {entry.image_url ? (
-                                <img 
-                                  src={entry.image_url} 
-                                  alt={entry.name}
-                                  className="w-10 h-10 object-cover rounded-lg"
-                                />
-                              ) : (
-                                <Utensils className="w-5 h-5 text-muted-foreground" />
-                              )}
-                            </div>
-                            
-                            {/* Entry Content */}
-                            <div className="flex-1 min-w-0 relative">
-                              <div className="mb-0 flex items-center gap-2 min-w-0">
-                                <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
-                                  entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
-                                }`}>
-                                  {entry.name}
-                                </h3>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <span className={`font-medium ${
-                                  Math.round(entry.serving_size) === 0 ? 'text-destructive' : ''
-                                }`}>
-                                  {Math.round(entry.serving_size)}g
-                                </span>
-                                <span className="text-muted-foreground/60">•</span>
-                                <ClickableTooltip content="Calories">
-                                  <span className={`font-medium cursor-pointer ${
-                                    Math.round(entry.calories) === 0 ? 'text-destructive' : ''
-                                  }`}>
-                                    {Math.round(entry.calories)}
-                                  </span>
-                                </ClickableTooltip>
-                                <span className="text-muted-foreground/60">•</span>
-                                <ClickableTooltip content="Carbs">
-                                  <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
-                                </ClickableTooltip>
-                              </div>
-                            </div>
-                            
-                            {/* Actions */}
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <Button
-                                size="sm"
-                                variant="default"
-                                onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
-                                className={`h-5 w-5 p-1 rounded ${
-                                  entry.consumed 
-                                    ? 'bg-muted hover:bg-muted/90 text-muted-foreground' 
-                                    : 'bg-primary hover:bg-primary/90 text-primary-foreground'
-                                }`}
-                                title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                                aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
-                              >
-                                <Check className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* Planned Foods Section */}
+                    {todayEntries.filter(entry => !entry.consumed).length > 0 && (
+                      <div className="bg-card rounded-lg border border-ceramic-rim p-4">
+                        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                          <Target className="w-4 h-4" />
+                          Planned Foods
+                        </h3>
+                        <div className="space-y-1">
+                          {todayEntries.filter(entry => !entry.consumed).map((entry) => 
+                            renderFoodEntryCard(entry)
+                          )}
                         </div>
-                      ))}
-                      
-                      {/* Delete All Button - Outside food entries, aligned to the right in checkbox column */}
-                      {todayEntries.length > 0 && (
-                        <div className="flex justify-end mt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-1"
-                            onClick={() => setShowClearAllDialog(true)}
-                            title="Delete all foods"
-                            aria-label="Delete all foods"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                      </div>
+                    )}
+                    
+                    {/* Eaten Foods Section */}
+                    {todayEntries.filter(entry => entry.consumed).length > 0 && (
+                      <div className="bg-card rounded-lg border border-ceramic-rim p-4">
+                        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+                          <Check className="w-4 h-4" />
+                          Eaten Foods
+                        </h3>
+                        <div className="space-y-1">
+                          {todayEntries.filter(entry => entry.consumed).map((entry) => 
+                            renderFoodEntryCard(entry)
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                      </div>
+                    )}
+
+                    {/* Delete All Button - Only show if there are any foods */}
+                    {todayEntries.length > 0 && (
+                      <div className="flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowClearAllDialog(true)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-2 py-1 h-auto"
+                          disabled={isClearingAll}
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Delete All
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
