@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { deleteImageFromStorage } from '@/utils/imageUtils';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 interface AdminImageUploadProps {
   onImageUpload: (imageUrl: string) => void;
@@ -19,7 +19,14 @@ export const AdminImageUpload = ({
   onImageRemove, 
   currentImageUrl,
 }: AdminImageUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
+  const { 
+    isUploading, 
+    error, 
+    startUpload, 
+    completeUpload, 
+    setUploadError, 
+    reset 
+  } = useUploadLoading();
   const { toast } = useToast();
   const { user } = useAuth();
   const { withSessionGuard } = useSessionGuard();
@@ -49,7 +56,7 @@ export const AdminImageUpload = ({
 
     // Use session guard to protect the upload operation
     await withSessionGuard(async () => {
-      setIsUploading(true);
+      startUpload();
 
       try {
         // Delete old image first (non-blocking)
@@ -114,7 +121,7 @@ export const AdminImageUpload = ({
         });
         throw error; // Re-throw to let session guard handle it
       } finally {
-        setIsUploading(false);
+        completeUpload();
       }
     }, 'Image Upload');
   };

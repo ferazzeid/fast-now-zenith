@@ -4,18 +4,24 @@ import { useUnifiedCacheManager } from './useUnifiedCacheManager';
 
 /**
  * Base query hook that provides standardized error handling, loading states, and cache management
- * Reduces code duplication across all query hooks
+ * Supports both async and sync query functions
  */
 export const useBaseQuery = <TData = unknown, TError = Error>(
   queryKey: (string | number)[],
-  queryFn: () => Promise<TData>,
+  queryFn: () => Promise<TData> | TData,
   options: Partial<UseQueryOptions<TData, TError>> = {}
 ) => {
   const { clearAllCache } = useUnifiedCacheManager();
 
+  // Wrap sync functions to be async
+  const asyncQueryFn = useCallback(async (): Promise<TData> => {
+    const result = queryFn();
+    return result instanceof Promise ? result : Promise.resolve(result);
+  }, [queryFn]);
+
   const standardizedOptions: UseQueryOptions<TData, TError> = {
     queryKey,
-    queryFn,
+    queryFn: asyncQueryFn,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes  
     refetchOnWindowFocus: false,

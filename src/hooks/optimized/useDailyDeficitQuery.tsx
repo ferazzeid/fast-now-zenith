@@ -20,6 +20,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useBaseQuery } from '@/hooks/useBaseQuery';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
 import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
@@ -74,9 +75,9 @@ export const useDailyDeficitQuery = () => {
   // Remove excessive debug logging that was causing console spam
 
   // PERFORMANCE: Cached BMR/TDEE calculations (expensive operations)
-  const bmrTdeeQuery = useQuery({
-    queryKey: bmrTdeeQueryKey(user?.id || null, profileHash),
-    queryFn: (): { bmr: number; tdee: number } => {
+  const bmrTdeeQuery = useBaseQuery<{ bmr: number; tdee: number }>(
+    bmrTdeeQueryKey(user?.id || null, profileHash),
+    () => {
       if (!profile?.weight || !profile?.height || !profile?.age) {
         return { bmr: 0, tdee: 0 };
       }
@@ -114,15 +115,17 @@ export const useDailyDeficitQuery = () => {
 
       return { bmr: Math.round(bmr), tdee: Math.round(tdee) };
     },
-    enabled: !!profile?.weight && !!profile?.height && !!profile?.age,
-    staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
-    gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
-  });
+    {
+      enabled: !!profile?.weight && !!profile?.height && !!profile?.age,
+      staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+      gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+    }
+  );
 
   // PERFORMANCE: Cached walking calories calculation
-  const walkingCaloriesQuery = useQuery({
-    queryKey: ['walking-calories', user?.id, today],
-    queryFn: (): number => {
+  const walkingCaloriesQuery = useBaseQuery<number>(
+    ['walking-calories', user?.id, today],
+    () => {
       if (!walkingSessions || !profile?.weight) {
         return 0;
       }
@@ -161,15 +164,17 @@ export const useDailyDeficitQuery = () => {
 
       return totalCalories;
     },
-    enabled: !!walkingSessions && !!profile?.weight,
-    staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
-    gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
-  });
+    {
+      enabled: !!walkingSessions && !!profile?.weight,
+      staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+      gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+    }
+  );
 
   // PERFORMANCE: Main daily deficit calculation
-  const dailyDeficitQuery = useQuery({
-    queryKey: dailyDeficitQueryKey(user?.id || null, today),
-    queryFn: (): DailyDeficitData => {
+  const dailyDeficitQuery = useBaseQuery<DailyDeficitData>(
+    dailyDeficitQueryKey(user?.id || null, today),
+    () => {
       const bmrTdee = bmrTdeeQuery.data || { bmr: 0, tdee: 0 };
       const caloriesConsumed = todayTotals?.calories || 0;
       const walkingCalories = walkingCaloriesQuery.data || 0;
@@ -189,11 +194,13 @@ export const useDailyDeficitQuery = () => {
         activityLevel: effectiveActivityLevel,
       };
     },
-    enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
-             walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
-    staleTime: 0, // 🐛 FORCE IMMEDIATE REFRESH
-    gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
-  });
+    {
+      enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
+               walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
+      staleTime: 0, // 🐛 FORCE IMMEDIATE REFRESH
+      gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
+    }
+  );
 
   // PERFORMANCE: Optimized refresh function
   const refreshDeficit = useCallback(async () => {
