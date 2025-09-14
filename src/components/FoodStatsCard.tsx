@@ -87,40 +87,34 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
   const remainingCalories = dailyAllowance - consumedCalories;
 
   return (
-    <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+    <Card className="p-3 text-center relative overflow-hidden min-h-[140px]">
       {/* Main Content */}
-      <div className="flex flex-col justify-center items-center h-full space-y-4">
+      <div className="flex flex-col justify-center items-center h-full space-y-2">
         {/* Top Row - Eaten (Large Numbers) */}
-        <div className="grid grid-cols-2 gap-4 w-full mb-4">
+        <div className="grid grid-cols-2 gap-6 w-full">
           {/* Calories Eaten */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Utensils className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Eaten</span>
-            </div>
             <ClickableTooltip content={`Daily target: ${dailyAllowance} calories`}>
               <div 
-                className={`text-5xl font-mono font-bold mb-1 tracking-wide cursor-pointer ${consumedCalories > dailyAllowance ? 'text-destructive' : 'text-warm-text'}`}
+                className={`text-4xl font-mono font-bold mb-1 tracking-wide cursor-pointer ${consumedCalories > dailyAllowance ? 'text-destructive' : 'text-warm-text'}`}
                 style={{ 
                   fontFeatureSettings: '"tnum" 1',
                   textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                 }}
               >
-                {Math.round(consumedCalories)}
+                <div className="flex items-baseline justify-center gap-1">
+                  <span>{Math.round(consumedCalories)}</span>
+                  <span className="text-lg font-mono">cal</span>
+                </div>
               </div>
             </ClickableTooltip>
-            <span className="text-xs text-foreground">calories</span>
           </div>
 
           {/* Carbs Eaten */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Utensils className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Eaten</span>
-            </div>
             <ClickableTooltip content={`Daily goal: ${Math.round(dailyCarbGoal)}g`}>
               <div 
-                className={`text-5xl font-mono font-bold tracking-wide cursor-pointer ${consumedCarbs > dailyCarbGoal ? 'text-destructive' : 'text-warm-text'}`}
+                className={`text-4xl font-mono font-bold mb-1 tracking-wide cursor-pointer ${consumedCarbs > dailyCarbGoal ? 'text-destructive' : 'text-warm-text'}`}
                 style={{ 
                   fontFeatureSettings: '"tnum" 1',
                   textShadow: '0 1px 2px rgba(0,0,0,0.1)'
@@ -128,43 +122,38 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
               >
                 <div className="flex items-baseline justify-center gap-1">
                   <span>{Math.round(consumedCarbs)}</span>
-                  <span className="text-2xl font-mono">g</span>
+                  <span className="text-lg font-mono">g</span>
                 </div>
-                <div className="text-xs text-foreground mt-1">carbs</div>
               </div>
             </ClickableTooltip>
           </div>
         </div>
 
-        {/* Bottom Row - Planned (Current Size) */}
-        <div className="grid grid-cols-2 gap-4 w-full">
+        {/* Divider Line */}
+        <div className="w-full h-px bg-border/50 my-1"></div>
+
+        {/* Bottom Row - Planned (Smaller Numbers) */}
+        <div className="grid grid-cols-2 gap-6 w-full">
           {/* Calories Planned */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Target className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Planned</span>
-            </div>
             <ClickableTooltip content={`Daily target: ${dailyAllowance} calories`}>
-              <div className={`text-lg font-semibold ${getProgressColor(totalCalories, dailyAllowance)} cursor-pointer`}>
-                {Math.round(totalCalories)}
+              <div className={`text-sm ${getProgressColor(totalCalories, dailyAllowance)} cursor-pointer`}>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span>{Math.round(totalCalories)}</span>
+                  <span className="text-xs">cal</span>
+                </div>
               </div>
             </ClickableTooltip>
-            <div className="text-xs text-muted-foreground">cal</div>
           </div>
 
           {/* Carbs Planned */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Target className="w-4 h-4 text-muted-foreground" />
-              <span className="text-xs text-muted-foreground">Planned</span>
-            </div>
             <ClickableTooltip content={`Daily goal: ${Math.round(dailyCarbGoal)}g`}>
-              <div className={`${getProgressColor(totalCarbs, dailyCarbGoal)} cursor-pointer`}>
+              <div className={`text-sm ${getProgressColor(totalCarbs, dailyCarbGoal)} cursor-pointer`}>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-lg">{Math.round(totalCarbs)}</span>
-                  <span className="text-sm">g</span>
+                  <span>{Math.round(totalCarbs)}</span>
+                  <span className="text-xs">g</span>
                 </div>
-                <div className="text-xs text-muted-foreground">carbs</div>
               </div>
             </ClickableTooltip>
           </div>
