@@ -9,6 +9,7 @@ export interface AdminGoalIdea {
   id: string;
   title: string;
   description: string;
+  excerpt?: string;
   category: string;
   imageUrl?: string;
   maleImageUrl?: string;
@@ -22,6 +23,7 @@ interface SystemMotivator {
   id: string;
   title: string;
   content: string;
+  excerpt: string | null;
   category: string | null;
   male_image_url: string | null;
   female_image_url: string | null;
@@ -41,6 +43,7 @@ const transformToAdminGoalIdea = (systemMotivator: SystemMotivator): AdminGoalId
     id: systemMotivator.id,
     title: systemMotivator.title,
     description: systemMotivator.content,
+    excerpt: systemMotivator.excerpt || undefined,
     category: systemMotivator.category || 'personal',
     imageUrl: systemMotivator.male_image_url || systemMotivator.female_image_url || undefined,
     maleImageUrl: systemMotivator.male_image_url || undefined,

@@ -32,7 +32,6 @@ export default function MotivatorIdeas() {
   const { goalIdeas, loading, refreshGoalIdeas, forceRefresh, updateGoalIdea, removeGoalIdea } = useAdminGoalIdeas();
   const { createMotivator, refreshMotivators } = useMotivators();
 
-  const [expandedGoal, setExpandedGoal] = useState<string | null>(null);
   const [editingGoal, setEditingGoal] = useState<AdminGoalIdea | null>(null);
   const [forceRenderKey, setForceRenderKey] = useState(0);
   const [showContentModal, setShowContentModal] = useState(false);
@@ -58,10 +57,10 @@ export default function MotivatorIdeas() {
         ? goal.maleImageUrl 
         : goal.imageUrl;
 
-      // Create excerpt from description (first 150 characters)
-      const excerpt = goal.description && goal.description.length > 150 
+      // Use excerpt if available, otherwise create one from description
+      const excerpt = goal.excerpt || (goal.description && goal.description.length > 150 
         ? goal.description.substring(0, 150) + '...' 
-        : goal.description || '';
+        : goal.description || '');
 
       const result = await createMotivator({
         title: goal.title,
@@ -150,15 +149,6 @@ export default function MotivatorIdeas() {
         ) : (
           <section className="space-y-3" aria-label="Motivator ideas list">
             {goalIdeas.map((goal) => {
-              const isExpanded = expandedGoal === goal.id;
-              
-              // Create excerpt from full description (first 150 characters)
-              const excerpt = goal.description && goal.description.length > 150 
-                ? goal.description.substring(0, 150) + '...' 
-                : goal.description;
-              
-              const shouldShowExpandButton = goal.description && goal.description.length > 150;
-
               return (
                 <Card key={goal.id} className="overflow-hidden relative">
                   <CardContent className="p-0">
@@ -180,14 +170,18 @@ export default function MotivatorIdeas() {
                             <div className="flex items-center gap-2">
                               <h2 className="font-semibold text-warm-text line-clamp-1">{goal.title}</h2>
                             </div>
-                            {goal.description && (
-                              <div className="text-sm text-muted-foreground">
-                                {isExpanded ? <p className="whitespace-pre-wrap">{goal.description}</p> : <p className="line-clamp-2">{excerpt}</p>}
-                              </div>
-                            )}
+            {goal.excerpt ? (
+              <div className="text-sm text-muted-foreground">
+                <p className="line-clamp-2">{goal.excerpt}</p>
+              </div>
+            ) : goal.description ? (
+              <div className="text-sm text-muted-foreground">
+                <p className="line-clamp-2">{goal.description.substring(0, 150)}...</p>
+              </div>
+            ) : null}
                             
-                            {/* Read More Link */}
-                            {goal.slug && (
+                            {/* Read More Link - only show if there's more content than the excerpt */}
+                            {goal.slug && goal.description && goal.description !== goal.excerpt && (
                               <div className="mt-3">
                                  <Button
                                    variant="link"
@@ -268,21 +262,6 @@ export default function MotivatorIdeas() {
                         </div>
                       </div>
                     </div>
-
-                    {shouldShowExpandButton && (
-                      <div className="absolute bottom-2 right-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button size="sm" variant="ghost" onClick={() => setExpandedGoal(isExpanded ? null : goal.id)} className="h-6 w-6 p-0 rounded-full hover:bg-muted/10" aria-label={isExpanded ? 'Show less' : 'Show full description'}>
-                              <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               );
