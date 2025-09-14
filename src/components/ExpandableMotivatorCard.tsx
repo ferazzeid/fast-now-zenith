@@ -182,13 +182,22 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             }}
           >
             <div className="flex items-start justify-between h-full">
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center">
-                  <h3 className={`font-semibold ${isSavedQuote ? 'text-white' : 'text-warm-text'} ${isExpanded ? '' : 'line-clamp-2'}`}>
-                    {motivator.title}
-                  </h3>
+                <div className="space-y-1">
+                  <div className="flex items-center">
+                    <h3 className={`font-semibold ${isSavedQuote ? 'text-white' : 'text-warm-text'} ${isExpanded ? '' : 'line-clamp-2'}`}>
+                      {motivator.title}
+                    </h3>
+                  </div>
+                  
+                  {/* User goals show full content, not excerpts */}
+                  {displayContent && (
+                    <p className={`text-sm ${isSavedQuote ? 'text-gray-300' : 'text-muted-foreground'} ${
+                      isExpanded ? '' : shouldShowExpandButton ? 'line-clamp-2' : ''
+                    }`}>
+                      {displayContent}
+                    </p>
+                  )}
                 </div>
-               </div>
                
                {/* Actions */}
                <div className="flex flex-col gap-1 ml-2">

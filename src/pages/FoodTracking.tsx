@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown, Target, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown, Save } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -298,7 +298,7 @@ const FoodTracking = () => {
               }}
               className="py-2.5 px-3 focus:text-foreground"
             >
-              <Target className="w-4 h-4 mr-2" />
+              <Save className="w-4 h-4 mr-2" />
               Add to Template
             </DropdownMenuItem>
             <DropdownMenuItem
