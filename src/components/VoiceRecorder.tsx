@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Mic, Square, Play, Pause } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -169,93 +169,91 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   // Render conditionally based on whether onClose is provided (modal vs inline)
   if (onClose) {
     return (
-      <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader className="border-b border-border py-4 px-0">
-            <DialogTitle className="text-warm-text px-6">Voice Recording</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6 p-4">
-            {/* Recording Controls */}
-            <div className="flex flex-col items-center space-y-4">
-              {!isRecording && !audioURL && (
-                <button
-                  onClick={startRecording}
-                  disabled={isDisabled}
-                  className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
-                >
-                  <Mic className="w-8 h-8" />
-                </button>
-              )}
-
-              {isRecording && (
-                <button
-                  onClick={stopRecording}
-                  className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white animate-pulse transition-all duration-200"
-                >
-                  <Square className="w-8 h-8 fill-white" />
-                </button>
-              )}
-
-              {audioURL && !isRecording && (
-                <div className="flex items-center space-x-4">
-                  <Button
-                    onClick={playAudio}
-                    variant="outline"
-                    className="w-12 h-12 rounded-full border-primary/20 text-primary hover:bg-primary/10"
-                  >
-                    {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                  </Button>
-                  <Button
-                    onClick={resetRecording}
-                    variant="outline"
-                    className="border-primary/20 text-primary hover:bg-primary/10"
-                  >
-                    Record Again
-                  </Button>
-                </div>
-              )}
-
-              {/* Status Text */}
-              <p className="text-sm text-muted-foreground text-center">
-                {isRecording ? 'Recording... Tap stop when finished' : 
-                 audioURL ? 'Recording complete! Review or transcribe' : 
-                 'Tap the microphone to start recording'}
-              </p>
-            </div>
-
-            {/* Audio Element */}
+      <UniversalModal
+        isOpen={true}
+        onClose={onClose}
+        title="Voice Recording"
+        footer={
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
             {audioURL && (
-              <audio
-                ref={audioRef}
-                src={audioURL}
-                onEnded={() => setIsPlaying(false)}
-                className="hidden"
-              />
+              <Button
+                onClick={transcribeAudio}
+                disabled={isProcessing}
+                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {isProcessing ? 'Processing...' : 'Transcribe'}
+              </Button>
+            )}
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          {/* Recording Controls */}
+          <div className="flex flex-col items-center space-y-4">
+            {!isRecording && !audioURL && (
+              <button
+                onClick={startRecording}
+                disabled={isDisabled}
+                className="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all duration-200"
+              >
+                <Mic className="w-8 h-8" />
+              </button>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                className="flex-1"
+            {isRecording && (
+              <button
+                onClick={stopRecording}
+                className="w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white animate-pulse transition-all duration-200"
               >
-                Cancel
-              </Button>
-              {audioURL && (
+                <Square className="w-8 h-8 fill-white" />
+              </button>
+            )}
+
+            {audioURL && !isRecording && (
+              <div className="flex items-center space-x-4">
                 <Button
-                  onClick={transcribeAudio}
-                  disabled={isProcessing}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+                  onClick={playAudio}
+                  variant="outline"
+                  className="w-12 h-12 rounded-full border-primary/20 text-primary hover:bg-primary/10"
                 >
-                  {isProcessing ? 'Processing...' : 'Transcribe'}
+                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                 </Button>
-              )}
-            </div>
+                <Button
+                  onClick={resetRecording}
+                  variant="outline"
+                  className="border-primary/20 text-primary hover:bg-primary/10"
+                >
+                  Record Again
+                </Button>
+              </div>
+            )}
+
+            {/* Status Text */}
+            <p className="text-sm text-muted-foreground text-center">
+              {isRecording ? 'Recording... Tap stop when finished' : 
+               audioURL ? 'Recording complete! Review or transcribe' : 
+               'Tap the microphone to start recording'}
+            </p>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {/* Audio Element */}
+          {audioURL && (
+            <audio
+              ref={audioRef}
+              src={audioURL}
+              onEnded={() => setIsPlaying(false)}
+              className="hidden"
+            />
+          )}
+        </div>
+      </UniversalModal>
     );
   }
 

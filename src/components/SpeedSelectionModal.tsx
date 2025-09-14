@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useState } from 'react';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Zap, CheckCircle } from 'lucide-react';
@@ -25,8 +26,11 @@ const SPEED_OPTIONS = [
 ];
 
 export const SpeedSelectionModal = ({ selectedSpeed, onSpeedChange, children }: SpeedSelectionModalProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
   const handleSpeedSelect = (speed: number) => {
     onSpeedChange(speed);
+    setIsOpen(false);
   };
 
   const getCurrentSpeedOption = () => {
@@ -38,14 +42,17 @@ export const SpeedSelectionModal = ({ selectedSpeed, onSpeedChange, children }: 
   const currentOption = getCurrentSpeedOption();
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
+    <>
+      <div onClick={() => setIsOpen(true)}>
         {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Select Walking Speed</DialogTitle>
-        </DialogHeader>
+      </div>
+      
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Select Walking Speed"
+        size="md"
+      >
         <div className="space-y-3">
           {SPEED_OPTIONS.map((option) => {
             const isSelected = Math.abs(option.storageSpeed - selectedSpeed) < 0.3;
@@ -81,7 +88,7 @@ export const SpeedSelectionModal = ({ selectedSpeed, onSpeedChange, children }: 
             );
           })}
         </div>
-      </DialogContent>
-    </Dialog>
+      </UniversalModal>
+    </>
   );
 };

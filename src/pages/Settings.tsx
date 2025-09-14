@@ -833,7 +833,10 @@ const Settings = () => {
 
         {/* Modals */}
           {showMotivatorsModal && (
-            <MotivatorsModal onClose={() => setShowMotivatorsModal(false)} />
+            <MotivatorsModal 
+              isOpen={showMotivatorsModal}
+              onClose={() => setShowMotivatorsModal(false)} 
+            />
           )}
           
           {showAiGeneratorModal && (

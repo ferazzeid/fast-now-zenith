@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -65,65 +65,62 @@ export const ProfileCompletionPrompt = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Complete Your Profile</DialogTitle>
-          <DialogDescription>
-            We need some basic information to enable {requiredFor}. This helps us provide accurate calculations.
-          </DialogDescription>
-        </DialogHeader>
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Complete Your Profile"
+      description={`We need some basic information to enable ${requiredFor}. This helps us provide accurate calculations.`}
+      size="md"
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="weight">Weight (lbs)</Label>
+          <Input
+            id="weight"
+            type="number"
+            value={formData.weight}
+            onChange={(e) => handleInputChange('weight', e.target.value)}
+            placeholder="Enter your weight"
+            min="50"
+            max="500"
+          />
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="weight">Weight (lbs)</Label>
-            <Input
-              id="weight"
-              type="number"
-              value={formData.weight}
-              onChange={(e) => handleInputChange('weight', e.target.value)}
-              placeholder="Enter your weight"
-              min="50"
-              max="500"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="height">Height (inches)</Label>
-            <Input
-              id="height"
-              type="number"
-              value={formData.height}
-              onChange={(e) => handleInputChange('height', e.target.value)}
-              placeholder="Enter your height"
-              min="36"
-              max="96"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="age">Age (years)</Label>
-            <Input
-              id="age"
-              type="number"
-              value={formData.age}
-              onChange={(e) => handleInputChange('age', e.target.value)}
-              placeholder="Enter your age"
-              min="13"
-              max="120"
-            />
-          </div>
-          
-          <div className="flex gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-              Skip for Now
-            </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? "Saving..." : "Save & Continue"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-2">
+          <Label htmlFor="height">Height (inches)</Label>
+          <Input
+            id="height"
+            type="number"
+            value={formData.height}
+            onChange={(e) => handleInputChange('height', e.target.value)}
+            placeholder="Enter your height"
+            min="36"
+            max="96"
+          />
+        </div>
+        
+        <div className="space-y-2">
+          <Label htmlFor="age">Age (years)</Label>
+          <Input
+            id="age"
+            type="number"
+            value={formData.age}
+            onChange={(e) => handleInputChange('age', e.target.value)}
+            placeholder="Enter your age"
+            min="13"
+            max="120"
+          />
+        </div>
+        
+        <div className="flex gap-2 pt-4">
+          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+            Skip for Now
+          </Button>
+          <Button type="submit" disabled={loading} className="flex-1">
+            {loading ? "Saving..." : "Save & Continue"}
+          </Button>
+        </div>
+      </form>
+    </UniversalModal>
   );
 };

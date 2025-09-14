@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Settings, RotateCcw } from 'lucide-react';
@@ -40,28 +40,56 @@ export const ActivityLevelOverride: React.FC<ActivityLevelOverrideProps> = ({ cu
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <Settings className="w-3 h-3 mr-1" />
-          {todayOverride ? 'Override Active' : 'Override'}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Settings className="w-5 h-5" />
-            Daily Activity Override
-          </DialogTitle>
-          <DialogDescription>
-            Change your activity level for today's calorie calculations.
-          </DialogDescription>
-        </DialogHeader>
-        
+    <>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-auto p-1 text-xs text-muted-foreground hover:text-foreground"
+        onClick={() => setIsOpen(true)}
+      >
+        <Settings className="w-3 h-3 mr-1" />
+        {todayOverride ? 'Override Active' : 'Override'}
+      </Button>
+
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Daily Activity Override"
+        description="Change your activity level for today's calorie calculations."
+        size="md"
+        footer={
+          <div className="flex justify-between w-full">
+            <div>
+              {todayOverride && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleClear}
+                  disabled={loading}
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  Clear Override
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                disabled={loading}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={!selectedLevel || loading}
+              >
+                {isPermanent ? 'Save Permanently' : 'Apply for Today'}
+              </Button>
+            </div>
+          </div>
+        }
+      >
         <div className="space-y-4">
           {/* Current Status */}
           <div className="p-3 bg-muted/50 rounded-lg">
@@ -111,38 +139,7 @@ export const ActivityLevelOverride: React.FC<ActivityLevelOverrideProps> = ({ cu
             </label>
           </div>
         </div>
-
-        <DialogFooter className="flex justify-between">
-          <div>
-            {todayOverride && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleClear}
-                disabled={loading}
-              >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                Clear Override
-              </Button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={!selectedLevel || loading}
-            >
-              {isPermanent ? 'Save Permanently' : 'Apply for Today'}
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </UniversalModal>
+    </>
   );
 };

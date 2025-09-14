@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Brain, Loader2 } from 'lucide-react';
 import { useDeficitAnalysis } from '@/hooks/useDeficitAnalysis';
 import { Card } from '@/components/ui/card';
 
 export const DeficitAnalysisButton = () => {
   const { analyzeDeficit, analysis, loading, clearAnalysis } = useDeficitAnalysis();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleAnalyze = async () => {
     clearAnalysis();
@@ -14,25 +15,23 @@ export const DeficitAnalysisButton = () => {
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button 
-          variant="action-secondary" 
-          size="action-secondary"
-          className="flex items-center gap-2 w-full"
-        >
-          <Brain className="w-4 h-4" />
-          AI Analysis
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-primary" />
-            Daily Progress Analysis
-          </DialogTitle>
-        </DialogHeader>
-        
+    <>
+      <Button 
+        variant="action-secondary" 
+        size="action-secondary"
+        className="flex items-center gap-2 w-full"
+        onClick={() => setIsOpen(true)}
+      >
+        <Brain className="w-4 h-4" />
+        AI Analysis
+      </Button>
+
+      <UniversalModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        title="Daily Progress Analysis"
+        size="lg"
+      >
         <div className="space-y-4">
           {!analysis && (
             <Card className="p-4">
@@ -91,7 +90,7 @@ export const DeficitAnalysisButton = () => {
             </Card>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </UniversalModal>
+    </>
   );
 };
