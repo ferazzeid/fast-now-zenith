@@ -51,7 +51,7 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     lastMilestoneHour: 0,
     isVisible: false,
     currentEvent: null,
-    animationType: 'ring-pulse'
+    animationType: 'color-wave'
   });
   const { toast } = useToast();
 
@@ -131,7 +131,7 @@ export const useCelebrationMilestones = (sessionId?: string) => {
       lastMilestoneHour: 0,
       isVisible: false,
       currentEvent: null,
-      animationType: 'ring-pulse'
+      animationType: 'color-wave'
     });
     
     // Clear celebrated milestones for this session when starting a new fast
