@@ -127,12 +127,12 @@ export const useProfile = () => {
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) {
       console.error('updateProfile: User not authenticated');
-      return { error: { message: 'User not authenticated' } };
+      return { error: { message: 'User not authenticated' }, data: null };
     }
 
     console.log('updateProfile: Starting update for user:', user.id);
     
-    await executeUpdateProfile(async () => {
+    const result = await executeUpdateProfile(async () => {
       // Verify we have a valid session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -142,7 +142,7 @@ export const useProfile = () => {
       
       console.log('updateProfile: Valid session found, executing update with data:', updates);
       
-      const result = await executeWithRetry(async () => {
+      const dbResult = await executeWithRetry(async () => {
         console.log('updateProfile: Making database upsert call with user_id:', user.id);
         const { data, error } = await supabase
           .from('profiles')
@@ -153,13 +153,13 @@ export const useProfile = () => {
             onConflict: 'user_id'
           })
           .select()
-          .single();
+          .maybeSingle();
           
         console.log('updateProfile: Database response:', { data, error });
         return { data, error };
       });
       
-      const { data, error } = result;
+      const { data, error } = dbResult;
       console.log('Database response:', { data, error });
 
       if (error) {
@@ -189,7 +189,7 @@ export const useProfile = () => {
       // SYNCHRONIZED: Update cache with new data immediately (1 hour cache)
       cacheProfile(user.id, data, 1);
 
-      return data ? { data, error: null } : { error: new Error('No data returned'), data: null };
+      return data;
     }, {
       onError: (error: any) => {
         console.error('Error updating profile:', error);
@@ -198,9 +198,15 @@ export const useProfile = () => {
           title: "Update failed",
           description: `Unable to save profile: ${error.message || 'Please try again.'}`
         });
-        return { error, data: null };
       }
     });
+
+    // Return consistent type based on result
+    if (result.success) {
+      return { data: result.data, error: null };
+    } else {
+      return { error: result.error || { message: 'Unknown error' }, data: null };
+    }
   }, [user, executeWithRetry, toast, loadProfile, executeUpdateProfile]);
 
   const isProfileComplete = useCallback(() => {
