@@ -27,6 +27,7 @@ interface DailySummary {
 }
 
 const FoodHistory = () => {
+  console.log('🍽️ FoodHistory page component rendering');
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -203,6 +204,7 @@ const FoodHistory = () => {
   };
 
   if (isLoading && (!dailySummaries || dailySummaries.length === 0)) {
+    console.log('🍽️ FoodHistory: Rendering LOADING state', { isLoading, dailySummariesLength: dailySummaries?.length });
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
@@ -237,6 +239,9 @@ const FoodHistory = () => {
     );
   }
 
+  console.log('🍽️ FoodHistory: Rendering MAIN content', { isLoading, dailySummariesLength: dailySummaries?.length });
+  console.log('🍽️ FoodHistory: Rendering main container');
+  
   return (
     <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
       <SEOManager />
