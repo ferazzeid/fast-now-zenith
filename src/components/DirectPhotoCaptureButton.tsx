@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAccess } from '@/hooks/useAccess';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { useToast } from '@/hooks/use-toast';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 interface DirectPhotoCaptureButtonProps {
   onFoodAdded?: (food: any) => void;
@@ -41,7 +42,6 @@ interface FoodSuggestion {
 }
 
 export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
-  const [captureState, setCaptureState] = useState<'idle' | 'uploading' | 'analyzing'>('idle');
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
@@ -51,6 +51,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const { access_level, hasAIAccess } = useAccess();
   const sessionGuard = useSessionGuard();
   const { toast } = useToast();
+  const { isUploading, uploadState, startUpload, startAnalysis, completeUpload, completeAnalysis, setUploadError, reset } = useUploadLoading();
 
   // Check if user has access to AI analysis features
   const canUseAIAnalysis = access_level === 'admin' || hasAIAccess;

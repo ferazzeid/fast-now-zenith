@@ -135,49 +135,9 @@ export const queryKeys = {
 
 // LOVABLE_PRESERVE: Cache management utilities
 export const cacheUtils = {
-  // PERFORMANCE: Invalidate user-specific data
-  invalidateUserData: (userId: string) => {
-    queryClient.invalidateQueries({ queryKey: ['user', userId] });
-    queryClient.invalidateQueries({ queryKey: ['fasting', 'sessions', userId] });
-    queryClient.invalidateQueries({ queryKey: ['motivators', 'user', userId] });
-    queryClient.invalidateQueries({ queryKey: ['food', 'entries', userId] });
-    queryClient.invalidateQueries({ queryKey: ['walking', 'sessions', userId] });
-  },
-  
   // PERFORMANCE: Clear all cache (for logout)
   clearAllCache: () => {
     queryClient.clear();
-  },
-  
-  // PERFORMANCE: Prefetch critical data
-  prefetchUserData: async (userId: string) => {
-    await Promise.all([
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.userProfile(userId),
-        staleTime: 10 * 60 * 1000, // 10 minutes
-      }),
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.userSubscription(userId),
-        staleTime: 60 * 60 * 1000, // 1 hour
-      }),
-      queryClient.prefetchQuery({
-        queryKey: queryKeys.activeFastingSession(userId),
-        staleTime: 30 * 1000, // 30 seconds
-      }),
-    ]);
-  },
-  
-  // PERFORMANCE: Memory cleanup for mobile
-  performMemoryCleanup: () => {
-    // Remove unused queries to free memory
-    queryClient.getQueryCache().clear();
-    
-    // Force garbage collection of old data
-    queryClient.getQueryCache().getAll().forEach(query => {
-      if (query.isStale() && !query.getObserversCount()) {
-        queryClient.removeQueries({ queryKey: query.queryKey });
-      }
-    });
   },
 };
 

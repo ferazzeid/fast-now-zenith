@@ -4,18 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Upload, CheckCircle } from 'lucide-react';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 export const PWAIconUploader = () => {
-  const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<{
     favicon: boolean;
     apple: boolean;
     pwa: boolean;
   }>({ favicon: false, apple: false, pwa: false });
   const { toast } = useToast();
+  const { isUploading, startUpload, completeUpload, setUploadError } = useUploadLoading();
 
   const uploadIconsToStorage = async () => {
-    setUploading(true);
+    startUpload();
     try {
       // Convert local asset files to blobs and upload to Supabase storage
       const icons = [
@@ -80,7 +81,7 @@ export const PWAIconUploader = () => {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      completeUpload();
     }
   };
 
@@ -125,10 +126,10 @@ export const PWAIconUploader = () => {
         
         <Button 
           onClick={uploadIconsToStorage} 
-          disabled={uploading}
+          disabled={isUploading}
           className="w-full"
         >
-          {uploading ? 'Uploading Icons...' : 'Upload PWA Icons to Storage'}
+          {isUploading ? 'Uploading Icons...' : 'Upload PWA Icons to Storage'}
         </Button>
       </CardContent>
     </Card>

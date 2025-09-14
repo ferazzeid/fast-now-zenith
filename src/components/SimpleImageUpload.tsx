@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Upload, Camera, Loader2, Image } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -8,13 +8,13 @@ import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { uploadImageToCloud } from '@/utils/imageUtils';
 import { useAccess } from '@/hooks/useAccess';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 interface SimpleImageUploadProps {
   onImageUpload: (url: string) => void;
 }
 
 export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -22,6 +22,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
   const { hasPremiumFeatures } = useAccess();
   const { withSessionGuard } = useSessionGuard();
   const isMobile = useIsMobile();
+  const { isUploading, startUpload, completeUpload } = useUploadLoading();
 
   const handleFileSelect = () => {
     fileInputRef.current?.click();
@@ -61,7 +62,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
 
     // Use session guard to protect the upload operation
     await withSessionGuard(async () => {
-      setIsUploading(true);
+      startUpload();
 
       try {
         // Premium users only - cloud storage
@@ -96,7 +97,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
         });
         throw error; // Re-throw to let session guard handle it
       } finally {
-        setIsUploading(false);
+        completeUpload();
       }
     }, 'Image Upload');
   };

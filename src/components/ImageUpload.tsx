@@ -8,6 +8,7 @@ import { uploadImageToCloud } from '@/utils/imageUtils';
 import { useAccess } from '@/hooks/useAccess';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 
 interface ImageUploadProps {
@@ -37,7 +38,6 @@ export const ImageUpload = ({
   bucket = 'motivator-images' // Default to motivator-images for backward compatibility
 }: ImageUploadProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -45,6 +45,7 @@ export const ImageUpload = ({
   const { user } = useAuth();
   const { hasPremiumFeatures } = useAccess();
   const isMobile = useIsMobile();
+  const { isUploading, startUpload, completeUpload, setUploadError } = useUploadLoading();
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
@@ -113,7 +114,7 @@ export const ImageUpload = ({
       return;
     }
 
-    setIsUploading(true);
+    startUpload();
 
     try {
       // Create preview
@@ -148,7 +149,7 @@ export const ImageUpload = ({
       });
       setPreviewUrl(currentImageUrl || null);
     } finally {
-      setIsUploading(false);
+      completeUpload();
     }
   };
 

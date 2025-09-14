@@ -11,6 +11,7 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { supabase } from '@/integrations/supabase/client';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { PremiumGate } from '@/components/PremiumGate';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -26,11 +27,11 @@ interface MotivatorAiChatModalProps {
 export const MotivatorAiChatModal = ({ onClose }: MotivatorAiChatModalProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [audioEnabled, setAudioEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const { createMotivator, updateMotivator, refreshMotivators } = useMotivators();
+  const { isLoading, execute } = useStandardizedLoading();
 
   // Initial AI message with specific examples
   useEffect(() => {
@@ -106,9 +107,7 @@ What's your first powerful motivator? Record it and tell me everything!`,
   };
 
   const sendToAI = async (message: string, fromVoice = false) => {
-    setIsLoading(true);
-
-    try {
+    await execute(async () => {
       // Build conversation history for context
       const conversationHistory = messages.map(msg => ({
         role: msg.role,
@@ -206,17 +205,16 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
       if (motivatorCreated) {
         refreshMotivators();
       }
-
-    } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error sending message:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const playTextAsAudio = async (text: string) => {

@@ -1,10 +1,10 @@
-import { useState } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { deleteImageFromStorage } from '@/utils/imageUtils';
 import { useToast } from '@/hooks/use-toast';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 interface AdminImageUploadSilentProps {
   onImageUpload: (imageUrl: string) => void;
@@ -21,9 +21,9 @@ export const AdminImageUploadSilent = ({
   onError,
   onSuccess,
 }: AdminImageUploadSilentProps) => {
-  const [isUploading, setIsUploading] = useState(false);
   const { user, session } = useAuth();
   const { toast } = useToast();
+  const { isUploading, startUpload, completeUpload, setUploadError } = useUploadLoading();
 
   const handleFileSelect = async (file: File) => {
     if (!file) return;
@@ -46,7 +46,7 @@ export const AdminImageUploadSilent = ({
       return;
     }
 
-    setIsUploading(true);
+    startUpload();
     
     // Log session state for debugging
     console.log('🔐 Session state before upload:', {
@@ -120,14 +120,14 @@ export const AdminImageUploadSilent = ({
         variant: "destructive"
       });
     } finally {
-      setIsUploading(false);
+      completeUpload();
     }
   };
 
   const handleRemove = async () => {
     if (!currentImageUrl) return;
     
-    setIsUploading(true);
+    startUpload();
     
     try {
       // Delete the actual file from Supabase Storage
@@ -160,7 +160,7 @@ export const AdminImageUploadSilent = ({
         variant: "destructive"
       });
     } finally {
-      setIsUploading(false);
+      completeUpload();
     }
   };
 

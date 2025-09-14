@@ -7,6 +7,7 @@ import { EnhancedWeightSelector } from '@/components/EnhancedWeightSelector';
 import { EnhancedHeightSelector } from '@/components/EnhancedHeightSelector';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface ProfileOnboardingFlowProps {
   onComplete: () => void;
@@ -24,6 +25,7 @@ interface FormData {
 export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingFlowProps) => {
   const { profile, updateProfile, loading: isUpdating } = useProfile();
   const { toast } = useToast();
+  const { isLoading, execute } = useStandardizedLoading();
   
   // Initialize form data with existing profile values
   const [formData, setFormData] = useState<FormData>({
@@ -49,8 +51,6 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
 
   const [activeModal, setActiveModal] = useState<'weight' | 'height' | 'age' | 'sex' | 'activityLevel' | null>(null);
   const [tempValue, setTempValue] = useState<{weight?: string, height?: string} | string>('');
-  
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleComplete = async () => {
     if (!isFormValid()) {
@@ -63,7 +63,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
     }
 
     try {
-      setIsLoading(true);
+      await execute(async () => {
       
       // Detect unit preference from user selections
       let detectedUnits: 'metric' | 'imperial' = 'imperial'; // default

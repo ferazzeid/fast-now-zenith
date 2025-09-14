@@ -9,6 +9,7 @@ import { Upload, Image as ImageIcon, Smartphone, Monitor, Palette, User, Trash2 
 import { SmartLoadingButton } from "./SimpleLoadingComponents";
 import { AuthorTooltip } from "./AuthorTooltip";
 import { deleteImageFromStorage } from "@/utils/imageUtils";
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 const BrandAssetsManager = () => {
   const [appIcon, setAppIcon] = useState<File | null>(null);
@@ -19,8 +20,8 @@ const BrandAssetsManager = () => {
   const [currentLogo, setCurrentLogo] = useState<string>('');
   const [homeScreenIcon, setHomeScreenIcon] = useState<File | null>(null);
   const [currentHomeScreenIcon, setCurrentHomeScreenIcon] = useState<string>('');
-  const [uploading, setUploading] = useState(false);
   const { toast } = useToast();
+  const { isUploading, startUpload, completeUpload, setUploadError } = useUploadLoading();
   
   // Author tooltip state
   const [authorData, setAuthorData] = useState({
@@ -200,7 +201,7 @@ const BrandAssetsManager = () => {
       return;
     }
 
-    setUploading(true);
+    startUpload();
     try {
       // Delete old author image first (non-blocking)
       if (authorData.image && authorData.image !== '/src/assets/motivator-placeholder.jpg') {
@@ -245,7 +246,7 @@ const BrandAssetsManager = () => {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      completeUpload();
     }
   };
 
@@ -258,7 +259,7 @@ const BrandAssetsManager = () => {
       return;
     }
 
-    setUploading(true);
+    startUpload();
     try {
       // Delete old author image from storage
       if (authorData.image) {
@@ -291,12 +292,12 @@ const BrandAssetsManager = () => {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      completeUpload();
     }
   };
 
   const updateAuthorField = async (field: 'name' | 'title', value: string) => {
-    setUploading(true);
+    startUpload();
     try {
       await supabase
         .from('shared_settings')
@@ -320,14 +321,14 @@ const BrandAssetsManager = () => {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      completeUpload();
     }
   };
 
   const saveAuthorInfo = async () => {
     if (!hasAuthorChanges) return;
     
-    setUploading(true);
+    startUpload();
     try {
       // Save both name and title
       await Promise.all([
@@ -364,7 +365,7 @@ const BrandAssetsManager = () => {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      completeUpload();
     }
   };
 
@@ -407,7 +408,7 @@ const BrandAssetsManager = () => {
       return;
     }
 
-    setUploading(true);
+    startUpload();
     try {
       console.log(`Starting ${type} upload:`, file.name);
       const assetUrl = await uploadAsset(file, type);
@@ -490,7 +491,7 @@ const BrandAssetsManager = () => {
         variant: "destructive",
       });
     } finally {
-      setUploading(false);
+      completeUpload();
     }
   };
 
@@ -549,10 +550,10 @@ const BrandAssetsManager = () => {
           <div className="flex gap-2">
             <Button 
               onClick={() => saveAsset(appIcon!, 'appIcon')} 
-              disabled={!appIcon || uploading}
+              disabled={!appIcon || isUploading}
               className="flex-1 sm:flex-none"
             >
-              {uploading ? "Uploading..." : "Save"}
+              {isUploading ? "Uploading..." : "Save"}
             </Button>
           </div>
         </CardContent>
@@ -611,10 +612,10 @@ const BrandAssetsManager = () => {
           <div className="flex gap-2">
             <Button 
               onClick={() => saveAsset(favicon!, 'favicon')} 
-              disabled={!favicon || uploading}
+              disabled={!favicon || isUploading}
               className="flex-1 sm:flex-none"
             >
-              {uploading ? "Uploading..." : "Save"}
+              {isUploading ? "Uploading..." : "Save"}
             </Button>
           </div>
         </CardContent>
@@ -673,10 +674,10 @@ const BrandAssetsManager = () => {
           <div className="flex gap-2">
             <Button 
               onClick={() => saveAsset(logo!, 'logo')} 
-              disabled={!logo || uploading}
+              disabled={!logo || isUploading}
               className="flex-1 sm:flex-none"
             >
-              {uploading ? "Uploading..." : "Save"}
+              {isUploading ? "Uploading..." : "Save"}
             </Button>
           </div>
         </CardContent>
@@ -741,10 +742,10 @@ const BrandAssetsManager = () => {
           <div className="flex gap-2">
             <Button 
               onClick={() => saveAsset(homeScreenIcon!, 'homeScreenIcon')} 
-              disabled={!homeScreenIcon || uploading}
+              disabled={!homeScreenIcon || isUploading}
               className="flex-1 sm:flex-none"
             >
-              {uploading ? "Uploading..." : "Save"}
+              {isUploading ? "Uploading..." : "Save"}
             </Button>
           </div>
         </CardContent>
@@ -782,11 +783,11 @@ const BrandAssetsManager = () => {
                     }}
                     className="hidden"
                     id="author-image-upload"
-                    disabled={uploading}
+                    disabled={isUploading}
                   />
                   <label
                     htmlFor="author-image-upload"
-                    className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors flex-1 ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors flex-1 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Upload className="w-4 h-4" />
                     <span className="text-sm">Upload author image</span>
@@ -796,7 +797,7 @@ const BrandAssetsManager = () => {
                       variant="outline"
                       size="sm"
                       onClick={handleRemoveAuthorImage}
-                      disabled={uploading}
+                      disabled={isUploading}
                       className="px-3"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -818,7 +819,7 @@ const BrandAssetsManager = () => {
               value={authorDataDraft.name}
               onChange={(e) => handleAuthorDataChange('name', e.target.value)}
               placeholder="Enter author name"
-              disabled={uploading}
+              disabled={isUploading}
             />
           </div>
 
@@ -830,7 +831,7 @@ const BrandAssetsManager = () => {
               value={authorDataDraft.title}
               onChange={(e) => handleAuthorDataChange('title', e.target.value)}
               placeholder="e.g., Personal Insight, Author Note"
-              disabled={uploading}
+              disabled={isUploading}
             />
           </div>
 
@@ -838,10 +839,10 @@ const BrandAssetsManager = () => {
           <div className="flex gap-2">
             <Button 
               onClick={saveAuthorInfo}
-              disabled={!hasAuthorChanges || uploading}
+              disabled={!hasAuthorChanges || isUploading}
               className="flex-1 sm:flex-none"
             >
-              {uploading ? "Saving..." : "Save Author Info"}
+              {isUploading ? "Saving..." : "Save Author Info"}
             </Button>
             {hasAuthorChanges && (
               <p className="text-xs text-muted-foreground self-center">
