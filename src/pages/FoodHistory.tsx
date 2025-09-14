@@ -100,11 +100,16 @@ const FoodHistory = () => {
 
       // Convert to array and sort by date
       const summaries = Array.from(grouped.values())
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, ITEMS_PER_PAGE);
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-      setHasMore(entries?.length === 50);
-      return summaries;
+      // For pagination, we need to track if there are more days beyond what we're showing
+      const showCount = Math.min(summaries.length, ITEMS_PER_PAGE);
+      const displayedSummaries = summaries.slice(0, showCount);
+      
+      // Has more if we got the full 50 entries OR if we have more than ITEMS_PER_PAGE summaries
+      setHasMore(entries?.length === 50 || summaries.length > ITEMS_PER_PAGE);
+      
+      return append && dailySummaries ? [...dailySummaries, ...displayedSummaries] : displayedSummaries;
     }, {
       onError: (error) => {
         console.error('Error loading food history:', error);
@@ -208,30 +213,18 @@ const FoodHistory = () => {
     return (
       <div className="relative min-h-screen bg-background p-4">
         <div className="max-w-md mx-auto pt-16 pb-32">
-          {/* Top right X button to close */}
-          <div className="flex justify-end mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/food-tracking')}
-              className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-left">Food History</h1>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowDeleteAllDialog(true)}
-              className="text-destructive hover:bg-destructive/10 w-8 h-8 p-0"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </div>
+        {/* Header with title and close button on same line - Loading state */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-lg font-semibold">Food History</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/food-tracking')}
+            className="p-2"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
           
           {/* Loading skeletons */}
           <div className="space-y-4">
@@ -262,31 +255,29 @@ const FoodHistory = () => {
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-16 pb-32">
-        {/* Top right X button to close */}
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/food-tracking')}
-            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {/* Header with left-aligned title and right-aligned delete button */}
+        {/* Header with title and close button on same line */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-left">Food History</h1>
-          {dailySummaries && dailySummaries.length > 0 && (
+          <h1 className="text-lg font-semibold">Food History</h1>
+          <div className="flex items-center gap-2">
+            {dailySummaries && dailySummaries.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowDeleteAllDialog(true)}
+                className="text-destructive hover:bg-destructive/10 w-8 h-8 p-0"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowDeleteAllDialog(true)}
-              className="text-destructive hover:bg-destructive/10 w-8 h-8 p-0"
+              onClick={() => navigate('/food-tracking')}
+              className="p-2"
             >
-              <Trash2 className="w-4 h-4" />
+              <X className="w-4 h-4" />
             </Button>
-          )}
+          </div>
         </div>
 
         {!dailySummaries || dailySummaries.length === 0 ? (
@@ -387,8 +378,8 @@ const FoodHistory = () => {
               </Card>
             ))}
 
-            {/* Load More */}
-            {hasMore && (
+            {/* Load More - only show if we actually have more than displayed items */}
+            {hasMore && dailySummaries && dailySummaries.length >= ITEMS_PER_PAGE && (
               <Button
                 variant="outline"
                 className="w-full"
