@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X, FileText, ExternalLink } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { X } from 'lucide-react';
 
 interface ContentItem {
   id: string;
@@ -17,12 +16,6 @@ interface MotivatorContentModalProps {
 }
 
 export const MotivatorContentModal = ({ isOpen, onClose, content }: MotivatorContentModalProps) => {
-  const handleOpenExternal = () => {
-    if (content?.external_url) {
-      window.open(content.external_url, '_blank', 'noopener,noreferrer');
-    }
-  };
-
   if (!isOpen || !content) {
     return null;
   }
@@ -59,21 +52,7 @@ export const MotivatorContentModal = ({ isOpen, onClose, content }: MotivatorCon
                 </div>
               </div>
               
-              {/* Optional External Link */}
-              {content.external_url && (
-                <div className="mt-8 pt-6 border-t bg-muted/5 -mx-6 px-6 rounded-b-xl">
-                  <p className="text-xs text-muted-foreground mb-3">Want to read more?</p>
-                  <Button 
-                    onClick={handleOpenExternal} 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full"
-                  >
-                    <ExternalLink className="w-3 h-3 mr-2" />
-                    Visit Original Source
-                  </Button>
-                </div>
-              )}
+              {/* Removed the external link section */}
             </div>
           </div>
         </div>

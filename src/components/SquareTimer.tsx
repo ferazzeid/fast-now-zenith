@@ -79,22 +79,21 @@ const SquareTimerComponent = ({
   return (
     <TooltipProvider>
       <div className={`relative ${className}`}>
-        {/* Celebration Effects */}
-        {celebrationAnimation && (
-          <div className="absolute inset-0 z-50 pointer-events-none">
-            <SquareCelebrationEffects
-              isActive={celebrationAnimation.isActive}
-              animationType={celebrationAnimation.type as any}
-              onAnimationEnd={celebrationAnimation.onAnimationEnd}
-            />
-          </div>
-        )}
-
         {/* Full width layout to match buttons */}
         <div className="w-full space-y-4">
           
-          {/* Main Timer Card */}
+          {/* Main Timer Card with celebration effects contained within */}
           <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+            {/* Celebration Effects - constrained to timer card only */}
+            {celebrationAnimation && (
+              <div className="absolute inset-0 z-50 pointer-events-none rounded-lg overflow-hidden">
+                <SquareCelebrationEffects
+                  isActive={celebrationAnimation.isActive}
+                  animationType={celebrationAnimation.type as any}
+                  onAnimationEnd={celebrationAnimation.onAnimationEnd}
+                />
+              </div>
+            )}
             {/* Unified motivator rotation (images + titles) */}
             {showSlideshow && isActive && (
               <div className="absolute inset-0 rounded-lg overflow-hidden">
