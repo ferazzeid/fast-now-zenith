@@ -1,10 +1,10 @@
+import { useStaticLogo } from "@/hooks/useStaticLogo";
+
 export const useAppLogo = () => {
-  // Static logo - no database dependencies
-  const appLogo = "https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/logo-1755198305926.png";
-  
-  return {
-    appLogo,
-    loading: false,
+  const { appLogo, loading } = useStaticLogo();
+  return { 
+    appLogo, 
+    loading, 
     refetch: () => {} // Keep for compatibility
   };
 };

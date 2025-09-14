@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useLocation } from 'react-router-dom';
 
 interface SEOSettings {
@@ -8,38 +7,12 @@ interface SEOSettings {
 }
 
 export const SEOManager = () => {
-  const [settings, setSettings] = useState<SEOSettings>({
-    indexHomepage: false,
-    indexOtherPages: false
+  // Use static SEO settings - no database dependency
+  const [settings] = useState<SEOSettings>({
+    indexHomepage: false, // Change to true when ready for SEO
+    indexOtherPages: false // Change to true when ready for SEO
   });
   const location = useLocation();
-
-  useEffect(() => {
-    const fetchSEOSettings = async () => {
-      try {
-        const { data } = await supabase
-          .from('shared_settings')
-          .select('setting_key, setting_value')
-          .in('setting_key', ['seo_index_homepage', 'seo_index_other_pages']);
-
-        if (data) {
-          const settingsMap = data.reduce((acc, item) => {
-            acc[item.setting_key] = item.setting_value === 'true';
-            return acc;
-          }, {} as Record<string, boolean>);
-
-          setSettings({
-            indexHomepage: settingsMap.seo_index_homepage || false,
-            indexOtherPages: settingsMap.seo_index_other_pages || false
-          });
-        }
-      } catch (error) {
-        console.warn('Failed to fetch SEO settings:', error);
-      }
-    };
-
-    fetchSEOSettings();
-  }, []);
 
   useEffect(() => {
     // Determine if current page should be indexed

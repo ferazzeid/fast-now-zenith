@@ -7,28 +7,19 @@ declare global {
   }
 }
 
+// Static analytics configuration - no database dependency
 let isAnalyticsInitialized = false;
 let currentMeasurementId: string | null = null;
 
+// Configure your Google Analytics ID here
+const GA_MEASUREMENT_ID = ''; // Add your GA4 measurement ID
+
 export const initializeAnalytics = async () => {
-  // Skip if not in browser environment or already initialized
-  if (typeof window === 'undefined' || isAnalyticsInitialized) return;
+  // Skip if not in browser environment or already initialized or no ID configured
+  if (typeof window === 'undefined' || isAnalyticsInitialized || !GA_MEASUREMENT_ID) return;
   
   try {
-    // Non-blocking analytics initialization - don't fail app startup
-    const { data, error } = await supabase
-      .from('shared_settings')
-      .select('setting_value')
-      .eq('setting_key', 'ga_tracking_id')
-      .maybeSingle(); // Use maybeSingle to handle empty results gracefully
-
-    if (error || !data?.setting_value) {
-      console.log('No GA tracking ID configured');
-      return;
-    }
-
-    const measurementId = data.setting_value;
-    currentMeasurementId = measurementId;
+    currentMeasurementId = GA_MEASUREMENT_ID;
 
     // Only load GA scripts in browser environment
     if (typeof document !== 'undefined') {
@@ -42,7 +33,7 @@ export const initializeAnalytics = async () => {
       
       // Initialize GA with config first
       window.gtag('js', new Date());
-      window.gtag('config', measurementId, {
+      window.gtag('config', GA_MEASUREMENT_ID, {
         anonymize_ip: true,
         allow_google_signals: false,
         allow_ad_personalization_signals: false
@@ -51,7 +42,7 @@ export const initializeAnalytics = async () => {
       // Load GA script after setup
       const script = document.createElement('script');
       script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
       script.onerror = () => console.warn('Failed to load Google Analytics script');
       
       // Insert at beginning of head for better detection
@@ -64,7 +55,7 @@ export const initializeAnalytics = async () => {
     }
 
     isAnalyticsInitialized = true;
-    console.log('Google Analytics initialized with ID:', measurementId);
+    console.log('Google Analytics initialized with ID:', GA_MEASUREMENT_ID);
   } catch (error) {
     // Don't let analytics failures break the app
     console.warn('Analytics initialization failed (non-critical):', error);

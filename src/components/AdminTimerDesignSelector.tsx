@@ -8,7 +8,7 @@ export const AdminTimerDesignSelector: React.FC = () => {
   const { timerDesign, isLoading, updateTimerDesign, isUpdating } = useTimerDesign();
 
   const handleDesignChange = (value: TimerDesign) => {
-    updateTimerDesign(value);
+    updateTimerDesign();
   };
 
   if (isLoading) return null;

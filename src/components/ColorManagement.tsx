@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useColorTheme } from "@/hooks/useColorTheme";
+import { Copy, Code } from "lucide-react";
+import { STATIC_COLORS } from "@/utils/staticAssets";
 
 interface ColorValues {
   primary: string;
@@ -17,55 +18,25 @@ interface ColorValues {
 }
 
 export const ColorManagement: React.FC = () => {
+  // Load current static colors
   const [colors, setColors] = useState<ColorValues>({
-    primary: '#3b82f6',
-    primaryHover: '#2563eb',
-    accent: '#22c55e',
-    ai: '#eab308',
-    chatAi: '#8b5cf6',
-    chatUser: '#06b6d4'
+    primary: `hsl(${STATIC_COLORS.primary})`,
+    primaryHover: `hsl(${STATIC_COLORS.secondary})`,
+    accent: `hsl(${STATIC_COLORS.accent})`,
+    ai: `hsl(${STATIC_COLORS.ai})`,
+    chatAi: `hsl(${STATIC_COLORS.chatAi})`,
+    chatUser: `hsl(${STATIC_COLORS.chatUser})`
   });
   
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
   const { toast } = useToast();
-  const { loadColors } = useColorTheme();
 
-  useEffect(() => {
-    loadCurrentColors();
-  }, []);
-
-  const loadCurrentColors = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('shared_settings')
-        .select('setting_key, setting_value')
-        .in('setting_key', ['brand_primary_color', 'brand_primary_hover', 'brand_accent_color', 'brand_ai_color', 'chat_ai_color', 'chat_user_color']);
-
-      if (error) {
-        console.error('Error loading colors:', error);
-        return;
-      }
-
-      const newColors = { ...colors };
-      data?.forEach(setting => {
-        if (setting.setting_key === 'brand_primary_color' && setting.setting_value) {
-          newColors.primary = hslToHex(setting.setting_value);
-        } else if (setting.setting_key === 'brand_primary_hover' && setting.setting_value) {
-          newColors.primaryHover = hslToHex(setting.setting_value);
-        } else if (setting.setting_key === 'brand_accent_color' && setting.setting_value) {
-          newColors.accent = hslToHex(setting.setting_value);
-        } else if (setting.setting_key === 'brand_ai_color' && setting.setting_value) {
-          newColors.ai = hslToHex(setting.setting_value);
-        } else if (setting.setting_key === 'chat_ai_color' && setting.setting_value) {
-          newColors.chatAi = hslToHex(setting.setting_value);
-        } else if (setting.setting_key === 'chat_user_color' && setting.setting_value) {
-          newColors.chatUser = hslToHex(setting.setting_value);
-        }
-      });
-      setColors(newColors);
-    } catch (error) {
-      console.error('Error loading current colors:', error);
-    }
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied to clipboard",
+      description: `${label} copied successfully!`,
+    });
   };
 
   const hslToHex = (hsl: string): string => {
@@ -151,117 +122,81 @@ export const ColorManagement: React.FC = () => {
     }
   };
 
-  const saveColors = async () => {
-    try {
-      const updates = [
-        {
-          setting_key: 'brand_primary_color',
-          setting_value: hexToHsl(colors.primary)
-        },
-        {
-          setting_key: 'brand_primary_hover',
-          setting_value: hexToHsl(colors.primaryHover)
-        },
-        {
-          setting_key: 'brand_accent_color',
-          setting_value: hexToHsl(colors.accent)
-        },
-        {
-          setting_key: 'brand_ai_color',
-          setting_value: hexToHsl(colors.ai)
-        },
-        {
-          setting_key: 'chat_ai_color',
-          setting_value: hexToHsl(colors.chatAi)
-        },
-        {
-          setting_key: 'chat_user_color',
-          setting_value: hexToHsl(colors.chatUser)
-        }
-      ];
+  const generateCSSCode = () => {
+    return `:root {
+  /* Brand Colors */
+  --primary: ${hexToHsl(colors.primary)};
+  --secondary: ${hexToHsl(colors.primaryHover)};
+  --accent: ${hexToHsl(colors.accent)};
+  --ai: ${hexToHsl(colors.ai)};
+  --chat-ai: ${hexToHsl(colors.chatAi)};
+  --chat-user: ${hexToHsl(colors.chatUser)};
+  
+  /* Auto-generated variants */
+  --ring: var(--primary);
+  --primary-foreground: 210 40% 98%;
+  --secondary-foreground: 222.2 84% 4.9%;
+  --accent-foreground: 222.2 84% 4.9%;
+}
 
-      for (const update of updates) {
-        const { error } = await supabase
-          .from('shared_settings')
-          .upsert(update, { onConflict: 'setting_key' });
+.dark {
+  --primary: ${hexToHsl(colors.primary)};
+  --secondary: ${hexToHsl(colors.primaryHover)};
+  --accent: ${hexToHsl(colors.accent)};
+  --ai: ${hexToHsl(colors.ai)};
+  --chat-ai: ${hexToHsl(colors.chatAi)};
+  --chat-user: ${hexToHsl(colors.chatUser)};
+}`;
+  };
 
-        if (error) {
-          console.error('Error saving color setting:', error);
-          throw error;
-        }
-      }
-
-      // Generate Android and iOS colors from database colors
-      const platformResults = await Promise.allSettled([
-        supabase.functions.invoke('generate-android-colors'),
-        supabase.functions.invoke('generate-ios-colors')
-      ]);
-
-      const [androidResult, iosResult] = platformResults;
-      
-      if (androidResult.status === 'fulfilled') {
-        console.log('Android colors generated:', androidResult.value.data);
-      } else {
-        console.warn('Failed to generate Android colors:', androidResult.reason);
-      }
-
-      if (iosResult.status === 'fulfilled') {
-        console.log('iOS colors generated:', iosResult.value.data);
-      } else {
-        console.warn('Failed to generate iOS colors:', iosResult.reason);
-      }
-
-      // Reload colors to ensure consistency
-      await loadColors();
-      
-      // Force immediate application of new colors
-      const root = document.documentElement;
-      root.style.setProperty('--chat-ai', hexToHsl(colors.chatAi));
-      root.style.setProperty('--chat-user', hexToHsl(colors.chatUser));
-      
-      console.log('🎨 Chat colors applied immediately:', {
-        chatAi: hexToHsl(colors.chatAi),
-        chatUser: hexToHsl(colors.chatUser)
-      });
-      
-      const platformSuccesses = platformResults.filter(r => r.status === 'fulfilled').length;
-      const totalPlatforms = platformResults.length;
-      
-      toast({
-        title: "Success",
-        description: `Brand colors saved for web and ${platformSuccesses}/${totalPlatforms} native platforms successfully`,
-      });
-    } catch (error) {
-      console.error('Error saving colors:', error);
-      toast({
-        title: "Error",
-        description: `Failed to save brand colors: ${error.message}`,
-        variant: "destructive",
-      });
-    }
+  const generateTailwindCode = () => {
+    return `// tailwind.config.ts colors section
+colors: {
+  primary: {
+    DEFAULT: "hsl(${hexToHsl(colors.primary)})",
+    foreground: "hsl(var(--primary-foreground))",
+  },
+  secondary: {
+    DEFAULT: "hsl(${hexToHsl(colors.primaryHover)})",
+    foreground: "hsl(var(--secondary-foreground))",
+  },
+  accent: {
+    DEFAULT: "hsl(${hexToHsl(colors.accent)})",
+    foreground: "hsl(var(--accent-foreground))",
+  },
+  ai: {
+    DEFAULT: "hsl(${hexToHsl(colors.ai)})",
+  },
+  "chat-ai": {
+    DEFAULT: "hsl(${hexToHsl(colors.chatAi)})",
+  },
+  "chat-user": {
+    DEFAULT: "hsl(${hexToHsl(colors.chatUser)})",
+  },
+}`;
   };
 
   const resetToDefaults = () => {
     const defaultColors = {
-      primary: '#3b82f6',
-      primaryHover: '#2563eb',
-      accent: '#8b5cf6',
-      ai: '#eab308',
-      chatAi: '#8b5cf6',
-      chatUser: '#06b6d4'
+      primary: `hsl(${STATIC_COLORS.primary})`,
+      primaryHover: `hsl(${STATIC_COLORS.secondary})`,
+      accent: `hsl(${STATIC_COLORS.accent})`,
+      ai: `hsl(${STATIC_COLORS.ai})`,
+      chatAi: `hsl(${STATIC_COLORS.chatAi})`,
+      chatUser: `hsl(${STATIC_COLORS.chatUser})`
     };
     
     setColors(defaultColors);
     
     // Apply defaults immediately
     const root = document.documentElement;
-    root.style.setProperty('--primary', hexToHsl(defaultColors.primary));
-    root.style.setProperty('--ring', hexToHsl(defaultColors.primary));
-    root.style.setProperty('--secondary', hexToHsl(defaultColors.primaryHover));
-    root.style.setProperty('--accent', hexToHsl(defaultColors.accent));
-    root.style.setProperty('--ai', hexToHsl(defaultColors.ai));
-    root.style.setProperty('--chat-ai', hexToHsl(defaultColors.chatAi));
-    root.style.setProperty('--chat-user', hexToHsl(defaultColors.chatUser));
+    root.style.setProperty('--primary', STATIC_COLORS.primary);
+    root.style.setProperty('--ring', STATIC_COLORS.primary);
+    root.style.setProperty('--secondary', STATIC_COLORS.secondary);
+    root.style.setProperty('--accent', STATIC_COLORS.accent);
+    root.style.setProperty('--ai', STATIC_COLORS.ai);
+    root.style.setProperty('--chat-ai', STATIC_COLORS.chatAi);
+    root.style.setProperty('--chat-user', STATIC_COLORS.chatUser);
   };
 
   const ColorPickerModal = ({ type, title, color, onColorChange }: {
@@ -298,138 +233,118 @@ export const ColorManagement: React.FC = () => {
       <CardHeader>
         <CardTitle className="text-base font-medium flex items-center gap-2">
           <span className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></span>
-          Brand Colors
+          Static Color Code Generator
         </CardTitle>
         <CardDescription>
-          Customize your app's color scheme and branding
+          Development tool to generate color CSS variables and Tailwind config
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Brand Colors Section */}
+        {/* Color Preview */}
         <div>
-          <Label className="text-sm font-medium mb-3 block">Brand Colors</Label>
-          <div className="grid grid-cols-4 gap-4">
-            {/* Primary Color */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">Color</Label>
+          <Label className="text-sm font-medium mb-3 block">Current Colors</Label>
+          <div className="grid grid-cols-6 gap-2">
+            <div className="text-center">
               <div 
-                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                className="w-12 h-12 rounded border mx-auto mb-1"
                 style={{ backgroundColor: colors.primary }}
-                onClick={() => setActiveColorPicker(activeColorPicker === 'primary' ? null : 'primary')}
               />
-              {activeColorPicker === 'primary' && (
-                <ColorPickerModal 
-                  type="primary"
-                  title="Choose Primary Color"
-                  color={colors.primary}
-                  onColorChange={(color) => handleColorChange('primary', color)}
-                />
-              )}
+              <Label className="text-xs">Primary</Label>
             </div>
-
-            {/* Primary Hover Color */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">Hover</Label>
+            <div className="text-center">
               <div 
-                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                className="w-12 h-12 rounded border mx-auto mb-1"
                 style={{ backgroundColor: colors.primaryHover }}
-                onClick={() => setActiveColorPicker(activeColorPicker === 'primaryHover' ? null : 'primaryHover')}
               />
-              {activeColorPicker === 'primaryHover' && (
-                <ColorPickerModal 
-                  type="primaryHover"
-                  title="Choose Primary Hover Color"
-                  color={colors.primaryHover}
-                  onColorChange={(color) => handleColorChange('primaryHover', color)}
-                />
-              )}
+              <Label className="text-xs">Secondary</Label>
             </div>
-
-            {/* Accent Color */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">Accent</Label>
+            <div className="text-center">
               <div 
-                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                className="w-12 h-12 rounded border mx-auto mb-1"
                 style={{ backgroundColor: colors.accent }}
-                onClick={() => setActiveColorPicker(activeColorPicker === 'accent' ? null : 'accent')}
               />
-              {activeColorPicker === 'accent' && (
-                <ColorPickerModal 
-                  type="accent"
-                  title="Choose Accent Color"
-                  color={colors.accent}
-                  onColorChange={(color) => handleColorChange('accent', color)}
-                />
-              )}
+              <Label className="text-xs">Accent</Label>
             </div>
-
-            {/* AI Color */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">AI</Label>
+            <div className="text-center">
               <div 
-                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                className="w-12 h-12 rounded border mx-auto mb-1"
                 style={{ backgroundColor: colors.ai }}
-                onClick={() => setActiveColorPicker(activeColorPicker === 'ai' ? null : 'ai')}
               />
-              {activeColorPicker === 'ai' && (
-                <ColorPickerModal 
-                  type="ai"
-                  title="Choose AI Color"
-                  color={colors.ai}
-                  onColorChange={(color) => handleColorChange('ai', color)}
-                />
-              )}
+              <Label className="text-xs">AI</Label>
             </div>
-          </div>
-        </div>
-
-        {/* Chat Colors Section */}
-        <div>
-          <Label className="text-sm font-medium mb-3 block">Chat Colors</Label>
-          <div className="grid grid-cols-2 gap-4">
-            {/* Chat AI Color */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">AI Messages</Label>
+            <div className="text-center">
               <div 
-                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                className="w-12 h-12 rounded border mx-auto mb-1"
                 style={{ backgroundColor: colors.chatAi }}
-                onClick={() => setActiveColorPicker(activeColorPicker === 'chatAi' ? null : 'chatAi')}
               />
-              {activeColorPicker === 'chatAi' && (
-                <ColorPickerModal 
-                  type="chatAi"
-                  title="Choose AI Chat Color"
-                  color={colors.chatAi}
-                  onColorChange={(color) => handleColorChange('chatAi', color)}
-                />
-              )}
+              <Label className="text-xs">Chat AI</Label>
             </div>
-
-            {/* Chat User Color */}
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">User Messages</Label>
+            <div className="text-center">
               <div 
-                className="w-full h-12 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
+                className="w-12 h-12 rounded border mx-auto mb-1"
                 style={{ backgroundColor: colors.chatUser }}
-                onClick={() => setActiveColorPicker(activeColorPicker === 'chatUser' ? null : 'chatUser')}
               />
-              {activeColorPicker === 'chatUser' && (
-                <ColorPickerModal 
-                  type="chatUser"
-                  title="Choose User Chat Color"
-                  color={colors.chatUser}
-                  onColorChange={(color) => handleColorChange('chatUser', color)}
-                />
-              )}
+              <Label className="text-xs">Chat User</Label>
             </div>
           </div>
         </div>
+
+        {/* CSS Variables Generator */}
+        <div>
+          <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+            <Code className="w-4 h-4" />
+            CSS Variables (index.css)
+          </Label>
+          <Textarea
+            value={generateCSSCode()}
+            readOnly
+            rows={10}
+            className="font-mono text-xs"
+          />
+          <Button
+            onClick={() => copyToClipboard(generateCSSCode(), "CSS Variables")}
+            size="sm"
+            className="mt-2"
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Copy CSS Code
+          </Button>
+        </div>
+
+        {/* Tailwind Config Generator */}
+        <div>
+          <Label className="text-sm font-medium mb-2 flex items-center gap-2">
+            <Code className="w-4 h-4" />
+            Tailwind Config (tailwind.config.ts)
+          </Label>
+          <Textarea
+            value={generateTailwindCode()}
+            readOnly
+            rows={8}
+            className="font-mono text-xs"
+          />
+          <Button
+            onClick={() => copyToClipboard(generateTailwindCode(), "Tailwind Config")}
+            size="sm"
+            className="mt-2"
+          >
+            <Copy className="w-4 h-4 mr-2" />
+            Copy Tailwind Code
+          </Button>
+        </div>
+
+        {/* Color Picker for Live Preview */}
+        {activeColorPicker && (
+          <ColorPickerModal 
+            type={activeColorPicker}
+            title={`Choose ${activeColorPicker} Color`}
+            color={colors[activeColorPicker as keyof ColorValues]}
+            onColorChange={(color) => handleColorChange(activeColorPicker as keyof ColorValues, color)}
+          />
+        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2 pt-4 border-t">
-          <Button onClick={saveColors} className="flex-1">
-            Save
-          </Button>
           <Button 
             variant="outline" 
             onClick={resetToDefaults}
@@ -438,7 +353,6 @@ export const ColorManagement: React.FC = () => {
             Reset to Defaults
           </Button>
         </div>
-        <div className="pb-4"></div>
       </CardContent>
     </Card>
   );
