@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
 import { useAppLogo } from '@/hooks/useAppLogo';
 import { Button } from '@/components/ui/button';
+import faviconTransparent from '/favicon-transparent.png';
 
 export const LoadingSpinner = ({
   fullScreen = true,
@@ -48,9 +49,11 @@ export const LoadingSpinner = ({
               }}
             />
           ) : (
-            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-              <span className="text-primary font-bold text-2xl">F</span>
-            </div>
+            <img 
+              src={faviconTransparent} 
+              alt="FastNow Logo" 
+              className="w-16 h-16 object-contain"
+            />
           )}
         </div>
       )}
