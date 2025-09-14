@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown, Target } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown, Target, Save } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -28,6 +28,7 @@ import { CompactFoodSummary } from '@/components/CompactFoodSummary';
 import { FoodStatsCard } from '@/components/FoodStatsCard';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { AccessGate } from '@/components/AccessGate';
+import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -46,6 +47,9 @@ const FoodTracking = () => {
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
   const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, clearAllEntries, refreshFoodEntries } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
+  
+  // Daily template functionality
+  const { saveAsTemplate } = useDailyFoodTemplate();
 
   // Close modals when navigating to auth routes to prevent OAuth interaction errors
   useEffect(() => {
@@ -118,6 +122,36 @@ const FoodTracking = () => {
         variant: "destructive",
         title: "Error",
         description: "Failed to update food status"
+      });
+    }
+  };
+
+  const handleSaveToTemplate = async () => {
+    try {
+      const foodsToSave = todayEntries.map(entry => ({
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        image_url: entry.image_url
+      }));
+      
+      const result = await saveAsTemplate(foodsToSave, true); // true = append mode
+      
+      if (!result.error) {
+        toast({
+          title: "Saved to Template",
+          description: `${foodsToSave.length} food${foodsToSave.length > 1 ? 's' : ''} added to your daily template`,
+        });
+      } else {
+        throw new Error(result.error.message);
+      }
+    } catch (error) {
+      console.error('Error saving to template:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save foods to template"
       });
     }
   };
@@ -390,9 +424,18 @@ const FoodTracking = () => {
                         renderFoodEntryCard(entry)
                       )}
                       
-                      {/* Delete All Button */}
+                      {/* Action Buttons */}
                       {todayEntries.length > 0 && (
-                        <div className="flex justify-end mt-2">
+                        <div className="flex justify-between items-center mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleSaveToTemplate}
+                            className="text-primary hover:bg-primary/10 text-xs px-2 py-1 h-auto flex items-center gap-1"
+                          >
+                            <Save className="w-3 h-3" />
+                            Save to Template
+                          </Button>
                           <Button
                             variant="ghost"
                             size="sm"

@@ -251,7 +251,7 @@ export const FoodLibraryView = ({
   };
 
   const handleAddToTemplate = async (food: UserFood | DefaultFood) => {
-    if (!user) return;
+    if (!user || !onAddToTemplate) return;
     
     if (!isInteractionSafe) {
       toast({
@@ -261,39 +261,31 @@ export const FoodLibraryView = ({
       return;
     }
     
-    // Adding food to template
-    
     try {
-      const { data, error } = await supabase
-        .from('daily_food_templates')
-        .insert({
-          user_id: user.id,
-          name: food.name,
-          calories: food.calories_per_100g,
-          carbs: food.carbs_per_100g,
-          serving_size: 100,
-          image_url: food.image_url
-        })
-        .select()
-        .single();
-
-      if (error) {
-        console.error('🍽️ FoodLibrary - handleAddToTemplate error:', error);
-        throw error;
-      }
-
-      // Template addition successful
+      const foodToAdd = [{
+        name: food.name,
+        calories: food.calories_per_100g,
+        carbs: food.carbs_per_100g,
+        serving_size: 100,
+        image_url: food.image_url
+      }];
       
-      toast({
-        title: "Added to templates",
-        description: `${food.name} has been added to your daily templates`,
-      });
+      const result = await onAddToTemplate(foodToAdd);
+      
+      if (!result?.error) {
+        toast({
+          title: "Added to template",
+          description: `${food.name} has been added to your daily template`,
+        });
+      } else {
+        throw new Error(result.error.message);
+      }
     } catch (error) {
       console.error('🍽️ FoodLibrary - handleAddToTemplate failed:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add food to templates"
+        description: "Failed to add food to template"
       });
     }
   };
