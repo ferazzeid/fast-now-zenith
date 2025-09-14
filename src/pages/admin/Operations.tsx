@@ -6,10 +6,10 @@ import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { CancellationTracker } from "@/components/CancellationTracker";
 import { AdminTierStats } from "@/components/AdminTierStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
-import { GoogleAnalyticsSettings } from "@/components/GoogleAnalyticsSettings";
+
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
-import { AdminSEOSettings } from "@/components/AdminSEOSettings";
+import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 
 export default function AdminOperations() {
@@ -49,12 +49,8 @@ export default function AdminOperations() {
           <AdminAnimationSettings />
         </section>
 
-        <section aria-label="SEO indexing settings">
-          <AdminSEOSettings />
-        </section>
-
-        <section aria-label="Google Analytics settings" className="pb-24">
-          <GoogleAnalyticsSettings />
+        <section aria-label="Static SEO code generator" className="pb-24">
+          <StaticSEOManager />
         </section>
       </main>
     </AdminHealthCheck>
