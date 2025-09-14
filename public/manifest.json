@@ -4,6 +4,7 @@
   "description": "The No-BS Fat Loss Protocol - Intermittent fasting and walking tracker for sustainable weight loss",
   "start_url": "/",
   "display": "standalone",
+  "scope": "/",
   "background_color": "#F5F2EA",
   "theme_color": "#8B7355",
   "orientation": "portrait-primary",

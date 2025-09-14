@@ -46,9 +46,12 @@ def twaManifest = [
     // The fallback strategy for when Trusted Web Activity is not available. Possible values are
     // 'customtabs' and 'webview'.
     fallbackType: 'customtabs',
-    // Improve loading performance
+    // Improve loading performance and hide URL bar completely
     enableUrlBarHiding: true,
+    enableUrlBarHidingOnScroll: true,
     additionalTrustedOrigins: ['https://go.fastnow.app'],
+    // Force full-screen immersive mode
+    fullScopeUrl: 'https://go.fastnow.app/',
     enableSiteSettingsShortcut: 'true',
     orientation: 'portrait-primary',
 ]
@@ -60,8 +63,8 @@ android {
         applicationId "com.fastnow.zenith"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 100330
-        versionName "100330"
+        versionCode 100331
+        versionName "100331"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

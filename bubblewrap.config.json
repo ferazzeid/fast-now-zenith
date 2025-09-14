@@ -5,8 +5,8 @@
   "androidPackage": {
     "applicationId": "com.fastnow.zenith",
     "packageId": "com.fastnow.zenith",
-    "versionCode": 100330,
-    "versionName": "100330"
+    "versionCode": 100331,
+    "versionName": "100331"
   },
   "jdkPath": "/usr/lib/jvm/java-17-openjdk",
   "androidSdkPath": "~/Android/Sdk",
@@ -15,6 +15,7 @@
   "enableWebapp": true,
   "disableFirstRunActivity": true,
   "enableUrlBarHiding": true,
+  "enableUrlBarHidingOnScroll": true,
   "signing": {
     "scheme": "HTTPS"
   },

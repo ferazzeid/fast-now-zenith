@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.fastnow.zenith",
+      "sha256_cert_fingerprints": ["30:28:92:05:5E:61:1A:C0:4B:EA:65:93:1E:4E:54:C6:B3:BB:03:D4"]
+    }
+  }
+]
