@@ -22,7 +22,7 @@ class InstallationManager {
 
   constructor() {
     this.setupServiceWorkerListeners();
-    this.startInitializationTimeout();
+    // Don't start the timeout immediately in constructor, let the setup complete first
   }
 
   private startInitializationTimeout() {
@@ -36,7 +36,7 @@ class InstallationManager {
           progress: 100
         });
       }
-    }, 3000); // 3 second timeout
+    }, 2000); // Reduced to 2 second timeout for faster regular page loads
   }
 
   private setupServiceWorkerListeners() {
@@ -50,20 +50,25 @@ class InstallationManager {
       // Check if service worker is already ready
       navigator.serviceWorker.ready.then((registration) => {
         if (registration.active && registration.active.state === 'activated') {
-          // Service worker is already active, complete immediately
-          setTimeout(() => this.completeInstallation(), 500);
+          // Service worker is already active, complete immediately (common case for page reloads)
+          this.completeInstallation();
         } else if (registration.installing) {
+          // Actually installing, start timeout and track progress
+          this.startInitializationTimeout();
           this.trackInstallationProgress(registration.installing);
         } else if (registration.waiting) {
           this.completeInstallation();
+        } else {
+          // Start timeout for other cases
+          this.startInitializationTimeout();
         }
       }).catch(() => {
         // Service worker not available, complete anyway
-        setTimeout(() => this.completeInstallation(), 1000);
+        setTimeout(() => this.completeInstallation(), 500);
       });
     } else {
       // No service worker support, complete immediately
-      setTimeout(() => this.completeInstallation(), 500);
+      this.completeInstallation();
     }
   }
 

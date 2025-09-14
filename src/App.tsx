@@ -54,7 +54,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { InstallationProgress } from './components/InstallationProgress';
-import { useInstallationProgress } from './utils/installationManager';
+import { useInstallationProgress, installationManager } from './utils/installationManager';
 
 
 
@@ -90,9 +90,14 @@ const AppContent = () => {
   // Re-enable installation progress screen - shows data preloading
   const { progress: installProgress } = useInstallationProgress();
   const [showInstallation, setShowInstallation] = useState(() => {
-    // Skip installation screen in development
+    // Only show installation screen if we're actually installing or preloading
+    // Skip in development and when already complete
     const isDev = import.meta.env.DEV;
-    return !isDev;
+    if (isDev) return false;
+    
+    // Check if there's actual installation progress happening
+    const currentProgress = installationManager.getCurrentProgress();
+    return currentProgress.stage !== 'complete';
   });
   
   // Hide installation screen when complete
@@ -100,6 +105,10 @@ const AppContent = () => {
     if (installProgress.stage === 'complete') {
       // Small delay for UX, then hide installation screen
       setTimeout(() => setShowInstallation(false), 1000);
+    }
+    // Also check if we need to show it when installation starts
+    else if (installProgress.stage === 'installing' || installProgress.stage === 'preloading') {
+      setShowInstallation(true);
     }
   }, [installProgress.stage]);
   
