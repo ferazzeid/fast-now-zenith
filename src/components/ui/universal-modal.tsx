@@ -7,7 +7,7 @@
  * LOVABLE_PERFORMANCE_IMPACT: Reduces modal-related bundle size by 15% through shared components
  * 
  * MIGRATION_NOTE: This replaces inconsistent modal implementations.
- * Legacy modals (ModalAiChat, MotivatorFormModal) remain functional.
+ * Legacy modals (MotivatorFormModal) remain functional.
  * New features should use UniversalModal. Legacy will be removed in Phase 6.
  * 
  * DESIGN_CONSISTENCY: 
