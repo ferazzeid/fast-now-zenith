@@ -4,7 +4,7 @@ import { Calendar, Clock, Zap, MapPin, Gauge, Trash2, X, ChevronDown, ChevronUp,
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +39,8 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
   const { isLoading, execute } = useStandardizedLoading();
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
+  const [deleteSessionModalOpen, setDeleteSessionModalOpen] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
   const [editingSession, setEditingSession] = useState<WalkingSession | null>(null);
@@ -210,34 +212,14 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
             <div className="flex gap-2">
               {/* Delete All History Button - only show if there are completed sessions */}
               {sessions.length > 0 && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete All Walking History</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete ALL walking history? This will permanently remove all completed sessions. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={deleteAllHistory}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete All History
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                  onClick={() => setDeleteAllModalOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               )}
               <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
                 <X className="w-8 h-8" />
@@ -335,36 +317,15 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                                   >
                                     <Edit className="w-3 h-3" />
                                   </Button>
-                                  <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                                        disabled={deletingId === session.id}
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle>Delete Walking Session</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                          Are you sure you want to delete this walking session from {displayDate}? 
-                                          This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={() => handleDeleteSession(session.id)}
-                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                        >
-                                          Delete
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                    disabled={deletingId === session.id}
+                                    onClick={() => setDeleteSessionModalOpen(session.id)}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
                                 </div>
                                 
                                 {session.is_edited && session.edit_reason && (
@@ -437,6 +398,34 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
             }}
           />
         )}
+
+        <ConfirmationModal
+          isOpen={deleteAllModalOpen}
+          onClose={() => setDeleteAllModalOpen(false)}
+          onConfirm={() => {
+            deleteAllHistory();
+            setDeleteAllModalOpen(false);
+          }}
+          title="Delete All Walking History"
+          description="Are you sure you want to delete ALL walking history? This will permanently remove all completed sessions. This action cannot be undone."
+          confirmText="Delete All History"
+          variant="destructive"
+        />
+
+        <ConfirmationModal
+          isOpen={!!deleteSessionModalOpen}
+          onClose={() => setDeleteSessionModalOpen(null)}
+          onConfirm={() => {
+            if (deleteSessionModalOpen) {
+              handleDeleteSession(deleteSessionModalOpen);
+              setDeleteSessionModalOpen(null);
+            }
+          }}
+          title="Delete Walking Session"
+          description="Are you sure you want to delete this walking session? This action cannot be undone."
+          confirmText="Delete"
+          variant="destructive"
+        />
       </Card>
     </div>
   );

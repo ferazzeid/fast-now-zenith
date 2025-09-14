@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface WalkingContext {
   isCurrentlyWalking: boolean;
@@ -16,14 +17,13 @@ export interface WalkingContext {
 
 export const useWalkingContext = () => {
   const [context, setContext] = useState<WalkingContext | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { isLoading, execute } = useStandardizedLoading();
   const { user } = useAuth();
 
   const fetchWalkingContext = async (): Promise<WalkingContext | null> => {
     if (!user) return null;
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // Get current active walking session
       const { data: activeWalk } = await supabase
         .from('walking_sessions')
@@ -113,14 +113,17 @@ export const useWalkingContext = () => {
         currentDate: now.toLocaleDateString()
       };
 
-      setContext(walkingContext);
       return walkingContext;
-    } catch (error) {
-      console.error('Error fetching walking context:', error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onSuccess: (data) => {
+        setContext(data);
+      },
+      onError: (error) => {
+        console.error('Error fetching walking context:', error);
+      }
+    });
+
+    return result?.data || null;
   };
 
   const buildContextString = (ctx: WalkingContext): string => {
@@ -160,7 +163,7 @@ export const useWalkingContext = () => {
 
   return {
     context,
-    loading,
+    loading: isLoading,
     buildContextString,
     refreshContext: fetchWalkingContext
   };

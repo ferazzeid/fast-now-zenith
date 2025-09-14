@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { conversationMemory } from '@/utils/conversationMemory';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -15,7 +16,7 @@ const MAX_MESSAGES = 50; // Keep last 50 messages max
 
 export const useLocalStorageConversation = (conversationType: string = 'food') => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { isLoading, execute } = useStandardizedLoading();
   const { user } = useAuth();
 
   // Get storage key for this conversation type
@@ -48,9 +49,7 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
       return;
     }
 
-    setLoading(true);
-    
-    try {
+    await execute(async () => {
       // Initialize conversation memory
       await conversationMemory.initializeWithUser(user!.id);
       loadConversationMemory();
@@ -64,7 +63,7 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
         }));
         
         console.log('DEBUG: Loaded', transformedMessages.length, 'messages from localStorage');
-        setMessages(transformedMessages);
+        return transformedMessages;
       } else {
         console.log('DEBUG: No stored conversation, starting fresh');
         // Add greeting message for food assistant
@@ -75,7 +74,6 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
         };
         
         const newMessages = [greetingMessage];
-        setMessages(newMessages);
         saveMessages(newMessages);
         
         // Initialize conversation memory
@@ -85,12 +83,19 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
           awaitingClarification: false,
           sessionType: 'food_tracking'
         });
+        
+        return newMessages;
       }
-    } catch (error) {
-      console.error('Error loading conversation:', error);
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onSuccess: (data) => {
+        if (data && data.length > 0) {
+          setMessages(data);
+        }
+      },
+      onError: (error) => {
+        console.error('Error loading conversation:', error);
+      }
+    });
   };
 
   // Save messages to localStorage
@@ -194,7 +199,7 @@ export const useLocalStorageConversation = (conversationType: string = 'food') =
 
   return {
     messages,
-    loading,
+    loading: isLoading,
     addMessage,
     archiveConversation,
     clearConversation,

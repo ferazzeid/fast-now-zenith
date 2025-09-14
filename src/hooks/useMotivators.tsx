@@ -5,6 +5,7 @@ import { useToast } from './use-toast';
 import { useMotivatorCache } from './useMotivatorCache';
 import { generateUniqueSlug } from '@/utils/slugUtils';
 import { validateAndFixUrl } from '@/utils/urlUtils';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface Motivator {
   id: string;
@@ -31,27 +32,22 @@ export interface CreateMotivatorData {
 
 export const useMotivators = () => {
   const [motivators, setMotivators] = useState<Motivator[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { isLoading, execute } = useStandardizedLoading();
   const { user } = useAuth();
   const { toast } = useToast();
   const { cachedMotivators, shouldFetchMotivators, cacheMotivators, invalidateCache } = useMotivatorCache();
 
   const loadMotivators = async (forceRefresh = false) => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     // Use cached data if available and not forcing refresh
     if (!forceRefresh && cachedMotivators && !shouldFetchMotivators()) {
       console.log('Using cached motivators, skipping API call');
       setMotivators(cachedMotivators);
-      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       const { data, error } = await supabase
         .from('motivators')
         .select('*, image_url, link_url')
@@ -84,23 +80,29 @@ export const useMotivators = () => {
       cacheMotivators(transformedData);
       
       console.log('Loaded fresh motivators from API:', transformedData.length);
-    } catch (error) {
-      console.error('Error loading motivators:', error);
       
-      // If we have cached data, use it as fallback
-      if (cachedMotivators && cachedMotivators.length > 0) {
-        console.log('Using cached motivators as fallback');
-        setMotivators(cachedMotivators);
-      } else {
-        toast({
-          title: "Error loading motivators",
-          description: "Please check your connection and try again.",
-          variant: "destructive",
-        });
+      return transformedData;
+    }, {
+      onSuccess: (data) => {
+        setMotivators(data);
+        cacheMotivators(data);
+      },
+      onError: (error) => {
+        console.error('Error loading motivators:', error);
+        
+        // If we have cached data, use it as fallback
+        if (cachedMotivators && cachedMotivators.length > 0) {
+          console.log('Using cached motivators as fallback');
+          setMotivators(cachedMotivators);
+        } else {
+          toast({
+            title: "Error loading motivators",
+            description: "Please check your connection and try again.",
+            variant: "destructive",
+          });
+        }
       }
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const createMotivator = async (motivatorData: CreateMotivatorData): Promise<string | null> => {
@@ -325,10 +327,8 @@ export const useMotivators = () => {
       if (cachedMotivators && cachedMotivators.length > 0) {
         console.log('📦 Loading cached motivators immediately');
         setMotivators(cachedMotivators);
-        setLoading(false);
       } else {
         console.log('📦 No cached motivators, starting fresh load');
-        setLoading(true);
       }
       
       // Always check for fresh data (background)
@@ -336,13 +336,12 @@ export const useMotivators = () => {
     } else {
       console.log('❌ No user, clearing motivators');
       setMotivators([]);
-      setLoading(false);
     }
   }, [user?.id]); // Only depend on user.id to avoid unnecessary re-runs
 
   return {
     motivators,
-    loading,
+    loading: isLoading,
     createMotivator: async (motivatorData: CreateMotivatorData) => {
       const result = await createMotivator(motivatorData);
       if (result) {

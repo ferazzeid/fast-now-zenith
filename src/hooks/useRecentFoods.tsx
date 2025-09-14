@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserLibraryIndex } from '@/hooks/useUserLibraryIndex';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 interface RecentFood {
   id: string;
@@ -16,7 +17,7 @@ interface RecentFood {
 
 export const useRecentFoods = () => {
   const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const { user } = useAuth();
   const libraryIndex = useUserLibraryIndex();
 
@@ -87,8 +88,7 @@ export const useRecentFoods = () => {
       return;
     }
     
-    try {
-      setLoading(true);
+    await execute(async () => {
       
       // Get recent food entries from last 30 days
       const { data, error } = await supabase
@@ -177,14 +177,17 @@ export const useRecentFoods = () => {
 
       console.log('🔥 RECENT FOODS - Final recent foods array:', recentArray.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
 
-      setRecentFoods(recentArray);
-    } catch (error) {
-      console.error('Error loading recent foods:', error);
-      setRecentFoods([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, libraryIndex.isInLibrary, autoSaveToLibrary]);
+      return recentArray;
+    }, {
+      onSuccess: (data) => {
+        setRecentFoods(data);
+      },
+      onError: (error) => {
+        console.error('Error loading recent foods:', error);
+        setRecentFoods([]);
+      }
+    });
+  }, [user?.id, libraryIndex.isInLibrary, autoSaveToLibrary, execute]);
 
   useEffect(() => {
     if (user && !libraryIndex.loading) {
@@ -194,7 +197,7 @@ export const useRecentFoods = () => {
 
   return {
     recentFoods,
-    loading: loading || libraryIndex.loading,
+    loading: isLoading || libraryIndex.loading,
     refreshRecentFoods: loadRecentFoods
   };
 };
