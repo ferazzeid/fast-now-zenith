@@ -26,7 +26,8 @@ class InstallationManager {
   }
 
   private startInitializationTimeout() {
-    // Fallback timeout to prevent infinite loading
+    // Fallback timeout to prevent infinite loading - longer timeout for mobile devices
+    const timeoutDuration = this.isMobileDevice() ? 8000 : 3000; // 8s for mobile, 3s for desktop
     this.initializationTimeout = setTimeout(() => {
       if (this.currentProgress.stage !== 'complete') {
         console.log('Installation timeout reached, marking as complete');
@@ -36,7 +37,11 @@ class InstallationManager {
           progress: 100
         });
       }
-    }, 2000); // Reduced to 2 second timeout for faster regular page loads
+    }, timeoutDuration);
+  }
+
+  private isMobileDevice(): boolean {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }
 
   private setupServiceWorkerListeners() {
@@ -53,25 +58,21 @@ class InstallationManager {
           // Service worker is already active, complete immediately (common case for regular browsing/page reloads)
           this.completeInstallation();
         } else if (registration.installing) {
-          // Only show installation screen if actually installing for first time
-          const isFirstInstall = !localStorage.getItem('sw-installed');
-          if (isFirstInstall) {
-            this.startInitializationTimeout();
-            this.trackInstallationProgress(registration.installing);
-            localStorage.setItem('sw-installed', 'true');
-          } else {
-            // Already installed before, just complete
-            this.completeInstallation();
-          }
+          // Always show progress for installing service worker, especially on mobile
+          console.log('Service worker installing, showing progress...');
+          this.startInitializationTimeout();
+          this.trackInstallationProgress(registration.installing);
         } else if (registration.waiting) {
           this.completeInstallation();
         } else {
-          // For regular web browsing, complete immediately
-          this.completeInstallation();
+          // For regular web browsing, start timeout anyway for mobile reliability
+          console.log('No active service worker state, starting timeout...');
+          this.startInitializationTimeout();
         }
-      }).catch(() => {
-        // Service worker not available, complete anyway
-        setTimeout(() => this.completeInstallation(), 500);
+      }).catch((error) => {
+        console.error('Service worker ready check failed:', error);
+        // Service worker not available, complete anyway but with timeout for mobile
+        setTimeout(() => this.completeInstallation(), this.isMobileDevice() ? 2000 : 500);
       });
     } else {
       // No service worker support, complete immediately
