@@ -382,10 +382,9 @@ const FoodTracking = () => {
                         </div>
                       ))}
                       
-                      {/* Delete All Button - Outside food entries, aligned with checkboxes */}
+                      {/* Delete All Button - Outside food entries, aligned to the right in checkbox column */}
                       {todayEntries.length > 0 && (
-                        <div className="flex justify-start mt-2">
-                          <div className="w-7"></div> {/* Spacer to align with checkboxes */}
+                        <div className="flex justify-end mt-2">
                           <Button
                             variant="ghost"
                             size="sm"
