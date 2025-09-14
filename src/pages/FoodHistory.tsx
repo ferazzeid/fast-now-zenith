@@ -203,22 +203,26 @@ const FoodHistory = () => {
     }
   };
 
+  // Show loading skeleton
   if (isLoading && (!dailySummaries || dailySummaries.length === 0)) {
-    console.log('🍽️ FoodHistory: Rendering LOADING state', { isLoading, dailySummariesLength: dailySummaries?.length });
     return (
-      <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
+      <div className="relative min-h-screen bg-background p-4">
         <div className="max-w-md mx-auto pt-16 pb-32">
+          {/* Header */}
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold">Food History</h1>
+            <h1 className="text-2xl font-bold text-left">Food History</h1>
             <Button
               variant="ghost"
-              size="icon"
-              onClick={() => navigate('/food-tracking')}
-              className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+              size="sm"
+              onClick={() => setShowDeleteAllDialog(true)}
+              className="text-destructive hover:bg-destructive/10"
             >
-              <X className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete All History
             </Button>
           </div>
+          
+          {/* Loading skeletons */}
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-4">
@@ -247,24 +251,10 @@ const FoodHistory = () => {
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-16 pb-32">
+        {/* Header with left-aligned title and right-aligned delete button */}
         <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/food-tracking')}
-            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-          <div className="flex-1 text-center">
-            <h1 className="text-2xl font-bold">Food History</h1>
-          </div>
-          <div className="w-8"></div> {/* Spacer for centering */}
-        </div>
-
-        {/* Delete All Button - positioned below the header */}
-        {dailySummaries.length > 0 && (
-          <div className="mb-4">
+          <h1 className="text-2xl font-bold text-left">Food History</h1>
+          {dailySummaries && dailySummaries.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
@@ -274,8 +264,8 @@ const FoodHistory = () => {
               <Trash2 className="w-4 h-4 mr-2" />
               Delete All History
             </Button>
-          </div>
-        )}
+          )}
+        </div>
 
         {!dailySummaries || dailySummaries.length === 0 ? (
           <div className="text-center py-12">
