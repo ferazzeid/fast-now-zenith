@@ -48,7 +48,7 @@ const Settings = () => {
   const [manualTdeeOverride, setManualTdeeOverride] = useState('');
   
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { isAdmin: accessIsAdmin, originalIsAdmin, ...access } = useAccess();
@@ -366,8 +366,8 @@ const Settings = () => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Use the auth hook's signOut method which handles cache clearing and proper error handling
+      await signOut();
       navigate('/auth');
     } catch (error) {
       console.error('Error signing out:', error);

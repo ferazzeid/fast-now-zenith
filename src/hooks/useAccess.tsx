@@ -165,12 +165,15 @@ export const useAccess = () => {
     queryKey: ['access', user?.id],
     queryFn: () => fetchAccessData(user!.id),
     enabled: !!user?.id,
-    staleTime: 1 * 60 * 1000, // 1 minute (synchronized with auth timeout)
+    staleTime: 30 * 1000, // 30 seconds - faster refresh for better UX
     gcTime: 5 * 60 * 1000, // 5 minutes
-    retry: false, // Don't retry on failures - prevents auth poisoning
+    retry: 1, // Allow one retry for network issues
+    retryDelay: 1000, // Quick retry after 1 second
     retryOnMount: false, // Don't retry when component mounts
     refetchOnWindowFocus: false, // Don't refetch on window focus
     throwOnError: false, // Never throw errors that could poison auth state
+    // Add network timeout
+    networkMode: 'offlineFirst', // Use cached data when offline
   });
 
   // Default data for unauthenticated users

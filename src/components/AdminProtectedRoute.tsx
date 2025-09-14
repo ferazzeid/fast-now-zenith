@@ -20,8 +20,8 @@ const AdminProtectedRoute = ({ children }: AdminProtectedRouteProps) => {
   const isMobile = useIsMobile();
   const [isTimeout, setIsTimeout] = useState(false);
 
-  // Mobile gets longer timeout for admin pages
-  const timeoutDuration = isMobile ? 15000 : 10000;
+  // Reduced timeout for admin pages - users shouldn't wait so long
+  const timeoutDuration = isMobile ? 8000 : 6000;
 
   useEffect(() => {
     if (!loading && !accessLoading) {

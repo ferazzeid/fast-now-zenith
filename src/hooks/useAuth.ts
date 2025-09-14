@@ -196,7 +196,8 @@ export const useAuth = () => {
       return result;
     };
 
-    // Always allow sign out, even offline
+    // Always allow sign out, even offline or during loading states
+    // This ensures sign-out works regardless of app state
     return await operation();
   };
 
