@@ -128,7 +128,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
               >
                 <div className="flex items-baseline justify-center gap-1">
                   <span>{Math.round(consumedCarbs)}</span>
-                  <span className="text-2xl font-mono font-bold">g</span>
+                  <span className="text-2xl font-mono">g</span>
                 </div>
                 <div className="text-xs text-foreground mt-1">carbs</div>
               </div>
@@ -161,8 +161,8 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
             <ClickableTooltip content={`Daily goal: ${Math.round(dailyCarbGoal)}g`}>
               <div className={`${getProgressColor(totalCarbs, dailyCarbGoal)} cursor-pointer`}>
                 <div className="flex items-baseline justify-center gap-1">
-                  <span className="text-lg font-semibold">{Math.round(totalCarbs)}</span>
-                  <span className="text-sm font-semibold">g</span>
+                  <span className="text-lg">{Math.round(totalCarbs)}</span>
+                  <span className="text-sm">g</span>
                 </div>
                 <div className="text-xs text-muted-foreground">carbs</div>
               </div>

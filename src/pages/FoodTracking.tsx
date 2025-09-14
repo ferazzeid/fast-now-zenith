@@ -291,7 +291,7 @@ const FoodTracking = () => {
             </ClickableTooltip>
             <span className="text-muted-foreground/60">•</span>
             <ClickableTooltip content="Carbs">
-              <span className="font-medium cursor-pointer">{Math.round(entry.carbs)}g</span>
+              <span className="cursor-pointer">{Math.round(entry.carbs)}g</span>
             </ClickableTooltip>
           </div>
         </div>
@@ -370,65 +370,44 @@ const FoodTracking = () => {
                 </div>
               </div>
 
-              {/* Food Entries List - Split into Planned and Eaten sections */}
-              <div className="mb-6 space-y-4">
-                {todayEntries.length === 0 ? (
-                  <div className="bg-card rounded-lg border border-ceramic-rim p-4">
+              {/* Food Entries List */}
+              <div className="mb-6">
+                <div className="bg-card rounded-lg border border-ceramic-rim p-4">
+                  {todayEntries.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8 space-y-2">
                       <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                       <p>No foods added yet</p>
                       <p className="text-sm mt-2">Add foods using the buttons above</p>
                     </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Planned Foods Section */}
-                    {todayEntries.filter(entry => !entry.consumed).length > 0 && (
-                      <div className="bg-card rounded-lg border border-ceramic-rim p-4">
-                        <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          Planned Foods
-                        </h3>
-                        <div className="space-y-1">
-                          {todayEntries.filter(entry => !entry.consumed).map((entry) => 
-                            renderFoodEntryCard(entry)
-                          )}
+                  ) : (
+                    <div className="space-y-1">
+                      {/* Sort entries so consumed items appear at the bottom */}
+                      {[...todayEntries].sort((a, b) => {
+                        if (a.consumed && !b.consumed) return 1;
+                        if (!a.consumed && b.consumed) return -1;
+                        return 0;
+                      }).map((entry) => 
+                        renderFoodEntryCard(entry)
+                      )}
+                      
+                      {/* Delete All Button */}
+                      {todayEntries.length > 0 && (
+                        <div className="flex justify-end mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowClearAllDialog(true)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-2 py-1 h-auto"
+                            disabled={isClearingAll}
+                          >
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Delete All
+                          </Button>
                         </div>
-                      </div>
-                    )}
-                    
-                    {/* Eaten Foods Section */}
-                    {todayEntries.filter(entry => entry.consumed).length > 0 && (
-                      <div className="bg-card rounded-lg border border-ceramic-rim p-4">
-                        <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                          <Check className="w-4 h-4" />
-                          Eaten Foods
-                        </h3>
-                        <div className="space-y-1">
-                          {todayEntries.filter(entry => entry.consumed).map((entry) => 
-                            renderFoodEntryCard(entry)
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Delete All Button - Only show if there are any foods */}
-                    {todayEntries.length > 0 && (
-                      <div className="flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowClearAllDialog(true)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-2 py-1 h-auto"
-                          disabled={isClearingAll}
-                        >
-                          <Trash2 className="w-3 h-3 mr-1" />
-                          Delete All
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
