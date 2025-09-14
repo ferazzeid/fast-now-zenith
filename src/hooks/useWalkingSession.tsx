@@ -205,6 +205,13 @@ export const useWalkingSession = () => {
       const endTime = new Date().toISOString();
       const speed = finalSpeed || selectedSpeed || currentSession?.speed_mph || 3.1;
       
+      // IMMEDIATELY clear local state for instant UI update
+      setCurrentSession(null);
+      setSelectedSpeed(null);
+      setIsPaused(false);
+      persistWalkingSession(null);
+      localStorage.removeItem('walking_session');
+      
       // Get session data for calculations
       const { data: sessionData } = await supabase
         .from('walking_sessions')
@@ -253,16 +260,21 @@ export const useWalkingSession = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Rollback local state if database update fails
+        const rollbackSession = await supabase
+          .from('walking_sessions')
+          .select('*')
+          .eq('id', targetSessionId)
+          .single();
+        
+        if (rollbackSession.data) {
+          setCurrentSession(rollbackSession.data as WalkingSession);
+        }
+        throw error;
+      }
 
       const finalData = data as WalkingSession;
-      setCurrentSession(null);
-      setSelectedSpeed(null);
-      setIsPaused(false);
-      // Clear persisted session from localStorage
-      persistWalkingSession(null);
-      // Also clear the localStorage key directly as failsafe
-      localStorage.removeItem('walking_session');
       triggerRefresh();
       return finalData;
     });
@@ -275,6 +287,13 @@ export const useWalkingSession = () => {
     if (!targetSessionId) return null;
 
     return await execute(async () => {
+      // IMMEDIATELY clear local state for instant UI update
+      setCurrentSession(null);
+      setSelectedSpeed(null);
+      setIsPaused(false);
+      persistWalkingSession(null);
+      localStorage.removeItem('walking_session');
+
       const { data, error } = await supabase
         .from('walking_sessions')
         .update({
@@ -286,15 +305,20 @@ export const useWalkingSession = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Rollback local state if database update fails
+        const rollbackSession = await supabase
+          .from('walking_sessions')
+          .select('*')
+          .eq('id', targetSessionId)
+          .single();
+        
+        if (rollbackSession.data) {
+          setCurrentSession(rollbackSession.data as WalkingSession);
+        }
+        throw error;
+      }
 
-      setCurrentSession(null);
-      setSelectedSpeed(null);
-      setIsPaused(false);
-      // Clear persisted session from localStorage
-      persistWalkingSession(null);
-      // Also clear the localStorage key directly as failsafe
-      localStorage.removeItem('walking_session');
       triggerRefresh();
       return data;
     });
