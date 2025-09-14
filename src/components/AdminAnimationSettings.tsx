@@ -81,7 +81,7 @@ export const AdminAnimationSettings = () => {
           
           <div className="flex items-center justify-between">
             <Label htmlFor="ceramic-animations">
-              Hourly Ceramic Timer Animations
+              Hourly Timer Animations
             </Label>
             <Switch
               id="ceramic-animations"
