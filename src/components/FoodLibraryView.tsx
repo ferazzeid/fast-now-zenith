@@ -169,8 +169,8 @@ export const FoodLibraryView = ({
   const loadDefaultFoods = async () => {
     try {
       // Use fetch instead of Supabase client to allow service worker caching
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const supabaseUrl = 'https://texnkijwcygodtywgedm.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxODQ3MDAsImV4cCI6MjA2ODc2MDcwMH0.xiOD9aVsKZCadtKiwPGnFQONjLQlaqk-ASUdLDZHNqI';
       
       const response = await fetch(`${supabaseUrl}/rest/v1/default_foods?select=*&order=name`, {
         method: 'GET',

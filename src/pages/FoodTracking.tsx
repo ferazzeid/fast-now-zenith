@@ -50,83 +50,97 @@ const FoodTracking = () => {
   // Close modals when navigating to auth routes to prevent OAuth interaction errors
   useEffect(() => {
     if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
-      setShowUnifiedEntry(false);
       setShowOnboarding(false);
+      setShowUnifiedEntry(false);
+      setEditingEntry(null);
+      setShowClearAllDialog(false);
     }
   }, [location.pathname]);
 
-  const handlePhotoCapture = (data: any) => {
-    if (data.requiresManualEntry) {
-      // Navigate to manual entry with the uploaded image
-      navigate('/add-food', { state: { imageUrl: data.image_url } });
-    } else {
-      // Direct food data from AI analysis
-      handleSaveUnifiedEntry(data);
+  const handlePhotoCapture = async (foods: any[]) => {
+    try {
+      if (foods && foods.length > 0) {
+        await addMultipleFoodEntries(foods);
+        toast({
+          title: "Foods Added",
+          description: `${foods.length} food${foods.length > 1 ? 's' : ''} added from photo`
+        });
+      }
+    } catch (error) {
+      console.error('Error adding foods from photo:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add foods from photo"
+      });
     }
   };
 
-  const handleSaveUnifiedEntry = async (data: any | any[]) => {
-    // Handle both single entry and array of entries
-    const entries = Array.isArray(data) ? data : [data];
-    
-    console.log('🍽️ Saving entries in bulk:', entries.length, 'items');
-    
+  const handleVoiceInput = async (entries: any[]) => {
     try {
-      // Use bulk insert for better performance
-      await addMultipleFoodEntries(entries.map(food => ({
-        name: food.name,
-        calories: food.calories,
-        carbs: food.carbs,
-        serving_size: food.serving_size,
-        consumed: false,
-        image_url: food.image_url
-      })));
-      
-      console.log('🍽️ Successfully saved all entries in bulk');
-      trackFoodEvent('add', 'manual');
+      if (entries && entries.length > 0) {
+        await addMultipleFoodEntries(entries);
+        toast({
+          title: "Foods Added",
+          description: `${entries.length} food${entries.length > 1 ? 's' : ''} added by voice`
+        });
+      }
     } catch (error) {
-      console.error('🍽️ Error saving entries in bulk:', error);
+      console.error('Error adding foods by voice:', error);
       toast({
         variant: "destructive",
-        title: "Failed to Save Foods",
-        description: "Please try again or add foods individually.",
+        title: "Error",
+        description: "Failed to add foods by voice"
+      });
+    }
+  };
+
+  const handleSaveUnifiedEntry = async (entry: any) => {
+    try {
+      await addFoodEntry(entry);
+      setShowUnifiedEntry(false);
+    } catch (error) {
+      console.error('Error saving unified entry:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add food entry"
       });
     }
   };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
-    await toggleConsumption(entryId);
-  };
-
-  const handleDeleteFoodEntry = async (entryId: string) => {
-    await deleteFoodEntry(entryId);
-    toast({
-      title: "Food Deleted",
-      description: "Food entry has been removed from your plan"
-    });
-  };
-
-  const saveToLibrary = async (food: { name: string; calories: number; carbs: number; serving_size: number }) => {
     try {
-      const { data, error } = await supabase
-        .from('user_foods')
-        .insert([{
-          user_id: user?.id,
-          name: food.name,
-          calories_per_100g: Math.round((food.calories / food.serving_size) * 100),
-          carbs_per_100g: Math.round((food.carbs / food.serving_size) * 100)
-        }]);
-      
-      if (error) throw error;
-      return { success: true };
+      await toggleConsumption(entryId);
     } catch (error) {
-      console.error('Error saving to library:', error);
-      return { error };
+      console.error('Error toggling consumption:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update food status"
+      });
     }
   };
 
-  const handleClearAllEntries = async () => {
-    const result = await executeClearAll(async () => {
+  const handleDeleteEntry = async (entryId: string) => {
+    try {
+      await deleteFoodEntry(entryId);
+      toast({
+        title: "Food Deleted",
+        description: "Food entry has been removed"
+      });
+    } catch (error) {
+      console.error('Error deleting entry:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete food entry"
+      });
+    }
+  };
+
+  const handleClearAll = async () => {
+    return executeClearAll(async () => {
       clearAllEntries();
 
       const todayDate = new Date();
@@ -200,26 +214,27 @@ const FoodTracking = () => {
                       <p>Take a photo to automatically detect food and nutrition</p>
                     </TooltipContent>
                   </Tooltip>
+                  <span className="text-xs text-muted-foreground text-center">Photo</span>
                 </div>
 
                 <div className="flex flex-col items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <DirectVoiceFoodInput onFoodAdded={handleSaveUnifiedEntry} />
+                      <DirectVoiceFoodInput onFoodAdded={handleVoiceInput} />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Use voice to add food with AI assistance</p>
+                      <p>Speak to add foods using voice recognition</p>
                     </TooltipContent>
                   </Tooltip>
+                  <span className="text-xs text-muted-foreground text-center">Voice</span>
                 </div>
               </div>
 
-
-              {/* Food List */}
-              <div className="space-y-6">
-                <div className="mt-4">
+              {/* Food Entries List */}
+              <div className="mb-6">
+                <div className="bg-card rounded-lg border border-ceramic-rim p-4">
                   {todayEntries.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
+                    <div className="text-center text-muted-foreground py-8 space-y-2">
                       <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                       <p>No foods added yet</p>
                       <p className="text-sm mt-2">Add foods using the buttons above</p>
@@ -239,61 +254,55 @@ const FoodTracking = () => {
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
+                                  className="h-7 w-7 p-0 flex-shrink-0 text-muted-foreground hover:text-foreground" 
                                   aria-label="More options"
                                 >
-                                  <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                                  <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent 
-                                align="start" 
-                                side="bottom" 
-                                sideOffset={8}
-                                avoidCollisions={true}
-                                collisionPadding={16}
-                                className="w-52 z-[60] bg-popover border shadow-lg"
-                              >
-                                <DropdownMenuItem onClick={() => setEditingEntry(entry)} className="py-2.5 px-3">
+                              <DropdownMenuContent align="start" side="bottom">
+                                <DropdownMenuItem
+                                  onClick={() => setEditingEntry(entry)}
+                                  className="py-2.5 px-3 focus:text-foreground"
+                                >
                                   <Edit className="w-4 h-4 mr-2" />
-                                  Edit Food
+                                  Edit
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                  className="py-2.5 px-3"
                                   onClick={async () => {
-                                    const currentIndex = todayEntries.findIndex(e => e.id === entry.id);
-                                    const result = await addFoodEntry({
-                                      name: entry.name,
-                                      calories: entry.calories,
-                                      carbs: entry.carbs,
-                                      serving_size: entry.serving_size,
-                                      consumed: false,
-                                      image_url: entry.image_url,
-                                      insertAfterIndex: currentIndex
-                                    });
-                                    
-                                    if (!result || 'error' in result) {
+                                    try {
+                                      const duplicatedFood = {
+                                        name: `${entry.name} (copy)`,
+                                        calories: entry.calories,
+                                        carbs: entry.carbs,
+                                        serving_size: entry.serving_size,
+                                        consumed: false
+                                      };
+                                      await addFoodEntry(duplicatedFood);
+                                      toast({
+                                        title: "Food Duplicated",
+                                        description: `${entry.name} has been duplicated`
+                                      });
+                                    } catch (error) {
+                                      console.error('Error duplicating food:', error);
                                       toast({
                                         variant: "destructive",
                                         title: "Error",
                                         description: "Failed to duplicate food"
                                       });
-                                    } else {
-                                      toast({
-                                        title: "Food Duplicated",
-                                        description: `${entry.name} has been duplicated`
-                                      });
                                     }
                                   }}
+                                  className="py-2.5 px-3 focus:text-foreground"
                                 >
                                   <Plus className="w-4 h-4 mr-2" />
-                                  Duplicate Food
+                                  Duplicate
                                 </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={async () => {
                                     try {
-                                      await handleDeleteFoodEntry(entry.id);
+                                      await handleDeleteEntry(entry.id);
                                     } catch (error) {
-                                      console.error('Error deleting food entry:', error);
+                                      console.error('Error deleting entry:', error);
                                       toast({
                                         variant: "destructive",
                                         title: "Error",
@@ -353,7 +362,7 @@ const FoodTracking = () => {
                             </div>
                             
                             {/* Actions */}
-                            <div className="flex items-center gap-4 flex-shrink-0">
+                            <div className="flex items-center gap-2 flex-shrink-0">
                               <Button
                                 size="sm"
                                 variant="default"
@@ -368,25 +377,23 @@ const FoodTracking = () => {
                               >
                                 <Check className="w-3 h-3" />
                               </Button>
+                              
+                              {/* Delete Button - at the same level as tick boxes */}
+                              {todayEntries.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-5 w-5 p-1"
+                                  onClick={() => setShowClearAllDialog(true)}
+                                  title="Delete all foods"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>
                       ))}
-                      
-                      {/* Clear All Button - positioned at the bottom right */}
-                      {todayEntries.length > 0 && (
-                        <div className="flex justify-end mt-4 pr-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-3"
-                            onClick={() => setShowClearAllDialog(true)}
-                          >
-                            <Trash2 className="w-4 h-4 mr-1" />
-                            Clear All
-                          </Button>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -399,27 +406,15 @@ const FoodTracking = () => {
               {editingEntry && (
                 <EditFoodEntryModal
                   entry={editingEntry}
-                  isOpen={!!editingEntry}
-                  onClose={() => setEditingEntry(null)}
                   onUpdate={async (updatedEntry) => {
                     try {
-                      await updateFoodEntry({
-                        id: updatedEntry.id,
-                        updates: {
-                          name: updatedEntry.name,
-                          calories: updatedEntry.calories,
-                          carbs: updatedEntry.carbs,
-                          serving_size: updatedEntry.serving_size,
-                          image_url: updatedEntry.image_url
-                        }
+                      await updateFoodEntry({ 
+                        id: editingEntry.id, 
+                        updates: updatedEntry 
                       });
                       setEditingEntry(null);
-                      toast({
-                        title: "Food Updated",
-                        description: "Food entry has been updated successfully"
-                      });
                     } catch (error) {
-                      console.error('Error updating food entry:', error);
+                      console.error('Error updating entry:', error);
                       toast({
                         variant: "destructive",
                         title: "Error",
@@ -427,127 +422,113 @@ const FoodTracking = () => {
                       });
                     }
                   }}
+                  onClose={() => setEditingEntry(null)}
                 />
               )}
 
               {/* Unified Food Entry Modal */}
-              <UnifiedFoodEntry 
-                isOpen={showUnifiedEntry}
-                onClose={() => setShowUnifiedEntry(false)}
-                onSave={handleSaveUnifiedEntry}
-              />
-
+              {showUnifiedEntry && (
+                <UnifiedFoodEntry
+                  isOpen={showUnifiedEntry}
+                  onSave={handleSaveUnifiedEntry}
+                  onClose={() => setShowUnifiedEntry(false)}
+                />
+              )}
 
               {/* Page Onboarding Modal */}
-              <PageOnboardingModal
-                isOpen={showOnboarding}
-                onClose={() => setShowOnboarding(false)}
-                {...onboardingContent.foodTracking}
-              >
-                <div>Onboarding content</div>
-              </PageOnboardingModal>
-            </TooltipProvider>
+              {showOnboarding && onboardingContent.food_tracking && (
+                <PageOnboardingModal
+                  isOpen={showOnboarding}
+                  onClose={() => setShowOnboarding(false)}
+                  title={onboardingContent.food_tracking.title || "Food Tracking"}
+                  subtitle={onboardingContent.food_tracking.subtitle}
+                  heroQuote={onboardingContent.food_tracking.heroQuote}
+                  backgroundImage={onboardingContent.food_tracking.backgroundImage}
+                >
+                  <div></div>
+                </PageOnboardingModal>
+              )}
 
-        {/* Clear All Confirmation Dialog */}
-        <ConfirmationModal
-          isOpen={showClearAllDialog}
-          onClose={() => setShowClearAllDialog(false)}
-          onConfirm={handleClearAllEntries}
-          title="Clear All Foods?"
-          description="This will remove all food entries for today. This action cannot be undone."
-          confirmText="Clear All"
-          variant="destructive"
-          isLoading={isClearingAll}
-        />
+              {/* Clear All Confirmation Dialog */}
+              <ConfirmationModal
+                isOpen={showClearAllDialog}
+                onClose={() => setShowClearAllDialog(false)}
+                onConfirm={handleClearAll}
+                title="Clear All Foods"
+                description="Are you sure you want to remove all food entries for today? This action cannot be undone."
+                confirmText="Clear All"
+                cancelText="Cancel"
+                variant="destructive"
+                isLoading={isClearingAll}
+              />
+            </TooltipProvider>
           </div>
         ) : (
           <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
             <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
-              {/* Locked State */}
-              <div className="pointer-events-none opacity-20 select-none">
-                {/* Header with Responsive Page Header */}
-                <ResponsivePageHeader
-                  title="Food Tracking"
-                  subtitle="Track your food intake"
-                  onHistoryClick={() => {}}
-                  historyTitle="View food history"
-                  showAuthorTooltip={false}
-                />
+              {/* Header */}
+              <ResponsivePageHeader
+                title="Food Tracking"
+                subtitle="Track your food intake"
+                onHistoryClick={() => {}}
+                historyTitle=""
+                onMyFoodsClick={() => {}}
+                myFoodsTitle=""
+                showAuthorTooltip={false}
+              />
 
-                {/* Action Buttons - Locked */}
-                <div className="mb-6 grid grid-cols-3 gap-4">
-                  <div className="col-span-1 flex flex-col items-center gap-1">
-                    <Button 
-                      variant="action-secondary"
-                      size="action-tall"
-                      className="w-full flex items-center justify-center"
-                      disabled
-                    >
-                      <Lock className="w-11 h-11" />
-                    </Button>
-                    <span className="text-xs text-muted-foreground">Add Food</span>
-                  </div>
-
-                  <div className="col-span-1 flex flex-col items-center gap-1">
-                    <Button 
-                      variant="action-secondary"
-                      size="action-tall"
-                      className="w-full flex items-center justify-center"
-                      disabled
-                    >
-                      <Lock className="w-11 h-11" />
-                    </Button>
-                    <span className="text-xs text-muted-foreground">Add Food</span>
-                  </div>
-
-                  <div className="col-span-1 flex flex-col items-center gap-1">
-                    <Button 
-                      variant="action-secondary"
-                      size="action-tall"
-                      className="w-full flex items-center justify-center"
-                      disabled
-                    >
-                      <Lock className="w-11 h-11" />
-                    </Button>
-                    <span className="text-xs text-muted-foreground">My Foods</span>
-                  </div>
-                </div>
-
-                {/* Mock Summary */}
-                <div className="bg-muted p-3 rounded-md mb-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-muted-foreground">Today: 0 kcal</span>
+              {/* Locked State Card */}
+              <div className="mb-6">
+                <div className="p-4 text-center relative overflow-hidden min-h-[180px] bg-card/50 rounded-lg border border-ceramic-rim">
+                  <div className="flex flex-col justify-center items-center h-full space-y-4 opacity-50">
+                    <div className="grid grid-cols-2 gap-4 w-full mb-4">
+                      <div className="text-center">
+                        <div className="text-4xl font-mono font-bold text-muted-foreground mb-1">0</div>
+                        <div className="text-xs text-muted-foreground">calories</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-4xl font-mono font-bold text-muted-foreground mb-1">0</div>
+                        <div className="text-xs text-muted-foreground">g carbs</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                {/* Empty state */}
-                <div className="text-center py-8 text-muted-foreground">
-                  <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p>No foods added yet</p>
-                  <p className="text-sm mt-2">Add foods using the buttons above</p>
+                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                    <Lock className="w-8 h-8 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
-              {/* Premium Upgrade Overlay */}
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                <div className="text-center p-6 bg-card rounded-2xl border border-border shadow-lg max-w-sm mx-4">
-                  <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Crown className="w-8 h-8 text-white" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">Premium Feature</h2>
-                  <p className="text-muted-foreground mb-6">
-                    Food tracking requires a premium subscription to access AI-powered photo and voice analysis.
-                  </p>
-                  <Button 
-                    onClick={requestUpgrade}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white border-0"
-                  >
-                    <Crown className="w-4 h-4 mr-2" />
-                    Upgrade to Premium
+              {/* Locked Action Buttons */}
+              <div className="mb-6 grid grid-cols-2 gap-6 opacity-50">
+                <div className="flex flex-col items-center gap-1">
+                  <Button size="start-button" disabled className="w-full">
+                    📷
                   </Button>
+                  <span className="text-xs text-muted-foreground">Photo</span>
                 </div>
+                <div className="flex flex-col items-center gap-1">
+                  <Button size="start-button" disabled className="w-full">
+                    🎤
+                  </Button>
+                  <span className="text-xs text-muted-foreground">Voice</span>
+                </div>
+              </div>
+
+              {/* Premium Upgrade Prompt */}
+              <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6 text-center border border-primary/20">
+                <Crown className="w-12 h-12 text-primary mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Unlock Food Tracking</h3>
+                <p className="text-muted-foreground mb-4">
+                  Track your nutrition, calories, and reach your health goals with premium food tracking features.
+                </p>
+                <Button 
+                  onClick={requestUpgrade}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Premium
+                </Button>
               </div>
             </div>
           </div>
