@@ -2087,6 +2087,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      configure_google_play_service_account: {
+        Args: { service_account_json: string }
+        Returns: undefined
+      }
       generate_unique_slug: {
         Args: { base_slug: string; id_to_exclude?: string; table_name: string }
         Returns: string

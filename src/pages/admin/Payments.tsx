@@ -2,6 +2,9 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
+import { GooglePlayConfigPanel } from "@/components/GooglePlayConfigPanel";
+import { MobileBillingInterface } from "@/components/MobileBillingInterface";
+import { CapacitorSetupGuide } from "@/components/CapacitorSetupGuide";
 
 export default function AdminPayments() {
   usePageSEO({
@@ -16,8 +19,15 @@ export default function AdminPayments() {
         <h1 className="sr-only">Admin Payments</h1>
         <AdminSubnav />
 
-        <section aria-label="Payment provider settings" className="pb-24">
+        <section aria-label="Payment provider settings" className="space-y-6 pb-24">
           <PaymentProviderSettings />
+          
+          <div className="grid gap-6 md:grid-cols-2">
+            <GooglePlayConfigPanel />
+            <MobileBillingInterface />
+          </div>
+          
+          <CapacitorSetupGuide />
         </section>
       </main>
     </AdminHealthCheck>
