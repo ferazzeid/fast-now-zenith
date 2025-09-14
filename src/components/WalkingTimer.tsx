@@ -141,7 +141,9 @@ const WalkingTimerComponent = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
-                    onClick={async () => {
+                     onClick={async (e) => {
+                       e.preventDefault();
+                       e.stopPropagation();
                        try {
                         const result = isPaused ? await onResume?.() : await onPause?.();
                         if (result && 'error' in result && result.error) {
@@ -152,6 +154,7 @@ const WalkingTimerComponent = ({
                           });
                         }
                       } catch (error) {
+                        console.error('Failed to pause/resume walking session:', error);
                         toast({
                           title: "Error",
                           description: "Network error. Please try again.",
@@ -180,8 +183,10 @@ const WalkingTimerComponent = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button 
-                      onClick={async () => {
-                         try {
+                     onClick={async (e) => {
+                       e.preventDefault();
+                       e.stopPropagation();
+                       try {
                           const result = await onCancel?.();
                           if (result && 'error' in result && result.error) {
                             toast({
@@ -191,6 +196,7 @@ const WalkingTimerComponent = ({
                             });
                           }
                         } catch (error) {
+                          console.error('Failed to cancel walking session:', error);
                           toast({
                             title: "Error",
                             description: "Network error. Please try again.",
@@ -217,7 +223,9 @@ const WalkingTimerComponent = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
-                    onClick={async () => {
+                     onClick={async (e) => {
+                       e.preventDefault();
+                       e.stopPropagation();
                        try {
                         const result = await onStop();
                         if (result && 'error' in result && result.error) {
@@ -228,6 +236,7 @@ const WalkingTimerComponent = ({
                           });
                         }
                       } catch (error) {
+                        console.error('Failed to stop walking session:', error);
                         toast({
                           title: "Error",
                           description: "Network error. Please try again.",
@@ -361,7 +370,11 @@ const WalkingTimerComponent = ({
       {!isActive && (
         <div className="mt-8">
           <Button 
-            onClick={onStart}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onStart();
+            }}
             variant="action-primary"
             size="start-button"
             className="w-full"

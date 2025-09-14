@@ -259,6 +259,8 @@ export const useWalkingSession = () => {
       setCurrentSession(null);
       setSelectedSpeed(null);
       setIsPaused(false);
+      // Clear persisted session from localStorage
+      persistWalkingSession(null);
       triggerRefresh();
       return finalData;
     });
@@ -287,6 +289,8 @@ export const useWalkingSession = () => {
       setCurrentSession(null);
       setSelectedSpeed(null);
       setIsPaused(false);
+      // Clear persisted session from localStorage
+      persistWalkingSession(null);
       triggerRefresh();
       return data;
     });
