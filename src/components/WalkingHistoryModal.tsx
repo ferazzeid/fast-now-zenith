@@ -13,6 +13,8 @@ import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
 import { useProfile } from '@/hooks/useProfile';
 import { formatDistance, formatSpeed } from '@/utils/unitConversions';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ListLoadingSkeleton } from '@/components/LoadingStates';
 
 interface WalkingSession {
   id: string;
@@ -34,7 +36,7 @@ interface WalkingHistoryModalProps {
 
 export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
   const [sessions, setSessions] = useState<WalkingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -49,9 +51,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
     const fetchWalkingSessions = async () => {
       if (!user) return;
       
-      setLoading(true);
-
-      try {
+      await execute(async () => {
         const limit = showAll ? 50 : 5;
         
         // Get the sessions to display
@@ -80,11 +80,9 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
         } else {
           setHasMore(false);
         }
-      } catch (error) {
-        console.error('Error fetching walking sessions:', error);
-      } finally {
-        setLoading(false);
-      }
+        
+        return data;
+      });
     };
 
     fetchWalkingSessions();
@@ -250,15 +248,8 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
         
         <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
 
-          {loading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i} className="p-4 animate-pulse">
-                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-muted rounded w-1/2"></div>
-                </Card>
-              ))}
-            </div>
+          {isLoading ? (
+            <ListLoadingSkeleton count={3} itemHeight="h-20" />
           ) : sessions.length === 0 ? (
             <Card className="p-6 text-center">
               <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
@@ -399,7 +390,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
                 variant="outline"
                 onClick={() => setShowAll(!showAll)}
                 className="w-full"
-                disabled={loading}
+                disabled={isLoading}
               >
                 {showAll ? (
                   <>
@@ -424,32 +415,25 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
             onClose={() => setEditingSession(null)}
             onSessionEdited={() => {
               // Refresh the sessions list
-              setLoading(true);
-              const fetchWalkingSessions = async () => {
+              execute(async () => {
                 if (!user) return;
                 
-                try {
-                  const limit = showAll ? 50 : 5;
-                  
-                  const { data, error } = await supabase
-                    .from('walking_sessions')
-                    .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
-                    .eq('user_id', user.id)
-                    .eq('status', 'completed')
-                    .is('deleted_at', null)
-                    .order('created_at', { ascending: false })
-                    .limit(limit);
+                const limit = showAll ? 50 : 5;
+                
+                const { data, error } = await supabase
+                  .from('walking_sessions')
+                  .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
+                  .eq('user_id', user.id)
+                  .eq('status', 'completed')
+                  .is('deleted_at', null)
+                  .order('created_at', { ascending: false })
+                  .limit(limit);
 
-                  if (error) throw error;
-                  setSessions(data || []);
-                } catch (error) {
-                  console.error('Error refreshing sessions:', error);
-                } finally {
-                  setLoading(false);
-                }
-              };
-              
-              fetchWalkingSessions();
+                if (error) throw error;
+                setSessions(data || []);
+                
+                return data;
+              });
             }}
           />
         )}

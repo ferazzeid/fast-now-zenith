@@ -7,11 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Share2 } from "lucide-react";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ComponentSpinner } from '@/components/LoadingStates';
 
 export const AdminWalkingShareSettings = () => {
   const [motivationalText, setMotivationalText] = useState('Staying active and feeling great! 💪');
   const [hashtags, setHashtags] = useState('#FastNowApp');
-  const [loading, setLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export const AdminWalkingShareSettings = () => {
   }, []);
 
   const loadSettings = async () => {
-    try {
+    await execute(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -36,16 +38,18 @@ export const AdminWalkingShareSettings = () => {
           }
         });
       }
-    } catch (error) {
-      console.error('Error loading walking share settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load walking share settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      
+      return data;
+    }, {
+      onError: (error) => {
+        console.error('Error loading walking share settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load walking share settings",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const saveMotivationalText = async () => {
@@ -98,8 +102,8 @@ export const AdminWalkingShareSettings = () => {
     }
   };
 
-  if (loading) {
-    return null;
+  if (isLoading) {
+    return <ComponentSpinner />;
   }
 
   return (

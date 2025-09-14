@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,10 +6,11 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Brain } from "lucide-react";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartLoadingButton } from '@/components/SimpleLoadingComponents';
 
 export const AdminDailyAnalysisSettings = () => {
-  const [analysisPrompt, setAnalysisPrompt] = useState('');
-  const [loading, setLoading] = useState(false);
+  const { data: analysisPrompt, setData: setAnalysisPrompt, execute, isLoading } = useStandardizedLoading<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export const AdminDailyAnalysisSettings = () => {
   }, []);
 
   const fetchAnalysisSettings = async () => {
-    try {
+    await execute(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_value')
@@ -26,15 +27,12 @@ export const AdminDailyAnalysisSettings = () => {
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      setAnalysisPrompt(data?.setting_value || '');
-    } catch (error) {
-      console.error('Error fetching analysis settings:', error);
-    }
+      return data?.setting_value || '';
+    });
   };
 
   const saveAnalysisSettings = async () => {
-    setLoading(true);
-    try {
+    await execute(async () => {
       const { error } = await supabase
         .from('shared_settings')
         .upsert({
@@ -48,16 +46,18 @@ export const AdminDailyAnalysisSettings = () => {
         title: "Success",
         description: "Daily analysis settings saved successfully",
       });
-    } catch (error) {
-      console.error('Error saving analysis settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save analysis settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      
+      return analysisPrompt;
+    }, {
+      onError: (error) => {
+        console.error('Error saving analysis settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save analysis settings",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   return (
@@ -88,13 +88,14 @@ export const AdminDailyAnalysisSettings = () => {
         </div>
       </CardContent>
       <CardFooter className="justify-end">
-        <Button 
+        <SmartLoadingButton 
           onClick={saveAnalysisSettings}
-          disabled={loading}
+          isLoading={isLoading}
+          loadingText="Saving..."
           className="w-full sm:w-auto"
         >
-          {loading ? 'Saving...' : 'Save Settings'}
-        </Button>
+          Save Settings
+        </SmartLoadingButton>
       </CardFooter>
     </Card>
   );

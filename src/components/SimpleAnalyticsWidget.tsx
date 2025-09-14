@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ComponentSpinner } from '@/components/LoadingStates';
 
 // Performance optimized analytics - updates every hour to reduce server load
 
@@ -24,11 +26,11 @@ export const SimpleAnalyticsWidget = () => {
     activeWalkingSessions: 0,
     aiRequestsToday: 0
   });
-  const [loading, setLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const [gaConfigured, setGaConfigured] = useState(false);
 
   const fetchAnalyticsData = async () => {
-    try {
+    await execute(async () => {
       // Check if GA is configured by checking for tracking ID
       const { data: gaSettings, error: gaError } = await supabase
         .from('shared_settings')
@@ -77,11 +79,8 @@ export const SimpleAnalyticsWidget = () => {
         yesterdayUsers: gaData.yesterdayUsers
       }));
 
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-    } finally {
-      setLoading(false);
-    }
+      return { fastingSessions, walkingSessions, aiRequests };
+    });
   };
 
   const refreshData = () => {
@@ -93,11 +92,12 @@ export const SimpleAnalyticsWidget = () => {
     // Remove auto-refresh - make it manual only for admin performance
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="p-6">
         <div className="flex items-center justify-center h-16">
-          <span className="text-muted-foreground">Loading...</span>
+          <ComponentSpinner size={20} className="mr-2" />
+          <span className="text-muted-foreground">Loading analytics...</span>
         </div>
       </Card>
     );

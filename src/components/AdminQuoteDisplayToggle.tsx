@@ -4,11 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 export const AdminQuoteDisplayToggle = () => {
   const [fastingQuotesEnabled, setFastingQuotesEnabled] = useState(false);
   const [walkingQuotesEnabled, setWalkingQuotesEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -16,9 +17,7 @@ export const AdminQuoteDisplayToggle = () => {
   }, []);
 
   const loadSettings = async () => {
-    try {
-      setIsLoading(true);
-      
+    await execute(async () => {
       // Load both settings
       const [fastingResult, walkingResult] = await Promise.all([
         supabase
@@ -35,13 +34,13 @@ export const AdminQuoteDisplayToggle = () => {
 
       setFastingQuotesEnabled(fastingResult.data?.setting_value === 'true');
       setWalkingQuotesEnabled(walkingResult.data?.setting_value === 'true');
-    } catch (error) {
-      // Default both to true if settings don't exist
-      setFastingQuotesEnabled(true);
-      setWalkingQuotesEnabled(true);
-    } finally {
-      setIsLoading(false);
-    }
+    }, {
+      onError: () => {
+        // Default both to true if settings don't exist
+        setFastingQuotesEnabled(true);
+        setWalkingQuotesEnabled(true);
+      }
+    });
   };
 
   const handleFastingToggle = async (enabled: boolean) => {

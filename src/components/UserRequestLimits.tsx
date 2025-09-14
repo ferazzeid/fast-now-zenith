@@ -5,15 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { SmartInlineLoading } from './SimpleLoadingComponents';
+import { SmartInlineLoading, SmartLoadingButton } from './SimpleLoadingComponents';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 import { useAccess } from '@/hooks/useAccess';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 export const UserRequestLimits: React.FC = () => {
   const [trialUserLimit, setTrialUserLimit] = useState('');
   const [premiumUserLimit, setPremiumUserLimit] = useState('');
-  const [loading, setLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const { toast } = useToast();
   const { isAdmin } = useAccess();
 
@@ -27,7 +28,7 @@ export const UserRequestLimits: React.FC = () => {
   }, []);
 
   const loadCurrentLimits = async () => {
-    try {
+    await execute(async () => {
       const { data: settings, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -45,13 +46,15 @@ export const UserRequestLimits: React.FC = () => {
       
       setTrialUserLimit(trialLimit);
       setPremiumUserLimit(premiumLimit);
-    } catch (error) {
-      console.error('Error loading request limits:', error);
-      setTrialUserLimit('50');
-      setPremiumUserLimit('1000');
-    } finally {
-      setLoading(false);
-    }
+      
+      return settings;
+    }, {
+      onError: (error) => {
+        console.error('Error loading request limits:', error);
+        setTrialUserLimit('50');
+        setPremiumUserLimit('1000');
+      }
+    });
   };
 
   const saveRequestLimits = async () => {
@@ -92,7 +95,7 @@ export const UserRequestLimits: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -164,9 +167,14 @@ export const UserRequestLimits: React.FC = () => {
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={saveRequestLimits} size="sm" className="h-9 px-4">
+              <SmartLoadingButton 
+                onClick={saveRequestLimits} 
+                isLoading={isLoading}
+                size="sm" 
+                className="h-9 px-4"
+              >
                 Save Limits
-              </Button>
+              </SmartLoadingButton>
             </div>
           </div>
         </TooltipProvider>

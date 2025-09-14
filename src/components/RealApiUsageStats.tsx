@@ -3,6 +3,8 @@ import { BarChart3, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ComponentSpinner } from '@/components/LoadingStates';
 
 interface ApiUsageData {
   date: string;
@@ -20,16 +22,14 @@ interface RealApiUsageStatsProps {
 export const RealApiUsageStats = ({ className }: RealApiUsageStatsProps) => {
   const [usageData, setUsageData] = useState<ApiUsageData[]>([]);
   const [totalCost, setTotalCost] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
 
   useEffect(() => {
     fetchRealUsageData();
   }, []);
 
   const fetchRealUsageData = async () => {
-    try {
-      setLoading(true);
-      
+    await execute(async () => {
       // Fetch actual API usage from ai_usage_logs table
       const { data: usageLogs, error } = await supabase
         .from('ai_usage_logs')
@@ -82,11 +82,9 @@ export const RealApiUsageStats = ({ className }: RealApiUsageStatsProps) => {
         const total = processedData.reduce((sum, day) => sum + day.cost_estimate, 0);
         setTotalCost(total);
       }
-    } catch (error) {
-      console.error('Error fetching real API usage:', error);
-    } finally {
-      setLoading(false);
-    }
+      
+      return usageLogs;
+    });
   };
 
   const estimateCost = (model: string, inputTokens: number, outputTokens: number): number => {
@@ -122,13 +120,12 @@ export const RealApiUsageStats = ({ className }: RealApiUsageStatsProps) => {
     return total > 0 ? ((successful / total) * 100).toFixed(1) : '0';
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-8 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+        <div className="flex items-center justify-center">
+          <ComponentSpinner size={20} className="mr-2" />
+          <span className="text-sm text-muted-foreground">Loading API usage...</span>
         </div>
       </Card>
     );

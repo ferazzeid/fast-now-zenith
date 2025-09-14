@@ -4,10 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ComponentSpinner } from '@/components/LoadingStates';
 
 export const AdminPersonalLogToggle = () => {
   const [isEnabled, setIsEnabled] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { isLoading, execute } = useStandardizedLoading();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -15,8 +17,7 @@ export const AdminPersonalLogToggle = () => {
   }, []);
 
   const loadSetting = async () => {
-    try {
-      setIsLoading(true);
+    await execute(async () => {
       const { data } = await supabase
         .from('shared_settings')
         .select('setting_value')
@@ -24,12 +25,13 @@ export const AdminPersonalLogToggle = () => {
         .single();
 
       setIsEnabled(data?.setting_value === 'true');
-    } catch (error) {
-      // Default to true if setting doesn't exist
-      setIsEnabled(true);
-    } finally {
-      setIsLoading(false);
-    }
+      return data;
+    }, {
+      onError: () => {
+        // Default to true if setting doesn't exist
+        setIsEnabled(true);
+      }
+    });
   };
 
   const handleToggle = async (enabled: boolean) => {
@@ -58,7 +60,7 @@ export const AdminPersonalLogToggle = () => {
     }
   };
 
-  if (isLoading) return null;
+  if (isLoading) return <ComponentSpinner />;
 
   return (
     <Card>
