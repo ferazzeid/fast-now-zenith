@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, RefreshCw } from 'lucide-react';
-import { useAppLogo } from '@/hooks/useAppLogo';
 import { Button } from '@/components/ui/button';
-import faviconTransparent from '/favicon-transparent.png';
 
 export const LoadingSpinner = ({
   fullScreen = true,
   text = "Loading...",
-  subText,
-  showLogo = true
+  subText
 }: {
   fullScreen?: boolean;
   text?: string;
   subText?: string;
-  showLogo?: boolean;
 }) => {
-  const { appLogo } = useAppLogo();
   const [showTimeout, setShowTimeout] = useState(false);
 
   // Show timeout after 15 seconds
@@ -35,29 +30,6 @@ export const LoadingSpinner = ({
 
   const content = (
     <div className="space-y-6 text-center">
-      {showLogo && (
-        <div className="flex justify-center">
-          {appLogo ? (
-            <img 
-              src={appLogo} 
-              alt="App Logo" 
-              className="w-16 h-16 object-contain rounded-lg"
-              onError={() => {
-                // Hide broken images gracefully
-                const target = event?.target as HTMLImageElement;
-                if (target) target.style.display = 'none';
-              }}
-            />
-          ) : (
-            <img 
-              src={faviconTransparent} 
-              alt="FastNow Logo" 
-              className="w-16 h-16 object-contain"
-            />
-          )}
-        </div>
-      )}
-      
       <div className="flex justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>

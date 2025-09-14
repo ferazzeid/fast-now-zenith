@@ -65,19 +65,17 @@ const AdminAI = lazy(() => import("./pages/admin/AI"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 const AdminDev = lazy(() => import("./pages/admin/Dev"));
-// Defer React Query cache persistence to not block startup
+// Initialize React Query cache persistence immediately - data loading is critical
 if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    const persister = createSyncStoragePersister({
-      storage: window.localStorage,
-      throttleTime: 1000,
-    });
-    persistQueryClient({
-      queryClient,
-      persister,
-      maxAge: 1000 * 60 * 60 * 24, // 24 hours
-    });
-  }, 500);
+  const persister = createSyncStoragePersister({
+    storage: window.localStorage,
+    throttleTime: 1000,
+  });
+  persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  });
 }
 
 
@@ -133,7 +131,7 @@ const AppContent = () => {
       }
     };
     
-    setTimeout(checkOnboarding, 300);
+    checkOnboarding();
   }, [user, profile, isProfileComplete]);
 
   // Track page views on route changes

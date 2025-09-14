@@ -13,13 +13,13 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<!-- App launcher icon uses your URL: https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images/brand-assets/homeScreenIcon-1757146073331.jpg -->
+<!-- App launcher icon uses actual FastNow logo -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt">
     <background>
         <color android:color="#F5F2EA" />
     </background>
     <foreground>
-        <color android:color="#8B7355" />
+        <bitmap android:src="@drawable/ic_launcher" />
     </foreground>
 </adaptive-icon>
