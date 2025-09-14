@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, AlertTriangle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useCacheManager } from '@/hooks/useCacheManager';
+import { useUnifiedCacheManager } from '@/hooks/useUnifiedCacheManager';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 export const SubscriptionSystemReset: React.FC = () => {
-  const { clearAllSubscriptionCache } = useCacheManager();
+  const { clearAllCache } = useUnifiedCacheManager();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -19,7 +19,7 @@ export const SubscriptionSystemReset: React.FC = () => {
     });
 
     try {
-      await clearAllSubscriptionCache();
+      await clearAllCache();
       
       toast({
         title: "System Reset Complete",

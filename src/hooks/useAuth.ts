@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/authStore';
 import { useConnectionStore } from '@/stores/connectionStore';
 import { useToast } from '@/hooks/use-toast';
-import { useAuthCacheManager } from '@/hooks/useAuthCacheManager';
+import { useUnifiedCacheManager } from '@/hooks/useUnifiedCacheManager';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useAuth = () => {
@@ -17,7 +17,7 @@ export const useAuth = () => {
   const storeResetPassword = useAuthStore(state => state.resetPassword);
   const storeUpdatePassword = useAuthStore(state => state.updatePassword);
   const { isOnline } = useConnectionStore();
-  const { clearAllAuthCaches, refreshAuthData } = useAuthCacheManager();
+  const { clearAuthCaches, refreshAuthData } = useUnifiedCacheManager();
 
   // Enhanced auth methods with session recovery and better error handling
   const signIn = async (email: string, password: string) => {
@@ -32,7 +32,7 @@ export const useAuth = () => {
         });
       } else {
         // Clear old caches and refresh auth data on successful sign in
-        clearAllAuthCaches();
+      clearAuthCaches();
         setTimeout(() => {
           if (user?.id) {
             refreshAuthData(user.id);
@@ -182,7 +182,7 @@ export const useAuth = () => {
   const signOut = async () => {
     const operation = async () => {
       // Clear all caches before signing out
-      clearAllAuthCaches();
+      clearAuthCaches();
       
       const result = await storeSignOut();
       

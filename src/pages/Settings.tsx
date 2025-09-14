@@ -27,7 +27,7 @@ import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
 import { useConnectionStore } from '@/stores/connectionStore';
-import { useCacheManager } from '@/hooks/useCacheManager';
+import { useUnifiedCacheManager } from '@/hooks/useUnifiedCacheManager';
 // Removed complex validation utilities - using simple localStorage
 
 const Settings = () => {
@@ -60,7 +60,7 @@ const Settings = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { profile, updateProfile, loading: profileLoading } = useProfile();
   const { isOnline } = useConnectionStore();
-  const { clearGoalsCache, clearProfileCache } = useCacheManager();
+  const { clearGoalsCache, clearProfileCache } = useUnifiedCacheManager();
 
   useEffect(() => {
 
@@ -304,8 +304,8 @@ const Settings = () => {
         // If sex changed, clear relevant caches without page reload
         if (data && updateData.sex && updateData.sex !== profile?.sex) {
           console.log('🔄 Sex changed - clearing goal and profile caches');
-          await clearGoalsCache({ showToast: false });
-          await clearProfileCache({ showToast: false });
+          clearGoalsCache();
+          clearProfileCache();
           
           toast({
             title: "Profile Updated",

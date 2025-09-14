@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Crown, ExternalLink, Calendar, Clock, TestTube, RefreshCw } from 'lucide-react';
 import { TrialIndicator } from './TrialIndicator';
-import { useCacheManager } from '@/hooks/useCacheManager';
+import { useUnifiedCacheManager } from '@/hooks/useUnifiedCacheManager';
 import { SubscriptionSystemReset } from './SubscriptionSystemReset';
 
 export const SettingsSubscription = () => {
@@ -20,7 +20,7 @@ export const SettingsSubscription = () => {
     loading,
     refetch,
   } = useAccess();
-  const { clearAllSubscriptionCache } = useCacheManager();
+  const { clearSubscriptionCache } = useUnifiedCacheManager();
 
   // Force refresh subscription data when Settings page loads
   React.useEffect(() => {
@@ -206,7 +206,7 @@ export const SettingsSubscription = () => {
               <Button
                 onClick={() => {
                   console.log('🔄 Manual cache clear requested');
-                  clearAllSubscriptionCache();
+                  clearSubscriptionCache(true);
                 }}
                 variant="outline"
                 size="sm"

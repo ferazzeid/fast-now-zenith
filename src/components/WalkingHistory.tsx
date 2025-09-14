@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
-import { useCacheManager } from '@/hooks/useCacheManager';
+import { useUnifiedCacheManager } from '@/hooks/useUnifiedCacheManager';
 import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
 import { useProfile } from '@/hooks/useProfile';
@@ -39,7 +39,7 @@ export const WalkingHistory = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { refreshTrigger } = useWalkingSession();
-  const { clearWalkingCache } = useCacheManager();
+  const { clearWalkingCache } = useUnifiedCacheManager();
   const { profile } = useProfile();
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export const WalkingHistory = () => {
           size="sm" 
           onClick={() => {
             console.log('Manual refresh triggered');
-            clearWalkingCache({ showToast: true });
+            clearWalkingCache();
           }}
           className="h-6 px-2 text-xs text-muted-foreground hover:text-primary"
         >
@@ -342,7 +342,7 @@ export const WalkingHistory = () => {
           onClose={() => setEditingSession(null)}
           onSessionEdited={() => {
             // Trigger refresh of walking sessions
-            clearWalkingCache({ showToast: false });
+            clearWalkingCache();
             // Force refresh by clearing sessions and triggering re-fetch
             setSessions([]);
             setLoading(true);
