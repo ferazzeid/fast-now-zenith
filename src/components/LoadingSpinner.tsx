@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 export const LoadingSpinner = ({
   fullScreen = true,
-  text = "Loading...",
+  text = "",
   subText
 }: {
   fullScreen?: boolean;

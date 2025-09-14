@@ -66,10 +66,16 @@ self.addEventListener('install', (event) => {
             });
             
             if (response.ok) {
-              await dataCache.put(endpoint, response.clone());
+              const data = await response.text();
+              console.log(`📊 Response size: ${data.length} bytes for ${endpoint}`);
+              await dataCache.put(endpoint, new Response(data, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers
+              }));
               console.log(`✅ Cached: ${endpoint}`);
             } else {
-              console.warn(`⚠️  Failed to cache ${endpoint}: ${response.status}`);
+              console.warn(`⚠️  Failed to cache ${endpoint}: ${response.status} ${response.statusText}`);
             }
           } catch (error) {
             console.warn(`❌ Error caching ${endpoint}:`, error);
