@@ -49,7 +49,7 @@ const FoodTracking = () => {
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   
   // Daily template functionality
-  const { saveAsTemplate } = useDailyFoodTemplate();
+  const { saveAsTemplate, addToTemplate } = useDailyFoodTemplate();
 
   // Close modals when navigating to auth routes to prevent OAuth interaction errors
   useEffect(() => {
@@ -265,6 +265,41 @@ const FoodTracking = () => {
             >
               <Plus className="w-4 h-4 mr-2" />
               Duplicate
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={async () => {
+                try {
+                  const foodToAdd = {
+                    name: entry.name,
+                    calories: entry.calories,
+                    carbs: entry.carbs,
+                    serving_size: entry.serving_size,
+                    image_url: entry.image_url
+                  };
+                  
+                  const result = await addToTemplate([foodToAdd]);
+                  
+                  if (!result.error) {
+                    toast({
+                      title: "Added to Template",
+                      description: `${entry.name} added to your daily template`
+                    });
+                  } else {
+                    throw new Error(result.error.message);
+                  }
+                } catch (error) {
+                  console.error('Error adding to template:', error);
+                  toast({
+                    variant: "destructive",
+                    title: "Error",
+                    description: "Failed to add food to template"
+                  });
+                }
+              }}
+              className="py-2.5 px-3 focus:text-foreground"
+            >
+              <Target className="w-4 h-4 mr-2" />
+              Add to Template
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={async () => {

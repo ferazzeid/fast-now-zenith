@@ -76,6 +76,27 @@ export const useDailyFoodTemplate = () => {
   }>, appendMode = false) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
+    // Optimistic update
+    const previousFoods = [...templateFoods];
+    const optimisticFoods = foodEntries.map((entry, index) => ({
+      id: `optimistic-${Date.now()}-${index}`,
+      user_id: user.id,
+      name: entry.name,
+      calories: entry.calories,
+      carbs: entry.carbs,
+      serving_size: entry.serving_size,
+      image_url: entry.image_url,
+      sort_order: appendMode ? templateFoods.length + index : index,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
+
+    if (appendMode) {
+      setTemplateFoods(prev => [...prev, ...optimisticFoods]);
+    } else {
+      setTemplateFoods(optimisticFoods);
+    }
+
     const result = await execute(async () => {
       if (!appendMode) {
         console.log('🍽️ Saving template - clearing existing for user:', user.id);
@@ -94,7 +115,7 @@ export const useDailyFoodTemplate = () => {
       }
 
       // Insert new template foods
-      const currentSortOrder = appendMode ? templateFoods.length : 0;
+      const currentSortOrder = appendMode ? previousFoods.length : 0;
       const templateData = foodEntries.map((entry, index) => ({
         ...entry,
         user_id: user.id,
@@ -102,28 +123,38 @@ export const useDailyFoodTemplate = () => {
       }));
 
       console.log('🍽️ Inserting template data:', templateData);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('daily_food_templates')
-        .insert(templateData);
+        .insert(templateData)
+        .select();
 
       if (error) {
         console.error('🍽️ Error inserting template data:', error);
         throw error;
       }
 
-      console.log('🍽️ Template saved successfully, reloading...');
-      // Add a small delay and force refresh to ensure data consistency
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await loadTemplate();
+      // Replace optimistic data with real data
+      if (appendMode) {
+        setTemplateFoods(prev => [
+          ...prev.filter(f => !optimisticFoods.some(opt => opt.id === f.id)),
+          ...(data || [])
+        ]);
+      } else {
+        setTemplateFoods(data || []);
+      }
+
+      console.log('🍽️ Template saved successfully with optimistic update');
       return null;
     }, {
       onError: (error: any) => {
         console.error('🍽️ Error saving daily template:', error);
+        // Rollback optimistic update
+        setTemplateFoods(previousFoods);
       }
     });
 
     return result.success ? { error: null } : { error: result.error };
-  }, [user, loadTemplate, templateFoods.length, execute]);
+  }, [user, templateFoods, execute]);
 
   const clearTemplate = useCallback(async () => {
     if (!user) return { error: { message: 'User not authenticated' } };
@@ -285,6 +316,24 @@ export const useDailyFoodTemplate = () => {
   }[], insertAfterIndex?: number) => {
     if (!user) return { error: { message: 'User not authenticated' } };
 
+    // Optimistic update
+    const previousFoods = [...templateFoods];
+    const optimisticFoods = foodEntries.map((entry, index) => ({
+      id: `optimistic-add-${Date.now()}-${index}`,
+      user_id: user.id,
+      name: entry.name,
+      calories: entry.calories,
+      carbs: entry.carbs,
+      serving_size: entry.serving_size,
+      image_url: entry.image_url,
+      sort_order: templateFoods.length + index,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
+
+    // Update UI immediately
+    setTemplateFoods(prev => [...prev, ...optimisticFoods]);
+
     const result = await execute(async () => {
       let sortOrder: number;
       let templateData: any[];
@@ -294,7 +343,7 @@ export const useDailyFoodTemplate = () => {
         console.log('🍽️ Inserting into template at position:', insertAfterIndex + 1);
         
         // First, shift existing items to make room
-        const itemsToShift = templateFoods.filter((_, index) => index > insertAfterIndex);
+        const itemsToShift = previousFoods.filter((_, index) => index > insertAfterIndex);
         
         if (itemsToShift.length > 0) {
           // Update sort_order for items that need to be shifted
@@ -324,7 +373,7 @@ export const useDailyFoodTemplate = () => {
       } else {
         // Append mode (existing behavior)
         console.log('🍽️ Appending to template');
-        sortOrder = templateFoods.length;
+        sortOrder = previousFoods.length;
         templateData = foodEntries.map((entry, index) => ({
           ...entry,
           user_id: user.id,
@@ -333,27 +382,34 @@ export const useDailyFoodTemplate = () => {
       }
 
       console.log('🍽️ Inserting template data:', templateData);
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('daily_food_templates')
-        .insert(templateData);
+        .insert(templateData)
+        .select();
 
       if (error) {
         console.error('🍽️ Error inserting template data:', error);
         throw error;
       }
 
-      console.log('🍽️ Template item(s) added successfully, reloading...');
-      await new Promise(resolve => setTimeout(resolve, 300));
-      await loadTemplate();
+      // Replace optimistic data with real data
+      setTemplateFoods(prev => [
+        ...prev.filter(f => !optimisticFoods.some(opt => opt.id === f.id)),
+        ...(data || [])
+      ]);
+
+      console.log('🍽️ Template item(s) added successfully with optimistic update');
       return null;
     }, {
       onError: (error: any) => {
         console.error('🍽️ Error adding to template:', error);
+        // Rollback optimistic update
+        setTemplateFoods(previousFoods);
       }
     });
 
     return result.success ? { error: null } : { error: result.error };
-  }, [user, loadTemplate, templateFoods, execute]);
+  }, [user, templateFoods, execute]);
 
   return {
     templateFoods,
