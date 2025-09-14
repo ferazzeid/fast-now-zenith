@@ -145,7 +145,7 @@ class InstallationManager {
     try {
       if (!('caches' in window)) return false;
 
-      const cache = await caches.open('fastnow-data-v1757845777000');
+      const cache = await caches.open('fastnow-data-v1757846000000');
       const keys = await cache.keys();
       
       // Check if we have the essential endpoints cached

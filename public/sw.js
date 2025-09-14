@@ -1,4 +1,4 @@
-const VERSION = 'v1757845777000';
+const VERSION = 'v1757846000000';
 const APP_SHELL_CACHE = `fastnow-shell-${VERSION}`;
 const RUNTIME_CACHE = `fastnow-runtime-${VERSION}`;
 const CRITICAL_DATA_CACHE = `fastnow-data-${VERSION}`;
@@ -15,8 +15,8 @@ const APP_SHELL_URLS = [
 
 // Critical data endpoints to preload during installation
 const CRITICAL_DATA_ENDPOINTS = [
-  // Default foods - essential for food tracking
-  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/default_foods?select=*',
+  // Default foods - essential for food tracking (MUST match the exact URL used in app)
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/default_foods?select=*&order=name',
   // App settings and global configuration
   'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=*',
   // System motivators

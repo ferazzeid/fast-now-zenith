@@ -23,14 +23,14 @@ export const SmartLoadingButton = ({
       {...props}
     >
       {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-      {isLoading ? (loadingText || "Loading...") : children}
+      {isLoading ? (loadingText || "") : children}
     </Button>
   );
 };
 
 // Simple inline loading replacement for SmartInlineLoading
 export const SmartInlineLoading = ({ 
-  text = "Loading",
+  text = "",
   size = 16,
   className 
 }: {

@@ -76,7 +76,7 @@ export const ListLoadingSkeleton = ({
 
 // Inline loading with text
 export const InlineLoading = ({ 
-  text = "Loading...",
+  text = "",
   size = 16 
 }: {
   text?: string;
@@ -84,13 +84,13 @@ export const InlineLoading = ({
 }) => (
   <div className="flex items-center space-x-2">
     <ComponentSpinner size={size} className="text-muted-foreground" />
-    <span className="text-sm text-muted-foreground">{text}</span>
+    {text && <span className="text-sm text-muted-foreground">{text}</span>}
   </div>
 );
 
 // Button loading state
 export const ButtonLoading = ({ 
-  text = "Loading...",
+  text = "",
   size = 16 
 }: {
   text?: string;

@@ -5,8 +5,8 @@
   "androidPackage": {
     "applicationId": "com.fastnow.zenith",
     "packageId": "com.fastnow.zenith",
-    "versionCode": 100340,
-    "versionName": "100340"
+    "versionCode": 100341,
+    "versionName": "100341"
   },
   "jdkPath": "/usr/lib/jvm/java-17-openjdk",
   "androidSdkPath": "~/Android/Sdk",

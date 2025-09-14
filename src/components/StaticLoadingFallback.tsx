@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
  * Uses only CSS variables and static styling for maximum reliability
  */
 export const StaticLoadingFallback = ({ 
-  message = "Loading...",
+  message = "",
   error,
   onRetry 
 }: {
