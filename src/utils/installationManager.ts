@@ -15,39 +15,68 @@ class InstallationManager {
   private callbacks: Set<InstallationCallback> = new Set();
   private currentProgress: InstallationProgress = {
     stage: 'installing',
-    message: 'Starting...',
+    message: 'Loading app...',
     progress: 0
   };
+  private initializationTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
     this.setupServiceWorkerListeners();
+    this.startInitializationTimeout();
+  }
+
+  private startInitializationTimeout() {
+    // Fallback timeout to prevent infinite loading
+    this.initializationTimeout = setTimeout(() => {
+      if (this.currentProgress.stage !== 'complete') {
+        console.log('Installation timeout reached, marking as complete');
+        this.updateProgress({
+          stage: 'complete',
+          message: 'Ready!',
+          progress: 100
+        });
+      }
+    }, 3000); // 3 second timeout
   }
 
   private setupServiceWorkerListeners() {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', (event) => {
         if (event.data?.type === 'INSTALL_COMPLETE') {
-        this.updateProgress({
-          stage: 'complete',
-          message: 'Ready!',
-          progress: 100
-        });
+          this.completeInstallation();
         }
       });
 
-      // Listen for service worker state changes
+      // Check if service worker is already ready
       navigator.serviceWorker.ready.then((registration) => {
-        if (registration.installing) {
+        if (registration.active && registration.active.state === 'activated') {
+          // Service worker is already active, complete immediately
+          setTimeout(() => this.completeInstallation(), 500);
+        } else if (registration.installing) {
           this.trackInstallationProgress(registration.installing);
         } else if (registration.waiting) {
-          this.updateProgress({
-            stage: 'complete',
-            message: 'App updated and ready!',
-            progress: 100
-          });
+          this.completeInstallation();
         }
+      }).catch(() => {
+        // Service worker not available, complete anyway
+        setTimeout(() => this.completeInstallation(), 1000);
       });
+    } else {
+      // No service worker support, complete immediately
+      setTimeout(() => this.completeInstallation(), 500);
     }
+  }
+
+  private completeInstallation() {
+    if (this.initializationTimeout) {
+      clearTimeout(this.initializationTimeout);
+      this.initializationTimeout = null;
+    }
+    this.updateProgress({
+      stage: 'complete',
+      message: 'Ready!',
+      progress: 100
+    });
   }
 
   private trackInstallationProgress(worker: ServiceWorker) {
@@ -56,28 +85,24 @@ class InstallationManager {
         case 'installing':
           this.updateProgress({
             stage: 'installing',
-            message: 'Installing...',
+            message: 'Loading app...',
             progress: 25
           });
           break;
         case 'installed':
           this.updateProgress({
             stage: 'preloading',
-            message: 'Preparing data...',
+            message: 'Almost ready...',
             progress: 75
           });
           break;
         case 'activated':
-          this.updateProgress({
-            stage: 'complete',
-            message: 'Ready!',
-            progress: 100
-          });
+          this.completeInstallation();
           break;
         case 'redundant':
           this.updateProgress({
             stage: 'error',
-            message: 'Installation failed. Please refresh.',
+            message: 'Loading failed. Please refresh.',
             progress: 0
           });
           break;

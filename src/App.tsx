@@ -91,7 +91,11 @@ const AppContent = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   // Re-enable installation progress screen - shows data preloading
   const { progress: installProgress } = useInstallationProgress();
-  const [showInstallation, setShowInstallation] = useState(true);
+  const [showInstallation, setShowInstallation] = useState(() => {
+    // Skip installation screen in development
+    const isDev = import.meta.env.DEV;
+    return !isDev;
+  });
   
   // Hide installation screen when complete
   useEffect(() => {
