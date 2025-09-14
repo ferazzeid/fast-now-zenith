@@ -62,9 +62,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       return;
     }
 
-    try {
-      await execute(async () => {
-      
+    await execute(async () => {
       // Detect unit preference from user selections
       let detectedUnits: 'metric' | 'imperial' = 'imperial'; // default
       
@@ -102,27 +100,23 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       });
 
       if (error) {
+        throw new Error("Failed to save profile information.");
+      }
+      
+      toast({
+        title: "Profile Complete",
+        description: "Your profile has been set up successfully!"
+      });
+      onComplete();
+    }, {
+      onError: (error) => {
         toast({
           title: "Error",
           description: "Failed to save profile information.",
           variant: "destructive"
         });
-      } else {
-        toast({
-          title: "Profile Complete",
-          description: "Your profile has been set up successfully!"
-        });
-        onComplete();
       }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    });
   };
 
   const isFormValid = () => {

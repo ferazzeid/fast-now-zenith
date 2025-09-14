@@ -103,7 +103,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
     await sessionGuard.withSessionGuard(async () => {
       try {
-        setCaptureState('uploading');
+        startUpload();
         
         // Upload image to Supabase storage
         const fileName = `${Date.now()}_${Math.random().toString().replace('.', '')}.jpg`;
@@ -124,7 +124,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
-          setCaptureState('analyzing');
+          startAnalysis();
 
           try {
             const { data, error } = await supabase.functions.invoke('analyze-food-image', {
@@ -161,7 +161,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               setFoodSuggestion(suggestion);
               setSelectedFoodIds(new Set([0])); // Select the first (and only) food by default
               setShowSelectionModal(true);
-              setCaptureState('idle');
+              completeAnalysis();
             } else {
               // Show error and allow retry
               toast({
@@ -169,12 +169,12 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                 description: "Could not analyze the image. Please try again or add food manually.",
                 variant: "destructive"
               });
-              setCaptureState('idle');
+              reset();
             }
 
           } catch (analysisError) {
             console.error('Analysis error:', analysisError);
-            setCaptureState('idle');
+            reset();
             
             toast({
               title: "Analysis failed",
@@ -184,7 +184,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
           }
         } else {
           // Show error for non-premium users
-          setCaptureState('idle');
+          reset();
           toast({
             title: "Premium Feature",
             description: "AI photo analysis requires a premium subscription.",
@@ -194,7 +194,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
       } catch (uploadError) {
         console.error('Upload error:', uploadError);
-        setCaptureState('idle');
+        reset();
         
         toast({
           title: "Upload failed",
@@ -257,7 +257,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       setShowSelectionModal(false);
       setFoodSuggestion(null);
       setSelectedFoodIds(new Set());
-      setCaptureState('idle');
+      reset();
 
       toast({
         title: "✓ Food Added",
@@ -268,13 +268,10 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
   // Get button content based on state
   const getButtonContent = () => {
-    switch (captureState) {
-      case 'uploading':
-      case 'analyzing':
-        return <ProcessingDots className="text-white" />;
-      default:
-        return <Camera className="w-11 h-11" />;
+    if (isUploading || uploadState === 'analyzing') {
+      return <ProcessingDots className="text-white" />;
     }
+    return <Camera className="w-11 h-11" />;
   };
 
   return (
@@ -283,14 +280,14 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         variant="action-secondary"
         size="action-tall"
         className={`w-full flex items-center justify-center transition-colors ${
-          captureState !== 'idle' 
+          isUploading || uploadState === 'analyzing'
             ? 'bg-ai hover:bg-ai/90 text-white'
             : canUseAIAnalysis 
               ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
               : 'bg-ai/50 text-ai-foreground opacity-50'
         }`}
         onClick={handleCameraClick}
-        disabled={captureState !== 'idle'}
+        disabled={isUploading || uploadState === 'analyzing'}
         aria-label="AI photo analysis to add food"
       >
         {getButtonContent()}
@@ -314,7 +311,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             setShowSelectionModal(false);
             setFoodSuggestion(null);
             setSelectedFoodIds(new Set());
-            setCaptureState('idle');
+            reset();
           }}
           foodSuggestion={foodSuggestion}
           selectedFoodIds={selectedFoodIds}
@@ -327,7 +324,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             }
           }}
           onAddFoods={handleAddFoods}
-          isProcessing={captureState !== 'idle'}
+          isProcessing={isUploading || uploadState === 'analyzing'}
         />
       )}
     </>
