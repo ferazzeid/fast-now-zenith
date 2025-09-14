@@ -55,7 +55,7 @@ import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { useColorTheme } from '@/hooks/useColorTheme';
 import { InstallationProgress } from './components/InstallationProgress';
-// import { useInstallationProgress } from './utils/installationManager';
+import { useInstallationProgress } from './utils/installationManager';
 
 
 
@@ -89,9 +89,17 @@ const AppContent = () => {
   const initialize = useAuthStore(state => state.initialize);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  // Temporarily disable installation progress screen - causing issues
-  // const { progress: installProgress } = useInstallationProgress();
-  const [showInstallation, setShowInstallation] = useState(false);
+  // Re-enable installation progress screen - shows data preloading
+  const { progress: installProgress } = useInstallationProgress();
+  const [showInstallation, setShowInstallation] = useState(true);
+  
+  // Hide installation screen when complete
+  useEffect(() => {
+    if (installProgress.stage === 'complete') {
+      // Small delay for UX, then hide installation screen
+      setTimeout(() => setShowInstallation(false), 1000);
+    }
+  }, [installProgress.stage]);
   
   // Initialize auth system on app startup (critical)
   useEffect(() => {
