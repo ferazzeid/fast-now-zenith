@@ -63,8 +63,8 @@ android {
         applicationId "com.fastnow.zenith"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 100332
-        versionName "100332"
+        versionCode 100333
+        versionName "100333"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

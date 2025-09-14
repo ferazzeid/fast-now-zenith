@@ -30,6 +30,6 @@ The keystore is automatically used when building release AABs with:
 3. AAB will be generated at: `app\build\outputs\bundle\release\app-release.aab`
 
 ## Version Information
-- Current version: 100332
+- Current version: 100333
 - Package ID: com.fastnow.zenith
 - App Name: FastNow
