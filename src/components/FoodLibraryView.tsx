@@ -167,6 +167,7 @@ export const FoodLibraryView = ({
   }, [recentFoods, myFoodFavorites]); // Use myFoodFavorites instead of optimisticFavorites
 
   const loadDefaultFoods = async () => {
+    console.log('🍽️ Loading default foods...');
     try {
       // Use fetch instead of Supabase client to allow service worker caching
       const supabaseUrl = 'https://texnkijwcygodtywgedm.supabase.co';
@@ -187,9 +188,10 @@ export const FoodLibraryView = ({
       }
 
       const data = await response.json();
+      console.log('🍽️ Default foods loaded:', data?.length, data);
       setDefaultFoods(data || []);
     } catch (error) {
-      console.error('Error loading default foods:', error);
+      console.error('🍽️ Error loading default foods:', error);
       toast({
         title: "Warning",
         description: "Failed to load suggested foods",
@@ -709,7 +711,7 @@ export const FoodLibraryView = ({
   }, [foods, searchTerm, recentFoods]);
 
   const filteredDefaultFoods = useMemo(() => {
-    return defaultFoods.filter(food =>
+    const filtered = defaultFoods.filter(food =>
       food.name.toLowerCase().includes(searchTerm.toLowerCase())
     ).map(food => ({
       ...food,
@@ -720,6 +722,9 @@ export const FoodLibraryView = ({
       if (!a.is_favorite && b.is_favorite) return 1;
       return a.name.localeCompare(b.name);
     });
+    
+    console.log('🍽️ Filtered default foods:', filtered.length, 'search:', searchTerm, 'raw default foods:', defaultFoods.length);
+    return filtered;
   }, [defaultFoods, defaultFoodFavorites, searchTerm]);
 
   // Quick access favorites for My Foods
