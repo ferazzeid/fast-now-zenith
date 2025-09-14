@@ -9,17 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { SmartLoadingButton } from "./SimpleLoadingComponents";
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { ListLoadingSkeleton } from '@/components/LoadingStates';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface FastingSession {
   id: string;
@@ -37,7 +27,8 @@ interface FastingHistoryProps {
 
 export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
   const { data: sessions, isLoading, execute, setData } = useStandardizedLoading<FastingSession[]>([]);
-  const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [showDeleteSessionModal, setShowDeleteSessionModal] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const { toast } = useToast();
@@ -265,34 +256,14 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
             <div className="flex gap-2">
               {/* Delete All History Button - only show if there are non-active sessions */}
               {sessions && sessions.filter(s => s.status !== 'active').length > 0 && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete All Fasting History</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete ALL fasting history? This will permanently remove all completed and cancelled sessions (active sessions will remain). This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={deleteAllHistory}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Delete All History
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                  onClick={() => setShowDeleteAllModal(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               )}
               <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200">
                 <X className="w-8 h-8" />
@@ -353,34 +324,14 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                   {/* Delete button - only shown for non-active sessions */}
                   {session.status !== 'active' && (
                     <div className="absolute top-3 right-3">
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Fasting Session</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this fasting session? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => deleteSession(session.id)}
-                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                            >
-                              Delete Session
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                        onClick={() => setShowDeleteSessionModal(session.id)}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
                     </div>
                   )}
                 </Card>
@@ -402,6 +353,34 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
           )}
         </CardContent>
       </Card>
+
+      <ConfirmationModal
+        isOpen={showDeleteAllModal}
+        onClose={() => setShowDeleteAllModal(false)}
+        onConfirm={() => {
+          deleteAllHistory();
+          setShowDeleteAllModal(false);
+        }}
+        title="Delete All Fasting History"
+        description="Are you sure you want to delete ALL fasting history? This will permanently remove all completed and cancelled sessions (active sessions will remain). This action cannot be undone."
+        confirmText="Delete All History"
+        variant="destructive"
+      />
+
+      <ConfirmationModal
+        isOpen={!!showDeleteSessionModal}
+        onClose={() => setShowDeleteSessionModal(null)}
+        onConfirm={() => {
+          if (showDeleteSessionModal) {
+            deleteSession(showDeleteSessionModal);
+            setShowDeleteSessionModal(null);
+          }
+        }}
+        title="Delete Fasting Session"
+        description="Are you sure you want to delete this fasting session? This action cannot be undone."
+        confirmText="Delete Session"
+        variant="destructive"
+      />
     </div>
   );
 };

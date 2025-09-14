@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { subDays, startOfDay, endOfDay } from 'date-fns';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export const useCopyYesterdayFoods = () => {
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
 
   const copyYesterdayFoods = async () => {
@@ -14,8 +14,7 @@ export const useCopyYesterdayFoods = () => {
       return { success: false };
     }
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // Get yesterday's date range
       const yesterday = subDays(new Date(), 1);
       const yesterdayStart = startOfDay(yesterday);
@@ -62,18 +61,18 @@ export const useCopyYesterdayFoods = () => {
 
       toast.success(`Copied ${insertedEntries?.length || 0} food items from yesterday`);
       return { success: true, count: insertedEntries?.length || 0 };
+    }, {
+      onError: (error) => {
+        console.error('Error copying yesterday\'s foods:', error);
+        toast.error('Failed to copy yesterday\'s foods');
+      }
+    });
 
-    } catch (error) {
-      console.error('Error copying yesterday\'s foods:', error);
-      toast.error('Failed to copy yesterday\'s foods');
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
+    return result.success ? result.data : { success: false };
   };
 
   return {
     copyYesterdayFoods,
-    loading
+    loading: isLoading
   };
 };

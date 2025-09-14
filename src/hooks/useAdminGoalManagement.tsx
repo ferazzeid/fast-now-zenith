@@ -1,9 +1,9 @@
 
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { AdminGoalIdea } from './useAdminGoalIdeas';
 import { generateWebsiteUrl, validateAndFixUrl } from '@/utils/urlUtils';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 interface Motivator {
   id: string;
@@ -18,12 +18,11 @@ interface Motivator {
 }
 
 export const useAdminGoalManagement = () => {
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { toast } = useToast();
 
   const addToDefaultGoals = async (motivator: Motivator) => {
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // First, get the current admin goal ideas
       const { data: currentData, error: fetchError } = await supabase
         .from('shared_settings')
@@ -90,22 +89,22 @@ export const useAdminGoalManagement = () => {
       });
 
       return true;
-    } catch (error) {
-      console.error('Error adding to default goals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add motivator to default goals.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error adding to default goals:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add motivator to default goals.",
+          variant: "destructive",
+        });
+      }
+    });
+
+    return result.success ? result.data : false;
   };
 
   const removeFromDefaultGoals = async (goalId: string) => {
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // Get current admin goal ideas
       const { data: currentData, error: fetchError } = await supabase
         .from('shared_settings')
@@ -144,22 +143,22 @@ export const useAdminGoalManagement = () => {
       });
 
       return true;
-    } catch (error) {
-      console.error('Error removing from default goals:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove goal from default list.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error removing from default goals:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove goal from default list.",
+          variant: "destructive",
+        });
+      }
+    });
+
+    return result.success ? result.data : false;
   };
 
   const updateDefaultGoal = async (goalId: string, updates: Partial<Motivator>): Promise<boolean> => {
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       console.log('🔄 Starting update for goal ID:', goalId, 'with updates:', updates);
       
       // Get current goal ideas
@@ -228,17 +227,18 @@ export const useAdminGoalManagement = () => {
       });
 
       return true;
-    } catch (error) {
-      console.error('❌ Error updating default goal:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update goal idea",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('❌ Error updating default goal:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update goal idea",
+          variant: "destructive"
+        });
+      }
+    });
+
+    return result.success ? result.data : false;
   };
 
   const checkIfInDefaultGoals = async (motivatorId: string): Promise<boolean> => {
@@ -266,6 +266,6 @@ export const useAdminGoalManagement = () => {
     removeFromDefaultGoals,
     updateDefaultGoal,
     checkIfInDefaultGoals,
-    loading
+    loading: isLoading
   };
 };

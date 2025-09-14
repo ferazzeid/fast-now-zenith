@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 interface DailyActivityOverride {
   id: string;
@@ -14,7 +15,7 @@ interface DailyActivityOverride {
 
 export const useDailyActivityOverride = () => {
   const [todayOverride, setTodayOverride] = useState<DailyActivityOverride | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -45,8 +46,7 @@ export const useDailyActivityOverride = () => {
   const setActivityOverride = useCallback(async (activityLevel: string, isPermanent: boolean = false) => {
     if (!user) return;
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       const today = new Date().toISOString().split('T')[0];
 
       console.log('Setting activity override:', { activityLevel, isPermanent, userId: user.id, date: today });
@@ -99,31 +99,30 @@ export const useDailyActivityOverride = () => {
           description: "Activity level changed for today only."
         });
       }
-    } catch (error: any) {
-      console.error('Error setting activity override:', error);
-      
-      let errorMessage = "Unable to set activity override. Please try again.";
-      if (error?.message?.includes('Failed to fetch')) {
-        errorMessage = "Network connection issue. Please check your connection and try again.";
-      } else if (error?.code) {
-        errorMessage = `Database error (${error.code}). Please try again.`;
+    }, {
+      onError: (error: any) => {
+        console.error('Error setting activity override:', error);
+        
+        let errorMessage = "Unable to set activity override. Please try again.";
+        if (error?.message?.includes('Failed to fetch')) {
+          errorMessage = "Network connection issue. Please check your connection and try again.";
+        } else if (error?.code) {
+          errorMessage = `Database error (${error.code}). Please try again.`;
+        }
+        
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: errorMessage
+        });
       }
-      
-      toast({
-        variant: "destructive",
-        title: "Update Failed",
-        description: errorMessage
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user, toast]);
+    });
+  }, [user, toast, execute]);
 
   const clearTodayOverride = useCallback(async () => {
     if (!user || !todayOverride) return;
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       const { error } = await supabase
         .from('daily_activity_overrides')
         .delete()
@@ -136,17 +135,17 @@ export const useDailyActivityOverride = () => {
         title: "Override Cleared",
         description: "Reverted to your default activity level for today."
       });
-    } catch (error) {
-      console.error('Error clearing activity override:', error);
-      toast({
-        variant: "destructive",
-        title: "Clear Failed",
-        description: "Unable to clear override. Please try again."
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user, todayOverride, toast]);
+    }, {
+      onError: (error) => {
+        console.error('Error clearing activity override:', error);
+        toast({
+          variant: "destructive",
+          title: "Clear Failed",
+          description: "Unable to clear override. Please try again."
+        });
+      }
+    });
+  }, [user, todayOverride, toast, execute]);
 
   useEffect(() => {
     if (user) {
@@ -158,7 +157,7 @@ export const useDailyActivityOverride = () => {
 
   return {
     todayOverride,
-    loading,
+    loading: isLoading,
     setActivityOverride,
     clearTodayOverride,
     refreshOverride: getTodayOverride

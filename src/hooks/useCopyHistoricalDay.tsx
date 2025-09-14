@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { startOfDay, endOfDay } from 'date-fns';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export const useCopyHistoricalDay = () => {
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
 
   const copyDayToToday = async (date: string) => {
@@ -14,8 +14,7 @@ export const useCopyHistoricalDay = () => {
       return { success: false };
     }
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // Get the date range for the specified day
       const targetDate = new Date(date);
       const dayStart = startOfDay(targetDate);
@@ -67,18 +66,18 @@ export const useCopyHistoricalDay = () => {
       
       toast.success(`Copied ${insertedEntries?.length || 0} food items from ${formattedDate} to today's plan`);
       return { success: true, count: insertedEntries?.length || 0 };
+    }, {
+      onError: (error) => {
+        console.error('Error copying day\'s foods:', error);
+        toast.error('Failed to copy food items');
+      }
+    });
 
-    } catch (error) {
-      console.error('Error copying day\'s foods:', error);
-      toast.error('Failed to copy food items');
-      return { success: false };
-    } finally {
-      setLoading(false);
-    }
+    return result.success ? result.data : { success: false };
   };
 
   return {
     copyDayToToday,
-    loading
+    loading: isLoading
   };
 };

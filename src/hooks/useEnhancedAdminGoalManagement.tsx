@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSystemMotivators } from './useSystemMotivators';
 import { useAdminGoalIdeas } from './useAdminGoalIdeas';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 // System motivator type (temporary until types are regenerated)
 type SystemMotivator = {
@@ -23,15 +23,13 @@ type SystemMotivator = {
 
 // Simplified admin goal management - now just a wrapper around unified system
 export const useEnhancedAdminGoalManagement = () => {
-  const [loading, setLoading] = useState(false);
+  const { execute, isLoading } = useStandardizedLoading();
   const { systemMotivators, refetch: refetchSystemMotivators } = useSystemMotivators();
   const goalIdeasHook = useAdminGoalIdeas();
 
   // Create new system motivator (admin only)
   const createSystemMotivator = async (motivatorData: Omit<SystemMotivator, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      setLoading(true);
-      
+    const result = await execute(async () => {
       const { data, error } = await supabase
         .from('system_motivators' as any)
         .insert([motivatorData])
@@ -43,19 +41,18 @@ export const useEnhancedAdminGoalManagement = () => {
       await refetchSystemMotivators();
       await goalIdeasHook.refreshGoalIdeas(); // Refresh goal ideas too
       return data;
-    } catch (error) {
-      console.error('Error creating system motivator:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error creating system motivator:', error);
+      }
+    });
+
+    return result.success ? result.data : null;
   };
 
   // Update system motivator
   const updateSystemMotivator = async (id: string, updates: Partial<SystemMotivator>) => {
-    try {
-      setLoading(true);
-      
+    const result = await execute(async () => {
       const { data, error } = await supabase
         .from('system_motivators' as any)
         .update(updates)
@@ -68,12 +65,13 @@ export const useEnhancedAdminGoalManagement = () => {
       await refetchSystemMotivators();
       await goalIdeasHook.refreshGoalIdeas(); // Refresh goal ideas too
       return data;
-    } catch (error) {
-      console.error('Error updating system motivator:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error updating system motivator:', error);
+      }
+    });
+
+    return result.success ? result.data : null;
   };
 
   return {
@@ -90,7 +88,7 @@ export const useEnhancedAdminGoalManagement = () => {
     removeGoalIdea: goalIdeasHook.removeGoalIdea,
     
     // Combined loading state
-    loading: loading || goalIdeasHook.loading,
+    loading: isLoading || goalIdeasHook.loading,
   };
 };
 

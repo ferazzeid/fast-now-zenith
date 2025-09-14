@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
 import { queryClient } from '@/lib/query-client';
 import { useLoadingDebounce } from './useLoadingDebounce';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface AdminGoalIdea {
   id: string;
@@ -50,9 +51,8 @@ const transformToAdminGoalIdea = (systemMotivator: SystemMotivator): AdminGoalId
 };
 
 export const useAdminGoalIdeas = () => {
-  const [goalIdeas, setGoalIdeas] = useState<AdminGoalIdea[]>([]);
+  const { data: goalIdeas, isLoading, execute, setData } = useStandardizedLoading<AdminGoalIdea[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { startOperation, isLoading: debounceLoading } = useLoadingDebounce({
     debounceMs: 300,
@@ -83,8 +83,7 @@ export const useAdminGoalIdeas = () => {
         }
       }
       
-      try {
-        setLoading(true);
+      const goalIdeasResult = await execute(async () => {
       
       console.log('📡 Fetching FRESH data from system_motivators table...');
       
@@ -96,7 +95,7 @@ export const useAdminGoalIdeas = () => {
         .eq('is_active', true)
         .order('display_order', { ascending: true });
 
-      console.log('📊 RAW DATABASE RESPONSE:', { 
+      console.log('📊 RAW DATABASE RESPONSE:', {
         timestamp,
         dataLength: data?.length || 0, 
         error: error?.message || 'none' 
@@ -104,8 +103,7 @@ export const useAdminGoalIdeas = () => {
 
       if (error) {
         console.error('❌ System Motivators Database error:', error);
-        setGoalIdeas([]);
-        return;
+        return [];
       }
 
       if (data && data.length > 0) {
@@ -135,18 +133,20 @@ export const useAdminGoalIdeas = () => {
           });
         });
         
-        setGoalIdeas(transformedIdeas);
+        setData(transformedIdeas);
         console.log('🎯 STATE UPDATED with', transformedIdeas.length, 'fresh ideas');
+        return transformedIdeas;
       } else {
         console.log('❌ No system motivators found in database');
-        setGoalIdeas([]);
+        return [];
       }
-    } catch (error) {
-      console.error('💥 CRITICAL ERROR loading goal ideas:', error);
-      setGoalIdeas([]);
-      } finally {
-        setLoading(false);
+    }, {
+      onError: (error) => {
+        console.error('💥 CRITICAL ERROR loading goal ideas:', error);
       }
+    });
+
+    return goalIdeasResult.success ? goalIdeasResult.data : [];
     });
     
     return result;
@@ -172,9 +172,7 @@ export const useAdminGoalIdeas = () => {
 
   // Update goal idea in system_motivators table
   const updateGoalIdea = async (goalId: string, updates: Partial<AdminGoalIdea>) => {
-    try {
-      setLoading(true);
-      
+    const result = await execute(async () => {
       // Transform AdminGoalIdea updates back to SystemMotivator format
       const systemMotivatorUpdates: any = {};
       
@@ -201,24 +199,23 @@ export const useAdminGoalIdeas = () => {
       });
       
       return true;
-    } catch (error) {
-      console.error('Error updating goal idea:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update goal idea",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error updating goal idea:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update goal idea",
+          variant: "destructive"
+        });
+      }
+    });
+
+    return result.success ? result.data : false;
   };
 
   // Remove goal idea from system_motivators table
   const removeGoalIdea = async (goalId: string) => {
-    try {
-      setLoading(true);
-      
+    const result = await execute(async () => {
       // Set is_active to false instead of deleting
       const { error } = await supabase
         .from('system_motivators' as any)
@@ -236,22 +233,23 @@ export const useAdminGoalIdeas = () => {
       });
       
       return true;
-    } catch (error) {
-      console.error('Error removing goal idea:', error);
-      toast({
-        title: "Error",
-        description: "Failed to remove goal idea",
-        variant: "destructive"
-      });
-      return false;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error removing goal idea:', error);
+        toast({
+          title: "Error",
+          description: "Failed to remove goal idea",
+          variant: "destructive"
+        });
+      }
+    });
+
+    return result.success ? result.data : false;
   };
 
   return {
     goalIdeas,
-    loading: loading || debounceLoading,
+    loading: isLoading || debounceLoading,
     refreshGoalIdeas: () => loadGoalIdeas(true),
     forceRefresh,
     updateGoalIdea,

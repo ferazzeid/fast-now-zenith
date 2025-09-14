@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from './use-toast';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface AdminTemplate {
   id: string;
@@ -11,12 +12,11 @@ export interface AdminTemplate {
 }
 
 export const useAdminTemplates = () => {
-  const [templates, setTemplates] = useState<AdminTemplate[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: templates, isLoading, execute } = useStandardizedLoading<AdminTemplate[]>([]);
   const { toast } = useToast();
 
   const loadTemplates = async () => {
-    try {
+    await execute(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_value')
@@ -27,18 +27,17 @@ export const useAdminTemplates = () => {
 
       if (data?.setting_value) {
         const parsedTemplates = JSON.parse(data.setting_value);
-        setTemplates(Array.isArray(parsedTemplates) ? parsedTemplates : []);
+        return Array.isArray(parsedTemplates) ? parsedTemplates : [];
       } else {
-        setTemplates([]);
+        return [];
       }
-    } catch (error) {
-      console.error('Error loading admin templates:', error);
-      // Silently fail for non-admin users - don't show error toast
-      // Admin users can check console for debugging
-      setTemplates([]);
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error loading admin templates:', error);
+        // Silently fail for non-admin users - don't show error toast
+        // Admin users can check console for debugging
+      }
+    });
   };
 
   useEffect(() => {
@@ -47,7 +46,7 @@ export const useAdminTemplates = () => {
 
   return {
     templates,
-    loading,
+    loading: isLoading,
     refreshTemplates: loadTemplates
   };
 };

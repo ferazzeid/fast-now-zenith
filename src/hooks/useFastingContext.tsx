@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface FastingContext {
   isCurrentlyFasting: boolean;
@@ -16,15 +17,13 @@ export interface FastingContext {
 }
 
 export const useFastingContext = () => {
-  const [context, setContext] = useState<FastingContext | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { data: context, isLoading, execute } = useStandardizedLoading<FastingContext | null>(null);
   const { user } = useAuth();
 
   const fetchFastingContext = async (): Promise<FastingContext | null> => {
     if (!user) return null;
 
-    setLoading(true);
-    try {
+    const result = await execute(async () => {
       // Get current active fasting session
       const { data: activeFast } = await supabase
         .from('fasting_sessions')
@@ -85,14 +84,14 @@ export const useFastingContext = () => {
         suggestedMealTime
       };
 
-      setContext(fastingContext);
       return fastingContext;
-    } catch (error) {
-      console.error('Error fetching fasting context:', error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error fetching fasting context:', error);
+      }
+    });
+
+    return result.success ? result.data : null;
   };
 
   const buildContextString = (ctx: FastingContext): string => {
@@ -128,14 +127,12 @@ export const useFastingContext = () => {
   useEffect(() => {
     if (user) {
       fetchFastingContext();
-    } else {
-      setContext(null);
     }
   }, [user]);
 
   return {
     context,
-    loading,
+    loading: isLoading,
     buildContextString,
     refreshContext: fetchFastingContext
   };
