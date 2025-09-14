@@ -435,13 +435,13 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
           {/* Footer - Quantity selector and Add button */}
           <div className="flex gap-3 pt-4">
             {/* Quantity selector */}
-            <div className="flex items-center border rounded-md">
+            <div className="flex items-center border-ceramic-rim rounded-md">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 disabled={quantity <= 1}
-                className="h-8 w-8 p-0 rounded-r-none border-r"
+                className="h-8 w-8 p-0 rounded-r-none border-r-ceramic-rim"
               >
                 <Minus className="w-4 h-4" />
               </Button>
@@ -452,7 +452,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                 variant="ghost"
                 size="sm"
                 onClick={() => setQuantity(quantity + 1)}
-                className="h-8 w-8 p-0 rounded-l-none border-l"
+                className="h-8 w-8 p-0 rounded-l-none border-l-ceramic-rim"
               >
                 <Plus className="w-4 h-4" />
               </Button>

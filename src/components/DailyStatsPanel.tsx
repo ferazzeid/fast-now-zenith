@@ -199,7 +199,7 @@ export const DailyStatsPanel = memo(() => {
                         userUnits={profile?.units}
                       />
                     ) : (
-                      <Card className="p-4 bg-card border-border relative" onClick={requestUpgrade}>
+                      <Card className="p-4 bg-card border-ceramic-rim relative" onClick={requestUpgrade}>
                         <div className="text-center space-y-3">
                           <div className="flex items-center justify-center space-x-2">
                             <h3 className="text-lg font-semibold text-muted-foreground">Today's Deficit</h3>
@@ -227,7 +227,7 @@ export const DailyStatsPanel = memo(() => {
                   <AccessGate feature="food">
                     {({ hasAccess, requestUpgrade }) => (
                       <Card
-                        className={`p-3 bg-card border-border relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
+                        className={`p-3 bg-card border-ceramic-rim relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
                         onClick={hasAccess ? undefined : requestUpgrade}
                       >
                         <div className="absolute top-2 right-2">
@@ -272,7 +272,7 @@ export const DailyStatsPanel = memo(() => {
 
 
                 {/* Unified Metabolism & Walking Card */}
-                <Card className="p-3 bg-card border-border">
+                <Card className="p-3 bg-card border-ceramic-rim">
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -293,7 +293,7 @@ export const DailyStatsPanel = memo(() => {
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-border my-3"></div>
+                  <div className="border-t border-ceramic-rim my-3"></div>
 
                   {/* Activity Section with Sessions Breakdown */}
                   <WalkingSessionsBreakdown 

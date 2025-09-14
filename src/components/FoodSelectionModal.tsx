@@ -150,7 +150,7 @@ export const FoodSelectionModal = ({
         {/* Food Items */}
         <div className="space-y-2 max-h-[400px] overflow-y-auto">
           {foodSuggestion.foods.map((food: FoodItem, index: number) => (
-            <Card key={index} className="p-3 bg-background border">
+            <Card key={index} className="p-3 bg-background border border-ceramic-rim">
               {editingFoodIndex === index ? (
                 // Inline editing mode
                 <div className="space-y-2">
