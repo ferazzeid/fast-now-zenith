@@ -347,12 +347,14 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
           size="action-tall"
           className={cn(
             "w-full h-full flex items-center justify-center transition-colors",
-            voiceState === 'processing' 
-              ? 'bg-ai hover:bg-ai/90 text-white'
-              : hasAccess 
-                ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
-                : 'bg-ai/50 text-ai-foreground opacity-50',
-            getButtonStyles()
+            voiceState === 'listening'
+              ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+              : voiceState === 'processing' 
+                ? 'bg-ai hover:bg-ai/90 text-white'
+                : hasAccess 
+                  ? 'bg-ai hover:bg-ai/90 text-ai-foreground'
+                  : 'bg-ai/50 text-ai-foreground opacity-50',
+            voiceState !== 'listening' ? getButtonStyles() : ''
           )}
           onClick={handleButtonClick}
           disabled={voiceState === 'processing'}
