@@ -118,8 +118,8 @@ export const GooglePlayConfigPanel: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Key className="w-5 h-5" />
+        <CardTitle className="text-lg flex items-center gap-2">
+          <Key className="w-4 h-4" />
           Google Play Service Account
         </CardTitle>
         <CardDescription>
@@ -160,7 +160,7 @@ export const GooglePlayConfigPanel: React.FC = () => {
             <Button
               onClick={handleUploadServiceAccount}
               disabled={isUploading || !serviceAccountJson.trim()}
-              className="flex-1"
+              size="sm"
             >
               {isUploading ? (
                 <>
@@ -170,7 +170,7 @@ export const GooglePlayConfigPanel: React.FC = () => {
               ) : (
                 <>
                   <Upload className="mr-2 h-4 w-4" />
-                  Configure Service Account
+                  Configure
                 </>
               )}
             </Button>
@@ -178,10 +178,15 @@ export const GooglePlayConfigPanel: React.FC = () => {
             <Button
               variant="outline"
               onClick={handleTestConfiguration}
+              size="sm"
             >
-              Test Config
+              Test
             </Button>
           </div>
+          
+          <p className="text-xs text-muted-foreground">
+            JSON is cleared after configuration for security
+          </p>
         </div>
       </CardContent>
     </Card>
