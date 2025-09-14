@@ -295,9 +295,33 @@ serve(async (req) => {
       );
     }
 
-    // 🔑 SIMPLIFIED: Get OpenAI API key using standardized resolution  
+    // 🔑 Get OpenAI API key from shared settings or environment
     console.log('🔑 Resolving OpenAI API key for transcription...');
-    const OPENAI_API_KEY = await resolveOpenAIApiKey(supabase);
+    let OPENAI_API_KEY: string;
+    
+    try {
+      const { data: sharedKey } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
+      
+      if (sharedKey?.setting_value) {
+        OPENAI_API_KEY = sharedKey.setting_value;
+        console.log('✅ Found API key in shared settings');
+      } else {
+        const envKey = Deno.env.get('OPENAI_API_KEY');
+        if (envKey) {
+          OPENAI_API_KEY = envKey;
+          console.warn('⚠️ Using environment variable API key (fallback mode)');
+        } else {
+          throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to resolve OpenAI API key:', error);
+      throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
+    }
 
     // Convert base64 to binary with validation
     let binaryString;
