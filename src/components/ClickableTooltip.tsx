@@ -114,7 +114,7 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
           <div
             ref={tooltipRef}
             className={cn(
-              "absolute z-[60] px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
+              "absolute z-[100] px-3 py-2 text-sm text-popover-foreground bg-popover border border-border rounded-md shadow-lg",
               "w-[180px] max-w-[calc(100vw-48px)] text-left leading-relaxed", // Increased padding for better boundary respect
               "animate-in fade-in-0 zoom-in-95 duration-200",
               showBelow 
