@@ -15,27 +15,14 @@ interface AppModeOption {
   features: string[];
 }
 
+// Only trial_premium mode is supported - other modes removed for security
 const appModeOptions: AppModeOption[] = [
   {
     value: 'trial_premium',
     label: 'Trial + Premium System',
-    description: '7-day trial, then free (limited) or $9/month premium',
+    description: '7-day trial, then premium subscription required. Free users have no access to food tracking or AI features.',
     icon: <Clock className="w-4 h-4" />,
-    features: ['7-day free trial', 'Premium subscription required', 'Limited free tier']
-  },
-  {
-    value: 'free_full',
-    label: 'Completely Free',
-    description: 'Everything free including AI and full food tracking',
-    icon: <Sparkles className="w-4 h-4" />,
-    features: ['All features free', 'Full AI access', 'Complete food tracking', 'No limitations']
-  },
-  {
-    value: 'free_food_only',
-    label: 'Free Food Tracking (No AI)',
-    description: 'Food tracking free, AI features locked behind premium',
-    icon: <Zap className="w-4 h-4" />,
-    features: ['Free food tracking', 'Premium AI features', 'Partial functionality']
+    features: ['7-day free trial', 'Premium subscription required', 'Free users: no food/AI access']
   }
 ];
 
@@ -124,10 +111,10 @@ export const AdminAppModeSwitcher = () => {
           </Select>
         </div>
 
-        <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
-          <p className="text-sm text-amber-800 dark:text-amber-200">
-            <strong>Note:</strong> Changing the app mode affects all users immediately. 
-            Admin users always have full access regardless of the selected mode.
+        <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
+          <p className="text-sm text-green-800 dark:text-green-200">
+            <strong>Security Lock:</strong> App is locked to Trial + Premium mode only. 
+            Free users have no access to food tracking or AI features. Admin users always have full access.
           </p>
         </div>
       </CardContent>
