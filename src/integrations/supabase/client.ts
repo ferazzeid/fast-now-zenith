@@ -9,8 +9,9 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
 
-// For TWA deployment, we're always in web context
-const isNativePlatform = false;
+// Detect if running in Capacitor context
+const isCapacitor = typeof window !== 'undefined' && !!(window as any).Capacitor;
+const isNativePlatform = isCapacitor;
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -20,8 +21,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-    // Enable URL detection for proper OAuth flows
-    detectSessionInUrl: true,
+    // Disable URL detection for native platforms to prevent OAuth issues
+    detectSessionInUrl: !isNativePlatform,
     flowType: 'pkce'
   },
   global: {

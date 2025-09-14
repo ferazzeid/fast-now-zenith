@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { detectPlatform, getPaymentProviderForPlatform } from '@/utils/platformDetection';
+import { isCapacitorApp, shouldUseNativeFeatures } from '@/utils/capacitorUtils';
 
 export interface GooglePlayPurchase {
   productId: string;
@@ -21,18 +22,30 @@ export const useGooglePlayBilling = () => {
     try {
       const platform = detectPlatform();
       if (platform !== 'android') {
+        setIsAvailable(false);
         return false;
       }
 
-      // Check if Google Play Billing is available in Capacitor
-      if (typeof window !== 'undefined' && 'CapacitorGooglePlayBilling' in window) {
-        const billing = (window as any).CapacitorGooglePlayBilling;
-        const { isReady } = await billing.isReady();
-        setIsAvailable(isReady);
-        return isReady;
+      // For Capacitor native Android, check for custom billing interface
+      if (isCapacitorApp() && shouldUseNativeFeatures()) {
+        // Check if custom Google Play Billing bridge is available
+        if (typeof window !== 'undefined' && 'CapacitorGooglePlayBilling' in window) {
+          const billing = (window as any).CapacitorGooglePlayBilling;
+          try {
+            const { isReady } = await billing.isReady();
+            setIsAvailable(isReady);
+            return isReady;
+          } catch (error) {
+            console.log('Custom billing bridge not ready, falling back to web billing');
+          }
+        }
       }
 
-      return false;
+      // For TWA or web fallback
+      const { data: { session } } = await supabase.auth.getSession();
+      const available = !!session;
+      setIsAvailable(available);
+      return available;
     } catch (error) {
       console.error('Error checking Google Play Billing availability:', error);
       setIsAvailable(false);
@@ -52,44 +65,48 @@ export const useGooglePlayBilling = () => {
 
     setIsProcessing(true);
     try {
-      // For web/non-Android platforms, use unified subscription endpoint
       const platform = detectPlatform();
-      if (platform !== 'android') {
-        const { data, error } = await supabase.functions.invoke('unified-subscription', {
-          body: {
-            action: 'create_subscription',
-            platform: 'android',
-            product_id: productId
+      
+      // For Capacitor native Android
+      if (isCapacitorApp() && shouldUseNativeFeatures() && platform === 'android') {
+        // Check for custom Google Play Billing bridge
+        if (typeof window !== 'undefined' && 'CapacitorGooglePlayBilling' in window) {
+          try {
+            const billing = (window as any).CapacitorGooglePlayBilling;
+            
+            // Start purchase flow
+            const { purchase } = await billing.purchaseSubscription({
+              productId,
+              offerToken: undefined // Use default offer
+            });
+
+            if (purchase) {
+              // Validate purchase with our backend
+              return await validatePurchase(purchase);
+            }
+          } catch (error) {
+            console.log('Custom billing bridge failed, falling back to web billing:', error);
           }
-        });
-
-        if (error) throw error;
-
-        toast({
-          title: "Install Android App",
-          description: "To purchase subscriptions, please install our Android app from Google Play Store.",
-        });
-        
-        return data;
-      }
-
-      // Native Android billing flow
-      if (typeof window !== 'undefined' && 'CapacitorGooglePlayBilling' in window) {
-        const billing = (window as any).CapacitorGooglePlayBilling;
-        
-        // Start purchase flow
-        const { purchase } = await billing.purchaseSubscription({
-          productId,
-          offerToken: undefined // Use default offer
-        });
-
-        if (purchase) {
-          // Validate purchase with our backend
-          return await validatePurchase(purchase);
         }
       }
 
-      throw new Error('Google Play Billing not available');
+      // Fallback to web/TWA billing
+      const { data, error } = await supabase.functions.invoke('unified-subscription', {
+        body: {
+          action: 'create_subscription',
+          platform: 'android',
+          product_id: productId
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Install Android App",
+        description: "To purchase subscriptions, please install our Android app from Google Play Store.",
+      });
+      
+      return data;
     } catch (error: any) {
       console.error('Purchase error:', error);
       toast({
@@ -165,25 +182,40 @@ export const useGooglePlayBilling = () => {
 
     setIsProcessing(true);
     try {
-      if (typeof window !== 'undefined' && 'CapacitorGooglePlayBilling' in window) {
-        const billing = (window as any).CapacitorGooglePlayBilling;
-        
-        // Get purchase history
-        const { purchases } = await billing.queryPurchases({
-          type: 'subscription'
-        });
+      // For Capacitor native Android
+      if (isCapacitorApp() && shouldUseNativeFeatures()) {
+        // Check for custom Google Play Billing bridge
+        if (typeof window !== 'undefined' && 'CapacitorGooglePlayBilling' in window) {
+          try {
+            const billing = (window as any).CapacitorGooglePlayBilling;
+            
+            // Get purchase history
+            const { purchases } = await billing.queryPurchases({
+              type: 'subscription'
+            });
 
-        if (purchases && purchases.length > 0) {
-          // Validate the most recent purchase
-          const latestPurchase = purchases[0];
-          await validatePurchase(latestPurchase);
-        } else {
-          toast({
-            title: "No Purchases Found",
-            description: "No previous purchases found to restore.",
-          });
+            if (purchases && purchases.length > 0) {
+              // Validate the most recent purchase
+              const latestPurchase = purchases[0];
+              await validatePurchase(latestPurchase);
+            } else {
+              toast({
+                title: "No Purchases Found",
+                description: "No previous purchases found to restore.",
+              });
+            }
+            return;
+          } catch (error) {
+            console.log('Custom billing bridge restore failed:', error);
+          }
         }
       }
+
+      // No fallback for restore on web/TWA
+      toast({
+        title: "Restore Not Available",
+        description: "Purchase restoration requires the native Android app.",
+      });
     } catch (error: any) {
       console.error('Restore purchases error:', error);
       toast({

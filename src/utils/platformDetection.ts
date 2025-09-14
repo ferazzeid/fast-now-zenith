@@ -4,10 +4,27 @@ export type PaymentProvider = 'stripe' | 'google_play' | 'apple_app_store';
 export const detectPlatform = (): Platform => {
   if (typeof window === 'undefined') return 'web';
   
-  // For TWA deployment, check if running in Android WebView
   const userAgent = navigator.userAgent;
+  
+  // Check for Capacitor environment first
+  if (typeof window !== 'undefined' && (window as any).Capacitor) {
+    const capacitor = (window as any).Capacitor;
+    if (capacitor.getPlatform) {
+      const platform = capacitor.getPlatform();
+      if (platform === 'android' || platform === 'ios') {
+        return platform;
+      }
+    }
+  }
+  
+  // For TWA deployment, check if running in Android WebView
   if (userAgent.includes('wv') && userAgent.includes('Android')) {
     return 'android'; // TWA on Android
+  }
+  
+  // Check for FastNowZenith user agent (Capacitor Android)
+  if (userAgent.includes('FastNowZenith')) {
+    return 'android';
   }
   
   // Fallback detection based on user agent
