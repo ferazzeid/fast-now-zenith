@@ -10,7 +10,5 @@ export const STATIC_COLORS = {
   primary: "220 85% 50%",
   secondary: "0 0% 90%",
   accent: "140 25% 85%",
-  ai: "48 96% 53%",
-  chatAi: "258 90% 66%",
-  chatUser: "189 94% 43%"
+  ai: "48 96% 53%"
 } as const;

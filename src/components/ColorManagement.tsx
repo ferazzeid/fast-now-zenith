@@ -13,8 +13,6 @@ interface ColorValues {
   primaryHover: string;
   accent: string;
   ai: string;
-  chatAi: string;
-  chatUser: string;
 }
 
 export const ColorManagement: React.FC = () => {
@@ -23,9 +21,7 @@ export const ColorManagement: React.FC = () => {
     primary: `hsl(${STATIC_COLORS.primary})`,
     primaryHover: `hsl(${STATIC_COLORS.secondary})`,
     accent: `hsl(${STATIC_COLORS.accent})`,
-    ai: `hsl(${STATIC_COLORS.ai})`,
-    chatAi: `hsl(${STATIC_COLORS.chatAi})`,
-    chatUser: `hsl(${STATIC_COLORS.chatUser})`
+    ai: `hsl(${STATIC_COLORS.ai})`
   });
   
   const [activeColorPicker, setActiveColorPicker] = useState<string | null>(null);
@@ -115,10 +111,6 @@ export const ColorManagement: React.FC = () => {
       root.style.setProperty('--accent', hslValue);
     } else if (colorType === 'ai') {
       root.style.setProperty('--ai', hslValue);
-    } else if (colorType === 'chatAi') {
-      root.style.setProperty('--chat-ai', hslValue);
-    } else if (colorType === 'chatUser') {
-      root.style.setProperty('--chat-user', hslValue);
     }
   };
 
@@ -129,8 +121,6 @@ export const ColorManagement: React.FC = () => {
   --secondary: ${hexToHsl(colors.primaryHover)};
   --accent: ${hexToHsl(colors.accent)};
   --ai: ${hexToHsl(colors.ai)};
-  --chat-ai: ${hexToHsl(colors.chatAi)};
-  --chat-user: ${hexToHsl(colors.chatUser)};
   
   /* Auto-generated variants */
   --ring: var(--primary);
@@ -144,8 +134,6 @@ export const ColorManagement: React.FC = () => {
   --secondary: ${hexToHsl(colors.primaryHover)};
   --accent: ${hexToHsl(colors.accent)};
   --ai: ${hexToHsl(colors.ai)};
-  --chat-ai: ${hexToHsl(colors.chatAi)};
-  --chat-user: ${hexToHsl(colors.chatUser)};
 }`;
   };
 
@@ -167,12 +155,6 @@ colors: {
   ai: {
     DEFAULT: "hsl(${hexToHsl(colors.ai)})",
   },
-  "chat-ai": {
-    DEFAULT: "hsl(${hexToHsl(colors.chatAi)})",
-  },
-  "chat-user": {
-    DEFAULT: "hsl(${hexToHsl(colors.chatUser)})",
-  },
 }`;
   };
 
@@ -181,9 +163,7 @@ colors: {
       primary: `hsl(${STATIC_COLORS.primary})`,
       primaryHover: `hsl(${STATIC_COLORS.secondary})`,
       accent: `hsl(${STATIC_COLORS.accent})`,
-      ai: `hsl(${STATIC_COLORS.ai})`,
-      chatAi: `hsl(${STATIC_COLORS.chatAi})`,
-      chatUser: `hsl(${STATIC_COLORS.chatUser})`
+      ai: `hsl(${STATIC_COLORS.ai})`
     };
     
     setColors(defaultColors);
@@ -195,8 +175,6 @@ colors: {
     root.style.setProperty('--secondary', STATIC_COLORS.secondary);
     root.style.setProperty('--accent', STATIC_COLORS.accent);
     root.style.setProperty('--ai', STATIC_COLORS.ai);
-    root.style.setProperty('--chat-ai', STATIC_COLORS.chatAi);
-    root.style.setProperty('--chat-user', STATIC_COLORS.chatUser);
   };
 
   const ColorPickerModal = ({ type, title, color, onColorChange }: {
@@ -243,7 +221,7 @@ colors: {
         {/* Color Preview */}
         <div>
           <Label className="text-sm font-medium mb-3 block">Current Colors</Label>
-          <div className="grid grid-cols-6 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <div className="text-center">
               <div 
                 className="w-12 h-12 rounded border mx-auto mb-1"
@@ -271,20 +249,6 @@ colors: {
                 style={{ backgroundColor: colors.ai }}
               />
               <Label className="text-xs">AI</Label>
-            </div>
-            <div className="text-center">
-              <div 
-                className="w-12 h-12 rounded border mx-auto mb-1"
-                style={{ backgroundColor: colors.chatAi }}
-              />
-              <Label className="text-xs">Chat AI</Label>
-            </div>
-            <div className="text-center">
-              <div 
-                className="w-12 h-12 rounded border mx-auto mb-1"
-                style={{ backgroundColor: colors.chatUser }}
-              />
-              <Label className="text-xs">Chat User</Label>
             </div>
           </div>
         </div>

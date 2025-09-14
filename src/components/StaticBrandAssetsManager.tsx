@@ -114,8 +114,8 @@ export const useStaticLogo = () => {
                   Copy HTML
                 </Button>
               </div>
-              <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
-                <pre className="text-xs p-3 whitespace-pre-wrap">
+              <div className="max-h-40 overflow-auto bg-muted rounded-md">
+                <pre className="bg-muted p-3 text-xs overflow-x-auto whitespace-pre">
                   {generateIndexHtmlCode()}
                 </pre>
               </div>
@@ -134,8 +134,8 @@ export const useStaticLogo = () => {
                   Copy JSON
                 </Button>
               </div>
-              <div className="max-h-48 overflow-y-auto bg-muted rounded-md">
-                <pre className="text-xs p-3 whitespace-pre-wrap">
+              <div className="max-h-48 overflow-auto bg-muted rounded-md">
+                <pre className="bg-muted p-3 text-xs overflow-x-auto whitespace-pre">
                   {generateManifestCode()}
                 </pre>
               </div>
@@ -154,8 +154,8 @@ export const useStaticLogo = () => {
                   Copy Code
                 </Button>
               </div>
-              <div className="max-h-32 overflow-y-auto bg-muted rounded-md">
-                <pre className="text-xs p-3 whitespace-pre-wrap">
+              <div className="max-h-32 overflow-auto bg-muted rounded-md">
+                <pre className="bg-muted p-3 text-xs overflow-x-auto whitespace-pre">
                   {generateStaticLogoCode()}
                 </pre>
               </div>

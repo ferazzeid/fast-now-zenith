@@ -1,7 +1,6 @@
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { StaticBrandAssetsManager } from "@/components/StaticBrandAssetsManager";
-import { StaticColorManager } from "@/components/StaticColorManager";
 import { StaticAppIdentitySettings } from "@/components/StaticAppIdentitySettings";
 import { StaticPWASettings } from "@/components/StaticPWASettings";
 import { ColorManagement } from "@/components/ColorManagement";
@@ -33,12 +32,8 @@ export default function AdminBranding() {
           <StaticPWASettings />
         </section>
 
-        <section aria-label="Color management development tool">
+        <section aria-label="Color management development tool" className="pb-24">
           <ColorManagement />
-        </section>
-
-        <section aria-label="Static color code generator" className="pb-24">
-          <StaticColorManager />
         </section>
       </main>
     </AdminHealthCheck>
