@@ -27,6 +27,7 @@ interface FastingHistoryProps {
 
 export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
   const { data: sessions, isLoading, execute, setData } = useStandardizedLoading<FastingSession[]>([]);
+  const [expandedSessions, setExpandedSessions] = useState<Set<string>>(new Set());
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
   const [showDeleteSessionModal, setShowDeleteSessionModal] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
