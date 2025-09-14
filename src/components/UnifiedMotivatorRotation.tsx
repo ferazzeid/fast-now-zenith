@@ -71,19 +71,8 @@ export const UnifiedMotivatorRotation = ({
         }))
       : [];
 
-    // TODO: Add notes when they're available from admin system
-    // For now, we'll just use motivators and quotes
-    
     const allItems = [...goalMotivators, ...savedQuotes, ...filteredQuotes];
       
-    console.log('🎯 Unified content result:', {
-      goals: goalMotivators.length,
-      savedQuotes: savedQuotes.length,
-      walkingQuotes: filteredQuotes.length,
-      total: allItems.length,
-      itemDetails: allItems.map(item => ({ type: item.type, title: item.title.substring(0, 30) }))
-    });
-    
     return allItems;
   }, [motivators, quoteSettings]);
 

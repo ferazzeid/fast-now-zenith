@@ -64,10 +64,6 @@ export const AdminImageUpload = ({
         const fileExt = file.name.split('.').pop();
         const fileName = `${user!.id}/${Date.now()}-admin-goal.${fileExt}`;
         
-        console.log('🔄 Uploading admin goal image to:', fileName);
-        console.log('📊 File size:', file.size, 'bytes');
-        console.log('📄 File type:', file.type);
-
         // Upload to Supabase Storage (motivator-images bucket)
         const { data, error } = await supabase.storage
           .from('motivator-images')
@@ -86,8 +82,6 @@ export const AdminImageUpload = ({
           throw new Error('Upload failed: No data returned');
         }
 
-        console.log('✅ File uploaded successfully:', data);
-
         // Get public URL
         const { data: urlData } = supabase.storage
           .from('motivator-images')
@@ -99,8 +93,6 @@ export const AdminImageUpload = ({
         }
 
         const publicUrl = urlData.publicUrl;
-        console.log('✅ Public URL generated:', publicUrl);
-
         onImageUpload(publicUrl);
         
         toast({

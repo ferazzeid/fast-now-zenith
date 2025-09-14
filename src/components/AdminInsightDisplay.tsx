@@ -47,11 +47,8 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
   }, []);
 
   if (!content?.trim()) {
-    console.log('AdminInsightDisplay: No content provided');
     return null;
   }
-
-  console.log('AdminInsightDisplay: Rendering with content:', content.substring(0, 50) + '...');
 
   return (
     <div className={cn("mt-4 mb-4 flex items-start gap-4", className)}>

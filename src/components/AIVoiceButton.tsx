@@ -194,11 +194,8 @@ export const AIVoiceButton = () => {
 
       if (error) throw error;
       
-      console.log('🤖 AI Chat response data:', data);
-
-        // Handle function calls first - ACTUALLY EXECUTE THEM
+      // Handle function calls first - ACTUALLY EXECUTE THEM
         if (data?.functionCall) {
-          console.log('🤖 AI Chat: Function call detected:', data.functionCall.name, 'with args:', data.functionCall.arguments);
           
           let responseMessage = '';
           try {
@@ -252,7 +249,7 @@ export const AIVoiceButton = () => {
           
           // Debug: If no function matched, log what we got
           if (!responseMessage || responseMessage === 'I processed your request successfully.') {
-            console.log('🤖 AI Chat: Unknown function or no response:', data.functionCall);
+            // Unknown function or no response
           }
         }
       // Handle regular completion responses
@@ -284,7 +281,7 @@ export const AIVoiceButton = () => {
       
       // Handle function calls first - ACTUALLY EXECUTE THEM
       if (data?.functionCall) {
-        console.log('🤖 AI Chat (Offline): Function call detected:', data.functionCall.name);
+        // Function call detected in offline mode
         
         let responseMessage = '';
         // Function execution handlers would go here similar to sendToAI
@@ -351,7 +348,7 @@ export const AIVoiceButton = () => {
   // Function execution handlers - Show food preview instead of immediate addition
   const handleAddMultipleFoods = async (args: any): Promise<string> => {
     const foods = args?.foods || [];
-    console.log('🍽️ handleAddMultipleFoods called with:', foods);
+    // Handle adding multiple foods
     
     if (foods.length === 0) return 'No foods to add.';
 
@@ -578,7 +575,7 @@ export const AIVoiceButton = () => {
     try {
       const modifications = args?.modifications || {};
       const clarificationText = args?.clarification_text || '';
-      console.log('🔄 AIVoiceButton - Processing food modification:', modifications, clarificationText);
+      // Processing food modification
 
       // Use conversation memory to process the modification for pending foods
       const context = conversationMemory.getContext();
@@ -595,7 +592,7 @@ export const AIVoiceButton = () => {
       }
       
       // If no pending foods, provide helpful feedback
-      console.log('AIVoiceButton: No pending foods to modify');
+      // No pending foods to modify
       return 'I can help you modify foods, but I need to see them first. Please add some foods and then ask me to modify them.';
     } catch (error) {
       console.error('AIVoiceButton: Error modifying foods:', error);

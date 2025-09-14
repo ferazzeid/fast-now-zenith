@@ -230,20 +230,10 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
             <ImageUpload 
               currentImageUrl={imageUrl}
               onImageUpload={(url) => {
-                console.log('🖼️ EditDefaultFoodModal: === IMAGE UPLOAD CALLBACK ===');
-                console.log('🖼️ EditDefaultFoodModal: Received image URL from upload:', url);
-                console.log('🖼️ EditDefaultFoodModal: URL length:', url?.length || 0);
-                console.log('🖼️ EditDefaultFoodModal: Previous imageUrl state:', imageUrl);
                 setImageUrl(url);
-                console.log('🖼️ EditDefaultFoodModal: Updated imageUrl state to:', url);
-                console.log('🖼️ EditDefaultFoodModal: === IMAGE UPLOAD CALLBACK END ===');
               }}
               onImageRemove={() => {
-                console.log('🗑️ EditDefaultFoodModal: === IMAGE REMOVE CALLBACK ===');
-                console.log('🗑️ EditDefaultFoodModal: Previous imageUrl state:', imageUrl);
                 setImageUrl('');
-                console.log('🗑️ EditDefaultFoodModal: Cleared imageUrl state');
-                console.log('🗑️ EditDefaultFoodModal: === IMAGE REMOVE CALLBACK END ===');
               }}
               bucket="food-images"
             />

@@ -19,7 +19,7 @@ export const EnhancedVoiceFoodInput = ({
   const { toast } = useToast();
 
   const handleVoiceTranscription = async (transcription: string) => {
-    console.log('🎯 EnhancedVoiceFoodInput: Received transcription:', transcription);
+    // Enhanced voice food input processing
     
     onProcessingStateChange?.('analyzing');
     

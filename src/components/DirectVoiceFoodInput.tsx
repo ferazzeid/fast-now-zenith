@@ -163,8 +163,6 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
   };
 
   const handleVoiceTranscription = async (transcription: string) => {
-    console.log('🎯 DirectVoiceFoodInput: Received transcription:', transcription);
-    
     try {
       // Call AI to process the voice input for foods
       const { data, error } = await supabase.functions.invoke('chat-completion', {
@@ -182,7 +180,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
 
       if (error) throw error;
 
-      console.log('🤖 AI response:', data);
+      // AI response processing
 
       // Handle function call response (add_multiple_foods)
       if (data?.functionCall?.name === 'add_multiple_foods') {

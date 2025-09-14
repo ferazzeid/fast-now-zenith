@@ -80,7 +80,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
         linkUrl: linkUrl.trim() || undefined,
       };
 
-      console.log('💾 Saving goal data:', updatedGoal);
+      // Saving goal data
       await onSave(updatedGoal);
       
       setInlineSuccess("Changes saved successfully!");

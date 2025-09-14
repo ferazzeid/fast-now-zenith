@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { CircularMotivatorText } from './CircularMotivatorText';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { CeramicCelebrationEffects, CeramicAnimationType } from './CeramicCelebrationEffects';
 

@@ -35,15 +35,9 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
 
   // Sync local state with prop changes
   useEffect(() => {
-    console.log('🔄 AdminPersonalLogInterface: existingLog changed:', { existingLog, currentHour });
     setLogText(existingLog || '');
     setOriginalText(existingLog || ''); // Update original text too
     setIsEditing(!existingLog); // Only edit mode if no existing log
-    
-    // Force component to recognize the change
-    if (existingLog !== logText) {
-      console.log('🔄 FORCING STATE UPDATE:', { existingLog, currentLogText: logText });
-    }
   }, [existingLog, currentHour]);
 
   // Don't show for non-admins or if disabled or still loading
@@ -53,20 +47,12 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   const handleSaveLog = async () => {
     setIsSaving(true);
     try {
-      console.log('🔧 ADMIN LOG SAVE DEBUG:', {
-        hourToUpdate: currentHour,
-        logText: logText.trim(),
-        logTextLength: logText.trim().length,
-        userId: currentSession?.user_id
-      });
-      
+      // Debug logging for admin personal log save
       const { data, error } = await supabase
         .from('fasting_hours')
         .update({ admin_personal_log: logText.trim() || null })
         .eq('hour', currentHour)
         .select('*');
-
-      console.log('🔧 SUPABASE UPDATE RESULT:', { data, error });
 
       if (error) throw error;
 
@@ -82,8 +68,6 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       queryClient.removeQueries({ queryKey: fastingHoursKey });
       await queryClient.invalidateQueries({ queryKey: fastingHoursKey });
       await queryClient.refetchQueries({ queryKey: fastingHoursKey });
-      
-      console.log('🔄 CACHE AGGRESSIVELY REFRESHED: For hour', currentHour);
       
       // Call the callback to notify parent component
       onLogSaved?.();
