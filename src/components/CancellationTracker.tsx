@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 interface UserActivityData {
   trialEndingsToday: number;
@@ -14,7 +15,7 @@ interface UserActivityData {
 }
 
 export const CancellationTracker = () => {
-  const [data, setData] = useState<UserActivityData>({
+  const { data, isLoading, execute } = useStandardizedLoading<UserActivityData>({
     trialEndingsToday: 0,
     trialEndingsMonth: 0,
     cancellationsToday: 0,
@@ -22,11 +23,9 @@ export const CancellationTracker = () => {
     upgradestoday: 0,
     upgradesMonth: 0
   });
-  const [loading, setLoading] = useState(true);
 
-  const fetchUserActivityData = async () => {
-    try {
-      setLoading(true);
+  const fetchUserActivityData = () => {
+    execute(async () => {
       const today = new Date();
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -73,43 +72,31 @@ export const CancellationTracker = () => {
         .in('subscription_status', ['active', 'trialing'])
         .gte('trial_started_at', startOfMonth.toISOString());
 
-      setData({
+      return {
         trialEndingsToday: todayTrialEnds?.length || 0,
         trialEndingsMonth: monthTrialEnds?.length || 0,
         cancellationsToday: todayCancellations?.length || 0,
         cancellationsMonth: monthCancellations?.length || 0,
         upgradestoday: todayUpgrades?.length || 0,
         upgradesMonth: monthUpgrades?.length || 0
-      });
-    } catch (error) {
-      console.error('Error fetching user activity data:', error);
-      setData({
-        trialEndingsToday: 0,
-        trialEndingsMonth: 0,
-        cancellationsToday: 0,
-        cancellationsMonth: 0,
-        upgradestoday: 0,
-        upgradesMonth: 0
-      });
-    } finally {
-      setLoading(false);
-    }
+      };
+    }, {
+      onError: (error) => console.error('Error fetching user activity data:', error)
+    });
   };
 
-  const refreshData = async () => {
-    await fetchUserActivityData();
+  const refreshData = () => {
+    fetchUserActivityData();
   };
 
   useEffect(() => {
     fetchUserActivityData();
   }, []);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="p-6">
-        <div className="flex items-center justify-center">
-          <LoadingSpinner />
-        </div>
+        <SmartInlineLoading text="Loading user activity data" />
       </Card>
     );
   }
@@ -119,7 +106,7 @@ export const CancellationTracker = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center justify-between">
           User Activity Tracking
-          <Button variant="outline" size="sm" onClick={refreshData}>
+          <Button variant="outline" size="sm" onClick={refreshData} disabled={isLoading}>
             Refresh
           </Button>
         </CardTitle>

@@ -10,6 +10,8 @@ import { Settings, Smartphone, Globe, Code, Palette } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/ImageUpload";
 import { getEnvironmentConfig, isDevelopment } from "@/config/environment";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartLoadingButton, SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 interface AppSettings {
   // App Identity
@@ -47,16 +49,16 @@ export const AppIdentitySettings: React.FC = () => {
     webUrl: ''
   });
   
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const { isLoading: loadingSettings, execute: loadSettings } = useStandardizedLoading();
+  const { isLoading: savingSettings, execute: saveSettings } = useStandardizedLoading();
 
   useEffect(() => {
     loadCurrentSettings();
   }, []);
 
-  const loadCurrentSettings = async () => {
-    try {
+  const loadCurrentSettings = () => {
+    loadSettings(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -124,12 +126,12 @@ export const AppIdentitySettings: React.FC = () => {
       });
       
       setSettings(newSettings);
-    } catch (error) {
-      console.error('Error loading app settings:', error);
-      setDefaults();
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error loading app settings:', error);
+        setDefaults();
+      }
+    });
   };
 
   const setDefaults = () => {
@@ -156,9 +158,8 @@ export const AppIdentitySettings: React.FC = () => {
     }));
   };
 
-  const saveAllSettings = async () => {
-    setSaving(true);
-    try {
+  const saveAllSettings = () => {
+    saveSettings(async () => {
       const updates = [
         { setting_key: 'pwa_app_name', setting_value: settings.appName },
         { setting_key: 'pwa_short_name', setting_value: settings.shortName },
@@ -193,21 +194,22 @@ export const AppIdentitySettings: React.FC = () => {
       } else {
         console.warn('PWA cache refresh had issues, but settings were saved');
       }
-
-      toast({
-        title: "✅ Settings Saved!",
-        description: "App identity settings updated successfully. PWA manifest refreshed - try 'Add to Home Screen' again!",
-      });
-    } catch (error) {
-      console.error('Error saving app settings:', error);
-      toast({
-        title: "Error",
-        description: `Failed to save settings: ${error.message}`,
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "✅ Settings Saved!",
+          description: "App identity settings updated successfully. PWA manifest refreshed - try 'Add to Home Screen' again!",
+        });
+      },
+      onError: (error) => {
+        console.error('Error saving app settings:', error);
+        toast({
+          title: "Error",
+          description: `Failed to save settings: ${error.message}`,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const updateCapacitorConfig = async () => {
@@ -257,7 +259,7 @@ export default config;`;
     }
   };
 
-  if (loading) {
+  if (loadingSettings) {
     return (
       <Card>
         <CardHeader>
@@ -266,8 +268,8 @@ export default config;`;
             App Identity & Branding
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-8">
-          <span className="text-muted-foreground">Loading...</span>
+        <CardContent>
+          <SmartInlineLoading text="Loading app settings" />
         </CardContent>
       </Card>
     );
@@ -444,20 +446,22 @@ export default config;`;
         </Tabs>
 
         <div className="flex gap-3 pt-6 mt-6 border-t">
-          <Button 
+          <SmartLoadingButton 
             onClick={saveAllSettings} 
-            disabled={saving}
+            isLoading={savingSettings}
+            loadingText="Saving..."
             className="flex-1"
           >
-            {saving ? 'Saving...' : 'Save All Settings'}
-          </Button>
-          <Button 
+            Save All Settings
+          </SmartLoadingButton>
+          <SmartLoadingButton 
             onClick={loadCurrentSettings} 
             variant="outline"
-            disabled={saving}
+            isLoading={loadingSettings}
+            loadingText="Resetting..."
           >
             Reset
-          </Button>
+          </SmartLoadingButton>
         </div>
       </CardContent>
     </Card>

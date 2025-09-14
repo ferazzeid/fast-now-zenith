@@ -21,6 +21,8 @@ import { EnhancedVoiceFoodInput } from '@/components/EnhancedVoiceFoodInput';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
 import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
+import { useUploadLoading } from '@/hooks/useStandardizedLoading';
+import { SmartLoadingButton } from '@/components/SimpleLoadingComponents';
 
 interface AnalysisResult {
   name?: string;
@@ -46,13 +48,26 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const { hasPremiumFeatures } = useAccess();
   const isSubscriptionActive = hasPremiumFeatures;
   
-  // Image and analysis state
+  // Image and analysis state using useUploadLoading
+  const {
+    isUploading,
+    isAnalyzing,
+    isComplete,
+    hasError: uploadHasError,
+    isIdle: uploadIsIdle,
+    uploadState,
+    error: uploadError,
+    startUpload,
+    startAnalysis,
+    completeUpload,
+    completeAnalysis,
+    setUploadError,
+    reset: resetUpload
+  } = useUploadLoading();
+
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [showAnalysisResults, setShowAnalysisResults] = useState(false);
-  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'uploaded' | 'analyzing' | 'analyzed' | 'error'>('idle');
   
   // Form state
   const [name, setName] = useState('');
@@ -76,28 +91,22 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const handleImageUpload = async (url: string) => {
     setImageUrl(url);
     setAnalysisResult(null);
-    setError(null);
     setShowAnalysisResults(false);
-    setUploadState('uploaded');
+    completeUpload();
   };
 
   const handleAnalysisStart = () => {
-    setAnalyzing(true);
-    setUploadState('analyzing');
-    setError(null);
+    startAnalysis();
   };
 
   const handleAnalysisComplete = (result: AnalysisResult) => {
     setAnalysisResult(result);
-    setAnalyzing(false);
-    setUploadState('analyzed');
+    completeAnalysis();
     setShowAnalysisResults(true);
   };
 
   const handleAnalysisError = (errorMessage: string) => {
-    setError(errorMessage);
-    setAnalyzing(false);
-    setUploadState('error');
+    setUploadError(errorMessage);
   };
 
   const handleAnalysisConfirm = (result: AnalysisResult) => {
@@ -219,9 +228,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const resetForm = () => {
     setImageUrl(null);
     setAnalysisResult(null);
-    setError(null);
     setShowAnalysisResults(false);
-    setUploadState('idle');
+    resetUpload();
     setName('');
     setServingAmount('100');
     setServingUnit(getDefaultServingSizeUnit());
@@ -232,7 +240,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
 
   const handleClose = () => {
     // Prevent closing during analysis process
-    if (analyzing || ['uploading', 'analyzing'].includes(uploadState)) {
+    if (isAnalyzing || isUploading) {
       toast({
         title: "Analysis in progress",
         description: "Please wait for the food analysis to complete",
@@ -248,9 +256,8 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
   const handleRetakePhoto = () => {
     setImageUrl(null);
     setAnalysisResult(null);
-    setError(null);
     setShowAnalysisResults(false);
-    setUploadState('idle');
+    resetUpload();
   };
 
   return (
@@ -296,9 +303,9 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
             </div>
           )}
 
-          {error && (
+          {uploadHasError && (
             <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg mb-4">
-              <p className="text-sm text-destructive">{error}</p>
+              <p className="text-sm text-destructive">{uploadError}</p>
             </div>
           )}
 
@@ -452,20 +459,15 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
             </div>
             
              {/* Add Button */}
-             <Button 
+             <SmartLoadingButton 
                onClick={handleSave} 
-               disabled={saving || !name || !calories || !servingAmount}
+               isLoading={saving}
+               loadingText="Adding..."
+               disabled={!name || !calories || !servingAmount}
                className="flex-1"
              >
-               {saving ? (
-                 <>
-                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                   Adding...
-                 </>
-               ) : (
-                 quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"
-               )}
-             </Button>
+               {quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"}
+             </SmartLoadingButton>
           </div>
         </div>
 

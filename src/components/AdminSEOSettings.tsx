@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -6,6 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Globe, Search } from 'lucide-react';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 interface SEOSettings {
   indexHomepage: boolean;
@@ -13,19 +15,14 @@ interface SEOSettings {
 }
 
 export const AdminSEOSettings = () => {
-  const [settings, setSettings] = useState<SEOSettings>({
+  const { toast } = useToast();
+  const { data: settings, isLoading, execute, setData } = useStandardizedLoading<SEOSettings>({
     indexHomepage: false,
     indexOtherPages: false
   });
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const fetchSettings = async () => {
-    try {
+    execute(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -39,22 +36,23 @@ export const AdminSEOSettings = () => {
           return acc;
         }, {} as Record<string, boolean>);
 
-        setSettings({
+        return {
           indexHomepage: settingsMap.seo_index_homepage || false,
           indexOtherPages: settingsMap.seo_index_other_pages || false
+        };
+      }
+      return { indexHomepage: false, indexOtherPages: false };
+    }, {
+      onError: (error) => {
+        console.error('Failed to fetch SEO settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load SEO settings",
+          variant: "destructive"
         });
       }
-    } catch (error) {
-      console.error('Failed to fetch SEO settings:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load SEO settings",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    });
+  }, []);
 
   const updateSetting = async (key: string, value: boolean) => {
     try {
@@ -105,26 +103,23 @@ export const AdminSEOSettings = () => {
   };
 
   const handleHomepageToggle = async (checked: boolean) => {
-    setSettings(prev => ({ ...prev, indexHomepage: checked }));
+    setData({ ...settings, indexHomepage: checked });
     await updateSetting('seo_index_homepage', checked);
   };
 
   const handleOtherPagesToggle = async (checked: boolean) => {
-    setSettings(prev => ({ ...prev, indexOtherPages: checked }));
+    setData({ ...settings, indexOtherPages: checked });
     await updateSetting('seo_index_other_pages', checked);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">SEO Indexing Settings</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-8 bg-muted rounded"></div>
-          </div>
+          <SmartInlineLoading text="Loading SEO settings" />
         </CardContent>
       </Card>
     );

@@ -5,6 +5,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartInlineLoading, SmartLoadingButton } from '@/components/SimpleLoadingComponents';
 
 interface PredefinedMotivator {
   title: string;
@@ -18,15 +20,15 @@ interface CustomMotivatorsImportProps {
 }
 
 export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ onComplete }) => {
-  const [importing, setImporting] = useState(false);
   const [imported, setImported] = useState(false);
-  const [motivators, setMotivators] = useState<PredefinedMotivator[]>([]);
-  const [loading, setLoading] = useState(true);
   const { createMotivator } = useMotivators();
   const { toast } = useToast();
+  
+  const { data: motivators, isLoading: loadingMotivators, execute: loadMotivators } = useStandardizedLoading<PredefinedMotivator[]>([]);
+  const { isLoading: importing, execute: importMotivators } = useStandardizedLoading();
 
-  const loadPredefinedMotivators = async () => {
-    try {
+  const loadPredefinedMotivators = () => {
+    loadMotivators(async () => {
       const { data, error } = await supabase
         .from('system_motivators')
         .select('*')
@@ -36,30 +38,27 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
       if (error) throw error;
 
       // Transform system_motivators to match the PredefinedMotivator interface
-      const motivatorsList = (data || []).map((m: any) => ({
+      return (data || []).map((m: any) => ({
         title: m.title,
         content: m.content,
         category: m.category || 'personal',
         imageUrl: m.male_image_url || m.female_image_url
       }));
-      setMotivators(motivatorsList);
-    } catch (error) {
-      console.error('Error loading system motivators:', error);
-      // Fallback to empty array if no system motivators found
-      setMotivators([]);
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error loading system motivators:', error);
+        // Fallback to empty array if no system motivators found
+        return [];
+      }
+    });
   };
 
   useEffect(() => {
     loadPredefinedMotivators();
   }, []);
 
-  const handleImportAll = async () => {
-    setImporting(true);
-    
-    try {
+  const handleImportAll = () => {
+    importMotivators(async () => {
       let successCount = 0;
       
       for (const motivator of motivators) {
@@ -76,36 +75,42 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
       }
       
       if (successCount === motivators.length) {
-        toast({
-          title: "🎉 Success!",
-          description: `Imported ${successCount} motivators to your collection.`,
-        });
         setImported(true);
         setTimeout(() => {
           onComplete();
         }, 2000);
-      } else {
+      }
+      
+      return successCount;
+    }, {
+      onSuccess: (successCount) => {
+        if (successCount === motivators.length) {
+          toast({
+            title: "🎉 Success!",
+            description: `Imported ${successCount} motivators to your collection.`,
+          });
+        } else {
+          toast({
+            title: "Partially imported",
+            description: `Imported ${successCount} of ${motivators.length} motivators.`,
+            variant: "destructive",
+          });
+        }
+      },
+      onError: (error) => {
         toast({
-          title: "Partially imported",
-          description: `Imported ${successCount} of ${motivators.length} motivators.`,
+          title: "Import failed",
+          description: "There was an error importing the motivators. Please try again.",
           variant: "destructive",
         });
       }
-    } catch (error) {
-      toast({
-        title: "Import failed",
-        description: "There was an error importing the motivators. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setImporting(false);
-    }
+    });
   };
 
-  if (loading) {
+  if (loadingMotivators) {
     return (
       <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
-        <p className="text-warm-text">Loading motivators...</p>
+        <SmartInlineLoading text="Loading motivators" />
       </div>
     );
   }
@@ -201,23 +206,15 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
       </div>
 
       <div className="flex flex-col space-y-3">
-        <Button
+        <SmartLoadingButton
           onClick={handleImportAll}
-          disabled={importing}
+          isLoading={importing}
+          loadingText={`Importing ${motivators.length} motivators...`}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
         >
-          {importing ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-              Importing {motivators.length} motivators...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Import All {motivators.length} Motivators
-            </>
-          )}
-        </Button>
+          <Download className="w-4 h-4 mr-2" />
+          Import All {motivators.length} Motivators
+        </SmartLoadingButton>
         
         <Button
           variant="outline"

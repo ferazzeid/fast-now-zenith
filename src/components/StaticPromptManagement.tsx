@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Info, Wand2, TestTube, Palette } from "lucide-react";
 import { STATIC_COLORS } from "@/utils/staticAssets";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartLoadingButton, SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 interface PromptConfig {
   key: string;
@@ -64,17 +66,17 @@ const promptConfigs: PromptConfig[] = [
 export const StaticPromptManagement = () => {
   const [prompts, setPrompts] = useState<Record<string, string>>({});
   const [selectedPresets, setSelectedPresets] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
   const { toast } = useToast();
+  const { isLoading, execute } = useStandardizedLoading();
 
   useEffect(() => {
     loadPrompts();
   }, []);
 
-  const loadPrompts = async () => {
-    try {
+  const loadPrompts = () => {
+    execute(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -88,16 +90,16 @@ export const StaticPromptManagement = () => {
       });
 
       setPrompts(promptMap);
-    } catch (error) {
-      console.error('Error loading prompts:', error);
-      toast({
-        title: "Error loading prompts",
-        description: "Failed to load current prompt configurations",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error loading prompts:', error);
+        toast({
+          title: "Error loading prompts",
+          description: "Failed to load current prompt configurations",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const savePrompt = async (key: string, value: string) => {
@@ -190,13 +192,15 @@ export const StaticPromptManagement = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>AI Prompt Management</CardTitle>
-          <CardDescription>Loading prompt configurations...</CardDescription>
         </CardHeader>
+        <CardContent>
+          <SmartInlineLoading text="Loading prompt configurations" />
+        </CardContent>
       </Card>
     );
   }
@@ -268,21 +272,24 @@ export const StaticPromptManagement = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button
+              <SmartLoadingButton
                 onClick={() => savePrompt(config.key, prompts[config.key] || '')}
-                disabled={saving === config.key}
+                isLoading={saving === config.key}
+                loadingText="Saving..."
                 size="sm"
               >
-                {saving === config.key ? 'Saving...' : 'Save Prompt'}
-              </Button>
-              <Button
+                Save Prompt
+              </SmartLoadingButton>
+              <SmartLoadingButton
                 variant="outline"
                 onClick={() => testPrompt(config.key)}
-                disabled={testing === config.key || !prompts[config.key]}
+                isLoading={testing === config.key}
+                loadingText="Testing..."
+                disabled={!prompts[config.key]}
                 size="sm"
               >
-                {testing === config.key ? 'Testing...' : 'Test Prompt'}
-              </Button>
+                Test Prompt
+              </SmartLoadingButton>
             </div>
           </div>
         ))}

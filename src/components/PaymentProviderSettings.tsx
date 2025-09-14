@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, CreditCard } from 'lucide-react';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 interface PaymentProvider {
   provider: string;
@@ -15,17 +17,16 @@ interface PaymentProvider {
 }
 
 export const PaymentProviderSettings = () => {
-  const [providers, setProviders] = useState<PaymentProvider[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const { toast } = useToast();
+  const { data: providers, isLoading, execute, setData } = useStandardizedLoading<PaymentProvider[]>([]);
 
   useEffect(() => {
     fetchProviders();
   }, []);
 
-  const fetchProviders = async () => {
-    try {
+  const fetchProviders = () => {
+    execute(async () => {
       const { data, error } = await supabase
         .from('payment_provider_configs')
         .select('*')
@@ -33,17 +34,17 @@ export const PaymentProviderSettings = () => {
         .single();
 
       if (error) throw error;
-      setProviders(data ? [data] : []);
-    } catch (error) {
-      console.error('Error fetching providers:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch payment provider settings",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+      return data ? [data] : [];
+    }, {
+      onError: (error) => {
+        console.error('Error fetching providers:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch payment provider settings",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const updateProvider = async (provider: string, updates: Partial<PaymentProvider>) => {
@@ -57,9 +58,7 @@ export const PaymentProviderSettings = () => {
 
       if (error) throw error;
 
-      setProviders(prev => 
-        prev.map(p => p.provider === provider ? { ...p, ...updates } : p)
-      );
+      setData(providers.map(p => p.provider === provider ? { ...p, ...updates } : p));
 
       toast({
         title: "Success",
@@ -77,7 +76,7 @@ export const PaymentProviderSettings = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -87,9 +86,7 @@ export const PaymentProviderSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="w-6 h-6 animate-spin" />
-          </div>
+          <SmartInlineLoading text="Loading payment settings" />
         </CardContent>
       </Card>
     );

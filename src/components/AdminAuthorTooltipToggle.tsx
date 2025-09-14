@@ -1,38 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 export const AdminAuthorTooltipToggle = () => {
-  const [isEnabled, setIsEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { data: isEnabled, isLoading, execute, setData } = useStandardizedLoading(false);
 
   useEffect(() => {
-    loadSetting();
-  }, []);
-
-  const loadSetting = async () => {
-    try {
+    execute(async () => {
       const { data } = await supabase
         .from('shared_settings')
         .select('setting_value')
         .eq('setting_key', 'author_tooltips_enabled')
         .single();
 
-      setIsEnabled(data?.setting_value === 'true');
-    } catch (error) {
-      console.error('Error loading author tooltip setting:', error);
-      setIsEnabled(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data?.setting_value === 'true';
+    }, {
+      onError: (error) => {
+        console.error('Error loading author tooltip setting:', error);
+        setData(false);
+      }
+    });
+  }, []);
 
   const handleToggle = async (checked: boolean) => {
-    try {
+    execute(async () => {
       const { error } = await supabase
         .from('shared_settings')
         .upsert({
@@ -41,23 +38,27 @@ export const AdminAuthorTooltipToggle = () => {
         });
 
       if (error) throw error;
-
-      setIsEnabled(checked);
-      toast({
-        title: "Setting updated",
-        description: `Author tooltips ${checked ? 'enabled' : 'disabled'}`,
-      });
-    } catch (error) {
-      console.error('Error updating setting:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update setting",
-        variant: "destructive"
-      });
-    }
+      return checked;
+    }, {
+      onSuccess: (newValue) => {
+        setData(newValue);
+        toast({
+          title: "Setting updated",
+          description: `Author tooltips ${newValue ? 'enabled' : 'disabled'}`,
+        });
+      },
+      onError: (error) => {
+        console.error('Error updating setting:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update setting",
+          variant: "destructive"
+        });
+      }
+    });
   };
 
-  if (loading) return null;
+  if (isLoading) return <SmartInlineLoading text="Loading setting" />;
 
   return (
     <Card>
@@ -70,6 +71,7 @@ export const AdminAuthorTooltipToggle = () => {
             id="author-tooltips"
             checked={isEnabled}
             onCheckedChange={handleToggle}
+            disabled={isLoading}
           />
         </div>
       </CardContent>

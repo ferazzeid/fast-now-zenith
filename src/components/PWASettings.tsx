@@ -1,26 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Smartphone } from "lucide-react";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartLoadingButton, SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 export const PWASettings: React.FC = () => {
   const [appName, setAppName] = useState('');
   const [shortName, setShortName] = useState('');
   const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  const { isLoading: loadingSettings, execute: loadSettings } = useStandardizedLoading();
+  const { isLoading: savingSettings, execute: saveSettings } = useStandardizedLoading();
 
   useEffect(() => {
     loadCurrentSettings();
   }, []);
 
-  const loadCurrentSettings = async () => {
-    try {
+  const loadCurrentSettings = () => {
+    loadSettings(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -45,12 +48,12 @@ export const PWASettings: React.FC = () => {
           setDescription(setting.setting_value || 'Your mindful app with AI-powered motivation');
         }
       });
-    } catch (error) {
-      console.error('Error loading PWA settings:', error);
-      setDefaults();
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error loading PWA settings:', error);
+        setDefaults();
+      }
+    });
   };
 
   const setDefaults = () => {
@@ -59,8 +62,8 @@ export const PWASettings: React.FC = () => {
     setDescription('Your mindful app with AI-powered motivation');
   };
 
-  const saveSettings = async () => {
-    try {
+  const saveSettingsPWA = () => {
+    saveSettings(async () => {
       const updates = [
         {
           setting_key: 'pwa_app_name',
@@ -89,22 +92,25 @@ export const PWASettings: React.FC = () => {
 
       // Update the dynamic manifest
       await supabase.functions.invoke('dynamic-manifest');
-
-      toast({
-        title: "Success",
-        description: "PWA settings saved successfully. The app icon and details will update on next install.",
-      });
-    } catch (error) {
-      console.error('Error saving PWA settings:', error);
-      toast({
-        title: "Error",
-        description: `Failed to save PWA settings: ${error.message}`,
-        variant: "destructive",
-      });
-    }
+    }, {
+      onSuccess: () => {
+        toast({
+          title: "Success",
+          description: "PWA settings saved successfully. The app icon and details will update on next install.",
+        });
+      },
+      onError: (error) => {
+        console.error('Error saving PWA settings:', error);
+        toast({
+          title: "Error",
+          description: `Failed to save PWA settings: ${error.message}`,
+          variant: "destructive",
+        });
+      }
+    });
   };
 
-  if (loading) {
+  if (loadingSettings) {
     return (
       <Card>
         <CardHeader>
@@ -113,8 +119,8 @@ export const PWASettings: React.FC = () => {
             App Icon & Slogan
           </CardTitle>
         </CardHeader>
-        <CardContent className="flex items-center justify-center py-8">
-          <span className="text-muted-foreground">Loading...</span>
+        <CardContent>
+          <SmartInlineLoading text="Loading PWA settings" />
         </CardContent>
       </Card>
     );
@@ -164,9 +170,14 @@ export const PWASettings: React.FC = () => {
         </div>
 
         <div className="pt-2">
-          <Button onClick={saveSettings} className="h-9 px-4">
+          <SmartLoadingButton 
+            onClick={saveSettingsPWA} 
+            isLoading={savingSettings}
+            loadingText="Saving..."
+            className="h-9 px-4"
+          >
             Save
-          </Button>
+          </SmartLoadingButton>
         </div>
       </CardContent>
     </Card>

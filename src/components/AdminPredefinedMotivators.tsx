@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { SmartInlineLoading } from '@/components/SimpleLoadingComponents';
 
 interface PredefinedMotivator {
   id?: string;
@@ -24,14 +26,13 @@ interface MotivatorModalData {
 }
 
 export const AdminPredefinedMotivators = () => {
-  const [motivators, setMotivators] = useState<PredefinedMotivator[]>([]);
-  const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingMotivator, setEditingMotivator] = useState<PredefinedMotivator | null>(null);
   const { toast } = useToast();
+  const { data: motivators, isLoading, execute, setData } = useStandardizedLoading<PredefinedMotivator[]>([]);
 
   const loadMotivators = async () => {
-    try {
+    execute(async () => {
       const { data, error } = await supabase
         .from('system_motivators')
         .select('*')
@@ -41,24 +42,23 @@ export const AdminPredefinedMotivators = () => {
       if (error) throw error;
 
       // Transform system_motivators to match the PredefinedMotivator interface
-      const motivatorsWithIds = (data || []).map((m: any) => ({
+      return (data || []).map((m: any) => ({
         id: m.id,
         title: m.title,
         content: m.content,
         category: m.category || 'personal',
-        imageUrl: m.male_image_url || m.female_image_url // Use whichever is available
+        imageUrl: m.male_image_url || m.female_image_url
       }));
-      setMotivators(motivatorsWithIds);
-    } catch (error) {
-      console.error('Error loading system motivators:', error);
-      toast({
-        title: "Error loading motivators",
-        description: "Could not load system motivators.",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error loading system motivators:', error);
+        toast({
+          title: "Error loading motivators",
+          description: "Could not load system motivators.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const saveMotivators = async (updatedMotivators: PredefinedMotivator[]) => {
@@ -100,7 +100,7 @@ export const AdminPredefinedMotivators = () => {
       }
 
       // Reload to get updated data
-      await loadMotivators();
+      loadMotivators();
       
       toast({
         title: "✅ Motivators Updated",
@@ -154,7 +154,7 @@ export const AdminPredefinedMotivators = () => {
       if (error) throw error;
 
       // Reload to get updated data
-      await loadMotivators();
+      loadMotivators();
       
       toast({
         title: "✅ Motivator Deleted",
@@ -174,8 +174,8 @@ export const AdminPredefinedMotivators = () => {
     loadMotivators();
   }, []);
 
-  if (loading) {
-    return <div className="text-warm-text">Loading predefined motivators...</div>;
+  if (isLoading) {
+    return <SmartInlineLoading text="Loading predefined motivators" />;
   }
 
   return (
