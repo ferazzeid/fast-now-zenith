@@ -371,13 +371,19 @@ const WalkingTimerComponent = ({
         <div className="mt-8">
           <Button 
             onClick={(e) => {
+              console.log('🚶 Walking start button clicked');
               e.preventDefault();
               e.stopPropagation();
               onStart();
             }}
+            onTouchStart={(e) => {
+              console.log('🚶 Walking start button touch start');
+              // Prevent double-tap zoom on iOS
+              e.preventDefault();
+            }}
             variant="action-primary"
             size="start-button"
-            className="w-full"
+            className="w-full touch-manipulation"
           >
             <Play className="w-8 h-8 mr-3" />
             Start Walking

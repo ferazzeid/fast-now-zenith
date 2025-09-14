@@ -136,8 +136,11 @@ export const CircularVoiceButton = React.forwardRef<
 
   const startRecording = async () => {
     try {
-      if (import.meta.env.DEV) console.log('🎤 Starting recording...');
+      console.log('🎤 [Mobile Debug] Starting recording...');
+      console.log('🎤 [Mobile Debug] User agent:', navigator.userAgent);
+      console.log('🎤 [Mobile Debug] Is mobile browser:', /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
       
+      // Request permissions explicitly on mobile
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
@@ -148,35 +151,39 @@ export const CircularVoiceButton = React.forwardRef<
         }
       });
       
-      if (import.meta.env.DEV) console.log('🎤 MediaStream obtained, creating MediaRecorder...');
+      console.log('🎤 [Mobile Debug] MediaStream obtained successfully');
+      console.log('🎤 [Mobile Debug] Stream active:', stream.active);
+      console.log('🎤 [Mobile Debug] Audio tracks:', stream.getAudioTracks().length);
+      
       setHasPermission(true);
       const mimeType = getSupportedMimeType();
-      if (import.meta.env.DEV) console.log('🎤 Selected mimeType:', mimeType || 'default');
+      console.log('🎤 [Mobile Debug] Selected mimeType:', mimeType || 'default');
+      
       mediaRecorderRef.current = mimeType
         ? new MediaRecorder(stream, { mimeType })
         : new MediaRecorder(stream);
       audioChunksRef.current = [];
 
       mediaRecorderRef.current.ondataavailable = (event) => {
-        if (import.meta.env.DEV) console.log('🎤 Audio data available, size:', event.data.size);
+        console.log('🎤 [Mobile Debug] Audio data available, size:', event.data.size);
         if (event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
 
       mediaRecorderRef.current.onstop = () => {
-        console.log('🎤 Recording stopped, cleaning up stream...');
+        console.log('🎤 [Mobile Debug] Recording stopped, cleaning up stream...');
         stream.getTracks().forEach(track => track.stop());
       };
 
       mediaRecorderRef.current.onerror = (event) => {
-        console.error('🎤 MediaRecorder error:', event);
+        console.error('🎤 [Mobile Debug] MediaRecorder error:', event);
       };
 
       // 90 second timeout for voice messages
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
-          console.log('🎤 Recording timeout reached');
+          console.log('🎤 [Mobile Debug] Recording timeout reached');
           toast({
             title: "⏱️ Recording Timeout",
             description: "Recording automatically stopped after 90 seconds.",
@@ -188,19 +195,23 @@ export const CircularVoiceButton = React.forwardRef<
 
       mediaRecorderRef.current.start(100); // Request data every 100ms
       setIsRecording(true);
-      console.log('🎤 Recording started successfully');
+      console.log('🎤 [Mobile Debug] Recording started successfully');
       
       (mediaRecorderRef.current as any).timeout = recordingTimeout;
       
     } catch (error) {
-      console.error('🎤 Error starting recording:', error);
+      console.error('🎤 [Mobile Debug] Error starting recording:', error);
+      console.error('🎤 [Mobile Debug] Error name:', error.name);
+      console.error('🎤 [Mobile Debug] Error message:', error.message);
       setHasPermission(false);
       
       let errorMsg = "Could not access microphone. Please check permissions.";
       if (error.name === 'NotAllowedError') {
-        errorMsg = "Microphone access denied. Please enable microphone permissions in your browser settings.";
+        errorMsg = "Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.";
       } else if (error.name === 'NotFoundError') {
         errorMsg = "No microphone found. Please connect a microphone and try again.";
+      } else if (error.name === 'NotSupportedError') {
+        errorMsg = "Your browser doesn't support audio recording. Please try a different browser.";
       }
       
       toast({

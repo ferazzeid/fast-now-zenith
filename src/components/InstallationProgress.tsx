@@ -130,12 +130,7 @@ export const InstallationProgress = ({
           </div>
         )}
 
-        {/* Simple Loading Note */}
-        {progress.stage !== 'error' && progress.stage !== 'complete' && (
-          <div className="text-xs text-center text-muted-foreground">
-            Starting up your app...
-          </div>
-        )}
+        {/* Removed redundant "Starting up your app..." message */}
       </div>
     </div>
   );

@@ -50,17 +50,24 @@ class InstallationManager {
       // Check if service worker is already ready
       navigator.serviceWorker.ready.then((registration) => {
         if (registration.active && registration.active.state === 'activated') {
-          // Service worker is already active, complete immediately (common case for page reloads)
+          // Service worker is already active, complete immediately (common case for regular browsing/page reloads)
           this.completeInstallation();
         } else if (registration.installing) {
-          // Actually installing, start timeout and track progress
-          this.startInitializationTimeout();
-          this.trackInstallationProgress(registration.installing);
+          // Only show installation screen if actually installing for first time
+          const isFirstInstall = !localStorage.getItem('sw-installed');
+          if (isFirstInstall) {
+            this.startInitializationTimeout();
+            this.trackInstallationProgress(registration.installing);
+            localStorage.setItem('sw-installed', 'true');
+          } else {
+            // Already installed before, just complete
+            this.completeInstallation();
+          }
         } else if (registration.waiting) {
           this.completeInstallation();
         } else {
-          // Start timeout for other cases
-          this.startInitializationTimeout();
+          // For regular web browsing, complete immediately
+          this.completeInstallation();
         }
       }).catch(() => {
         // Service worker not available, complete anyway
