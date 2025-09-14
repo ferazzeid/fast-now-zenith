@@ -39,7 +39,7 @@ const FoodHistory = () => {
   const [deletingDayDate, setDeletingDayDate] = useState<string | null>(null);
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false);
 
-  const ITEMS_PER_PAGE = 7; // Show 7 days at a time
+  const ITEMS_PER_PAGE = 30; // Show more days before load more
 
   useEffect(() => {
     if (user) {
@@ -215,10 +215,9 @@ const FoodHistory = () => {
               variant="ghost"
               size="sm"
               onClick={() => setShowDeleteAllDialog(true)}
-              className="text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:bg-destructive/10 w-8 h-8 p-0"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete All History
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
           
@@ -259,10 +258,9 @@ const FoodHistory = () => {
               variant="ghost"
               size="sm"
               onClick={() => setShowDeleteAllDialog(true)}
-              className="text-destructive hover:bg-destructive/10"
+              className="text-destructive hover:bg-destructive/10 w-8 h-8 p-0"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete All History
+              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>
