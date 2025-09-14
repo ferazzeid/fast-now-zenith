@@ -443,7 +443,7 @@ const Timer = () => {
 
 
         {/* Timer Display */}
-        <div className="relative mb-12 mt-12">
+        <div className="relative mb-8 mt-8">
           {currentMode === 'fasting' ? (
             <>
               <SquareTimer
