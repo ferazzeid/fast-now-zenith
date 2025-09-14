@@ -54,6 +54,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
 import { useColorTheme } from '@/hooks/useColorTheme';
+import { InstallationProgress } from './components/InstallationProgress';
+import { useInstallationProgress } from './utils/installationManager';
 
 
 
@@ -87,6 +89,10 @@ const AppContent = () => {
   const initialize = useAuthStore(state => state.initialize);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { progress: installProgress } = useInstallationProgress();
+  const [showInstallation, setShowInstallation] = useState(
+    installProgress.stage !== 'complete'
+  );
   
   // Initialize auth system on app startup (critical)
   useEffect(() => {
@@ -138,6 +144,21 @@ const AppContent = () => {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
+
+  // Show installation progress if needed
+  if (showInstallation) {
+    return (
+      <div className="min-h-screen bg-frame-background overflow-x-hidden">
+        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden">
+          <SEOManager />
+          <InstallationProgress 
+            onComplete={() => setShowInstallation(false)}
+            showOnlyDuringInstall={true}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // App is ready to render
   return (

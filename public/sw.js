@@ -1,7 +1,9 @@
-const VERSION = 'v1757845776995';
+const VERSION = 'v1757845777000';
 const APP_SHELL_CACHE = `fastnow-shell-${VERSION}`;
 const RUNTIME_CACHE = `fastnow-runtime-${VERSION}`;
+const CRITICAL_DATA_CACHE = `fastnow-data-${VERSION}`;
 
+// Core app shell files
 const APP_SHELL_URLS = [
   '/',
   '/index.html',
@@ -10,6 +12,23 @@ const APP_SHELL_URLS = [
   '/icon-192.png',
   '/icon-512.png'
 ];
+
+// Critical data endpoints to preload during installation
+const CRITICAL_DATA_ENDPOINTS = [
+  // Default foods - essential for food tracking
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/default_foods?select=*',
+  // App settings and global configuration
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=*',
+  // System motivators
+  'https://texnkijwcygodtywgedm.supabase.co/rest/v1/shared_settings?select=setting_value&eq.setting_key=predefined_motivators'
+];
+
+// Headers for Supabase requests
+const SUPABASE_HEADERS = {
+  'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2ODEzMzEsImV4cCI6MjA1MjI1NzMzMX0.vQx8rOKT2jnLxKGRdz4T8zPFqWrUhgFKSRvZqOKfZQE',
+  'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRleG5raWp3Y3lnb2R0eXdnZWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY2ODEzMzEsImV4cCI6MjA1MjI1NzMzMX0.vQx8rOKT2jnLxKGRdz4T8zPFqWrUhgFKSRvZqOKfZQE',
+  'Content-Type': 'application/json'
+};
 
 const isSupabase = (url) => /\.supabase\.co/.test(url);
 const isAsset = (url) => url.origin === self.location.origin && (
@@ -23,24 +42,77 @@ const isAsset = (url) => url.origin === self.location.origin && (
 );
 
 self.addEventListener('install', (event) => {
+  console.log('🚀 FastNow Service Worker installing with comprehensive preloading...');
   self.skipWaiting();
+  
   event.waitUntil(
-    caches.open(APP_SHELL_CACHE).then((cache) => cache.addAll(APP_SHELL_URLS))
+    (async () => {
+      try {
+        // 1. Cache app shell files
+        console.log('📦 Caching app shell...');
+        const shellCache = await caches.open(APP_SHELL_CACHE);
+        await shellCache.addAll(APP_SHELL_URLS);
+        
+        // 2. Preload critical data during installation
+        console.log('🗄️  Preloading critical data...');
+        const dataCache = await caches.open(CRITICAL_DATA_CACHE);
+        
+        const dataPromises = CRITICAL_DATA_ENDPOINTS.map(async (endpoint) => {
+          try {
+            console.log(`📥 Preloading: ${endpoint}`);
+            const response = await fetch(endpoint, { 
+              headers: SUPABASE_HEADERS,
+              cache: 'no-cache' // Always get fresh data during install
+            });
+            
+            if (response.ok) {
+              await dataCache.put(endpoint, response.clone());
+              console.log(`✅ Cached: ${endpoint}`);
+            } else {
+              console.warn(`⚠️  Failed to cache ${endpoint}: ${response.status}`);
+            }
+          } catch (error) {
+            console.warn(`❌ Error caching ${endpoint}:`, error);
+          }
+        });
+        
+        await Promise.allSettled(dataPromises);
+        console.log('🎉 Installation complete with data preloading!');
+        
+        // Send message to client about successful installation
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({ 
+              type: 'INSTALL_COMPLETE',
+              message: 'App installed with critical data preloaded!'
+            });
+          });
+        });
+        
+      } catch (error) {
+        console.error('💥 Installation failed:', error);
+        throw error;
+      }
+    })()
   );
 });
 
 self.addEventListener('activate', (event) => {
+  console.log('🔄 Service Worker activating...');
   event.waitUntil(
     (async () => {
+      // Clean up old caches
       const keys = await caches.keys();
-      await Promise.all(
-        keys.map((key) => {
-          if (!key.includes(VERSION)) {
-            return caches.delete(key);
-          }
-        })
-      );
+      const deletePromises = keys.map((key) => {
+        if (!key.includes(VERSION)) {
+          console.log(`🗑️  Deleting old cache: ${key}`);
+          return caches.delete(key);
+        }
+      });
+      
+      await Promise.all(deletePromises);
       await self.clients.claim();
+      console.log('✅ Service Worker activated and claimed clients');
     })()
   );
 });
@@ -151,7 +223,52 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-while-revalidate for Supabase GETs
+  // Priority cache-first for critical data endpoints
+  if (isSupabase(url) && request.method === 'GET' && CRITICAL_DATA_ENDPOINTS.includes(request.url)) {
+    event.respondWith(
+      (async () => {
+        // Check critical data cache first
+        const dataCache = await caches.open(CRITICAL_DATA_CACHE);
+        const cached = await dataCache.match(request);
+        
+        if (cached) {
+          console.log(`🎯 Serving critical data from cache: ${request.url}`);
+          
+          // Background update for fresh data (stale-while-revalidate)
+          fetch(request, { headers: SUPABASE_HEADERS })
+            .then((response) => {
+              if (response && response.ok) {
+                dataCache.put(request, response.clone());
+                console.log(`🔄 Updated critical data cache: ${request.url}`);
+              }
+            })
+            .catch((error) => {
+              console.warn(`⚠️  Background update failed for ${request.url}:`, error);
+            });
+          
+          return cached;
+        }
+        
+        // If not cached, fetch and cache
+        try {
+          const response = await fetch(request, { headers: SUPABASE_HEADERS });
+          if (response && response.ok) {
+            dataCache.put(request, response.clone());
+          }
+          return response;
+        } catch (error) {
+          console.error(`❌ Failed to fetch critical data ${request.url}:`, error);
+          return new Response('{}', { 
+            status: 503, 
+            headers: { 'Content-Type': 'application/json' } 
+          });
+        }
+      })()
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for other Supabase GETs
   if (isSupabase(url) && request.method === 'GET') {
     event.respondWith(
       (async () => {
