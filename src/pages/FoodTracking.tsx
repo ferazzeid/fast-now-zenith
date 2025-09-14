@@ -400,8 +400,7 @@ const FoodTracking = () => {
                             className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-2 py-1 h-auto"
                             disabled={isClearingAll}
                           >
-                            <Trash2 className="w-3 h-3 mr-1" />
-                            Delete All
+                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       )}

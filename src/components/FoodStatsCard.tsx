@@ -147,9 +147,8 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
           <div className="text-center">
             <ClickableTooltip content={`Daily goal: ${dailyAllowance} cal`}>
               <div className="cursor-pointer">
-                <div className={`text-sm font-mono ${getProgressColor(totalCalories, dailyAllowance)} flex items-baseline justify-center gap-1`}>
-                  <span>{Math.round(totalCalories)}</span>
-                  <span className="text-xs text-muted-foreground font-medium">g</span>
+                <div className={`text-sm font-mono ${getProgressColor(totalCalories, dailyAllowance)}`}>
+                  {Math.round(totalCalories)}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
                   calories planned
@@ -164,7 +163,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
               <div className="cursor-pointer">
                 <div className={`text-sm font-mono ${getProgressColor(totalCarbs, dailyCarbGoal)} flex items-baseline justify-center gap-1`}>
                   <span>{Math.round(totalCarbs)}</span>
-                  <span className="text-xs text-muted-foreground font-medium">g</span>
+                  <span className="text-xs font-mono">g</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
                   carbs planned
