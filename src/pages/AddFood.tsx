@@ -22,6 +22,7 @@ import { AccessGate } from '@/components/AccessGate';
 import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 import { ProgressiveImageUpload } from '@/components/enhanced/ProgressiveImageUpload';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
+import { useStandardizedLoading, useUploadLoading } from '@/hooks/useStandardizedLoading';
 
 interface AnalysisResult {
   name?: string;
@@ -43,24 +44,21 @@ export default function AddFood() {
   const { addFoodEntry } = useFoodEntriesQuery();
   const isSubscriptionActive = hasPremiumFeatures;
   
-  // Image and analysis state
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'uploaded' | 'analyzing' | 'analyzed' | 'error'>('idle');
+  // Standardized loading states
+  const { isLoading: saving, execute: executeSave } = useStandardizedLoading();
+  const { isLoading: isAiEstimating, execute: executeAiEstimate } = useStandardizedLoading();
+  const { uploadState, startUpload, startAnalysis, completeUpload, completeAnalysis, setUploadError, reset: resetUpload } = useUploadLoading();
   
-  // Form state
+  // Image and form state
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [servingAmount, setServingAmount] = useState('100');
   const [servingUnit, setServingUnit] = useState('');
   const [calories, setCalories] = useState('');
   const [carbs, setCarbs] = useState('0');
   const [quantity, setQuantity] = useState(1);
-  const [saving, setSaving] = useState(false);
   const [caloriesContext, setCaloriesContext] = useState<'per100g' | 'total'>('per100g');
-  
-  // AI estimation loading states
-  const [isAiEstimating, setIsAiEstimating] = useState(false);
   
   // Voice processing states
   const [voiceProcessingState, setVoiceProcessingState] = useState<'idle' | 'listening' | 'analyzing'>('idle');
@@ -77,15 +75,14 @@ export default function AddFood() {
     // Image upload successful - immediately show the image
     setImageUrl(url);
     setError(null);
-    setUploadState('uploaded');
+    completeUpload();
     
     // Image is now ready for manual food entry regardless of analysis
     console.log('✅ Image uploaded successfully:', url);
   };
 
   const handleAnalysisStart = () => {
-    setAnalyzing(true);
-    setUploadState('analyzing');
+    startAnalysis();
     setError(null);
   };
 
@@ -107,8 +104,7 @@ export default function AddFood() {
       setCarbs(totalCarbs.toString());
     }
     
-    setAnalyzing(false);
-    setUploadState('analyzed');
+    completeAnalysis();
     
     // Show single unified confirmation
     toast({
@@ -119,8 +115,7 @@ export default function AddFood() {
 
   const handleAnalysisError = (errorMessage: string) => {
     setError(errorMessage);
-    setAnalyzing(false);
-    setUploadState('error');
+    setUploadError(errorMessage);
   };
 
 
@@ -134,8 +129,7 @@ export default function AddFood() {
       return;
     }
 
-    setIsAiEstimating(true);
-    try {
+    await executeAiEstimate(async () => {
       // Get both calories and carbs in one request
       const { data: result, error } = await supabase.functions.invoke('chat-completion', {
         body: {
@@ -184,15 +178,15 @@ export default function AddFood() {
         description: "Please enter manually.",
         variant: "destructive"
       });
-    } catch (error) {
-      toast({
-        title: "AI estimation failed",
-        description: `${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive"
-      });
-    } finally {
-      setIsAiEstimating(false);
-    }
+    }, {
+      onError: (error) => {
+        toast({
+          title: "AI estimation failed",
+          description: `${error instanceof Error ? error.message : 'Unknown error'}`,
+          variant: "destructive"
+        });
+      }
+    });
   };
 
   const getSmartDefaultUnit = (foodName: string): string => {
@@ -233,8 +227,7 @@ export default function AddFood() {
       return;
     }
 
-    setSaving(true);
-    try {
+    await executeSave(async () => {
       // Create separate entries for each quantity
       for (let i = 0; i < quantity; i++) {
         const entryData = {
@@ -263,22 +256,22 @@ export default function AddFood() {
       
       // Navigate back to food tracking page
       navigate('/food-tracking');
-    } catch (error) {
-      console.error('Error saving food:', error);
-      toast({ 
-        title: 'Failed to save food', 
-        description: 'Please try again.',
-        variant: 'destructive' 
-      });
-    } finally {
-      setSaving(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error saving food:', error);
+        toast({ 
+          title: 'Failed to save food', 
+          description: 'Please try again.',
+          variant: 'destructive' 
+        });
+      }
+    });
   };
 
   const resetForm = () => {
     setImageUrl(null);
     setError(null);
-    setUploadState('idle');
+    resetUpload();
     setName('');
     setServingAmount('100');
     setServingUnit(getDefaultServingSizeUnit());
@@ -290,7 +283,7 @@ export default function AddFood() {
   const handleRetakePhoto = () => {
     setImageUrl(null);
     setError(null);
-    setUploadState('idle');
+    resetUpload();
   };
 
   const availableUnits = getServingUnitsForUser();

@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/universal-modal';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 export const ClearWalkingHistoryButton = () => {
-  const [isClearing, setIsClearing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const { isLoading: isClearing, execute } = useStandardizedLoading();
   const { toast } = useToast();
   const { user } = useAuth();
   const { triggerRefresh } = useWalkingSession();
@@ -17,8 +18,7 @@ export const ClearWalkingHistoryButton = () => {
   const handleClearHistory = async () => {
     if (!user) return;
 
-    setIsClearing(true);
-    try {
+    await execute(async () => {
       const { error } = await supabase
         .from('walking_sessions')
         .delete()
@@ -34,44 +34,41 @@ export const ClearWalkingHistoryButton = () => {
         title: "Success",
         description: "Walking history permanently deleted",
       });
-    } catch (error) {
-      console.error('Error clearing walking history:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete walking history",
-        variant: "destructive",
-      });
-    } finally {
-      setIsClearing(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Error clearing walking history:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete walking history",
+          variant: "destructive",
+        });
+      }
+    });
+    
+    setShowConfirm(false);
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-xs">
-          <Trash2 className="w-3 h-3 mr-1" />
-          Delete All History
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Delete Walking History</AlertDialogTitle>
-          <AlertDialogDescription>
-            This will permanently delete all your walking session history. This action cannot be undone. Your walking data will be completely removed from our servers.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleClearHistory}
-            disabled={isClearing}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-          >
-            {isClearing ? 'Deleting...' : 'Permanently Delete'}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="text-xs"
+        onClick={() => setShowConfirm(true)}
+      >
+        <Trash2 className="w-3 h-3 mr-1" />
+        Delete All History
+      </Button>
+
+      <ConfirmationModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleClearHistory}
+        title="Delete Walking History"
+        message="This will permanently delete all your walking session history. This action cannot be undone. Your walking data will be completely removed from our servers."
+        confirmText={isClearing ? 'Deleting...' : 'Permanently Delete'}
+        variant="destructive"
+      />
+    </>
   );
 };

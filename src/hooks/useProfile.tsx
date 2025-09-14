@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
 import { cacheProfile, getCachedProfile, deduplicateRequest } from '@/utils/offlineStorage';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface UserProfile {
   id: string;
@@ -32,7 +33,8 @@ interface UserProfile {
 
 export const useProfile = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { isLoading: loading, execute: executeLoadProfile } = useStandardizedLoading();
+  const { isLoading: updating, execute: executeUpdateProfile } = useStandardizedLoading();
   const user = useAuthStore(state => state.user);
   const { toast } = useToast();
   const { executeWithRetry } = useRetryableSupabase();
@@ -41,7 +43,6 @@ export const useProfile = () => {
     // Always set loading to false if no user, but don't return early
     if (!user) {
       setProfile(null);
-      setLoading(false);
       return;
     }
     
@@ -51,15 +52,13 @@ export const useProfile = () => {
       if (cached && cached.weight && cached.height && cached.age) {
         console.log('Using cached profile data:', cached);
         setProfile(cached);
-        setLoading(false);
         return;
       } else {
         console.log('Cache invalid or incomplete, fetching fresh profile data');
       }
     }
     
-    setLoading(true);
-    try {
+    await executeLoadProfile(async () => {
       let data: any = null;
 
       if (forceRefresh) {
@@ -111,18 +110,19 @@ export const useProfile = () => {
       }
       
       setProfile(data || null);
-    } catch (error) {
-      console.error('Error loading profile:', error);
-      setProfile(null);
-      toast({
-        variant: "destructive",
-        title: "Connection Error",
-        description: "Unable to load profile. Please check your internet connection."
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.id, executeWithRetry, toast]);
+      return data;
+    }, {
+      onError: (error) => {
+        console.error('Error loading profile:', error);
+        setProfile(null);
+        toast({
+          variant: "destructive",
+          title: "Connection Error",
+          description: "Unable to load profile. Please check your internet connection."
+        });
+      }
+    });
+  }, [user?.id, executeWithRetry, toast, executeLoadProfile]);
 
   const updateProfile = useCallback(async (updates: Partial<UserProfile>) => {
     if (!user) {
@@ -131,9 +131,8 @@ export const useProfile = () => {
     }
 
     console.log('updateProfile: Starting update for user:', user.id);
-    setLoading(true);
     
-    try {
+    await executeUpdateProfile(async () => {
       // Verify we have a valid session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -190,19 +189,19 @@ export const useProfile = () => {
       // SYNCHRONIZED: Update cache with new data immediately (1 hour cache)
       cacheProfile(user.id, data, 1);
 
-      return { data, error: null };
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast({
-        variant: "destructive",
-        title: "Update failed",
-        description: `Unable to save profile: ${error.message || 'Please try again.'}`
-      });
-      return { error, data: null };
-    } finally {
-      setLoading(false);
-    }
-  }, [user, executeWithRetry, toast, loadProfile]);
+      return data ? { data, error: null } : { error: new Error('No data returned'), data: null };
+    }, {
+      onError: (error: any) => {
+        console.error('Error updating profile:', error);
+        toast({
+          variant: "destructive",
+          title: "Update failed",
+          description: `Unable to save profile: ${error.message || 'Please try again.'}`
+        });
+        return { error, data: null };
+      }
+    });
+  }, [user, executeWithRetry, toast, loadProfile, executeUpdateProfile]);
 
   const isProfileComplete = useCallback(() => {
     const complete = !!(profile && 
@@ -287,7 +286,7 @@ export const useProfile = () => {
 
   return {
     profile,
-    loading,
+    loading: loading || updating,
     updateProfile,
     loadProfile,
     isProfileComplete,

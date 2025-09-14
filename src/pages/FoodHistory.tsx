@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { X, Utensils, Calendar, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { useCopyHistoricalDay } from '@/hooks/useCopyHistoricalDay';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOManager } from '@/components/SEOManager';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface DailySummary {
   date: string;
@@ -30,8 +31,7 @@ const FoodHistory = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { copyDayToToday, loading: copyLoading } = useCopyHistoricalDay();
-  const [dailySummaries, setDailySummaries] = useState<DailySummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: dailySummaries, isLoading, execute: loadFoodHistory } = useStandardizedLoading<DailySummary[]>([]);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -42,15 +42,14 @@ const FoodHistory = () => {
 
   useEffect(() => {
     if (user) {
-      loadFoodHistory();
+      loadFoodHistoryData();
     }
   }, [user]);
 
-  const loadFoodHistory = async (offsetValue = 0, append = false) => {
+  const loadFoodHistoryData = async (offsetValue = 0, append = false) => {
     if (!user) return;
 
-    setLoading(true);
-    try {
+    await loadFoodHistory(async () => {
       // Calculate yesterday's end to exclude today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -103,29 +102,24 @@ const FoodHistory = () => {
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, ITEMS_PER_PAGE);
 
-      if (append) {
-        setDailySummaries(prev => [...prev, ...summaries]);
-      } else {
-        setDailySummaries(summaries);
-      }
-
       setHasMore(entries?.length === 50);
-    } catch (error) {
-      console.error('Error loading food history:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load food history",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+      return summaries;
+    }, {
+      onError: (error) => {
+        console.error('Error loading food history:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load food history",
+          variant: "destructive"
+        });
+      }
+    });
   };
 
   const loadMore = () => {
     const newOffset = offset + 1;
     setOffset(newOffset);
-    loadFoodHistory(newOffset, true);
+    loadFoodHistoryData(newOffset, true);
   };
 
   const toggleDayExpansion = (date: string) => {
@@ -142,7 +136,7 @@ const FoodHistory = () => {
 
   const deleteEntireDay = async (date: string) => {
     try {
-      const summary = dailySummaries.find(s => s.date === date);
+      const summary = dailySummaries?.find(s => s.date === date);
       if (!summary) return;
 
       // Delete all entries for this day
@@ -155,7 +149,9 @@ const FoodHistory = () => {
       if (error) throw error;
 
       // Update local state
-      setDailySummaries(prev => prev.filter(s => s.date !== date));
+      if (dailySummaries) {
+        await loadFoodHistory(async () => dailySummaries.filter(s => s.date !== date));
+      }
 
       toast({
         title: "Day deleted",
@@ -186,7 +182,9 @@ const FoodHistory = () => {
       if (error) throw error;
 
       // Clear local state
-      setDailySummaries([]);
+      if (dailySummaries) {
+        await loadFoodHistory(async () => []);
+      }
 
       toast({
         title: "History deleted",
@@ -204,7 +202,7 @@ const FoodHistory = () => {
     }
   };
 
-  if (loading && dailySummaries.length === 0) {
+  if (isLoading && (!dailySummaries || dailySummaries.length === 0)) {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
@@ -274,7 +272,7 @@ const FoodHistory = () => {
           </div>
         )}
 
-        {dailySummaries.length === 0 ? (
+        {!dailySummaries || dailySummaries.length === 0 ? (
           <div className="text-center py-12">
             <Utensils className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Food Entries Yet</h3>
@@ -287,7 +285,7 @@ const FoodHistory = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {dailySummaries.map((summary) => (
+            {dailySummaries?.map((summary) => (
               <Card key={summary.date} className="overflow-hidden">
                 <CardHeader 
                   className="py-3 cursor-pointer hover:bg-muted/20 transition-colors"
@@ -378,55 +376,35 @@ const FoodHistory = () => {
                 variant="outline"
                 className="w-full"
                 onClick={loadMore}
-                disabled={loading}
+                disabled={isLoading}
               >
-                {loading ? 'Loading...' : 'Load More'}
+                {isLoading ? 'Loading...' : 'Load More'}
               </Button>
             )}
           </div>
         )}
 
         {/* Delete Day Confirmation Dialog */}
-        <AlertDialog open={!!deletingDayDate} onOpenChange={() => setDeletingDayDate(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Entire Day</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete all food entries for {deletingDayDate ? new Date(deletingDayDate).toLocaleDateString() : ''}? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletingDayDate && deleteEntireDay(deletingDayDate)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete Day
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmationModal
+          isOpen={!!deletingDayDate}
+          onClose={() => setDeletingDayDate(null)}
+          onConfirm={() => deletingDayDate && deleteEntireDay(deletingDayDate)}
+          title="Delete Entire Day"
+          message={`Are you sure you want to delete all food entries for ${deletingDayDate ? new Date(deletingDayDate).toLocaleDateString() : ''}? This action cannot be undone.`}
+          confirmText="Delete Day"
+          variant="destructive"
+        />
 
         {/* Delete All History Confirmation Dialog */}
-        <AlertDialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete All Food History</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete ALL food history? This will permanently remove all food entries from all days. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={deleteAllHistory}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete All History
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmationModal
+          isOpen={showDeleteAllDialog}
+          onClose={() => setShowDeleteAllDialog(false)}
+          onConfirm={deleteAllHistory}
+          title="Delete All Food History"
+          message="Are you sure you want to delete ALL food history? This will permanently remove all food entries from all days. This action cannot be undone."
+          confirmText="Delete All History"
+          variant="destructive"
+        />
       </div>
     </div>
   );

@@ -5,9 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Trash2, Edit3, Save, X, Eye, EyeOff } from "lucide-react";
 import { CircularVoiceButton } from "@/components/CircularVoiceButton";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ConfirmationModal } from "@/components/ui/universal-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 
 interface Note {
   id: string;
@@ -27,8 +28,9 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title);
   const [editContent, setEditContent] = useState(note.content);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isToggling, setIsToggling] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { isLoading: isUpdating, execute: executeUpdate } = useStandardizedLoading();
+  const { isLoading: isToggling, execute: executeToggle } = useStandardizedLoading();
   
   // Local state for optimistic updates
   const [localShowInAnimations, setLocalShowInAnimations] = useState(note.show_in_animations !== false);
@@ -49,8 +51,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
       return;
     }
 
-    setIsUpdating(true);
-    try {
+    await executeUpdate(async () => {
       await onUpdate(note.id, { 
         title: editTitle.trim(), 
         content: editContent.trim() 
@@ -60,15 +61,15 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
       toast({
         description: "Note updated successfully",
       });
-    } catch (error) {
-      toast({
-        description: "Failed to update note",
-        variant: "destructive",
-      });
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [note.id, editTitle, editContent, onUpdate, toast]);
+    }, {
+      onError: () => {
+        toast({
+          description: "Failed to update note",
+          variant: "destructive",
+        });
+      }
+    });
+  }, [note.id, editTitle, editContent, onUpdate, toast, executeUpdate]);
 
   const handleCancel = useCallback(() => {
     setEditTitle(note.title);
@@ -88,6 +89,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
         variant: "destructive",
       });
     }
+    setShowDeleteConfirm(false);
   }, [note.id, onDelete, toast]);
 
   const handleVoiceTranscription = useCallback((text: string) => {
@@ -180,9 +182,8 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                           
                           // Optimistic update - update UI immediately
                           setLocalShowInAnimations(newValue);
-                          setIsToggling(true);
                           
-                          try {
+                          await executeToggle(async () => {
                             await onUpdate(note.id, { 
                               title: note.title, 
                               content: note.content,
@@ -192,17 +193,17 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                             toast({
                               description: `Note ${newValue ? 'will show' : 'hidden from'} in timer animations`,
                             });
-                          } catch (error) {
-                            // Rollback on error - restore original state
-                            setLocalShowInAnimations(!localShowInAnimations);
-                            console.error('Failed to update animation setting:', error);
-                            toast({
-                              description: "Failed to update animation setting",
-                              variant: "destructive",
-                            });
-                          } finally {
-                            setIsToggling(false);
-                          }
+                          }, {
+                            onError: (error) => {
+                              // Rollback on error - restore original state
+                              setLocalShowInAnimations(!newValue);
+                              console.error('Failed to update animation setting:', error);
+                              toast({
+                                description: "Failed to update animation setting",
+                                variant: "destructive",
+                              });
+                            }
+                          });
                         }}
                         disabled={isToggling}
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-all duration-200"
@@ -225,31 +226,14 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Note</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete this note? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleDelete}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        onClick={() => setShowDeleteConfirm(true)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Delete note</p>
@@ -264,6 +248,17 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
           </div>
         )}
       </CardContent>
+      
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title="Delete Note"
+        message="Are you sure you want to delete this note? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
     </Card>
   );
 };

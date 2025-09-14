@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { X, Trash2, Edit, Clock, MapPin, Zap, Footprints } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/universal-modal';
 import { EditWalkingSessionTimeModal } from '@/components/EditWalkingSessionTimeModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOManager } from '@/components/SEOManager';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface WalkingSession {
   id: string;
@@ -26,8 +27,7 @@ const WalkingHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [sessions, setSessions] = useState<WalkingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sessions, isLoading, execute: fetchSessions } = useStandardizedLoading<WalkingSession[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -35,15 +35,14 @@ const WalkingHistory = () => {
 
   useEffect(() => {
     if (user) {
-      fetchSessions();
+      loadSessions();
     }
   }, [user, showAll]);
 
-  const fetchSessions = async () => {
+  const loadSessions = async () => {
     if (!user) return;
     
-    try {
-      setLoading(true);
+    await fetchSessions(async () => {
       const limit = showAll ? 100 : 10;
       
       const { data, error } = await supabase
@@ -56,8 +55,7 @@ const WalkingHistory = () => {
 
       if (error) throw error;
 
-      setSessions(data || []);
-      
+      // Check if there are more sessions available
       if (!showAll && data && data.length >= 10) {
         const { count } = await supabase
           .from('walking_sessions')
@@ -69,16 +67,18 @@ const WalkingHistory = () => {
       } else {
         setHasMore(false);
       }
-    } catch (error) {
-      console.error('Error fetching walking sessions:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load walking history"
-      });
-    } finally {
-      setLoading(false);
-    }
+
+      return data || [];
+    }, {
+      onError: (error) => {
+        console.error('Error fetching walking sessions:', error);
+        toast({
+          variant: "destructive",
+          title: "Error", 
+          description: "Failed to load walking history"
+        });
+      }
+    });
   };
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -93,7 +93,11 @@ const WalkingHistory = () => {
 
       if (error) throw error;
 
-      setSessions(sessions.filter(session => session.id !== sessionId));
+      // Remove the session from local state
+      if (sessions) {
+        await loadSessions();
+      }
+      
       toast({
         title: "Session Deleted",
         description: "Walking session has been removed from your history"
@@ -126,7 +130,7 @@ const WalkingHistory = () => {
     return `${remainingMinutes}m`;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
@@ -168,7 +172,7 @@ const WalkingHistory = () => {
           </Button>
         </div>
 
-        {sessions.length === 0 ? (
+        {!sessions || sessions.length === 0 ? (
           <div className="text-center py-12">
             <Footprints className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Walking Sessions Yet</h3>
@@ -181,7 +185,7 @@ const WalkingHistory = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {sessions.map((session) => (
+            {sessions?.map((session) => (
               <Card key={session.id} className="overflow-hidden">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start mb-3">
@@ -294,25 +298,15 @@ const WalkingHistory = () => {
         )}
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Walking Session</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this walking session? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletingId && handleDeleteSession(deletingId)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmationModal
+          isOpen={!!deletingId}
+          onClose={() => setDeletingId(null)}
+          onConfirm={() => deletingId && handleDeleteSession(deletingId)}
+          title="Delete Walking Session"
+          message="Are you sure you want to delete this walking session? This action cannot be undone."
+          confirmText="Delete"
+          variant="destructive"
+        />
 
         {/* Edit Session Time Modal */}
         {editingSession && (
@@ -321,7 +315,7 @@ const WalkingHistory = () => {
             isOpen={!!editingSession}
             onClose={() => setEditingSession(null)}
             onSessionEdited={() => {
-              fetchSessions(); // Refresh the list
+              loadSessions(); // Refresh the list
               setEditingSession(null);
             }}
           />

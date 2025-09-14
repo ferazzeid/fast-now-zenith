@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { X, Clock, Calendar, Trash2, Edit, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { ConfirmationModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOManager } from '@/components/SEOManager';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface FastingSession {
   id: string;
@@ -22,23 +23,21 @@ const FastingHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [sessions, setSessions] = useState<FastingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sessions, isLoading, execute: fetchSessions } = useStandardizedLoading<FastingSession[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
     if (user) {
-      fetchFastingSessions();
+      loadFastingSessions();
     }
   }, [user, showAll]);
 
-  const fetchFastingSessions = async () => {
+  const loadFastingSessions = async () => {
     if (!user) return;
     
-    try {
-      setLoading(true);
+    await fetchSessions(async () => {
       const limit = showAll ? 100 : 15;
       
       const { data, error } = await supabase
@@ -51,8 +50,7 @@ const FastingHistory = () => {
 
       if (error) throw error;
 
-      setSessions((data || []) as FastingSession[]);
-      
+      // Check if there are more sessions available
       if (!showAll && data && data.length >= 15) {
         const { count } = await supabase
           .from('fasting_sessions')
@@ -64,16 +62,9 @@ const FastingHistory = () => {
       } else {
         setHasMore(false);
       }
-    } catch (error) {
-      console.error('Error fetching fasting sessions:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to load fasting history"
-      });
-    } finally {
-      setLoading(false);
-    }
+
+      return (data || []) as FastingSession[];
+    });
   };
 
   const handleDeleteSession = async (sessionId: string) => {
@@ -88,7 +79,11 @@ const FastingHistory = () => {
 
       if (error) throw error;
 
-      setSessions(sessions.filter(session => session.id !== sessionId));
+      // Remove the session from local state
+      if (sessions) {
+        await fetchSessions(async () => sessions.filter(session => session.id !== sessionId));
+      }
+      
       toast({
         title: "Fasting Session Deleted",
         description: "Fasting session has been removed from your history"
@@ -156,7 +151,7 @@ const FastingHistory = () => {
     return groups;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
@@ -181,7 +176,7 @@ const FastingHistory = () => {
     );
   }
 
-  const groupedSessions = groupSessionsByDate(sessions);
+  const groupedSessions = groupSessionsByDate(sessions || []);
 
   return (
     <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
@@ -200,7 +195,7 @@ const FastingHistory = () => {
           </Button>
         </div>
 
-        {sessions.length === 0 ? (
+        {!sessions || sessions.length === 0 ? (
           <div className="text-center py-12">
             <Clock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Fasting Sessions Yet</h3>
@@ -331,25 +326,15 @@ const FastingHistory = () => {
         )}
 
         {/* Delete Confirmation Dialog */}
-        <AlertDialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Delete Fasting Session</AlertDialogTitle>
-              <AlertDialogDescription>
-                Are you sure you want to delete this fasting session? This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => deletingId && handleDeleteSession(deletingId)}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
-                Delete
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ConfirmationModal
+          isOpen={!!deletingId}
+          onClose={() => setDeletingId(null)}
+          onConfirm={() => deletingId && handleDeleteSession(deletingId)}
+          title="Delete Fasting Session"
+          message="Are you sure you want to delete this fasting session? This action cannot be undone."
+          confirmText="Delete"
+          variant="destructive"
+        />
       </div>
     </div>
   );

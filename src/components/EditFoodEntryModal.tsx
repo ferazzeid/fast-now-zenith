@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface FoodEntry {
   id: string;
@@ -30,7 +31,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
   const [carbs, setCarbs] = useState(entry.carbs.toString());
   const [servingSize, setServingSize] = useState(entry.serving_size.toString());
   const [imageUrl, setImageUrl] = useState(entry.image_url || '');
-  const [loading, setLoading] = useState(false);
+  const { isLoading, execute } = useStandardizedLoading();
   const { toast } = useToast();
 
   const handleSave = async () => {
@@ -74,8 +75,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
       return;
     }
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       const updatedEntry: FoodEntry = {
         ...entry,
         name: name.trim(),
@@ -88,16 +88,16 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
       await onUpdate(updatedEntry);
       
       if (onClose) onClose(); else setInternalOpen(false);
-    } catch (error) {
-      console.error('Failed to update food entry:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update food entry",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    }, {
+      onError: (error) => {
+        console.error('Failed to update food entry:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update food entry",
+          variant: "destructive"
+        });
+      }
+    });
   };
 
   const resetForm = () => {
@@ -129,9 +129,9 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
           >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={loading} className="w-full">
+          <Button onClick={handleSave} disabled={isLoading} className="w-full">
             <Save className="w-4 h-4 mr-2" />
-            {loading ? 'Saving...' : 'Save'}
+            {isLoading ? 'Saving...' : 'Save'}
           </Button>
         </>
       }
