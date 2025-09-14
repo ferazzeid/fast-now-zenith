@@ -65,9 +65,8 @@ class InstallationManager {
         } else if (registration.waiting) {
           this.completeInstallation();
         } else {
-          // For regular web browsing, start timeout anyway for mobile reliability
-          console.log('No active service worker state, starting timeout...');
-          this.startInitializationTimeout();
+          // For regular web browsing, complete immediately
+          this.completeInstallation();
         }
       }).catch((error) => {
         console.error('Service worker ready check failed:', error);
