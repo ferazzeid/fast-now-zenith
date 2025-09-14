@@ -208,6 +208,18 @@ const FoodHistory = () => {
     return (
       <div className="relative min-h-screen bg-background p-4">
         <div className="max-w-md mx-auto pt-16 pb-32">
+          {/* Top right X button to close */}
+          <div className="flex justify-end mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/food-tracking')}
+              className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-left">Food History</h1>
@@ -250,6 +262,18 @@ const FoodHistory = () => {
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-16 pb-32">
+        {/* Top right X button to close */}
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/food-tracking')}
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
         {/* Header with left-aligned title and right-aligned delete button */}
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-left">Food History</h1>
