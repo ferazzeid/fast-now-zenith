@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
+import { useBaseQuery } from '@/hooks/useBaseQuery';
 
 export interface WalkingSession {
   id: string;
@@ -25,16 +26,15 @@ export interface WalkingSession {
 const walkingSessionsQueryKey = (userId: string | null) => ['walking-sessions', userId];
 const activeSessionQueryKey = (userId: string | null) => ['active-walking-session', userId];
 
-export const useWalkingSessionQuery = () => {
+export const useOptimizedWalkingSession = () => {
   const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Get all walking sessions
-  const walkingSessionsQuery = useQuery({
-    queryKey: walkingSessionsQueryKey(user?.id || null),
-    queryFn: async (): Promise<WalkingSession[]> => {
-      // Never return conditionally - always execute query function consistently
+  // Get all walking sessions using useBaseQuery
+  const walkingSessionsQuery = useBaseQuery(
+    walkingSessionsQueryKey(user?.id || null),
+    async (): Promise<WalkingSession[]> => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
@@ -47,17 +47,17 @@ export const useWalkingSessionQuery = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
-    staleTime: 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    retry: 3,
-  });
+    {
+      enabled: !!user?.id,
+      staleTime: 30 * 1000, // 30 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes
+    }
+  );
 
-  // Get active walking session
-  const activeSessionQuery = useQuery({
-    queryKey: activeSessionQueryKey(user?.id || null),
-    queryFn: async (): Promise<WalkingSession | null> => {
-      // Never return conditionally - always execute query function consistently
+  // Get active walking session using useBaseQuery
+  const activeSessionQuery = useBaseQuery(
+    activeSessionQueryKey(user?.id || null),
+    async (): Promise<WalkingSession | null> => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
@@ -73,12 +73,13 @@ export const useWalkingSessionQuery = () => {
 
       return data || null;
     },
-    enabled: !!user?.id,
-    staleTime: 5 * 1000, // 5 seconds for active session
-    gcTime: 30 * 1000, // 30 seconds
-    refetchInterval: (data) => data ? 30000 : false, // Only poll every 30s if active session
-    retry: 3,
-  });
+    {
+      enabled: !!user?.id,
+      staleTime: 5 * 1000, // 5 seconds for active session
+      gcTime: 30 * 1000, // 30 seconds
+      refetchInterval: (data) => data ? 30000 : false, // Only poll every 30s if active session
+    }
+  );
 
   // Start walking session mutation
   const startSessionMutation = useMutation({
@@ -214,9 +215,12 @@ export const useWalkingSessionQuery = () => {
     sessions: walkingSessionsQuery.data || [],
     activeSession: activeSessionQuery.data,
     
-    // Loading states
-    loading: walkingSessionsQuery.isLoading,
-    activeSessionLoading: activeSessionQuery.isLoading,
+    // Loading states using enhanced BaseQuery states
+    loading: walkingSessionsQuery.isInitialLoading,
+    activeSessionLoading: activeSessionQuery.isInitialLoading,
+    isRefetching: walkingSessionsQuery.isRefetching,
+    error: walkingSessionsQuery.error || activeSessionQuery.error,
+    errorMessage: walkingSessionsQuery.errorMessage || activeSessionQuery.errorMessage,
     
     // Actions
     startSession: startSessionMutation.mutate,

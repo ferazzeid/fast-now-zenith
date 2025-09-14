@@ -23,7 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useBaseQuery } from '@/hooks/useBaseQuery';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
-import { useWalkingSessionQuery } from '@/hooks/useWalkingSessionQuery';
+import { useOptimizedWalkingSession } from './useOptimizedWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
 import { useCallback } from 'react';
@@ -57,7 +57,7 @@ export const useDailyDeficitQuery = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { todayTotals } = useFoodEntriesQuery();
-  const { sessions: walkingSessions } = useWalkingSessionQuery();
+  const { sessions: walkingSessions } = useOptimizedWalkingSession();
   const { todayOverride } = useDailyActivityOverride();
   
   // Get today's date in YYYY-MM-DD format

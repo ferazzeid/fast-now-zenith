@@ -9,7 +9,7 @@ import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 import { AdminInsightDisplay } from './AdminInsightDisplay';
 import { useAccess } from '@/hooks/useAccess';
 import { useNavigate } from 'react-router-dom';
-import { useAdminPersonalLogEnabled } from '@/hooks/useAdminPersonalLogEnabled';
+import { useOptimizedAdminPersonalLog } from '@/hooks/optimized/useOptimizedAdminPersonalLog';
 
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -25,7 +25,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
   const { data: hours, isLoading } = useFastingHoursQuery();
   const queryClient = useQueryClient();
   const { isAdmin } = useAccess();
-  const { isEnabled: isPersonalLogEnabled } = useAdminPersonalLogEnabled();
+  const { isEnabled: isPersonalLogEnabled } = useOptimizedAdminPersonalLog();
   const [selectedHour, setSelectedHour] = useState<number>(Math.min(Math.max(currentHour || 1, 0), MAX_HOUR));
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);

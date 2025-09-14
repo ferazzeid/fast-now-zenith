@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 import { useStepEstimation } from '@/utils/stepEstimation';
 
 // Performance optimized walking stats - updates every minute when active
@@ -33,7 +33,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   });
 
   const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
-  const { profile, loading: profileLoading } = useProfileQuery();
+  const { profile, loading: profileLoading } = useOptimizedProfile();
   const { estimateStepsForSession } = useStepEstimation();
 
   // Simplified profile check - no dependency on loading state for initial display

@@ -5,7 +5,7 @@
  */
 
 import { useCallback } from 'react';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 
 interface StepEstimationProps {
   durationMinutes: number;
@@ -76,7 +76,7 @@ export const getStepsPerMinute = (speedMph: number, userHeight: number = 70, uni
  * Hook for step estimation utilities that uses stable profile data
  */
 export const useStepEstimation = () => {
-  const { profile } = useProfileQuery();
+  const { profile } = useOptimizedProfile();
 
   // Create stable functions with useCallback to prevent re-renders
   const estimateStepsForSession = useCallback((durationMinutes: number, speedMph: number): number => {

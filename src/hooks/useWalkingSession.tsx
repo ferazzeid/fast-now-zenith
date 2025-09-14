@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfileQuery } from '@/hooks/useProfileQuery';
+import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 import { estimateSteps } from '@/utils/stepEstimation';
 import { enqueueOperation } from '@/utils/outbox';
 import { persistWalkingSession, getPersistedWalkingSession } from '@/utils/timerPersistence';
@@ -28,7 +28,7 @@ export const useWalkingSession = () => {
   const [isPaused, setIsPaused] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { user } = useAuth();
-  const { profile, calculateWalkingCalories } = useProfileQuery();
+  const { profile, calculateWalkingCalories } = useOptimizedProfile();
 
   const triggerRefresh = useCallback(() => {
     setRefreshTrigger(prev => prev + 1);

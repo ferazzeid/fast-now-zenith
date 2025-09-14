@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { useBaseQuery } from './useBaseQuery';
 
 export interface AccessData {
   access_level: 'free' | 'trial' | 'premium' | 'admin' | 'free_full' | 'free_food_only';
@@ -124,20 +124,19 @@ export const useAccess = () => {
     }
   }, []);
 
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['access', user?.id],
-    queryFn: () => fetchAccessData(user!.id),
-    enabled: !!user?.id,
-    staleTime: 30 * 1000, // 30 seconds - faster refresh for better UX
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1, // Allow one retry for network issues
-    retryDelay: 1000, // Quick retry after 1 second
-    retryOnMount: false, // Don't retry when component mounts
-    refetchOnWindowFocus: false, // Don't refetch on window focus
-    throwOnError: false, // Never throw errors that could poison auth state
-    // Add network timeout
-    networkMode: 'offlineFirst', // Use cached data when offline
-  });
+  const { data, isLoading, error, refetch, isInitialLoading, isRefetching, errorMessage } = useBaseQuery(
+    ['access', user?.id],
+    () => fetchAccessData(user!.id),
+    {
+      enabled: !!user?.id,
+      staleTime: 30 * 1000, // 30 seconds - faster refresh for better UX
+      gcTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1, // Allow one retry for network issues
+      retryDelay: 1000, // Quick retry after 1 second
+      refetchOnWindowFocus: false, // Don't refetch on window focus
+      networkMode: 'offlineFirst', // Use cached data when offline
+    }
+  );
 
   // Default data for unauthenticated users
   const defaultData: AccessData = {

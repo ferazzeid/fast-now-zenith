@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
+import { useBaseQuery } from '@/hooks/useBaseQuery';
 
 export interface UserProfile {
   user_id: string;
@@ -24,16 +25,15 @@ export interface UserProfile {
 
 const profileQueryKey = (userId: string | null) => ['profile', userId];
 
-export const useProfileQuery = () => {
+export const useOptimizedProfile = () => {
   const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Profile query
-  const profileQuery = useQuery({
-    queryKey: profileQueryKey(user?.id || null),
-    queryFn: async (): Promise<UserProfile | null> => {
-      // Never return conditionally - always execute query function consistently
+  // Profile query using useBaseQuery
+  const profileQuery = useBaseQuery(
+    profileQueryKey(user?.id || null),
+    async (): Promise<UserProfile | null> => {
       if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
@@ -48,12 +48,12 @@ export const useProfileQuery = () => {
 
       return data as UserProfile || null;
     },
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 3,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
+    {
+      enabled: !!user?.id,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    }
+  );
 
   // Profile update mutation
   const updateProfileMutation = useMutation({
@@ -162,8 +162,10 @@ export const useProfileQuery = () => {
 
   return {
     profile: profileQuery.data,
-    loading: profileQuery.isLoading,
+    loading: profileQuery.isInitialLoading,
+    isRefetching: profileQuery.isRefetching,
     error: profileQuery.error,
+    errorMessage: profileQuery.errorMessage,
     updateProfile: updateProfileMutation.mutate,
     isUpdating: updateProfileMutation.isPending,
     isProfileComplete,

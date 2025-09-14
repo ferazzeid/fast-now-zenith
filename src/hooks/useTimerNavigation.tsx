@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFastingSessionQuery } from './optimized/useFastingSessionQuery';
-import { useWalkingSessionQuery } from './useWalkingSessionQuery';
+import { useOptimizedWalkingSession } from './optimized/useOptimizedWalkingSession';
 
 export type TimerMode = 'fasting' | 'walking';
 
@@ -26,7 +26,7 @@ export const useTimerNavigation = () => {
   });
 
   const { currentSession: fastingSession } = useFastingSessionQuery();
-  const { activeSession: walkingSession } = useWalkingSessionQuery();
+  const { activeSession: walkingSession } = useOptimizedWalkingSession();
 
   // Optimized timer status - only update when sessions are active
   useEffect(() => {
