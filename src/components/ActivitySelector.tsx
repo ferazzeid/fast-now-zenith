@@ -1,10 +1,5 @@
 import { Clock, FootprintsIcon, Camera } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 
 interface ActivitySelectorProps {
@@ -44,28 +39,28 @@ export const ActivitySelector = ({ isOpen, onClose, onSelectActivity }: Activity
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Choose Activity</DialogTitle>
-        </DialogHeader>
-        <div className="grid gap-3 mt-4">
-          {activities.map(({ id, title, description, icon: Icon, color }) => (
-            <Button
-              key={id}
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-muted/50"
-              onClick={() => handleActivitySelect(id)}
-            >
-              <Icon className={`w-6 h-6 ${color}`} />
-              <div className="text-center">
-                <div className="font-medium">{title}</div>
-                <div className="text-sm text-muted-foreground">{description}</div>
-              </div>
-            </Button>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
+    <UniversalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Choose Activity"
+      size="md"
+    >
+      <div className="grid gap-3">
+        {activities.map(({ id, title, description, icon: Icon, color }) => (
+          <Button
+            key={id}
+            variant="outline"
+            className="h-auto p-4 flex flex-col items-center gap-2 hover:bg-muted/50"
+            onClick={() => handleActivitySelect(id)}
+          >
+            <Icon className={`w-6 h-6 ${color}`} />
+            <div className="text-center">
+              <div className="font-medium">{title}</div>
+              <div className="text-sm text-muted-foreground">{description}</div>
+            </div>
+          </Button>
+        ))}
+      </div>
+    </UniversalModal>
   );
 };

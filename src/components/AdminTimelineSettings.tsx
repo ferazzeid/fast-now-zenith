@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { FormModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { FastingTimelineV2 } from '@/components/FastingTimelineV2';
@@ -92,125 +92,110 @@ const FastingHourEditModal: React.FC<FastingHourEditModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {fastingHour ? 'Edit Hour Timeline' : 'Create Hour Timeline'}
-          </DialogTitle>
-          <DialogDescription>
-            Customize the information shown for each hour of fasting.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium">Hour</label>
-              <Input
-                type="number"
-                min={1}
-                max={72}
-                value={formData.hour}
-                onChange={(e) => {
-                  const hour = parseInt(e.target.value) || 1;
-                  setFormData(prev => ({ 
-                    ...prev, 
-                    hour,
-                    day: Math.ceil(hour / 24)
-                  }));
-                }}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Day</label>
-              <Input
-                type="number"
-                min={1}
-                max={3}
-                value={formData.day}
-                onChange={(e) => setFormData(prev => ({ ...prev, day: parseInt(e.target.value) || 1 }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Phase</label>
-              <Select 
-                value={formData.phase} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, phase: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="preparation">Preparation</SelectItem>
-                  <SelectItem value="adaptation">Adaptation</SelectItem>
-                  <SelectItem value="fat_burning">Fat Burning</SelectItem>
-                  <SelectItem value="deep_ketosis">Deep Ketosis</SelectItem>
-                  <SelectItem value="autophagy">Autophagy</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-medium">Difficulty</label>
-              <Select 
-                value={formData.difficulty} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="moderate">Moderate</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onSave={handleSave}
+      title={fastingHour ? 'Edit Hour Timeline' : 'Create Hour Timeline'}
+      saveText="Save"
+    >
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="text-sm font-medium">Stage</label>
+            <label className="text-sm font-medium">Hour</label>
             <Input
-              value={formData.stage}
-              onChange={(e) => setFormData(prev => ({ ...prev, stage: e.target.value }))}
-              placeholder="e.g., Glycogen Kickoff"
+              type="number"
+              min={1}
+              max={72}
+              value={formData.hour}
+              onChange={(e) => {
+                const hour = parseInt(e.target.value) || 1;
+                setFormData(prev => ({ 
+                  ...prev, 
+                  hour,
+                  day: Math.ceil(hour / 24)
+                }));
+              }}
             />
           </div>
-
           <div>
-            <label className="text-sm font-medium">Encouragement</label>
-            <Textarea
-              value={formData.encouragement}
-              onChange={(e) => setFormData(prev => ({ ...prev, encouragement: e.target.value }))}
-              placeholder="Motivational message for this hour..."
-              rows={4}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Read More Link (Optional)</label>
+            <label className="text-sm font-medium">Day</label>
             <Input
-              value={formData.read_more_url || ''}
-              onChange={(e) => setFormData(prev => ({ ...prev, read_more_url: e.target.value }))}
-              placeholder="https://example.com/article"
+              type="number"
+              min={1}
+              max={3}
+              value={formData.day}
+              onChange={(e) => setFormData(prev => ({ ...prev, day: parseInt(e.target.value) || 1 }))}
             />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Phase</label>
+            <Select 
+              value={formData.phase} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, phase: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="preparation">Preparation</SelectItem>
+                <SelectItem value="adaptation">Adaptation</SelectItem>
+                <SelectItem value="fat_burning">Fat Burning</SelectItem>
+                <SelectItem value="deep_ketosis">Deep Ketosis</SelectItem>
+                <SelectItem value="autophagy">Autophagy</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 pt-4">
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            <Save className="w-4 h-4 mr-2" />
-            Save
-          </Button>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Difficulty</label>
+            <Select 
+              value={formData.difficulty} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, difficulty: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="easy">Easy</SelectItem>
+                <SelectItem value="moderate">Moderate</SelectItem>
+                <SelectItem value="hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div>
+          <label className="text-sm font-medium">Stage</label>
+          <Input
+            value={formData.stage}
+            onChange={(e) => setFormData(prev => ({ ...prev, stage: e.target.value }))}
+            placeholder="e.g., Glycogen Kickoff"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Encouragement</label>
+          <Textarea
+            value={formData.encouragement}
+            onChange={(e) => setFormData(prev => ({ ...prev, encouragement: e.target.value }))}
+            placeholder="Motivational message for this hour..."
+            rows={4}
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Read More Link (Optional)</label>
+          <Input
+            value={formData.read_more_url || ''}
+            onChange={(e) => setFormData(prev => ({ ...prev, read_more_url: e.target.value }))}
+            placeholder="https://example.com/article"
+          />
+        </div>
+      </div>
+    </FormModal>
   );
 };
 

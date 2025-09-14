@@ -13,15 +13,8 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  ConfirmationModal
+} from '@/components/ui/universal-modal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -1298,94 +1291,54 @@ export const FoodLibraryView = ({
 
 
       {/* Delete All Confirmation Dialog */}
-      <AlertDialog open={showDeleteAllConfirm} onOpenChange={setShowDeleteAllConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete All Foods?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete all {filteredUserFoods.length} foods from your personal library. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                console.log('🗑️ Delete All confirmed, calling deleteAllUserFoods');
-                deleteAllUserFoods();
-              }}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete All
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showDeleteAllConfirm}
+        onClose={() => setShowDeleteAllConfirm(false)}
+        onConfirm={() => {
+          console.log('🗑️ Delete All confirmed, calling deleteAllUserFoods');
+          deleteAllUserFoods();
+        }}
+        title="Delete All Foods?"
+        message={`This will permanently delete all ${filteredUserFoods.length} foods from your personal library. This action cannot be undone.`}
+        confirmText="Delete All"
+        variant="destructive"
+      />
 
       {/* Delete Default Food Confirmation Dialog */}
-      <AlertDialog open={showDeleteDefaultFoodConfirm} onOpenChange={setShowDeleteDefaultFoodConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Default Food?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete "{defaultFoodToDelete?.name}" from the default food system. This action cannot be undone and will affect all users.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowDeleteDefaultFoodConfirm(false);
-              setDefaultFoodToDelete(null);
-            }}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => defaultFoodToDelete && deleteDefaultFood(defaultFoodToDelete.id)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete Food
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showDeleteDefaultFoodConfirm}
+        onClose={() => {
+          setShowDeleteDefaultFoodConfirm(false);
+          setDefaultFoodToDelete(null);
+        }}
+        onConfirm={() => defaultFoodToDelete && deleteDefaultFood(defaultFoodToDelete.id)}
+        title="Delete Default Food?"
+        message={`This will permanently delete "${defaultFoodToDelete?.name}" from the default food system. This action cannot be undone and will affect all users.`}
+        confirmText="Delete Food"
+        variant="destructive"
+      />
 
       {/* Clear Template Confirmation Dialog */}
-      <AlertDialog open={showClearTemplateDialog} onOpenChange={setShowClearTemplateDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Clear Template?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete all {templateFoods.length} foods from your daily template. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => onClearTemplate?.()}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Clear Template
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showClearTemplateDialog}
+        onClose={() => setShowClearTemplateDialog(false)}
+        onConfirm={() => onClearTemplate?.()}
+        title="Clear Template?"
+        message={`This will permanently delete all ${templateFoods.length} foods from your daily template. This action cannot be undone.`}
+        confirmText="Clear Template"
+        variant="destructive"
+      />
 
       {/* Apply Template Confirmation Dialog */}
-      <AlertDialog open={showApplyTemplateDialog} onOpenChange={setShowApplyTemplateDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Apply Template?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will add all {templateFoods.length} foods from your template to today's plan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => onApplyTemplate?.()}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-            >
-              Apply Template
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationModal
+        isOpen={showApplyTemplateDialog}
+        onClose={() => setShowApplyTemplateDialog(false)}
+        onConfirm={() => onApplyTemplate?.()}
+        title="Apply Template?"
+        message={`This will add all ${templateFoods.length} foods from your template to today's plan.`}
+        confirmText="Apply Template"
+        variant="default"
+      />
       </div>
     </DatabaseErrorBoundary>
   );

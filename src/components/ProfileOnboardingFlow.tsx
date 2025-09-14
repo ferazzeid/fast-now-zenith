@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -433,15 +433,13 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       </div>
 
       {/* Modal */}
-      <Dialog open={!!activeModal} onOpenChange={() => setActiveModal(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {activeModal && activeModal.charAt(0).toUpperCase() + activeModal.slice(1)}
-            </DialogTitle>
-          </DialogHeader>
-          {renderModalContent()}
-          <div className="flex justify-end gap-2 pt-4">
+      <UniversalModal
+        isOpen={!!activeModal}
+        onClose={() => setActiveModal(null)}
+        title={activeModal ? activeModal.charAt(0).toUpperCase() + activeModal.slice(1) : ''}
+        size="md"
+        footer={
+          <>
             <Button variant="outline" onClick={() => setActiveModal(null)}>
               Cancel
             </Button>
@@ -454,9 +452,11 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
             >
               Save
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        {renderModalContent()}
+      </UniversalModal>
     </div>
   );
 };

@@ -4,13 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
+import { FormModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -156,73 +150,63 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
   const formattedDuration = duration > 0 ? `${Math.floor(duration / 60)}h ${duration % 60}m` : '0m';
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5" />
-            Edit Walking Time
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-amber-800">
-              <p className="font-medium mb-1">Editing will remove calculated data</p>
-              <p>Calories, distance, and steps will be nulled out and excluded from deficit calculations.</p>
-            </div>
+    <FormModal
+      isOpen={isOpen}
+      onClose={onClose}
+      onSave={handleSave}
+      title="Edit Walking Time"
+      saveText="Save"
+      isSaving={isSaving}
+      saveDisabled={!startTime || !endTime}
+    >
+      <div className="space-y-4">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-amber-800">
+            <p className="font-medium mb-1">Editing will remove calculated data</p>
+            <p>Calories, distance, and steps will be nulled out and excluded from deficit calculations.</p>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start-time">Start Time</Label>
-              <Input
-                id="start-time"
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="end-time">End Time</Label>
-              <Input
-                id="end-time"
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-              />
-            </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="start-time">Start Time</Label>
+            <Input
+              id="start-time"
+              type="datetime-local"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+            />
           </div>
-
-          {duration > 0 && (
-            <div className="text-sm text-muted-foreground">
-              <strong>New Duration:</strong> {formattedDuration}
-            </div>
-          )}
 
           <div className="space-y-2">
-            <Label htmlFor="edit-reason">Edit Reason (Optional)</Label>
-            <Textarea
-              id="edit-reason"
-              placeholder="e.g., Forgot to stop timer"
-              value={editReason}
-              onChange={(e) => setEditReason(e.target.value)}
-              rows={2}
+            <Label htmlFor="end-time">End Time</Label>
+            <Input
+              id="end-time"
+              type="datetime-local"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
             />
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving || !startTime || !endTime}>
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        {duration > 0 && (
+          <div className="text-sm text-muted-foreground">
+            <strong>New Duration:</strong> {formattedDuration}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="edit-reason">Edit Reason (Optional)</Label>
+          <Textarea
+            id="edit-reason"
+            placeholder="e.g., Forgot to stop timer"
+            value={editReason}
+            onChange={(e) => setEditReason(e.target.value)}
+            rows={2}
+          />
+        </div>
+      </div>
+    </FormModal>
   );
 };
