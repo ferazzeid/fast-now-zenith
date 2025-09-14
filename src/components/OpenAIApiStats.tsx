@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ComponentSpinner } from '@/components/LoadingStates';
 
 interface ApiStats {
   totalRequests: number;
@@ -14,7 +15,7 @@ interface ApiStats {
 }
 
 export const OpenAIApiStats: React.FC = () => {
-  const [stats, setStats] = useState<ApiStats>({
+  const { data: stats, isLoading, execute } = useStandardizedLoading<ApiStats>({
     totalRequests: 0,
     totalCost: 0,
     requestsToday: 0,
@@ -23,15 +24,13 @@ export const OpenAIApiStats: React.FC = () => {
     mostUsedModel: 'N/A',
     successRate: 0
   });
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchApiStats();
   }, []);
 
   const fetchApiStats = async () => {
-    try {
-      setLoading(true);
+    await execute(async () => {
       
       // Get usage data from the last 30 days
       const thirtyDaysAgo = new Date();
@@ -52,8 +51,15 @@ export const OpenAIApiStats: React.FC = () => {
       }
 
       if (!usageData || usageData.length === 0) {
-        setLoading(false);
-        return;
+        return {
+          totalRequests: 0,
+          totalCost: 0,
+          requestsToday: 0,
+          costToday: 0,
+          averageRequestsPerDay: 0,
+          mostUsedModel: 'N/A',
+          successRate: 0
+        };
       }
 
       // Calculate statistics
@@ -86,7 +92,7 @@ export const OpenAIApiStats: React.FC = () => {
       const successfulRequests = usageData.filter(log => !log.request_type?.includes('error')).length;
       const successRate = totalRequests > 0 ? Math.round((successfulRequests / totalRequests) * 100) : 0;
 
-      setStats({
+      return {
         totalRequests,
         totalCost,
         requestsToday,
@@ -94,22 +100,18 @@ export const OpenAIApiStats: React.FC = () => {
         averageRequestsPerDay,
         mostUsedModel,
         successRate
-      });
-    } catch (error) {
-      console.error('Error calculating API stats:', error);
-    } finally {
-      setLoading(false);
-    }
+      };
+    });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>OpenAI API Statistics</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
-          <LoadingSpinner />
+          <ComponentSpinner size={24} />
         </CardContent>
       </Card>
     );
@@ -128,17 +130,17 @@ export const OpenAIApiStats: React.FC = () => {
           <div className="space-y-3">
             <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
               <span className="text-xs text-muted-foreground">Total Requests</span>
-              <span className="text-sm font-semibold text-foreground">{stats.totalRequests.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-foreground">{stats?.totalRequests.toLocaleString()}</span>
             </div>
             
             <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
               <span className="text-xs text-muted-foreground">Requests Today</span>
-              <span className="text-sm font-semibold text-foreground">{stats.requestsToday.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-foreground">{stats?.requestsToday.toLocaleString()}</span>
             </div>
             
             <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
               <span className="text-xs text-muted-foreground">Daily Average</span>
-              <span className="text-sm font-semibold text-foreground">{stats.averageRequestsPerDay.toLocaleString()}</span>
+              <span className="text-sm font-semibold text-foreground">{stats?.averageRequestsPerDay.toLocaleString()}</span>
             </div>
           </div>
 
@@ -146,17 +148,17 @@ export const OpenAIApiStats: React.FC = () => {
           <div className="space-y-3">
             <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
               <span className="text-xs text-muted-foreground">Total Cost</span>
-              <span className="text-sm font-semibold text-foreground">${stats.totalCost.toFixed(2)}</span>
+              <span className="text-sm font-semibold text-foreground">${stats?.totalCost.toFixed(2)}</span>
             </div>
             
             <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
               <span className="text-xs text-muted-foreground whitespace-nowrap">Today's Cost</span>
-              <span className="text-sm font-semibold text-foreground">${stats.costToday.toFixed(2)}</span>
+              <span className="text-sm font-semibold text-foreground">${stats?.costToday.toFixed(2)}</span>
             </div>
             
             <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
               <span className="text-xs text-muted-foreground">Success Rate</span>
-              <span className="text-sm font-semibold text-foreground">{stats.successRate}%</span>
+              <span className="text-sm font-semibold text-foreground">{stats?.successRate}%</span>
             </div>
           </div>
         </div>

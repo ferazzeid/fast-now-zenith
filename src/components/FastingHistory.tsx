@@ -7,6 +7,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { SmartLoadingButton } from "./SimpleLoadingComponents";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ListLoadingSkeleton } from '@/components/LoadingStates';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -80,13 +82,13 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
   };
 
   const getSuccessRate = () => {
-    const completedSessions = sessions.filter(s => s.status === 'completed');
-    const totalSessions = sessions.filter(s => s.status !== 'active').length;
+    const completedSessions = sessions?.filter(s => s.status === 'completed') || [];
+    const totalSessions = sessions?.filter(s => s.status !== 'active').length || 0;
     return totalSessions > 0 ? Math.round((completedSessions.length / totalSessions) * 100) : 0;
   };
 
   const getAverageDuration = () => {
-    const completedSessions = sessions.filter(s => s.status === 'completed' && s.duration_seconds);
+    const completedSessions = sessions?.filter(s => s.status === 'completed' && s.duration_seconds) || [];
     if (completedSessions.length === 0) return 0;
     
     const totalSeconds = completedSessions.reduce((sum, session) => sum + (session.duration_seconds || 0), 0);
@@ -94,6 +96,8 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
   };
 
   const getLongestStreak = () => {
+    if (!sessions) return 0;
+    
     let currentStreak = 0;
     let longestStreak = 0;
     
@@ -141,24 +145,15 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
       }));
 
       if (append) {
-        setSessions(prev => [...prev, ...typedSessions]);
+        const currentData = sessions || [];
+        const newData = [...currentData, ...typedSessions];
+        return newData;
       } else {
-        setSessions(typedSessions);
+        setHasMore((fastingSessions?.length || 0) === ITEMS_PER_PAGE);
+        return typedSessions;
       }
-
-      setHasMore((fastingSessions?.length || 0) === ITEMS_PER_PAGE);
-      
-      console.log('Updated sessions state, total sessions:', append ? sessions.length + typedSessions.length : typedSessions.length);
     } catch (error) {
-      console.error('Error loading fasting history:', error);
-      // Show toast for any actual errors
-      toast({
-        title: "Error",
-        description: "Failed to load fasting history. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
+      console.error('Error in loadFastingHistory:', error);
     }
   };
 
@@ -189,7 +184,8 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
 
       if (error) throw error;
 
-      setSessions(prev => prev.filter(s => s.id !== sessionId));
+      const updatedSessions = sessions?.filter(s => s.id !== sessionId) || [];
+      return updatedSessions;
 
       toast({
         title: "Session deleted",
@@ -236,7 +232,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
     loadFastingHistory();
   }, [user]);
 
-  if (loading && sessions.length === 0) {
+  if (isLoading && (!sessions || sessions.length === 0)) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
         <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
@@ -249,33 +245,14 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-muted animate-pulse rounded w-32" />
-                        <div className="flex gap-3">
-                          <div className="h-3 bg-muted animate-pulse rounded w-20" />
-                          <div className="h-3 bg-muted animate-pulse rounded w-16" />
-                        </div>
-                      </div>
-                      <div className="flex gap-2 justify-end">
-                        <div className="w-16 h-6 bg-muted animate-pulse rounded" />
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
+            <ListLoadingSkeleton count={3} itemHeight="h-20" />
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const completedSessions = sessions.filter(s => s.status === 'completed');
+  const completedSessions = sessions?.filter(s => s.status === 'completed') || [];
   const successRate = getSuccessRate();
   const averageDuration = getAverageDuration();
   const longestStreak = getLongestStreak();
@@ -288,7 +265,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
             <CardTitle className="text-lg font-semibold">Fasting History</CardTitle>
             <div className="flex gap-2">
               {/* Delete All History Button - only show if there are non-active sessions */}
-              {sessions.filter(s => s.status !== 'active').length > 0 && (
+              {sessions && sessions.filter(s => s.status !== 'active').length > 0 && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
@@ -327,7 +304,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
         
         <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
 
-          {sessions.length === 0 ? (
+          {(!sessions || sessions.length === 0) ? (
             <div className="text-center py-8">
               <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <div className="text-muted-foreground">No fasting sessions found</div>
@@ -335,7 +312,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
             </div>
           ) : (
             <>
-              {sessions.map((session) => (
+              {sessions?.map((session) => (
                 <Card key={session.id} className="relative bg-muted/20 border-0">
                   <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
@@ -415,7 +392,7 @@ export const FastingHistory = ({ onClose }: FastingHistoryProps) => {
                   <SmartLoadingButton 
                     variant="outline" 
                     onClick={loadMore} 
-                    isLoading={loading}
+                    isLoading={isLoading}
                     loadingText="Loading more"
                   >
                     Load More

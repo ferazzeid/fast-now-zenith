@@ -13,6 +13,8 @@ import { EditWalkingSessionTimeModal } from './EditWalkingSessionTimeModal';
 import { format } from 'date-fns';
 import { useProfile } from '@/hooks/useProfile';
 import { formatDistance, formatSpeed } from '@/utils/unitConversions';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ListLoadingSkeleton } from '@/components/LoadingStates';
 
 interface WalkingSession {
   id: string;
@@ -30,8 +32,7 @@ interface WalkingSession {
 }
 
 export const WalkingHistory = () => {
-  const [sessions, setSessions] = useState<WalkingSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: sessions, isLoading, execute } = useStandardizedLoading<WalkingSession[]>([]);
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -43,57 +44,52 @@ export const WalkingHistory = () => {
   const { profile } = useProfile();
 
   useEffect(() => {
-    const fetchWalkingSessions = async () => {
-      if (!user) return;
-      
-      console.log('Fetching walking sessions, refreshTrigger:', refreshTrigger);
-      setLoading(true);
+    fetchWalkingSessions();
+  }, [user, showAll, refreshTrigger]);
 
-      try {
-        const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
-        
-        // First, get the sessions to display
-        const { data, error } = await supabase
+  const fetchWalkingSessions = async () => {
+    if (!user) return;
+    
+    console.log('Fetching walking sessions, refreshTrigger:', refreshTrigger);
+
+    await execute(async () => {
+      const limit = showAll ? 50 : 5; // Show only 5 initially, 50 when expanded
+      
+      // First, get the sessions to display
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
+        .eq('user_id', user.id)
+        .eq('status', 'completed')
+        .is('deleted_at', null) // Only get non-deleted sessions
+        .order('created_at', { ascending: false }) // Changed from start_time to created_at for more recent results
+        .limit(limit);
+
+      if (error) throw error;
+      console.log('Walking sessions fetched:', data?.length || 0);
+
+      // Check if there are more sessions available
+      if (!showAll) {
+        const { count } = await supabase
           .from('walking_sessions')
-          .select('id, start_time, end_time, calories_burned, distance, speed_mph, estimated_steps, status, is_edited, original_duration_minutes, edit_reason')
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .eq('status', 'completed')
-          .is('deleted_at', null) // Only get non-deleted sessions
-          .order('created_at', { ascending: false }) // Changed from start_time to created_at for more recent results
-          .limit(limit);
-
-        if (error) throw error;
-        setSessions(data || []);
-        console.log('Walking sessions fetched:', data?.length || 0);
-
-        // Check if there are more sessions available
-        if (!showAll) {
-          const { count } = await supabase
-            .from('walking_sessions')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('status', 'completed')
-            .is('deleted_at', null);
-          
-          setHasMore((count || 0) > 5);
-        } else {
-          setHasMore(false);
-        }
-      } catch (error) {
-        console.error('Error fetching walking sessions:', error);
-      } finally {
-        setLoading(false);
+          .is('deleted_at', null);
+        
+        setHasMore((count || 0) > 5);
+      } else {
+        setHasMore(false);
       }
-    };
+
+      return data || [];
+    });
 
     // Force immediate refresh when refreshTrigger changes
     if (refreshTrigger > 0) {
       console.log('Forcing refresh due to trigger change');
-      setLoading(true);
-      setSessions([]); // Clear existing sessions to force visual refresh
     }
-    fetchWalkingSessions();
-  }, [user, showAll, refreshTrigger]);
+  };
 
   const handleDeleteSession = async (sessionId: string) => {
     if (!user) return;
@@ -109,7 +105,7 @@ export const WalkingHistory = () => {
       if (error) throw error;
 
       // Remove the session from the local state
-      setSessions(prev => prev.filter(session => session.id !== sessionId));
+      execute(async () => sessions?.filter(session => session.id !== sessionId) || []);
       
       toast({
         title: "Session deleted",
@@ -144,22 +140,15 @@ export const WalkingHistory = () => {
     return `${mins}m`;
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="p-4 animate-pulse">
-              <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-              <div className="h-3 bg-muted rounded w-1/2"></div>
-            </Card>
-          ))}
-        </div>
+        <ListLoadingSkeleton count={3} itemHeight="h-20" />
       </div>
     );
   }
 
-  if (sessions.length === 0) {
+  if (!sessions || sessions.length === 0) {
     return (
       <div className="space-y-4">
         <Card className="p-6 text-center">
@@ -174,7 +163,7 @@ export const WalkingHistory = () => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Badge variant="outline" className="text-xs text-muted-foreground bg-muted/30">{sessions.length} sessions</Badge>
+        <Badge variant="outline" className="text-xs text-muted-foreground bg-muted/30">{sessions?.length || 0} sessions</Badge>
         <Button 
           variant="ghost" 
           size="sm" 
@@ -192,7 +181,7 @@ export const WalkingHistory = () => {
       </div>
       
       <div className="space-y-3">
-        {sessions.map((session) => {
+        {sessions?.map((session) => {
           const duration = calculateDuration(session.start_time, session.end_time);
           const date = new Date(session.start_time);
           
@@ -318,7 +307,7 @@ export const WalkingHistory = () => {
             variant="outline"
             onClick={() => setShowAll(!showAll)}
             className="w-full"
-            disabled={loading}
+            disabled={isLoading}
           >
             {showAll ? (
               <>
@@ -343,9 +332,8 @@ export const WalkingHistory = () => {
           onSessionEdited={() => {
             // Trigger refresh of walking sessions
             clearWalkingCache();
-            // Force refresh by clearing sessions and triggering re-fetch
-            setSessions([]);
-            setLoading(true);
+            // Force refresh by calling fetchWalkingSessions again
+            fetchWalkingSessions();
           }}
         />
       )}

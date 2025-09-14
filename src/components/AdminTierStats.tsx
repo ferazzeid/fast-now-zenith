@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ComponentSpinner } from '@/components/LoadingStates';
 
 interface TierStats {
   tier: string;
@@ -11,16 +12,14 @@ interface TierStats {
 }
 
 export const AdminTierStats = () => {
-  const [stats, setStats] = useState<TierStats[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: stats, isLoading, execute } = useStandardizedLoading<TierStats[]>([]);
 
   useEffect(() => {
     fetchTierStats();
   }, []);
 
   const fetchTierStats = async () => {
-    try {
-      setLoading(true);
+    await execute(async () => {
       
       // Get tier counts with activity status
       const { data, error } = await supabase
@@ -70,19 +69,15 @@ export const AdminTierStats = () => {
         }
       ];
 
-      setStats(statsArray);
-    } catch (error) {
-      console.error('Error fetching tier stats:', error);
-    } finally {
-      setLoading(false);
-    }
+      return statsArray;
+    });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card className="p-6">
         <div className="flex items-center justify-center">
-          <LoadingSpinner />
+          <ComponentSpinner size={24} />
         </div>
       </Card>
     );
@@ -97,7 +92,7 @@ export const AdminTierStats = () => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {stats.map((stat) => (
+          {stats?.map((stat) => (
             <div key={stat.tier} className="space-y-3">
               <h4 className="text-sm font-medium text-foreground mb-3 text-center">
                 {stat.tier}

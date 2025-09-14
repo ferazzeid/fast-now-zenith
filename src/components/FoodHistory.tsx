@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCopyHistoricalDay } from '@/hooks/useCopyHistoricalDay';
 import { supabase } from '@/integrations/supabase/client';
 import { SmartLoadingButton } from "./SimpleLoadingComponents";
+import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { ListLoadingSkeleton } from '@/components/LoadingStates';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,8 +43,7 @@ interface FoodHistoryProps {
 }
 
 export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
-  const [dailySummaries, setDailySummaries] = useState<DailySummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: dailySummaries, isLoading, execute, setData } = useStandardizedLoading<DailySummary[]>([]);
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -52,11 +53,14 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
 
   const ITEMS_PER_PAGE = 7; // Show 7 days at a time
 
+  useEffect(() => {
+    loadFoodHistory();
+  }, [user]);
+
   const loadFoodHistory = async (offsetValue = 0, append = false) => {
     if (!user) return;
 
-    setLoading(true);
-    try {
+    await execute(async () => {
       // Calculate yesterday's end to exclude today
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -110,22 +114,15 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
         .slice(0, ITEMS_PER_PAGE);
 
       if (append) {
-        setDailySummaries(prev => [...prev, ...summaries]);
+        const currentData = dailySummaries || [];
+        const newData = [...currentData, ...summaries];
+        setData(newData);
+        return newData;
       } else {
-        setDailySummaries(summaries);
+        setHasMore(entries?.length === 50);
+        return summaries;
       }
-
-      setHasMore(entries?.length === 50);
-    } catch (error) {
-      console.error('Error loading food history:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load food history",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const loadMore = () => {
@@ -161,7 +158,8 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
       if (error) throw error;
 
       // Update local state
-      setDailySummaries(prev => prev.filter(s => s.date !== date));
+      const updatedSummaries = dailySummaries?.filter(s => s.date !== date) || [];
+      setData(updatedSummaries);
 
       toast({
         title: "Day deleted",
@@ -190,7 +188,7 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
       if (error) throw error;
 
       // Clear local state
-      setDailySummaries([]);
+      setData([]);
 
       toast({
         title: "History deleted",
@@ -210,7 +208,7 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
     loadFoodHistory();
   }, [user]);
 
-  if (loading && dailySummaries.length === 0) {
+  if (isLoading && (!dailySummaries || dailySummaries.length === 0)) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
         <Card className="w-full max-w-md mx-auto" onClick={(e) => e.stopPropagation()}>
@@ -223,28 +221,7 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i}>
-                  <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-muted animate-pulse rounded w-24" />
-                        <div className="flex gap-3">
-                          <div className="h-3 bg-muted animate-pulse rounded w-16" />
-                          <div className="h-3 bg-muted animate-pulse rounded w-20" />
-                          <div className="h-3 bg-muted animate-pulse rounded w-12" />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="w-6 h-6 bg-muted animate-pulse rounded" />
-                        <div className="w-6 h-6 bg-muted animate-pulse rounded" />
-                      </div>
-                    </div>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
+            <ListLoadingSkeleton count={3} itemHeight="h-16" />
           </CardContent>
         </Card>
       </div>
@@ -259,7 +236,7 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
             <CardTitle className="text-lg font-semibold text-left">Food History</CardTitle>
             <div className="flex gap-2">
               {/* Delete All History Button - only show if there are entries */}
-              {dailySummaries.length > 0 && (
+              {dailySummaries && dailySummaries.length > 0 && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
@@ -295,14 +272,14 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
             </div>
           </div>
         </CardHeader>
-      <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
-        {dailySummaries.length === 0 ? (
+        <CardContent className="flex-1 overflow-y-auto space-y-4 pt-6">
+        {(!dailySummaries || dailySummaries.length === 0) ? (
           <div className="text-center py-8">
             <div className="text-muted-foreground">No food entries found</div>
           </div>
         ) : (
           <>
-            {dailySummaries.map((summary) => (
+            {dailySummaries?.map((summary) => (
               <Card key={summary.date} className="relative">
                 <CardHeader 
                   className="py-3 cursor-pointer hover:bg-muted/20 transition-colors"
@@ -404,7 +381,7 @@ export const FoodHistory = ({ onClose, onCopySuccess }: FoodHistoryProps) => {
                 <SmartLoadingButton 
                   variant="outline" 
                   onClick={loadMore} 
-                  isLoading={loading}
+                  isLoading={isLoading}
                   loadingText="Loading more"
                 >
                   Load More
