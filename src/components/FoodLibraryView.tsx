@@ -710,7 +710,7 @@ export const FoodLibraryView = ({
 
     return (
       <div 
-        className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card cursor-pointer"
+        className="rounded-lg p-3 transition-all duration-200 bg-card cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
