@@ -164,7 +164,7 @@ export const ImageUpload = ({
       {previewUrl ? (
         <div className="space-y-4">
           <div className="relative">
-            <div className="aspect-video max-h-[70vh] bg-ceramic-rim rounded-lg overflow-hidden flex items-center justify-center">
+            <div className="aspect-video max-h-[120px] bg-ceramic-rim rounded-lg overflow-hidden flex items-center justify-center">
               <img
                 src={previewUrl}
                 alt="Preview"

@@ -140,7 +140,7 @@ const WalkingTimerComponent = ({
               {/* Pause Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
+                   <Button 
                      onClick={async (e) => {
                        e.preventDefault();
                        e.stopPropagation();
@@ -162,9 +162,9 @@ const WalkingTimerComponent = ({
                         });
                       }
                     }}
-                    variant="action-secondary"
+                    variant="secondary"
                     size="action-secondary"
-                    className="flex-1"
+                    className="flex-1 border border-muted-foreground/20"
                   >
                     {isPaused ? (
                       <Play className="w-6 h-6" />
@@ -182,7 +182,7 @@ const WalkingTimerComponent = ({
               {onCancel && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
+                     <Button 
                      onClick={async (e) => {
                        e.preventDefault();
                        e.stopPropagation();
@@ -204,9 +204,9 @@ const WalkingTimerComponent = ({
                           });
                         }
                       }}
-                      variant="action-secondary"
+                      variant="secondary"
                       size="action-secondary"
-                      className="flex-1"
+                      className="flex-1 border border-muted-foreground/20"
                     >
                       <X className="w-6 h-6" />
                     </Button>
