@@ -96,7 +96,7 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="bg-ceramic-plate p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border-ceramic-rim">
+      <Card className="bg-ceramic-plate p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-ceramic-shadow">
         <div className="space-y-6">
           {/* Progress Header */}
           <div className="flex items-center justify-between">
@@ -147,7 +147,7 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
                 value={currentMotivator.title}
                 onChange={(e) => setCurrentMotivator(prev => ({ ...prev, title: e.target.value }))}
                 placeholder="What motivates you to fast?"
-                className="bg-ceramic-base border-ceramic-rim"
+                className="bg-ceramic-base border border-ceramic-shadow"
               />
             </div>
 
@@ -160,7 +160,7 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
                 value={currentMotivator.content}
                 onChange={(e) => setCurrentMotivator(prev => ({ ...prev, content: e.target.value }))}
                 placeholder="Add more details about this motivation..."
-                className="bg-ceramic-base border-ceramic-rim min-h-[80px]"
+                className="bg-ceramic-base border border-ceramic-shadow min-h-[80px]"
               />
             </div>
 

@@ -488,7 +488,7 @@ const Settings = () => {
           </div>
 
             {/* User Profile */}
-            <Card className="p-6 bg-card border-ceramic-rim">
+            <Card className="p-6 bg-card border border-ceramic-shadow">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -500,7 +500,7 @@ const Settings = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowOnboarding(true)}
-                      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-shadow hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
                       title="Setup Profile Walkthrough"
                     >
                       <Brain className="w-4 h-4 text-warm-text" />
@@ -528,7 +528,7 @@ const Settings = () => {
                         });
                       }}
                     >
-                      <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                      <SelectTrigger className="bg-ceramic-base border border-ceramic-shadow">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border z-50">
@@ -536,7 +536,7 @@ const Settings = () => {
                         <SelectItem value="metric">Metric</SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-2 border border-ceramic-rim">
+                    <div className="text-xs text-muted-foreground bg-ceramic-plate/30 rounded-lg p-2 border border-ceramic-shadow">
                       <div className="space-y-1">
                         <div><strong>Imperial:</strong> miles, mph, lbs</div>
                         <div><strong>Metric:</strong> kilometers, km/h, kg</div>
@@ -558,7 +558,7 @@ const Settings = () => {
                           placeholder={profile?.units === 'metric' ? '70' : '154'}
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
+                          className="bg-ceramic-base border border-ceramic-shadow"
                           min={profile?.units === 'metric' ? '30' : '66'}
                           max={profile?.units === 'metric' ? '300' : '660'}
                           step="0.1"
@@ -574,7 +574,7 @@ const Settings = () => {
                           placeholder={profile?.units === 'metric' ? '175' : '69'}
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
+                          className="bg-ceramic-base border border-ceramic-shadow"
                           min={profile?.units === 'metric' ? '100' : '39'}
                           max={profile?.units === 'metric' ? '250' : '98'}
                           step="1"
@@ -588,7 +588,7 @@ const Settings = () => {
                           placeholder="30"
                           value={age}
                           onChange={(e) => setAge(e.target.value)}
-                          className="bg-ceramic-base border-ceramic-rim"
+                          className="bg-ceramic-base border border-ceramic-shadow"
                         />
                       </div>
                     </div>
@@ -597,7 +597,7 @@ const Settings = () => {
                     <div className="space-y-2">
                       <Label htmlFor="sex" className="text-warm-text">Biological Sex</Label>
                       <Select value={sex} onValueChange={setSex}>
-                        <SelectTrigger className="bg-ceramic-base border-ceramic-rim">
+                        <SelectTrigger className="bg-ceramic-base border border-ceramic-shadow">
                           <SelectValue placeholder="Select sex" />
                         </SelectTrigger>
                         <SelectContent>
@@ -617,7 +617,7 @@ const Settings = () => {
                       </ClickableTooltip>
                     </div>
                      <Select value={activityLevel} onValueChange={setActivityLevel}>
-                       <SelectTrigger className="bg-ceramic-base border-ceramic-rim w-full">
+                       <SelectTrigger className="bg-ceramic-base border border-ceramic-shadow w-full">
                          <SelectValue placeholder="Select" />
                        </SelectTrigger>
                          <SelectContent>
@@ -647,7 +647,7 @@ const Settings = () => {
                         placeholder="1000"
                         value={targetDeficit}
                         onChange={(e) => setTargetDeficit(e.target.value)}
-                        className="bg-ceramic-base border-ceramic-rim"
+                        className="bg-ceramic-base border border-ceramic-shadow"
                         min="0"
                         max="2000"
                         step="50"
@@ -655,7 +655,7 @@ const Settings = () => {
                     </div>
 
                       {/* Calculated Goals Display */}
-                      <div className="bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-rim space-y-3">
+                      <div className="bg-ceramic-plate/30 rounded-lg p-3 border border-ceramic-shadow space-y-3">
                         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Calculated Goals</div>
                         
                         <div className="grid grid-cols-2 gap-3">
@@ -706,14 +706,14 @@ const Settings = () => {
                              placeholder={`${Math.round(calculateBMR() * (1.2 + (getCalorieAddition(activityLevel) / calculateBMR())))} (calculated)`}
                              value={manualTdeeOverride}
                              onChange={(e) => setManualTdeeOverride(e.target.value)}
-                             className="bg-ceramic-base border-ceramic-rim flex-1"
+                             className="bg-ceramic-base border border-ceramic-shadow flex-1"
                            />
                            {manualTdeeOverride && (
                              <Button
                                variant="outline"
                                size="sm"
                                onClick={() => setManualTdeeOverride('')}
-                               className="bg-ceramic-base border-ceramic-rim"
+                               className="bg-ceramic-base border border-ceramic-shadow"
                              >
                                Clear
                              </Button>
@@ -728,7 +728,7 @@ const Settings = () => {
               </Card>
 
             {/* Appearance Section */}
-            <Card className="p-6 bg-card border-ceramic-rim">
+            <Card className="p-6 bg-card border border-ceramic-shadow">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Brain className="w-5 h-5 text-primary" />
@@ -754,7 +754,7 @@ const Settings = () => {
             </Button>
 
           {/* Account Information */}
-          <Card className="p-6 bg-card border-ceramic-rim">
+          <Card className="p-6 bg-card border border-ceramic-shadow">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <Key className="w-5 h-5 text-primary" />
@@ -823,7 +823,7 @@ const Settings = () => {
           </Card>
 
             {/* Navigation Section */}
-            <Card className="p-6 bg-card border-ceramic-rim">
+            <Card className="p-6 bg-card border border-ceramic-shadow">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Navigation2 className="w-5 h-5 text-primary" />
@@ -838,7 +838,7 @@ const Settings = () => {
 
 
             {/* About */}
-            <Card className="p-6 bg-card border-ceramic-rim">
+            <Card className="p-6 bg-card border border-ceramic-shadow">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <Info className="w-5 h-5 text-primary" />

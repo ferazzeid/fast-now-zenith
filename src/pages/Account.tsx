@@ -133,7 +133,7 @@ const Account = () => {
           </Card>
 
           {/* Account Actions */}
-          <Card className="p-6 bg-card border-ceramic-rim">
+          <Card className="p-6 bg-card border border-ceramic-shadow">
             <CardHeader className="px-0 pt-0">
               <CardTitle className="text-lg font-semibold text-warm-text">Account Actions</CardTitle>
               <CardDescription>Manage your account settings</CardDescription>

@@ -121,7 +121,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <Button
             variant="outline"
             onClick={onClose}
-            className="w-full bg-ceramic-base border-ceramic-rim"
+            className="w-full bg-ceramic-base border border-ceramic-shadow"
           >
             Cancel
           </Button>
@@ -148,7 +148,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               {templates.map((template) => (
                 <Card 
                   key={template.id} 
-                  className="p-3 cursor-pointer hover:bg-ceramic-base border-ceramic-rim transition-colors"
+                  className="p-3 cursor-pointer hover:bg-ceramic-base border border-ceramic-shadow transition-colors"
                   onClick={() => useTemplate(template)}
                 >
                   <div className="space-y-1">

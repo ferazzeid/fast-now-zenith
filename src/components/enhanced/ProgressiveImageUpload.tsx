@@ -263,7 +263,7 @@ export const ProgressiveImageUpload = ({
           variant="outline"
           onClick={handleCameraCapture}
           disabled={isProcessing}
-          className="w-full h-24 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+          className="w-full h-24 flex-col space-y-2 bg-ceramic-base border border-ceramic-shadow"
         >
           {icon}
           <span className="text-sm font-medium">{text}</span>
@@ -275,7 +275,7 @@ export const ProgressiveImageUpload = ({
           variant="outline"
           onClick={handleFileSelect}
           disabled={isProcessing}
-          className="w-full min-h-[120px] flex-col space-y-3 p-6 bg-ceramic-base border-ceramic-rim"
+          className="w-full min-h-[120px] flex-col space-y-3 p-6 bg-ceramic-base border border-ceramic-shadow"
         >
           <div className="flex flex-col items-center space-y-3">
             {icon}
