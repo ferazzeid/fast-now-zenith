@@ -290,9 +290,9 @@ const WalkingTimerComponent = ({
                     onSpeedChange={onSpeedChange}
                   >
                     <Button 
-                      variant="outline" 
+                      variant="secondary" 
                       size="sm"
-                      className="ml-2 h-8 w-16 text-xs"
+                      className="ml-2 h-8 w-16 text-xs border border-muted-foreground/20"
                     >
                       Set
                     </Button>

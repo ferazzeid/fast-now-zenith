@@ -985,7 +985,7 @@ export const FoodLibraryView = ({
             placeholder="Search foods..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border border-ceramic-shadow"
+            className="pl-10 border border-muted-foreground/20"
           />
         </div>
 
