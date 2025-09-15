@@ -5,15 +5,12 @@ const config: CapacitorConfig = {
   appName: 'FastNow Zenith',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
-    // For development - comment out for production builds
-    url: 'https://de91d618-edcf-40eb-8e11-7c45904095be.lovableproject.com?forceHideBadge=true',
-    cleartext: true
+    androidScheme: 'https'
   },
   android: {
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true,
+    webContentsDebuggingEnabled: false,
     appendUserAgent: 'FastNowZenith'
   },
   ios: {

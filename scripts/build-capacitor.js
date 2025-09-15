@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Capacitor Build Script
- * Automates the build process for both development and production
+ * Enhanced Capacitor Build Script
+ * Supports both development and production builds with proper Android setup
  */
 
 const { execSync } = require('child_process');
@@ -33,57 +33,13 @@ function executeCommand(command, description) {
   }
 }
 
-function updateCapacitorConfig(environment) {
-  const configPath = path.join(process.cwd(), 'capacitor.config.ts');
-  
-  log(`Updating Capacitor config for ${environment}...`);
-  
-  const serverConfig = environment === 'production' 
-    ? `  server: {
-    androidScheme: 'https',
-  },`
-    : `  server: {
-    androidScheme: 'https',
-    url: '${CONFIG.developmentUrl}',
-    cleartext: true
-  },`;
-
-  const configContent = `import { CapacitorConfig } from '@capacitor/cli';
-
-const config: CapacitorConfig = {
-  appId: '${CONFIG.appId}',
-  appName: '${CONFIG.appName}',
-  webDir: 'dist',
-${serverConfig}
-  android: {
-    allowMixedContent: true,
-    captureInput: true,
-    webContentsDebuggingEnabled: ${environment === 'development'},
-    appendUserAgent: 'FastNowZenith'
-  },
-  ios: {
-    scheme: 'FastNow Zenith',
-    contentInset: 'automatic'
-  },
-  plugins: {
-    SplashScreen: {
-      launchShowDuration: 2000,
-      backgroundColor: '#F5F2EA',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
-      showSpinner: false
-    },
-    StatusBar: {
-      style: 'default',
-      backgroundColor: '#F5F2EA'
-    }
+function checkAndroidProject() {
+  const androidPath = path.join(process.cwd(), 'android');
+  if (!fs.existsSync(androidPath)) {
+    log('⚠️  Android project not found. Run: npx cap add android');
+    return false;
   }
-};
-
-export default config;`;
-
-  fs.writeFileSync(configPath, configContent);
-  log(`✅ Capacitor config updated for ${environment}`);
+  return true;
 }
 
 function main() {
@@ -94,28 +50,38 @@ function main() {
 
   log(`Starting ${environment} build for ${platform}...`);
 
-  // Update configuration
-  updateCapacitorConfig(environment);
+  // Check if Android project exists
+  if (!checkAndroidProject()) {
+    log('Run the following commands first:');
+    log('  npx cap add android');
+    log('  npx cap sync android');
+    process.exit(1);
+  }
 
   // Build web assets
   executeCommand('npm run build', 'Building web assets');
 
   // Sync Capacitor
-  executeCommand('npx cap sync', 'Syncing Capacitor');
+  executeCommand('npx cap sync android', 'Syncing Capacitor');
 
   if (environment === 'production') {
     // Production build
     const buildCommand = buildType === 'bundle' 
-      ? `npx cap build ${platform} --release --prod`
-      : `npx cap build ${platform} --release`;
+      ? `cd android && ./gradlew bundleRelease`
+      : `cd android && ./gradlew assembleRelease`;
     
     executeCommand(buildCommand, `Building ${buildType.toUpperCase()} for ${platform}`);
     
+    const outputPath = buildType === 'bundle' 
+      ? 'android/app/build/outputs/bundle/release/app-release.aab'
+      : 'android/app/build/outputs/apk/release/app-release.apk';
+    
     log(`🎉 Production ${buildType.toUpperCase()} build completed!`);
-    log(`📱 Upload the ${buildType.toUpperCase()} file to Google Play Console`);
+    log(`📱 Output: ${outputPath}`);
+    log(`📱 Upload to Google Play Console for distribution`);
   } else {
     // Development build with live reload
-    executeCommand(`npx cap run ${platform} --livereload --external`, `Running ${platform} with live reload`);
+    executeCommand(`npx cap run android --livereload --external`, `Running ${platform} with live reload`);
   }
 }
 
@@ -124,17 +90,24 @@ if (process.argv.length === 2) {
   console.log(`
 Usage: node scripts/build-capacitor.js [options]
 
-Options:
+Setup Commands:
+  npx cap add android                         # Initialize Android project (run once)
+  npx cap sync android                        # Sync web assets to native
+
+Build Options:
+  --dev            Build for development with live reload (default)
   --prod           Build for production
-  --dev            Build for development (default)
   --aab            Build Android App Bundle (production only)
   android          Target Android platform (default)
-  ios              Target iOS platform
 
 Examples:
-  node scripts/build-capacitor.js                    # Development build
+  node scripts/build-capacitor.js                    # Development with live reload
   node scripts/build-capacitor.js --prod android     # Production APK
   node scripts/build-capacitor.js --prod --aab       # Production AAB
+
+Output Locations:
+  APK: android/app/build/outputs/apk/release/app-release.apk
+  AAB: android/app/build/outputs/bundle/release/app-release.aab
   `);
   process.exit(0);
 }
