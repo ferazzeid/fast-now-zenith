@@ -74,7 +74,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
       className={`max-w-md mx-auto bg-gray-900 border border-gray-700 rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
-      <blockquote className="relative">
+      <blockquote className="relative text-center">
         <p className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-white leading-relaxed mb-3`}>
           "{currentQuote.text}"
         </p>
