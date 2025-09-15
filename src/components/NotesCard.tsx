@@ -146,11 +146,23 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="font-medium text-foreground leading-tight">
-                {note.title}
-              </h3>
-              <div className="flex gap-1 opacity-100">
+            {/* Title only - no buttons */}
+            <h3 className="font-medium text-foreground leading-tight">
+              {note.title}
+            </h3>
+            
+            {/* Content */}
+            <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">
+              {note.content}
+            </p>
+            
+            {/* Bottom right aligned buttons */}
+            <div className="flex items-start justify-between">
+              {/* Spacer for layout */}
+              <div className="flex-1"></div>
+              
+              {/* Actions - edit, animation toggle and delete */}
+              <div className="flex-shrink-0 flex items-center space-x-1">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -158,7 +170,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setIsEditing(true)}
-                        className="h-8 w-8 p-0"
+                        className="p-2 h-8 w-8 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
                       >
                         <Edit3 className="h-4 w-4" />
                       </Button>
@@ -206,7 +218,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                           });
                         }}
                         disabled={isToggling}
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-all duration-200"
+                        className="p-2 h-8 w-8 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
                       >
                         {isToggling ? (
                           <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -229,7 +241,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        className="p-2 h-8 w-8 text-destructive hover:bg-destructive/10"
                         onClick={() => setShowDeleteConfirm(true)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -242,9 +254,6 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                 </TooltipProvider>
               </div>
             </div>
-            <p className="text-muted-foreground text-sm whitespace-pre-wrap leading-relaxed">
-              {note.content}
-            </p>
           </div>
         )}
       </CardContent>
