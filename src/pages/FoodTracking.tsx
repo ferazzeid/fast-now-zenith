@@ -13,6 +13,7 @@ import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
 import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
+import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
@@ -254,7 +255,7 @@ const FoodTracking = () => {
   };
 
   const renderFoodEntryCard = (entry: any) => (
-    <div key={entry.id} className={`rounded-lg p-3 transition-all duration-200 bg-muted/30 ${
+    <Card key={entry.id} className={`p-3 transition-all duration-200 ${
       entry.consumed ? 'opacity-60' : ''
     }`}>
       <div className="flex items-center gap-2">
@@ -398,7 +399,7 @@ const FoodTracking = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </Card>
   );
 
   return (
