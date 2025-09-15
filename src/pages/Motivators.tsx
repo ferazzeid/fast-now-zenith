@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Plus, Sparkles, Target, Mic, BookOpen, FileText } from 'lucide-react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
-import { useSystemMotivators } from '@/hooks/useSystemMotivators';
+import { useStaticSystemMotivators } from '@/hooks/useStaticSystemMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
 import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
 import { Quote } from '@/hooks/useQuoteSettings';
@@ -37,7 +37,7 @@ const Motivators = () => {
   const { toast } = useToast();
   const { motivators, loading, createMotivator, createMultipleMotivators, updateMotivator, deleteMotivator, refreshMotivators } = useMotivators();
   const { addToDefaultGoals, removeFromDefaultGoals, updateDefaultGoal, checkIfInDefaultGoals } = useAdminGoalManagement();
-  const { systemMotivators, loading: systemLoading } = useSystemMotivators();
+  const { systemMotivators, loading: systemLoading } = useStaticSystemMotivators();
   const { isAdmin } = useAccess();
   const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
   

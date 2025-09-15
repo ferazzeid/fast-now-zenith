@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { useSystemMotivators } from './useSystemMotivators';
+import { useStaticSystemMotivators } from './useStaticSystemMotivators';
 import { useAdminGoalIdeas } from './useAdminGoalIdeas';
 import { useStandardizedLoading } from './useStandardizedLoading';
 
@@ -24,7 +24,7 @@ type SystemMotivator = {
 // Simplified admin goal management - now just a wrapper around unified system
 export const useEnhancedAdminGoalManagement = () => {
   const { execute, isLoading } = useStandardizedLoading();
-  const { systemMotivators, refetch: refetchSystemMotivators } = useSystemMotivators();
+  const { systemMotivators } = useStaticSystemMotivators();
   const goalIdeasHook = useAdminGoalIdeas();
 
   // Create new system motivator (admin only)
@@ -38,8 +38,7 @@ export const useEnhancedAdminGoalManagement = () => {
 
       if (error) throw error;
 
-      await refetchSystemMotivators();
-      await goalIdeasHook.refreshGoalIdeas(); // Refresh goal ideas too
+      await goalIdeasHook.refreshGoalIdeas(); // Refresh goal ideas
       return data;
     }, {
       onError: (error) => {
@@ -62,8 +61,7 @@ export const useEnhancedAdminGoalManagement = () => {
 
       if (error) throw error;
 
-      await refetchSystemMotivators();
-      await goalIdeasHook.refreshGoalIdeas(); // Refresh goal ideas too
+      await goalIdeasHook.refreshGoalIdeas(); // Refresh goal ideas
       return data;
     }, {
       onError: (error) => {
@@ -75,9 +73,8 @@ export const useEnhancedAdminGoalManagement = () => {
   };
 
   return {
-    // System motivators
+    // System motivators (static data)
     systemMotivators,
-    refetchSystemMotivators,
     createSystemMotivator,
     updateSystemMotivator,
     

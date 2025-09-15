@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, AlertCircle } from 'lucide-react';
-import { useSystemMotivators } from '@/hooks/useSystemMotivators';
+import { useStaticSystemMotivators } from '@/hooks/useStaticSystemMotivators';
 import { useAdminGoalIdeas } from '@/hooks/useAdminGoalIdeas';
 
 export const AdminGoalManagementSection: React.FC = () => {
-  const { systemMotivators, loading: systemLoading, refetch: refetchSystem } = useSystemMotivators();
+  const { systemMotivators, loading: systemLoading } = useStaticSystemMotivators();
   const { goalIdeas, loading: goalIdeasLoading, forceRefresh: refreshGoalIdeas } = useAdminGoalIdeas();
 
   return (
@@ -47,12 +47,11 @@ export const AdminGoalManagementSection: React.FC = () => {
             <div className="flex gap-2">
               <Button 
                 variant="outline"
-                onClick={refetchSystem}
-                disabled={systemLoading}
-                className="flex items-center gap-2"
+                disabled
+                className="flex items-center gap-2 opacity-50"
               >
-                <RefreshCw className={`h-4 w-4 ${systemLoading ? 'animate-spin' : ''}`} />
-                Refresh System
+                <RefreshCw className="h-4 w-4" />
+                System Data (Static)
               </Button>
               <Button 
                 variant="outline"
@@ -83,16 +82,9 @@ export const AdminGoalManagementSection: React.FC = () => {
           <TabsContent value="system" className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">System Motivators</h3>
-              <Button 
-                onClick={refetchSystem}
-                disabled={systemLoading}
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-3 w-3 ${systemLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                Static Data • No Refresh Needed
+              </div>
             </div>
 
             {systemLoading ? (

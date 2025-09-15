@@ -21,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useStaticDefaultFoods } from '@/hooks/useStaticDefaultFoods';
 import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
 
 interface UserFood {
@@ -88,11 +89,14 @@ export const FoodLibraryView = ({
   // Use recent foods hook for "My Foods" tab
   const { recentFoods, loading: recentFoodsLoading, refreshRecentFoods } = useRecentFoods();
   
+  // Use static default foods for instant access
+  const { defaultFoods: staticDefaultFoods } = useStaticDefaultFoods();
+  
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
   const [myFoodFavorites, setMyFoodFavorites] = useState<Set<string>>(new Set()); // Same pattern as defaultFoodFavorites
   const [searchTerm, setSearchTerm] = useState('');
-  const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(true);
+  const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(false); // No longer needed with static data
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'my-foods' | 'template' | 'suggested'>('my-foods');
   const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
@@ -107,21 +111,24 @@ export const FoodLibraryView = ({
   const isInteractionSafe = !loading;
   const { toast } = useToast();
   
-  // Combined loading state
-  const isLoading = recentFoodsLoading || defaultFoodsLoading;
+  // Combined loading state (no longer includes default foods loading)
+  const isLoading = recentFoodsLoading;
+
+  // Set default foods from static data immediately
+  useEffect(() => {
+    setDefaultFoods(staticDefaultFoods);
+  }, [staticDefaultFoods]);
 
   useEffect(() => {
     const loadData = async () => {
-      setDefaultFoodsLoading(true);
       try {
         await Promise.all([
-          loadDefaultFoods(),
           loadDefaultFoodFavorites(),
           loadMyFoodFavorites(), // Load my food favorites like default food favorites
           checkAdminRole()
         ]);
       } finally {
-        setDefaultFoodsLoading(false);
+        // No longer need to set loading state
       }
     };
     
@@ -166,29 +173,7 @@ export const FoodLibraryView = ({
     return result;
   }, [recentFoods, myFoodFavorites]); // Use myFoodFavorites instead of optimisticFavorites
 
-  const loadDefaultFoods = async () => {
-    console.log('🍽️ Loading default foods...');
-    try {
-      const { data, error } = await supabase
-        .from('default_foods')
-        .select('*')
-        .order('name');
-
-      if (error) {
-        throw error;
-      }
-
-      console.log('🍽️ Default foods loaded:', data?.length, data);
-      setDefaultFoods(data || []);
-    } catch (error) {
-      console.error('🍽️ Error loading default foods:', error);
-      toast({
-        title: "Warning",
-        description: "Failed to load suggested foods",
-        variant: "destructive"
-      });
-    }
-  };
+  // Remove old loadDefaultFoods function - now using static data
 
   const loadMyFoodFavorites = async () => {
     if (!user) return;
