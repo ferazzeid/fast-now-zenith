@@ -200,7 +200,7 @@ export const Navigation = () => {
                       ? 'bg-primary text-primary-foreground shadow-lg' 
                       : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
                   } ${isLocked ? 'opacity-50' : ''}`}
-                  onClick={handleFoodClick}
+                  onClick={label === 'Food' ? handleFoodClick : undefined}
                 >
                   <Icon className="w-5 h-5 mb-1" />
                   <span className="text-xs font-medium">{label}</span>
