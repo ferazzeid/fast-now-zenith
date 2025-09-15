@@ -22,6 +22,7 @@ import { useNavigate } from 'react-router-dom';
 
 
 import { CalorieGoalWarning } from '@/components/CalorieGoalWarning';
+import { UserColorPicker } from '@/components/UserColorPicker';
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
@@ -47,6 +48,7 @@ const Settings = () => {
   const [dailyCarbGoal, setDailyCarbGoal] = useState('');
   const [activityLevel, setActivityLevel] = useState('sedentary');
   const [manualTdeeOverride, setManualTdeeOverride] = useState('');
+  const [primaryColor, setPrimaryColor] = useState('#3b82f6');
   
   const { toast } = useToast();
   const { user, signOut } = useAuth();
@@ -73,7 +75,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, manual_tdee_override, target_deficit, enable_fasting_slideshow, enable_walking_slideshow')
+            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, manual_tdee_override, target_deficit, enable_fasting_slideshow, enable_walking_slideshow, primary_color')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -97,6 +99,7 @@ const Settings = () => {
           setDailyCarbGoal(profileData.daily_carb_goal?.toString() || '');
           setActivityLevel(profileData.activity_level || 'lightly_active');
           setManualTdeeOverride(profileData.manual_tdee_override?.toString() || '');
+          setPrimaryColor(profileData.primary_color || '#3b82f6');
 
           // Check if profile is incomplete and show onboarding
           const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
@@ -281,7 +284,8 @@ const Settings = () => {
             daily_carb_goal: calculatedCarbGoal || (dailyCarbGoal ? parseInt(dailyCarbGoal) : null),
             activity_level: activityLevel,
             manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null,
-            target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000
+            target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000,
+            primary_color: primaryColor
           };
         
         console.log('Settings: User ID:', user?.id);
@@ -818,7 +822,14 @@ const Settings = () => {
                   <Brain className="w-5 h-5 text-primary" />
                   <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
                 </div>
-                <div className="flex justify-center">
+                
+                <UserColorPicker 
+                  value={primaryColor}
+                  onChange={setPrimaryColor}
+                  disabled={profileLoading}
+                />
+                
+                <div className="flex justify-center pt-2">
                   <ThemeToggle />
                 </div>
               </div>

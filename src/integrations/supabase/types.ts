@@ -1288,6 +1288,7 @@ export type Database = {
           payment_provider: string | null
           platform_subscription_id: string | null
           premium_expires_at: string | null
+          primary_color: string | null
           sex: string | null
           speech_model: string | null
           stripe_customer_id: string | null
@@ -1339,6 +1340,7 @@ export type Database = {
           payment_provider?: string | null
           platform_subscription_id?: string | null
           premium_expires_at?: string | null
+          primary_color?: string | null
           sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
@@ -1390,6 +1392,7 @@ export type Database = {
           payment_provider?: string | null
           platform_subscription_id?: string | null
           premium_expires_at?: string | null
+          primary_color?: string | null
           sex?: string | null
           speech_model?: string | null
           stripe_customer_id?: string | null
