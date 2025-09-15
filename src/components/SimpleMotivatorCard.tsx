@@ -35,10 +35,16 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
         <blockquote className="relative mb-4">
            {motivator.content && (
              <p className="text-lg text-foreground leading-relaxed mb-3">
-               "{motivator.content}"
+               {/* Clean up existing quotes and add proper formatting */}
+               "{motivator.content.replace(/^[""]|[""]$/g, '')}"
              </p>
            )}
-           {motivator.title && motivator.title !== motivator.content && (
+           {motivator.title && motivator.category === 'saved_quote' && (
+             <cite className="text-sm text-muted-foreground not-italic">
+               — {motivator.title}
+             </cite>
+           )}
+           {motivator.title && motivator.category !== 'saved_quote' && motivator.title !== motivator.content && (
              <cite className="text-sm text-muted-foreground not-italic">
                — {motivator.title}
              </cite>

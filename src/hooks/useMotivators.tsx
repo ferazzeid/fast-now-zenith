@@ -247,8 +247,9 @@ export const useMotivators = () => {
     if (!user) return null;
 
     try {
-      const title = quote.text.length > 50 ? `${quote.text.substring(0, 47)}...` : quote.text;
-      const content = `"${quote.text}"${quote.author ? ` — ${quote.author}` : ''}`;
+      // Store author as title, quote text as content (without extra quotes)
+      const title = quote.author || 'Unknown Author';
+      const content = quote.text;
 
       const { data, error } = await supabase
         .from('motivators')
