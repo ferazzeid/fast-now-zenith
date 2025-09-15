@@ -710,7 +710,7 @@ export const FoodLibraryView = ({
 
     return (
       <div 
-        className="rounded-lg p-3 transition-all duration-200 bg-card cursor-pointer"
+        className="rounded-lg p-3 transition-all duration-200 border border-border/50 bg-background/50 cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
@@ -1059,7 +1059,7 @@ export const FoodLibraryView = ({
                 </p>
               </div>
             ) : (
-              <div className="space-y-1 overflow-x-hidden">
+              <div className="space-y-3 overflow-x-hidden">
                 {filteredUserFoods.map((food) => (
                   <FoodCard key={food.id} food={food} isUserFood={true} />
                 ))}
@@ -1113,9 +1113,9 @@ export const FoodLibraryView = ({
                   </p>
                 </div>
               ) : (
-                <div className="space-y-1 overflow-x-hidden">
+                <div className="space-y-3 overflow-x-hidden">
                   {templateFoods.map((food) => (
-                     <div key={food.id} className="rounded-lg p-3 transition-all duration-200 bg-card">
+                     <div key={food.id} className="rounded-lg p-3 transition-all duration-200 border border-border/50 bg-background/50">
                        <div className="flex items-center gap-2">
                          {/* Options Dropdown */}
                          <div className="flex-shrink-0">
@@ -1238,7 +1238,7 @@ export const FoodLibraryView = ({
                 </p>
               </div>
             ) : (
-              <div className="space-y-1 overflow-x-hidden">
+              <div className="space-y-3 overflow-x-hidden">
                 {filteredDefaultFoods.map((food) => (
                   <FoodCard key={`default-${food.id}`} food={food} isUserFood={false} />
                 ))}
