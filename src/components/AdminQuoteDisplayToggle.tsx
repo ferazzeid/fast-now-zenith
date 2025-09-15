@@ -4,46 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { useQuoteDisplay } from '@/hooks/useQuoteDisplay';
 import { useQueryClient } from '@tanstack/react-query';
 
 export const AdminQuoteDisplayToggle = () => {
-  const [fastingQuotesEnabled, setFastingQuotesEnabled] = useState(false);
-  const [walkingQuotesEnabled, setWalkingQuotesEnabled] = useState(false);
-  const { isLoading, execute } = useStandardizedLoading();
+  const { fastingQuotesEnabled, walkingQuotesEnabled, refresh } = useQuoteDisplay();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    await execute(async () => {
-      // Load both settings
-      const [fastingResult, walkingResult] = await Promise.all([
-        supabase
-          .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'fasting_quotes_display_enabled')
-          .maybeSingle(),
-        supabase
-          .from('shared_settings')
-          .select('setting_value')
-          .eq('setting_key', 'walking_quotes_display_enabled')
-          .maybeSingle()
-      ]);
-
-      setFastingQuotesEnabled(fastingResult.data?.setting_value === 'true');
-      setWalkingQuotesEnabled(walkingResult.data?.setting_value === 'true');
-    }, {
-      onError: () => {
-        // Default both to true if settings don't exist
-        setFastingQuotesEnabled(true);
-        setWalkingQuotesEnabled(true);
-      }
-    });
-  };
 
   const handleFastingToggle = async (enabled: boolean) => {
     try {
@@ -56,14 +23,12 @@ export const AdminQuoteDisplayToggle = () => {
         })
         .select();
 
-      console.log('Upsert result:', { data, error });
+      console.log('Fasting upsert result:', { data, error });
 
       if (error) throw error;
-
-      setFastingQuotesEnabled(enabled);
       
-      // Force refresh of quote display settings across the app
-      queryClient.invalidateQueries({ queryKey: ['quote-display-settings'] });
+      // Refresh settings to get latest values
+      await refresh();
       
       toast({
         title: "Setting updated",
@@ -90,14 +55,12 @@ export const AdminQuoteDisplayToggle = () => {
         })
         .select();
 
-      console.log('Upsert result:', { data, error });
+      console.log('Walking upsert result:', { data, error });
 
       if (error) throw error;
-
-      setWalkingQuotesEnabled(enabled);
       
-      // Force refresh of quote display settings across the app
-      queryClient.invalidateQueries({ queryKey: ['quote-display-settings'] });
+      // Refresh settings to get latest values
+      await refresh();
       
       toast({
         title: "Setting updated",
@@ -112,8 +75,6 @@ export const AdminQuoteDisplayToggle = () => {
       });
     }
   };
-
-  if (isLoading) return null;
 
   return (
     <>

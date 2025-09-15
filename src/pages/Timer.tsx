@@ -26,7 +26,7 @@ import { trackFastingEvent } from '@/utils/analytics';
 import { FastingInspirationRotator } from '@/components/FastingInspirationRotator';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
-import { useQuoteDisplaySettings } from '@/hooks/useQuoteDisplaySettings';
+import { useQuoteDisplay } from '@/hooks/useQuoteDisplay';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
@@ -58,7 +58,7 @@ const Timer = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
-  const { fastingQuotesEnabled } = useQuoteDisplaySettings();
+  const { fastingQuotesEnabled } = useQuoteDisplay();
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { timerDesign } = useTimerDesign();

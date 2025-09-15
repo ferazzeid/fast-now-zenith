@@ -19,7 +19,7 @@ import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
-import { useQuoteDisplaySettings } from '@/hooks/useQuoteDisplaySettings';
+import { useQuoteDisplay } from '@/hooks/useQuoteDisplay';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { useAccess } from '@/hooks/useAccess';
@@ -52,7 +52,7 @@ const Walking = () => {
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
-  const { walkingQuotesEnabled } = useQuoteDisplaySettings();
+  const { walkingQuotesEnabled } = useQuoteDisplay();
   const { saveQuoteAsGoal } = useMotivators();
   const { isAdmin } = useAccess();
 
