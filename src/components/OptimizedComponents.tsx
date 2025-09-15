@@ -22,7 +22,7 @@ export const StatDisplay = ({
   className = '' 
 }: StatDisplayProps) => {
   return (
-    <Card className={`p-3 bg-card border-ceramic-rim relative ${className}`}>
+    <Card className={`p-3 bg-card relative ${className}`}>
       {/* Tooltip icon positioned in top-right corner */}
       <div className="absolute top-2 right-2">
         <ClickableTooltip content={tooltip}>
@@ -71,7 +71,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
   }, [deficit, loading, tdee]);
 
   return (
-    <Card className="p-4 bg-card border-ceramic-rim relative">
+    <Card className="p-4 bg-card relative">
       {/* Tooltip icon positioned in top-right corner */}
       <div className="absolute top-3 right-3">
         <ClickableTooltip 
@@ -95,7 +95,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
         
         {/* Additional metrics if available */}
         {fatInGrams !== undefined && thirtyDayProjection !== undefined && deficit > 0 && (
-          <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-ceramic-rim/50">
+          <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-ceramic-shadow/50">
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-1 mb-1">
                   <Flame className="w-3 h-3 text-muted-foreground" />

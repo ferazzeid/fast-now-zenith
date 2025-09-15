@@ -35,7 +35,7 @@ export const FoodPlanSummary: React.FC<FoodPlanSummaryProps> = ({ entries }) => 
   };
 
   return (
-    <Card className="rounded-lg p-2 mb-1 bg-card border border-ceramic-rim">
+    <Card className="rounded-lg p-2 mb-1 bg-card">
       <div className="p-3 space-y-3">
           {/* Header Row */}
           <div className="grid grid-cols-3 gap-2 items-center">

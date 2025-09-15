@@ -12,7 +12,7 @@ export const MyFoodsButton = ({ onClick, title = "Browse food library" }: MyFood
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border border-ceramic-rim hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border-ceramic-shadow hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
       title={title}
       aria-label={title}
     >

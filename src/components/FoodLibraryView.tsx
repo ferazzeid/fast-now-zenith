@@ -710,7 +710,7 @@ export const FoodLibraryView = ({
 
     return (
       <div 
-        className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim cursor-pointer"
+        className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
@@ -1115,7 +1115,7 @@ export const FoodLibraryView = ({
               ) : (
                 <div className="space-y-1 overflow-x-hidden">
                   {templateFoods.map((food) => (
-                     <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim">
+                     <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card">
                        <div className="flex items-center gap-2">
                          {/* Options Dropdown */}
                          <div className="flex-shrink-0">

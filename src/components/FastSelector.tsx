@@ -157,7 +157,7 @@ export const FastSelector = ({
         </div>
 
         {/* Start in Past Section */}
-        <div className="space-y-4 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border border-ceramic-rim/50">
+        <div className="space-y-4 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border-ceramic-shadow/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-primary" />

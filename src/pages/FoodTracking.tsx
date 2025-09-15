@@ -254,7 +254,7 @@ const FoodTracking = () => {
   };
 
   const renderFoodEntryCard = (entry: any) => (
-    <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card border border-ceramic-rim ${
+    <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card ${
       entry.consumed ? 'opacity-60' : ''
     }`}>
       <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ const FoodTracking = () => {
 
               {/* Food Entries List */}
               <div className="mb-6">
-                <div className="bg-card rounded-lg border border-ceramic-rim p-4">
+                <div className="bg-card rounded-lg p-4">
                   {todayEntries.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8 space-y-2">
                       <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -592,7 +592,7 @@ const FoodTracking = () => {
 
               {/* Locked State Card */}
               <div className="mb-6">
-                <div className="p-4 text-center relative overflow-hidden min-h-[180px] bg-card/50 rounded-lg border border-ceramic-rim">
+                <div className="p-4 text-center relative overflow-hidden min-h-[180px] bg-card/50 rounded-lg">
                   <div className="flex flex-col justify-center items-center h-full space-y-4 opacity-50">
                     <div className="grid grid-cols-2 gap-4 w-full mb-4">
                       <div className="text-center">

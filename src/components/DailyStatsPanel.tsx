@@ -138,7 +138,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-ceramic-rim' : ''}`}>
+          <div className={`max-w-md mx-auto px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-ceramic-shadow' : ''}`}>
             <div className="flex items-center space-x-2">
               {appLogo ? (
                 <img 
@@ -184,7 +184,7 @@ export const DailyStatsPanel = memo(() => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-ceramic-rim">
+            <div className="bg-card max-w-md mx-auto z-50 rounded-b-lg border-l border-r border-b border-ceramic-shadow">
               <div className="px-6 py-3 space-y-3">
                 {/* Main Deficit Display */}
                 <AccessGate feature="food">
@@ -199,7 +199,7 @@ export const DailyStatsPanel = memo(() => {
                         userUnits={profile?.units}
                       />
                     ) : (
-                      <Card className="p-4 bg-card border-ceramic-rim relative" onClick={requestUpgrade}>
+                      <Card className="p-4 bg-card relative" onClick={requestUpgrade}>
                         <div className="text-center space-y-3">
                           <div className="flex items-center justify-center space-x-2">
                             <h3 className="text-lg font-semibold text-muted-foreground">Today's Deficit</h3>
@@ -227,7 +227,7 @@ export const DailyStatsPanel = memo(() => {
                   <AccessGate feature="food">
                     {({ hasAccess, requestUpgrade }) => (
                       <Card
-                        className={`p-3 bg-card border-ceramic-rim relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
+                        className={`p-3 bg-card relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
                         onClick={hasAccess ? undefined : requestUpgrade}
                       >
                         <div className="absolute top-2 right-2">
@@ -272,7 +272,7 @@ export const DailyStatsPanel = memo(() => {
 
 
                 {/* Unified Metabolism & Walking Card */}
-                <Card className="p-3 bg-card border-ceramic-rim">
+                <Card className="p-3 bg-card">
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -293,7 +293,7 @@ export const DailyStatsPanel = memo(() => {
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-ceramic-rim my-3"></div>
+                  <div className="border-t border-ceramic-shadow/50 my-3"></div>
 
                   {/* Activity Section with Sessions Breakdown */}
                   <WalkingSessionsBreakdown 

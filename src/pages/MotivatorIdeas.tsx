@@ -130,7 +130,7 @@ export default function MotivatorIdeas() {
         {loading ? (
           <div className="space-y-4">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="p-3 border border-ceramic-rim rounded-lg">
+              <div key={i} className="p-3 border-ceramic-shadow rounded-lg">
                 <div className="space-y-2">
                   <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
                   <div className="h-3 bg-muted animate-pulse rounded w-full" />

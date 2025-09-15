@@ -224,7 +224,7 @@ export const Navigation = () => {
                   className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 ${
                     isActive 
                       ? 'bg-primary text-primary-foreground shadow-lg' 
-                      : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border border-ceramic-rim/30'
+                      : 'text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim bg-ceramic-base/20 border-ceramic-shadow/30'
                   } ${isLocked ? 'opacity-50' : ''}`}
                   onClick={label === 'Food' ? handleFoodClick : undefined}
                 >

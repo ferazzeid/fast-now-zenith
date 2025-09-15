@@ -72,7 +72,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="p-3 border border-ceramic-rim rounded-lg">
+                <div key={i} className="p-3 border-ceramic-shadow rounded-lg">
                   <div className="space-y-2">
                     <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
                     <div className="h-3 bg-muted animate-pulse rounded w-full" />
@@ -127,7 +127,7 @@ export const MotivatorIdeasModal = ({ isOpen, onClose, onSelectGoal, onEditGoal 
                 const shouldShowExpandButton = goal.description && goal.description.length > 150;
                 
                 return (
-                  <Card key={goal.id} className="overflow-hidden border border-ceramic-rim">
+                  <Card key={goal.id} className="overflow-hidden">
                     <CardContent className="p-0">
                       <div className="flex min-h-[128px]">
                         {/* Image */}

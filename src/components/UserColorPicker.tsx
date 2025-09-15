@@ -80,7 +80,7 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
           >
             <div className="flex items-center gap-2">
               <div 
-                className="w-4 h-4 rounded border border-ceramic-rim"
+                className="w-4 h-4 rounded border-ceramic-shadow"
                 style={{ backgroundColor: localColor }}
               />
               <Palette className="w-3 h-3" />
