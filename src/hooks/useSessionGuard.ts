@@ -15,11 +15,8 @@ export const useSessionGuard = () => {
     operation: () => Promise<T>,
     operationName = 'Operation'
   ): Promise<T | null> => {
-    console.log(`🛡️ Session Guard: Starting ${operationName}`);
-    
     // Check if we have a session
     if (!session) {
-      console.log(`🛡️ Session Guard: Blocking ${operationName} - no session`);
       toast({
         title: "Authentication Required",
         description: "Please sign in to continue.",
@@ -32,7 +29,6 @@ export const useSessionGuard = () => {
     try {
       const sessionHealthy = await checkSessionHealth();
       if (!sessionHealthy) {
-        console.log(`🛡️ Session Guard: Blocking ${operationName} - session expired`);
         toast({
           title: "Session Expired",
           description: "Please refresh the page and sign in again.",
@@ -41,7 +37,6 @@ export const useSessionGuard = () => {
         return null;
       }
 
-      console.log(`🛡️ Session Guard: Allowing ${operationName} - session valid`);
       return await operation();
     } catch (error) {
       console.error(`🛡️ Session Guard: Error during ${operationName}:`, error);

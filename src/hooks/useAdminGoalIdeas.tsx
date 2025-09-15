@@ -64,12 +64,8 @@ export const useAdminGoalIdeas = () => {
 
   const loadGoalIdeas = async (forceClear: boolean = false) => {
     const result = await startOperation('load-admin-goals', async () => {
-      console.log('🔄 Loading admin goal ideas from system_motivators');
-      
       // Only clear specific admin goal caches, not all caches
       if (forceClear) {
-        console.log('🧹 Clearing admin goal specific caches...');
-        
         // Clear only admin goal related React Query cache
         queryClient.invalidateQueries({ queryKey: ['admin-goals'] });
         queryClient.invalidateQueries({ queryKey: ['system-motivators'] });

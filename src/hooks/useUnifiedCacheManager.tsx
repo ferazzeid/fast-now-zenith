@@ -22,8 +22,6 @@ export const useUnifiedCacheManager = () => {
         localStorage.removeItem(`cache_access_${userId}`);
         localStorage.removeItem(`dedupe_access_${userId}`);
       }
-      
-      console.log(`🧹 Cleared auth caches for user: ${userId}`);
     } else {
       // Clear all auth caches
       queryClient.invalidateQueries({ queryKey: ['access'] });
@@ -41,17 +39,15 @@ export const useUnifiedCacheManager = () => {
           }
         });
       }
-      
-      console.log('🧹 Cleared all authentication caches');
     }
   }, [queryClient]);
 
   // Subscription cache management
   const clearSubscriptionCache = useCallback(async (forceReload = false) => {
-    console.log('🗑️ Clearing subscription cache');
-    
-    // Clear all subscription-related queries
-    await queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
+      console.log('🗑️ Clearing subscription cache');
+      
+      // Clear all subscription-related queries
+      await queryClient.invalidateQueries({ queryKey: ['unified-subscription'] });
     await queryClient.invalidateQueries({ queryKey: ['subscription'] });
     await queryClient.invalidateQueries({ queryKey: ['optimized-subscription'] });
     
@@ -91,7 +87,6 @@ export const useUnifiedCacheManager = () => {
     queryClient.invalidateQueries({ queryKey: ['motivators'] });
     queryClient.removeQueries({ queryKey: ['goals'] });
     queryClient.removeQueries({ queryKey: ['motivators'] });
-    console.log('✅ Goals cache cleared');
   }, [queryClient]);
 
   // Food data cache management
@@ -107,7 +102,6 @@ export const useUnifiedCacheManager = () => {
       queryClient.invalidateQueries({ queryKey: ['food'] });
       queryClient.removeQueries({ queryKey: ['food'] });
     }
-    console.log('✅ Food cache cleared');
   }, [queryClient]);
 
   // Profile cache management
@@ -120,7 +114,6 @@ export const useUnifiedCacheManager = () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       queryClient.removeQueries({ queryKey: ['profile'] });
     }
-    console.log('✅ Profile cache cleared');
   }, [queryClient]);
 
   // Complete cache reset (for logout)

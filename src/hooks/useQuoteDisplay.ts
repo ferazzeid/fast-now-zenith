@@ -7,7 +7,6 @@ export const useQuoteDisplay = () => {
   const { data: settings, isLoading } = useQuery({
     queryKey: QUOTE_SETTINGS_QUERY_KEY,
     queryFn: async () => {
-      console.log('🔄 USEQUERYDISPLAY: Fetching quote settings...');
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -15,7 +14,6 @@ export const useQuoteDisplay = () => {
       
       if (error) throw error;
       
-      console.log('📊 USEQUERYDISPLAY: Settings fetched:', data);
       return data || [];
     },
     staleTime: 0, // Always refetch for immediate updates
@@ -23,8 +21,6 @@ export const useQuoteDisplay = () => {
 
   const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_timer_quotes_enabled')?.setting_value === 'true';
   const walkingQuotesEnabled = settings?.find(s => s.setting_key === 'walking_timer_quotes_enabled')?.setting_value === 'true';
-
-  console.log('🎯 USEQUERYDISPLAY: Current state:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
   return {
     fastingQuotesEnabled: fastingQuotesEnabled ?? true,

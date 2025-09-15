@@ -60,13 +60,6 @@ const Timer = () => {
   const { quotes } = useQuoteSettings();
   const { fastingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
   
-  console.log('🎯 TIMER PAGE - Quote Display State:', { 
-    fastingQuotesEnabled, 
-    quoteDisplayLoading,
-    hasFastingQuotes: quotes?.fasting_timer_quotes?.length > 0,
-    currentMode,
-    quotesObject: quotes
-  });
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { timerDesign } = useTimerDesign();

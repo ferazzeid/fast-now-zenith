@@ -47,7 +47,6 @@ export function useFastingHoursQuery() {
   return useQuery({
     queryKey: fastingHoursKey,
     queryFn: async () => {
-      console.log('🔄 FASTING HOURS QUERY: Fetching fresh data from database');
       const { data, error } = await supabase
         .from("fasting_hours")
         .select("*")
@@ -65,14 +64,6 @@ export function useFastingHoursQuery() {
           : undefined
       })) as FastingHour[];
       
-      console.log('🔄 FASTING HOURS QUERY: Fetched', result.length, 'hours');
-      console.log('🔄 FASTING HOURS QUERY: Sample data for hours 0-2:', 
-        result.slice(0, 3).map(h => ({ 
-          hour: h.hour, 
-          metabolic_changes: h.metabolic_changes?.substring(0, 50) + '...',
-          content_rotation_data: h.content_rotation_data ? 'present' : 'missing'
-        }))
-      );
       return result;
     },
     // Use shorter cache time for admins actively editing logs

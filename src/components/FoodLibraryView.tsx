@@ -549,11 +549,6 @@ export const FoodLibraryView = ({
 
   const updateDefaultFood = async (foodId: string, updates: Partial<DefaultFood>) => {
     try {
-      console.log('🔄 FoodLibraryView: === UPDATE DEFAULT FOOD START ===');
-      console.log('🔄 FoodLibraryView: foodId:', foodId);
-      console.log('🔄 FoodLibraryView: updates received:', updates);
-      console.log('🔄 FoodLibraryView: image_url in updates:', updates.image_url);
-      
       const { error } = await supabase
         .from('default_foods')
         .update(updates)
@@ -564,17 +559,11 @@ export const FoodLibraryView = ({
         throw error;
       }
 
-      console.log('🔄 FoodLibraryView: Database update successful');
-      console.log('🔄 FoodLibraryView: Updating local state...');
-
       setDefaultFoods(defaultFoods.map(food => 
         food.id === foodId 
           ? { ...food, ...updates }
           : food
       ));
-      
-      console.log('🔄 FoodLibraryView: Local state updated');
-      console.log('🔄 FoodLibraryView: === UPDATE DEFAULT FOOD SUCCESS ===');
     } catch (error) {
       console.error('🔄 FoodLibraryView: Error updating default food:', error);
       throw error;

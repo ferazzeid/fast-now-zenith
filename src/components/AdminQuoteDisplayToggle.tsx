@@ -16,7 +16,6 @@ export const AdminQuoteDisplayToggle = () => {
   const { data: settings, isLoading } = useQuery({
     queryKey: QUOTE_SETTINGS_QUERY_KEY,
     queryFn: async () => {
-      console.log('🔄 FETCHING quote settings from database...');
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
@@ -24,7 +23,6 @@ export const AdminQuoteDisplayToggle = () => {
       
       if (error) throw error;
       
-      console.log('📊 DATABASE SETTINGS:', data);
       return data || [];
     },
     staleTime: 0, // Always refetch for immediate updates
@@ -33,8 +31,6 @@ export const AdminQuoteDisplayToggle = () => {
   // Get current values
   const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled')?.setting_value === 'true';
   const walkingQuotesEnabled = settings?.find(s => s.setting_key === 'walking_quotes_display_enabled')?.setting_value === 'true';
-
-  console.log('🎯 CURRENT TOGGLE STATES:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
 // Remove the onMutate optimistic updates that are causing conflicts
   const fastingMutation = useMutation({
