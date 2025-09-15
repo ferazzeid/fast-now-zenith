@@ -14,22 +14,31 @@ interface UnifiedMotivatorRotationProps {
   textDurationMs?: number;  // time to show text overlay (image stays visible underneath if present)
 }
 
+type UnifiedItem = {
+  id: string;
+  title: string;
+  content: string;
+  imageUrl: string | null;
+  type: 'motivator' | 'quote';
+  author?: string; // For saved quotes
+};
+
 type Phase = 'timer' | 'image' | 'text';
 
 export const UnifiedMotivatorRotation = ({
   isActive,
   onModeChange,
   className = '',
-  timerDurationMs = 5000,
-  imageLeadMs = 500, // Reduced delay for better synchronization
-  textDurationMs = 4000,
+  timerDurationMs = 6000,
+  imageLeadMs = 1000, // Increased for cleaner transitions
+  textDurationMs = 5000,
 }: UnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
   const { profile } = useProfile();
   const { quotes: quoteSettings } = useQuoteSettings();
   
   // Combine all content types into unified items
-  const items = useMemo(() => {
+  const items: UnifiedItem[] = useMemo(() => {
     console.log('🎯 Building unified content list');
     
     // Filter motivators based on individual show_in_animations setting
@@ -53,8 +62,9 @@ export const UnifiedMotivatorRotation = ({
       .filter(item => item.category === 'saved_quote') // Saved quotes from motivators table
       .map(item => ({
         id: `saved-quote-${item.id}`,
-        title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
-        content: item.content || item.title,
+        title: item.content || item.title || 'Untitled', // Use content (quote) as title for display
+        content: item.content || item.title, // Keep content same
+        author: item.title, // Store author separately
         imageUrl: item.imageUrl,
         type: 'quote' as const
       }));
@@ -183,13 +193,13 @@ export const UnifiedMotivatorRotation = ({
       {/* Image layer (below progress ring if needed) */}
       {showImageLayer && (
         <div
-          className="absolute inset-0 overflow-hidden transition-opacity duration-700"
+          className="absolute inset-0 overflow-hidden transition-opacity duration-1000 ease-in-out"
           style={{ zIndex: 8 }}
         >
           <MotivatorImageWithFallback
             src={current!.imageUrl}
             alt={current!.title || 'Motivator image'}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 ease-in-out"
             style={{ filter: 'brightness(0.95) saturate(1.05) contrast(1.02)' }}
           />
         </div>
@@ -198,7 +208,7 @@ export const UnifiedMotivatorRotation = ({
       {/* Content-specific text display */}
       {showText && current && (
         <div
-          className="absolute inset-0 flex items-center justify-center p-4"
+          className="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-500"
           style={{ zIndex: 15 }}
         >
           {(() => {
@@ -211,7 +221,7 @@ export const UnifiedMotivatorRotation = ({
           })() ? (
             /* Goals: Direct white text on image, no background */
             <div className="text-center text-white px-6 animate-fade-in">
-              <p className="text-xl font-bold leading-tight break-words uppercase" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}>
+              <p className="text-xl font-bold leading-tight break-words uppercase transition-all duration-300" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}>
                 {current.title}
               </p>
             </div>
@@ -219,7 +229,7 @@ export const UnifiedMotivatorRotation = ({
             /* Quotes: Direct text on background, no box */
             <div className="text-center text-white px-8 max-w-4xl w-full animate-fade-in">
               <p 
-                className={`font-medium leading-relaxed break-words ${
+                className={`font-medium leading-relaxed break-words transition-all duration-300 ${
                   current.title && current.title.length > 200 
                     ? 'text-sm' 
                     : current.title && current.title.length > 120 
@@ -228,8 +238,14 @@ export const UnifiedMotivatorRotation = ({
                 }`} 
                 style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}
               >
-                {current.title}
+                "{current.title}"
               </p>
+              {/* Show author if available */}
+              {(current as any).author && (current as any).author !== 'Unknown Author' && (
+                <p className="text-sm text-white/80 mt-2 transition-all duration-300" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>
+                  — {(current as any).author}
+                </p>
+              )}
             </div>
           )}
         </div>
