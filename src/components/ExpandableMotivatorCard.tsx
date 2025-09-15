@@ -2,9 +2,8 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2, Star, BookOpen } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, BookOpen } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
-import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -36,7 +35,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
-  const [isInDefaultGoals, setIsInDefaultGoals] = useState(false);
   const [showContentModal, setShowContentModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{
     id: string;
@@ -44,44 +42,15 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
     content: string;
     external_url?: string;
   } | null>(null);
-  const { addToDefaultGoals, removeFromDefaultGoals, checkIfInDefaultGoals, loading: adminLoading } = useAdminGoalManagement();
   const { isAdmin } = useAccess();
   const { toast } = useToast();
   
-  // Access control logic - only show admin features to admins
-  const showAdminFeatures = isAdmin;
-  
   const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
-
-  // Check if motivator is in default goals (admin feature for user motivators)
-  useEffect(() => {
-    const checkDefaultGoals = async () => {
-      if (!showAdminFeatures) return;
-      const inDefaults = await checkIfInDefaultGoals(motivator.id);
-      setIsInDefaultGoals(inDefaults);
-    };
-
-    checkDefaultGoals();
-  }, [showAdminFeatures, motivator.id, checkIfInDefaultGoals]);
 
   // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
     setCurrentImageUrl(motivator.imageUrl || '');
   }, [motivator.imageUrl]);
-
-  const handleToggleDefaultGoals = async () => {
-    if (isInDefaultGoals) {
-      const success = await removeFromDefaultGoals(motivator.id);
-      if (success) {
-        setIsInDefaultGoals(false);
-      }
-    } else {
-      const success = await addToDefaultGoals(motivator);
-      if (success) {
-        setIsInDefaultGoals(true);
-      }
-    }
-  };
 
   const handleReadMore = async () => {
     try {
@@ -220,36 +189,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                    </TooltipContent>
                  </Tooltip>
 
-                 {/* Admin: Toggle Default Goals Button */}
-                 {showAdminFeatures && (
-                   <Tooltip>
-                     <TooltipTrigger asChild>
-                       <Button
-                         size="sm"
-                         variant="ghost"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           handleToggleDefaultGoals();
-                         }}
-                         disabled={adminLoading}
-                         className={`p-1 h-6 w-6 ${
-                           isInDefaultGoals 
-                             ? 'hover:bg-red-500/10 hover:text-red-600' 
-                             : 'hover:bg-yellow-500/10 hover:text-yellow-600'
-                         }`}
-                       >
-                         <Star className={`w-3 h-3 ${
-                           isInDefaultGoals 
-                             ? 'text-yellow-500 fill-yellow-500' 
-                             : ''
-                         }`} />
-                       </Button>
-                     </TooltipTrigger>
-                     <TooltipContent>
-                       <p>{isInDefaultGoals ? 'Remove from default goals' : 'Add to default goals'} (Admin)</p>
-                     </TooltipContent>
-                   </Tooltip>
-                  )}
                    
                    <Tooltip>
                      <TooltipTrigger asChild>
