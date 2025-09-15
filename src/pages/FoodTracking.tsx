@@ -254,7 +254,7 @@ const FoodTracking = () => {
   };
 
   const renderFoodEntryCard = (entry: any) => (
-    <div key={entry.id} className={`rounded-lg p-2 mb-1 transition-all duration-200 bg-card ${
+    <div key={entry.id} className={`border border-ceramic-shadow rounded-lg p-3 mb-3 transition-all duration-200 bg-card ${
       entry.consumed ? 'opacity-60' : ''
     }`}>
       <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ const FoodTracking = () => {
                       <p className="text-sm mt-2">Add foods using the buttons above</p>
                     </div>
                   ) : (
-                    <div className="space-y-1">
+                    <div className="space-y-0">
                       {/* Sort entries so consumed items appear at the bottom */}
                       {[...todayEntries].sort((a, b) => {
                         if (a.consumed && !b.consumed) return 1;

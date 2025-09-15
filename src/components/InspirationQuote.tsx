@@ -71,22 +71,22 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <div 
-      className={`max-w-md mx-auto bg-gray-900 border border-gray-700 rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
+      className={`max-w-md mx-auto bg-ceramic-plate border border-ceramic-shadow rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative text-center">
-        <p className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-white leading-relaxed mb-3`}>
+        <p className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-warm-text leading-relaxed mb-3`}>
           "{currentQuote.text}"
         </p>
         {currentQuote.author && (
-          <cite className={`${compact ? 'text-xs' : 'text-sm'} text-gray-200 not-italic`}>
+          <cite className={`${compact ? 'text-xs' : 'text-sm'} text-muted-foreground not-italic`}>
             — {currentQuote.author}
           </cite>
         )}
       </blockquote>
       
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-700">
-        <div className={`${compact ? 'text-xs' : 'text-sm'} text-gray-300 flex items-center gap-2`}>
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-ceramic-shadow">
+        <div className={`${compact ? 'text-xs' : 'text-sm'} text-muted-foreground flex items-center gap-2`}>
           <Hand className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
           Tap for another quote
         </div>
@@ -98,7 +98,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
               e.stopPropagation();
               handleSaveQuote();
             }}
-            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-gray-300 hover:text-white hover:bg-gray-800 flex items-center gap-2`}
+            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-muted-foreground hover:text-warm-text hover:bg-ceramic-shadow flex items-center gap-2`}
           >
             <Bookmark className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
             Save to Goals
