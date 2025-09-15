@@ -254,7 +254,7 @@ const FoodTracking = () => {
   };
 
   const renderFoodEntryCard = (entry: any) => (
-    <div key={entry.id} className={`rounded-lg p-3 transition-all duration-200 border border-border/50 bg-background/50 ${
+    <div key={entry.id} className={`rounded-lg p-3 transition-all duration-200 bg-muted/30 ${
       entry.consumed ? 'opacity-60' : ''
     }`}>
       <div className="flex items-center gap-2">
