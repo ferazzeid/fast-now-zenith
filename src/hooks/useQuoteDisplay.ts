@@ -18,7 +18,7 @@ export const useQuoteDisplay = () => {
       console.log('📊 USEQUERYDISPLAY: Settings fetched:', data);
       return data || [];
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled')?.setting_value === 'true';
@@ -27,8 +27,8 @@ export const useQuoteDisplay = () => {
   console.log('🎯 USEQUERYDISPLAY: Current state:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
   return {
-    fastingQuotesEnabled: fastingQuotesEnabled || false,
-    walkingQuotesEnabled: walkingQuotesEnabled || false,
+    fastingQuotesEnabled: fastingQuotesEnabled ?? false,
+    walkingQuotesEnabled: walkingQuotesEnabled ?? false,
     loading: isLoading
   };
 };

@@ -27,7 +27,7 @@ export const AdminQuoteDisplayToggle = () => {
       console.log('📊 DATABASE SETTINGS:', data);
       return data || [];
     },
-    staleTime: 0, // Always fetch fresh data
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   // Get current values
