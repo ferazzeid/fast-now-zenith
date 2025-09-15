@@ -214,7 +214,7 @@ const FoodHistory = () => {
       <div className="relative min-h-screen bg-background">
       <div className="max-w-md mx-auto pt-10 pb-40">
         {/* Header with title and close button on same line - Loading state */}
-        <div className="flex items-center justify-between mb-4 px-4">
+        <div className="flex items-center justify-between mb-4 px-4 mt-6">
           <h1 className="text-2xl font-bold">Food History</h1>
           <Button
             variant="ghost"
@@ -256,7 +256,7 @@ const FoodHistory = () => {
       
       <div className="max-w-md mx-auto pt-10 pb-40">
         {/* Header with title and close button on same line */}
-        <div className="flex items-center justify-between mb-4 px-4">
+        <div className="flex items-center justify-between mb-4 px-4 mt-6">
           <h1 className="text-2xl font-bold">Food History</h1>
           <div className="flex items-center gap-2">
             {dailySummaries && dailySummaries.length > 0 && (

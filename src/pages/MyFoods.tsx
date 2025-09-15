@@ -68,7 +68,7 @@ const MyFoods = () => {
       
       {/* Full Width Container */}
       <div className="max-w-md mx-auto pt-10 pb-40">
-        <div className="flex items-center justify-between mb-6 px-4">
+        <div className="flex items-center justify-between mb-6 px-4 mt-6">
           <h1 className="text-2xl font-bold">My Foods</h1>
           <Button
             variant="ghost"
