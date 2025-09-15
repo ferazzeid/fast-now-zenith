@@ -1282,6 +1282,7 @@ export type Database = {
           last_activity_at: string | null
           manual_tdee_override: number | null
           monthly_ai_requests: number | null
+          navigation_preferences: Json | null
           onboarding_completed: boolean | null
           payment_method: string | null
           payment_provider: string | null
@@ -1332,6 +1333,7 @@ export type Database = {
           last_activity_at?: string | null
           manual_tdee_override?: number | null
           monthly_ai_requests?: number | null
+          navigation_preferences?: Json | null
           onboarding_completed?: boolean | null
           payment_method?: string | null
           payment_provider?: string | null
@@ -1382,6 +1384,7 @@ export type Database = {
           last_activity_at?: string | null
           manual_tdee_override?: number | null
           monthly_ai_requests?: number | null
+          navigation_preferences?: Json | null
           onboarding_completed?: boolean | null
           payment_method?: string | null
           payment_provider?: string | null

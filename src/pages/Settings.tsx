@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Key, Bell, User, Info, Brain, Wifi, Crown, Settings as SettingsIcon, LogOut, Trash2, RotateCcw } from 'lucide-react';
+import { Key, Bell, User, Info, Brain, Wifi, Crown, Settings as SettingsIcon, LogOut, Trash2, RotateCcw, Navigation2 } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { SubscriptionStatus } from '@/components/SubscriptionStatus';
+import { NavigationPreferences } from '@/components/NavigationPreferences';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -795,6 +796,20 @@ const Settings = () => {
               </div>
             </div>
           </Card>
+
+            {/* Navigation Section */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Navigation2 className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Navigation</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Customize which navigation buttons appear at the bottom of the screen. At least one button must remain active.
+                </p>
+                <NavigationPreferences />
+              </div>
+            </Card>
 
             {/* Appearance Section */}
             <Card className="p-6 bg-card border-ceramic-rim">

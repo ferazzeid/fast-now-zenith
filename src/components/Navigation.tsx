@@ -11,12 +11,10 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
 import { CalorieBadge } from '@/components/CalorieBadge';
 import { TrialTimerBadge } from '@/components/TrialTimerBadge';
-
 import { useConnectionStore } from '@/stores/connectionStore';
-import { PremiumGate } from '@/components/PremiumGate';
 import { useAccess } from '@/hooks/useAccess';
 import { useToast } from '@/hooks/use-toast';
-import { showFoodTrackingLimitError } from '@/components/AIRequestLimitToast';
+import { useNavigationPreferences } from '@/hooks/useNavigationPreferences';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -29,10 +27,12 @@ export const Navigation = () => {
   const isAnimationsSuspended = false;
   const { isOnline } = useConnectionStore();
   const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch } = useAccess();
+  const { preferences, loading: preferencesLoading } = useNavigationPreferences();
+  const { toast } = useToast();
+  
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
-  const { toast } = useToast();
 
   // Optimize timer updates - only update when needed for both fasting and walking
   useEffect(() => {
@@ -159,13 +159,28 @@ export const Navigation = () => {
     { icon: User, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
+  // Filter navigation items based on user preferences
+  const visibleItems = useMemo(() => {
+    if (preferencesLoading) return navItems; // Show all items while loading
+    
+    return navItems.filter(item => {
+      const path = item.path;
+      if (path === "/" && !preferences.fast) return false; // Timer/Fast
+      if (path === "/walking" && !preferences.walk) return false;
+      if (path === "/food-tracking" && !preferences.food) return false;
+      if (path === "/motivators" && !preferences.goals) return false;
+      if (path === "/settings") return true; // Always show settings
+      return true;
+    });
+  }, [navItems, preferences, preferencesLoading]);
+
   return (
     <TooltipProvider>
       <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="bg-ceramic-plate px-4 py-2">
           <div className="flex justify-around gap-1 relative">
             {/* Navigation Items */}
-            {navItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
+            {visibleItems.map(({ icon: Icon, label, path, badge, isEating, caloriesBadge }) => {
               const isActive = location.pathname === path;
               
               const getTooltipText = (label: string) => {
@@ -184,7 +199,11 @@ export const Navigation = () => {
                 if (access_level !== 'admin' && !hasFoodAccess) {
                   e.preventDefault();
                   e.stopPropagation();
-                  showFoodTrackingLimitError(toast, createSubscription);
+                  toast({
+                    title: "Premium Feature",
+                    description: "Food tracking requires premium access. Please upgrade to continue.",
+                    variant: "destructive",
+                  });
                   return;
                 }
               };
