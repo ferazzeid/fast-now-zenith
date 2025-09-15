@@ -28,10 +28,10 @@ export const StopFastConfirmDialog = ({
       footer={
         <>
           <Button 
-            variant="outline" 
+            variant="secondary" 
             size="action-main"
             onClick={handleClose}
-            className="text-sm w-full"
+            className="text-sm w-full border border-muted-foreground/20"
           >
             Close
           </Button>

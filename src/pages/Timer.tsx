@@ -294,8 +294,7 @@ const Timer = () => {
         trackFastingEvent('stop', fastType, timeElapsed);
       }
       
-      // Reset timer state immediately after ending
-      setTimeElapsed(0);
+      // Timer state will be reset when the session is actually cleared from the query
       setFastDuration(16 * 60 * 60); // Reset to 16 hours default
       setCountDirection('up');
     }, {

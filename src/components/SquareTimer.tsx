@@ -183,9 +183,9 @@ const SquareTimerComponent = ({
                   <TooltipTrigger asChild>
                     <Button 
                       onClick={onCancel}
-                      variant="outline"
+                      variant="secondary"
                       size="action-secondary"
-                      className="flex-1"
+                      className="flex-1 border border-muted-foreground/20"
                     >
                       <X className="w-6 h-6" />
                     </Button>

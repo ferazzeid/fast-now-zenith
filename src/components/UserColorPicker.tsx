@@ -26,8 +26,10 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
     setLocalColor(color);
     onChange(color);
     
-    // Apply color immediately to CSS variables for preview
-    document.documentElement.style.setProperty('--primary', `${hexToHsl(color)}`);
+    // Apply color immediately to CSS variables for preview AND ring color
+    const hslValue = hexToHsl(color);
+    document.documentElement.style.setProperty('--primary', hslValue);
+    document.documentElement.style.setProperty('--ring', hslValue);
   };
 
   const resetToDefault = () => {
