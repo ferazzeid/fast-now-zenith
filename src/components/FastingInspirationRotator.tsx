@@ -19,6 +19,14 @@ export const FastingInspirationRotator: React.FC<FastingInspirationRotatorProps>
   return (
     <div className={className}>
       <FastingTimelineV2 currentHour={currentFastingHour} />
+      {quotes && quotes.length > 0 && (
+        <InspirationQuote 
+          quotes={quotes} 
+          className="mt-6"
+          onSaveQuote={onSaveQuote}
+          compact={true}
+        />
+      )}
     </div>
   );
 };

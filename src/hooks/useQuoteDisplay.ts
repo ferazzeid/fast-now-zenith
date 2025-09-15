@@ -11,7 +11,7 @@ export const useQuoteDisplay = () => {
       const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
-        .in('setting_key', ['fasting_quotes_display_enabled', 'walking_quotes_display_enabled']);
+        .in('setting_key', ['fasting_timer_quotes_enabled', 'walking_timer_quotes_enabled']);
       
       if (error) throw error;
       
@@ -21,14 +21,14 @@ export const useQuoteDisplay = () => {
     staleTime: 0, // Always refetch for immediate updates
   });
 
-  const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled')?.setting_value === 'true';
-  const walkingQuotesEnabled = settings?.find(s => s.setting_key === 'walking_quotes_display_enabled')?.setting_value === 'true';
+  const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_timer_quotes_enabled')?.setting_value === 'true';
+  const walkingQuotesEnabled = settings?.find(s => s.setting_key === 'walking_timer_quotes_enabled')?.setting_value === 'true';
 
   console.log('🎯 USEQUERYDISPLAY: Current state:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
   return {
-    fastingQuotesEnabled: fastingQuotesEnabled ?? false,
-    walkingQuotesEnabled: walkingQuotesEnabled ?? false,
+    fastingQuotesEnabled: fastingQuotesEnabled ?? true,
+    walkingQuotesEnabled: walkingQuotesEnabled ?? true,
     loading: isLoading
   };
 };
