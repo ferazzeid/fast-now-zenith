@@ -67,7 +67,6 @@ export default function MotivatorIdeas() {
         content: goal.description || goal.excerpt || '',
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
-        linkUrl: goal.linkUrl || undefined,
       });
       
       console.log('✅ Goal created successfully:', result);
@@ -120,7 +119,7 @@ export default function MotivatorIdeas() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/motivators')}
             className="text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />

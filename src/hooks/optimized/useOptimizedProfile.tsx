@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
@@ -137,7 +138,7 @@ export const useOptimizedProfile = () => {
     return bmr;
   };
 
-  const calculateWalkingCalories = (durationMinutes: number, speedMph: number = 3) => {
+  const calculateWalkingCalories = useCallback((durationMinutes: number, speedMph: number = 3) => {
     const profile = profileQuery.data;
     if (!profile?.weight || !isProfileComplete()) return 0;
 
@@ -158,7 +159,7 @@ export const useOptimizedProfile = () => {
     // Calories = MET × weight (kg) × time (hours)
     const hours = durationMinutes / 60;
     return Math.round(met * weightKg * hours);
-  };
+  }, [profileQuery.data, isProfileComplete]);
 
   return {
     profile: profileQuery.data,
