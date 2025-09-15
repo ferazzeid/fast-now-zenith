@@ -76,18 +76,18 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
             variant="outline"
             size="sm"
             disabled={disabled}
-            className="w-24 h-8 p-1 bg-ceramic-base border border-ceramic-shadow"
+            className="bg-ceramic-base"
           >
             <div className="flex items-center gap-2">
               <div 
-                className="w-4 h-4 rounded border-ceramic-shadow"
+                className="w-4 h-4 rounded border border-border shadow-sm"
                 style={{ backgroundColor: localColor }}
               />
               <Palette className="w-3 h-3" />
             </div>
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-4 bg-ceramic-base border border-ceramic-shadow" align="end">
+        <PopoverContent className="w-auto p-4 bg-ceramic-base" align="end">
           <div className="space-y-4">
             <div className="text-center">
               <h5 className="font-medium text-warm-text">Choose Primary Color</h5>
@@ -130,7 +130,7 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
                 <button
                   key={presetColor}
                   onClick={() => handleColorChange(presetColor)}
-                  className="w-8 h-8 rounded border-2 border-ceramic-shadow hover:border-primary transition-colors"
+                  className="w-8 h-8 rounded border-2 border-border hover:border-primary transition-colors shadow-sm"
                   style={{ backgroundColor: presetColor }}
                   title={presetColor}
                 />

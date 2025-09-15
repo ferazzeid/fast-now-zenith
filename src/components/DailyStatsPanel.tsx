@@ -199,7 +199,7 @@ export const DailyStatsPanel = memo(() => {
                         userUnits={profile?.units}
                       />
                     ) : (
-                      <Card className="p-4 bg-card relative" onClick={requestUpgrade}>
+                      <Card className="p-4 bg-card/80 border border-border/50 relative" onClick={requestUpgrade}>
                         <div className="text-center space-y-3">
                           <div className="flex items-center justify-center space-x-2">
                             <h3 className="text-lg font-semibold text-muted-foreground">Today's Deficit</h3>
@@ -226,8 +226,8 @@ export const DailyStatsPanel = memo(() => {
                   {/* Calories In with Carbs */}
                   <AccessGate feature="food">
                     {({ hasAccess, requestUpgrade }) => (
-                      <Card
-                        className={`p-3 bg-card relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
+                <Card
+                  className={`p-3 bg-card/80 border border-border/50 relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
                         onClick={hasAccess ? undefined : requestUpgrade}
                       >
                         <div className="absolute top-2 right-2">
@@ -272,7 +272,7 @@ export const DailyStatsPanel = memo(() => {
 
 
                 {/* Unified Metabolism & Walking Card */}
-                <Card className="p-3 bg-card">
+                <Card className="p-3 bg-card/80 border border-border/50">
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
