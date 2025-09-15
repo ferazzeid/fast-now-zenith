@@ -6,6 +6,7 @@ import { estimateSteps } from '@/utils/stepEstimation';
 import { enqueueOperation } from '@/utils/outbox';
 import { persistWalkingSession, getPersistedWalkingSession } from '@/utils/timerPersistence';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { cleanupStaleWalkingSessions } from '@/utils/walkingSessionCleanup';
 
 interface WalkingSession {
   id: string;
@@ -39,7 +40,13 @@ export const useWalkingSession = () => {
     if (!user) return;
     
     await execute(async () => {
-      // Try to get from server first
+      // FIRST: Clean up any stale sessions (>12 hours old)
+      await cleanupStaleWalkingSessions(user.id);
+      
+      // Constants for session age limits
+      const eightHours = 8 * 60 * 60 * 1000;
+      
+      // Then try to get current active session from server
       const { data, error } = await supabase
         .from('walking_sessions')
         .select('*')
@@ -55,6 +62,27 @@ export const useWalkingSession = () => {
       }
 
       const serverSession = data as WalkingSession || null;
+      
+      // Additional safety check: if session is older than 8 hours, force end it
+      if (serverSession) {
+        const sessionAge = Date.now() - new Date(serverSession.start_time).getTime();
+        
+        if (sessionAge > eightHours) {
+          console.log('🚶 Force ending stale session (>8 hours):', serverSession.id);
+          await supabase
+            .from('walking_sessions')
+            .update({
+              status: 'cancelled',
+              end_time: new Date().toISOString(),
+              session_state: null
+            })
+            .eq('id', serverSession.id);
+          
+          setCurrentSession(null);
+          return null;
+        }
+      }
+      
       setCurrentSession(serverSession);
       
       // Check if session is paused
@@ -79,7 +107,11 @@ export const useWalkingSession = () => {
       // Fall back to persisted session if network fails
       const persistedSession = getPersistedWalkingSession();
       if (!serverSession && persistedSession && persistedSession.user_id === user.id && ['active', 'paused'].includes(persistedSession.status)) {
-        setCurrentSession(persistedSession as WalkingSession);
+        // Also check age of persisted session
+        const persistedAge = Date.now() - new Date(persistedSession.start_time).getTime();
+        if (persistedAge <= eightHours) {
+          setCurrentSession(persistedSession as WalkingSession);
+        }
       }
       
       return serverSession;

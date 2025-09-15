@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 
 // Simplified walking stats for immediate display
 interface SimpleWalkingStats {
@@ -29,6 +30,7 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
   const walkingSession = useWalkingSession();
   const currentSession = walkingSession?.currentSession || null;
   const selectedSpeed = walkingSession?.selectedSpeed || 3;
+  const { profile, calculateWalkingCalories } = useOptimizedProfile();
 
   // Update stats every 2 minutes when active (reduced frequency)
   useEffect(() => {
@@ -46,15 +48,35 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     const updateStats = () => {
       const now = new Date();
       const startTime = new Date(currentSession.start_time);
-      const totalElapsedMinutes = (now.getTime() - startTime.getTime()) / (1000 * 60);
-      const pauseDurationMinutes = currentSession.total_pause_duration ? currentSession.total_pause_duration / 60 : 0;
-      const activeDurationMinutes = totalElapsedMinutes - pauseDurationMinutes;
+      
+      // Calculate elapsed time in seconds first, then convert
+      const totalElapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      const pauseDurationSeconds = currentSession.total_pause_duration || 0;
+      const activeElapsedSeconds = Math.max(0, totalElapsedSeconds - pauseDurationSeconds);
+      const activeDurationMinutes = activeElapsedSeconds / 60;
+
+      console.log('🚶 SimplifiedWalkingStats - Debug:', {
+        totalElapsedSeconds,
+        pauseDurationSeconds,
+        activeElapsedSeconds,
+        activeDurationMinutes,
+        selectedSpeed
+      });
 
       if (activeDurationMinutes <= 0) return;
 
-      // Speed-based calorie calculations (varies by speed)
-      const caloriesPerMinute = Math.max(3, selectedSpeed * 1.2); // More calories for faster speeds
-      const calories = Math.round(activeDurationMinutes * caloriesPerMinute);
+      // FIXED: Use proper MET-based calorie calculation with user profile
+      let calories = 0;
+      if (profile?.weight && calculateWalkingCalories) {
+        calories = calculateWalkingCalories(activeDurationMinutes, selectedSpeed);
+      } else {
+        // Fallback calculation if no profile
+        const met = selectedSpeed <= 3 ? 3.0 : selectedSpeed <= 4 ? 3.5 : 4.0;
+        const hours = activeDurationMinutes / 60;
+        calories = Math.round(met * 70 * hours); // Assume 70kg if no profile
+      }
+      
+      // FIXED: Correct distance calculation 
       const distanceMiles = (activeDurationMinutes / 60) * selectedSpeed;
       
       // Simple pace calculation
@@ -69,8 +91,8 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
         minute: '2-digit' 
       });
 
-      // Simple fat burned estimate
-      const fatBurned = Math.round(calories * 0.2);
+      // FIXED: Correct fat calculation (1g fat = 9 calories)
+      const fatBurned = parseFloat((calories / 9).toFixed(1));
 
       setWalkingStats({
         calories,
@@ -90,7 +112,7 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     return () => {
       clearInterval(interval);
     };
-  }, [currentSession, selectedSpeed]);
+  }, [currentSession, selectedSpeed, profile, calculateWalkingCalories]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 
