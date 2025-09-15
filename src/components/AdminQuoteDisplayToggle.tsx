@@ -47,12 +47,16 @@ export const AdminQuoteDisplayToggle = () => {
 
   const handleFastingToggle = async (enabled: boolean) => {
     try {
-      const { error } = await supabase
+      console.log('Updating fasting quotes setting to:', enabled);
+      const { data, error } = await supabase
         .from('shared_settings')
         .upsert({
           setting_key: 'fasting_quotes_display_enabled',
           setting_value: enabled.toString()
-        });
+        })
+        .select();
+
+      console.log('Upsert result:', { data, error });
 
       if (error) throw error;
 
@@ -77,12 +81,16 @@ export const AdminQuoteDisplayToggle = () => {
 
   const handleWalkingToggle = async (enabled: boolean) => {
     try {
-      const { error } = await supabase
+      console.log('Updating walking quotes setting to:', enabled);
+      const { data, error } = await supabase
         .from('shared_settings')
         .upsert({
           setting_key: 'walking_quotes_display_enabled',
           setting_value: enabled.toString()
-        });
+        })
+        .select();
+
+      console.log('Upsert result:', { data, error });
 
       if (error) throw error;
 
