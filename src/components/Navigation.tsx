@@ -30,6 +30,11 @@ export const Navigation = () => {
   const { preferences, loading: preferencesLoading } = useNavigationPreferences();
   const { toast } = useToast();
   
+  // Debug logging to trace preference changes
+  useEffect(() => {
+    console.log('🧭 Navigation preferences changed:', preferences, 'loading:', preferencesLoading);
+  }, [preferences, preferencesLoading]);
+  
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
   const [currentTime, setCurrentTime] = useState(Date.now());
@@ -159,8 +164,10 @@ export const Navigation = () => {
     { icon: User, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
-  // Filter navigation items based on user preferences
+  // Filter navigation items based on user preferences - force re-render when preferences change
   const visibleItems = useMemo(() => {
+    console.log('🔄 Recalculating visible items with preferences:', preferences, 'loading:', preferencesLoading);
+    
     if (preferencesLoading) return navItems; // Show all items while loading
     
     return navItems.filter(item => {
@@ -176,7 +183,7 @@ export const Navigation = () => {
 
   return (
     <TooltipProvider>
-      <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80" key={`nav-${JSON.stringify(preferences)}`}>
         <div className="bg-ceramic-plate px-4 py-2">
           <div className="flex justify-around gap-1 relative">
             {/* Navigation Items */}
