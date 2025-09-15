@@ -1115,7 +1115,7 @@ export const FoodLibraryView = ({
               ) : (
                 <div className="space-y-1 overflow-x-hidden">
                   {templateFoods.map((food) => (
-                     <div key={food.id} className="rounded-lg p-2 mb-1 transition-all duration-200 bg-card">
+                     <div key={food.id} className="rounded-lg p-3 transition-all duration-200 bg-card">
                        <div className="flex items-center gap-2">
                          {/* Options Dropdown */}
                          <div className="flex-shrink-0">
