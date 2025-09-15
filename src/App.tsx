@@ -36,6 +36,7 @@ import WalkingHistory from "./pages/WalkingHistory";
 import FoodHistory from "./pages/FoodHistory";
 import FastingHistory from "./pages/FastingHistory";
 import { HealthCheck } from "./pages/HealthCheck";
+import { SmartHomeRedirect } from "./components/SmartHomeRedirect";
 import { Navigation } from "./components/Navigation";
 
 
@@ -164,13 +165,20 @@ const AppContent = () => {
                  <UpdatePassword />
                </PageErrorBoundary>
              } />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <PageErrorBoundary>
-                  <Timer />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            } />
+             <Route path="/" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <SmartHomeRedirect />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/timer" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <Timer />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
             <Route path="/motivators" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
