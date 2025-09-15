@@ -291,15 +291,7 @@ const Walking = () => {
         </div>
 
 
-        {/* Inspirational Quote */}
-        {walkingQuotesEnabled && quotes.walking_timer_quotes && quotes.walking_timer_quotes.length > 0 && (
-          <InspirationQuote 
-            quotes={quotes.walking_timer_quotes} 
-            className="mt-8"
-            onSaveQuote={saveQuoteAsGoal}
-            compact={true}
-          />
-        )}
+        {/* Inspirational Quote - DISABLED */}
 
 
         <ProfileCompletionPrompt 
