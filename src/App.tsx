@@ -37,6 +37,7 @@ import FoodHistory from "./pages/FoodHistory";
 import FastingHistory from "./pages/FastingHistory";
 import { HealthCheck } from "./pages/HealthCheck";
 import { SmartHomeRedirect } from "./components/SmartHomeRedirect";
+import { NavigationGuard } from "./components/NavigationGuard";
 import { Navigation } from "./components/Navigation";
 
 
@@ -355,11 +356,13 @@ const App = () => {
             
             <ThemeProvider>
               <SimpleWalkingStatsProvider>
-                <Router>
-                  <AsyncErrorBoundary>
-                    <AppContent />
-                  </AsyncErrorBoundary>
-                </Router>
+                 <Router>
+                   <NavigationGuard>
+                     <AsyncErrorBoundary>
+                       <AppContent />
+                     </AsyncErrorBoundary>
+                   </NavigationGuard>
+                 </Router>
               </SimpleWalkingStatsProvider>
             </ThemeProvider>
           </TooltipProvider>
