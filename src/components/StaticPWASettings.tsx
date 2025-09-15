@@ -52,9 +52,9 @@ self.addEventListener('fetch', event => {
 
   const generateManifestCode = () => {
     return `{
-  "name": "FastNow - Mindful App",
+  "name": "FastNow - The No-BS Fat Loss Protocol",
   "short_name": "FastNow",
-  "description": "Your mindful app with AI-powered motivation",
+  "description": "Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F8FAFC",

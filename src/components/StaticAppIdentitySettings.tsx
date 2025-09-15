@@ -20,9 +20,9 @@ export const StaticAppIdentitySettings: React.FC = () => {
 
   // Current static values
   const currentValues = {
-    appName: 'FastNow - Mindful App',
+    appName: 'FastNow - The No-BS Fat Loss Protocol',
     shortName: 'FastNow',
-    description: 'Your mindful app with AI-powered motivation',
+    description: 'Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results',
     themeColor: '#3B82F6',
     backgroundColor: '#F8FAFC'
   };

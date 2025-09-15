@@ -90,13 +90,13 @@ export const AppIdentitySettings: React.FC = () => {
       data?.forEach(setting => {
         switch (setting.setting_key) {
           case 'pwa_app_name':
-            newSettings.appName = setting.setting_value || 'FastNow - Mindful App';
+            newSettings.appName = setting.setting_value || 'FastNow - The No-BS Fat Loss Protocol';
             break;
           case 'pwa_short_name':
             newSettings.shortName = setting.setting_value || 'FastNow';
             break;
           case 'pwa_description':
-            newSettings.description = setting.setting_value || 'Your mindful app with AI-powered motivation';
+            newSettings.description = setting.setting_value || 'Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results';
             break;
           case 'app_id':
             newSettings.appId = setting.setting_value || getEnvironmentConfig().appId;
@@ -139,7 +139,7 @@ export const AppIdentitySettings: React.FC = () => {
     setSettings({
       appName: envConfig.displayName,
       shortName: 'FastNow',
-      description: 'Your mindful app with AI-powered motivation',
+      description: 'Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results',
       appId: envConfig.appId,
       internalName: envConfig.appName,
       appIcon: '',

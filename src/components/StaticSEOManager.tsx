@@ -9,8 +9,8 @@ interface StaticSEOManagerProps {
 }
 
 export const StaticSEOManager: React.FC<StaticSEOManagerProps> = ({
-  title = "FastNow - Mindful App",
-  description = "Your mindful app with AI-powered motivation",
+  title = "FastNow - The No-BS Fat Loss Protocol",
+  description = "Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results",
   image = STATIC_ASSETS.logo,
   url = window.location.href
 }) => {

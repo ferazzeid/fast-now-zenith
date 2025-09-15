@@ -41,11 +41,11 @@ export const PWASettings: React.FC = () => {
       // Then override with database values if they exist
       data?.forEach(setting => {
         if (setting.setting_key === 'pwa_app_name') {
-          setAppName(setting.setting_value || 'FastNow - Mindful App');
+          setAppName(setting.setting_value || 'FastNow - The No-BS Fat Loss Protocol');
         } else if (setting.setting_key === 'pwa_short_name') {
           setShortName(setting.setting_value || 'FastNow');
         } else if (setting.setting_key === 'pwa_description') {
-          setDescription(setting.setting_value || 'Your mindful app with AI-powered motivation');
+          setDescription(setting.setting_value || 'Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results');
         }
       });
     }, {
@@ -57,9 +57,9 @@ export const PWASettings: React.FC = () => {
   };
 
   const setDefaults = () => {
-    setAppName('FastNow - Mindful App');
+    setAppName('FastNow - The No-BS Fat Loss Protocol');
     setShortName('FastNow');
-    setDescription('Your mindful app with AI-powered motivation');
+    setDescription('Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results');
   };
 
   const saveSettingsPWA = () => {
