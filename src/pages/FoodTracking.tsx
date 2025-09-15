@@ -38,7 +38,7 @@ const FoodTracking = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
-  const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState<any>(null);
+  const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -79,35 +79,35 @@ const FoodTracking = () => {
     }
   };
 
-  const handleSaveToTemplateConfirm = async (entry: any) => {
+  const handleSaveToTemplateConfirm = async () => {
     try {
-      const foodToAdd = {
+      const foodsToSave = todayEntries.map(entry => ({
         name: entry.name,
         calories: entry.calories,
         carbs: entry.carbs,
         serving_size: entry.serving_size,
         image_url: entry.image_url
-      };
+      }));
       
-      const result = await addToTemplate([foodToAdd]);
+      const result = await saveAsTemplate(foodsToSave, true); // true = append mode
       
       if (!result.error) {
         toast({
-          title: "Added to Template",
-          description: `${entry.name} added to your daily template`
+          title: "Saved to Template",
+          description: `${foodsToSave.length} food${foodsToSave.length > 1 ? 's' : ''} added to your daily template`,
         });
       } else {
         throw new Error(result.error.message);
       }
     } catch (error) {
-      console.error('Error adding to template:', error);
+      console.error('Error saving to template:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add food to template"
+        description: "Failed to save foods to template"
       });
     }
-    setShowSaveToTemplateDialog(null);
+    setShowSaveToTemplateDialog(false);
   };
 
   const handleVoiceInput = async (entries: any[]) => {
@@ -416,7 +416,7 @@ const FoodTracking = () => {
 
               {/* Action Buttons - Two Column Layout */}
               <div className="mb-6 grid grid-cols-2 gap-6">
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DirectPhotoCaptureButton onFoodAdded={handlePhotoCapture} />
@@ -425,10 +425,10 @@ const FoodTracking = () => {
                       <p>Take a photo to automatically detect food and nutrition</p>
                     </TooltipContent>
                   </Tooltip>
-                  <span className="text-xs text-muted-foreground text-center">Photo</span>
+                  <span className="text-xs text-muted-foreground text-center">Add with photo</span>
                 </div>
 
-                <div className="flex flex-col items-center gap-1">
+                <div className="flex flex-col items-center gap-2">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <DirectVoiceFoodInput onFoodAdded={handleVoiceInput} />
@@ -437,7 +437,7 @@ const FoodTracking = () => {
                       <p>Speak to add foods using voice recognition</p>
                     </TooltipContent>
                   </Tooltip>
-                  <span className="text-xs text-muted-foreground text-center">Voice</span>
+                  <span className="text-xs text-muted-foreground text-center">Add with voice</span>
                 </div>
               </div>
 
@@ -463,12 +463,12 @@ const FoodTracking = () => {
                       
                       {/* Action Buttons */}
                       {todayEntries.length > 0 && (
-                        <div className="flex justify-between items-center mt-2">
+                        <div className="flex justify-between items-center mt-6 pt-2">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={handleSaveToTemplate}
-                            className="text-primary hover:bg-primary/10 text-xs px-2 py-1 h-auto flex items-center gap-1"
+                            onClick={() => setShowSaveToTemplateDialog(true)}
+                            className="text-primary hover:bg-primary/10 text-xs px-3 py-2 h-auto flex items-center gap-1"
                           >
                             <Save className="w-3 h-3" />
                             Save to Template
@@ -477,7 +477,7 @@ const FoodTracking = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => setShowClearAllDialog(true)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-2 py-1 h-auto"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
                             disabled={isClearingAll}
                           >
                             <Trash2 className="w-3 h-3" />
@@ -551,16 +551,16 @@ const FoodTracking = () => {
                 isLoading={isClearingAll}
               />
 
-              {/* Save to Template Confirmation Modal */}
-              <ConfirmationModal
-                isOpen={!!showSaveToTemplateDialog}
-                onClose={() => setShowSaveToTemplateDialog(null)}
-                onConfirm={() => handleSaveToTemplateConfirm(showSaveToTemplateDialog)}
-                title="Add to Daily Template"
-                description={`This will add "${showSaveToTemplateDialog?.name}" to your daily template. You can reuse this template to quickly add all your favorite foods.`}
-                confirmText="Add to Template"
-                cancelText="Cancel"
-              />
+        {/* Save to Template Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showSaveToTemplateDialog}
+          onClose={() => setShowSaveToTemplateDialog(false)}
+          onConfirm={handleSaveToTemplateConfirm}
+          title="Save All Foods to Template"
+          description={`This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`}
+          confirmText="Save to Template"
+          cancelText="Cancel"
+        />
             </TooltipProvider>
           </div>
         ) : (

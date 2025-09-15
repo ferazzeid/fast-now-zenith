@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Mic, Lock, X } from 'lucide-react';
+import { Mic, Lock, X, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 import { useToast } from '@/hooks/use-toast';
@@ -362,9 +362,15 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
               <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
             </div>
           ) : hasAccess ? (
-            <Mic className="w-11 h-11" />
+            <div className="flex items-center space-x-1">
+              <Plus className="w-6 h-6" />
+              <Mic className="w-12 h-12" />
+            </div>
           ) : (
-            <Lock className="w-11 h-11" />
+            <div className="flex items-center space-x-1">
+              <Plus className="w-6 h-6" />
+              <Lock className="w-12 h-12" />
+            </div>
           )}
         </Button>
 

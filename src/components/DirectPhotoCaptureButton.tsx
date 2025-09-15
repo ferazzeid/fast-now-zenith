@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Camera } from 'lucide-react';
+import { Camera, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProcessingDots } from '@/components/ProcessingDots';
 import { supabase } from '@/integrations/supabase/client';
@@ -195,7 +195,12 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     if (isUploading || uploadState === 'analyzing') {
       return <ProcessingDots className="text-white" />;
     }
-    return <Camera className="w-11 h-11" />;
+    return (
+      <div className="flex items-center space-x-1">
+        <Plus className="w-6 h-6" />
+        <Camera className="w-12 h-12" />
+      </div>
+    );
   };
 
   return (
