@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserLibraryIndex } from '@/hooks/useUserLibraryIndex';
-import { useStandardizedLoading } from './useStandardizedLoading';
+import { useBaseQuery } from '@/hooks/useBaseQuery';
+import { queryKeys } from '@/lib/query-client';
 
 interface RecentFood {
   id: string;
@@ -16,8 +17,6 @@ interface RecentFood {
 }
 
 export const useRecentFoods = () => {
-  const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
-  const { isLoading, execute } = useStandardizedLoading();
   const { user } = useAuth();
   const libraryIndex = useUserLibraryIndex();
 
@@ -82,13 +81,11 @@ export const useRecentFoods = () => {
     }
   }, [user?.id, libraryIndex]);
 
-  const loadRecentFoods = useCallback(async () => {
-    if (!user?.id) {
-      setRecentFoods([]);
-      return;
-    }
-    
-    await execute(async () => {
+  // React Query for recent foods data
+  const recentFoodsQuery = useBaseQuery(
+    [...queryKeys.foodEntries(user?.id || ''), 'recent'],
+    async (): Promise<RecentFood[]> => {
+      if (!user?.id) return [];
       
       // Get recent food entries from last 30 days
       const { data, error } = await supabase
@@ -139,7 +136,6 @@ export const useRecentFoods = () => {
       }
 
       // Now get the foods from the user's library (which now includes auto-saved foods)
-      // Use DISTINCT ON to get only one record per food name (the most recent)
       const { data: libraryFoods, error: libraryError } = await supabase
         .from('user_foods')
         .select('*')
@@ -178,26 +174,21 @@ export const useRecentFoods = () => {
       console.log('🔥 RECENT FOODS - Final recent foods array:', recentArray.map(f => ({ name: f.name, id: f.id, is_favorite: f.is_favorite })));
 
       return recentArray;
-    }, {
-      onSuccess: (data) => {
-        setRecentFoods(data);
-      },
-      onError: (error) => {
-        console.error('Error loading recent foods:', error);
-        setRecentFoods([]);
-      }
-    });
-  }, [user?.id, libraryIndex.isInLibrary, autoSaveToLibrary, execute]);
-
-  useEffect(() => {
-    if (user && !libraryIndex.loading) {
-      loadRecentFoods();
+    },
+    {
+      enabled: !!user && !libraryIndex.loading,
+      staleTime: 2 * 60 * 1000, // 2 minute stale time - reasonable for recent foods
     }
-  }, [user, libraryIndex.loading, loadRecentFoods]);
+  );
+
+  const refreshRecentFoods = useCallback(async () => {
+    // Force refetch recent foods data
+    await recentFoodsQuery.refetch();
+  }, [recentFoodsQuery]);
 
   return {
-    recentFoods,
-    loading: isLoading || libraryIndex.loading,
-    refreshRecentFoods: loadRecentFoods
+    recentFoods: recentFoodsQuery.data || [],
+    loading: recentFoodsQuery.isInitialLoading || libraryIndex.loading,
+    refreshRecentFoods
   };
 };

@@ -1,9 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useRetryableSupabase } from '@/hooks/useRetryableSupabase';
-import { useQueryClient } from '@tanstack/react-query';
-import { useStandardizedLoading } from './useStandardizedLoading';
+import { useBaseQuery } from '@/hooks/useBaseQuery';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { queryKeys } from '@/lib/query-client';
 
 interface DailyFoodTemplate {
   id: string;
@@ -28,21 +30,17 @@ interface NewFoodTemplate {
 }
 
 export const useDailyFoodTemplate = () => {
-  const [templateFoods, setTemplateFoods] = useState<DailyFoodTemplate[]>([]);
-  const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
   const { executeWithRetry } = useRetryableSupabase();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  const loadTemplate = useCallback(async () => {
-    console.log('🍽️ loadTemplate called, user:', user?.id);
-    if (!user) {
-      console.log('🍽️ No user, stopping loading');
-      return;
-    }
-    
-    await execute(async () => {
-      console.log('🍽️ Fetching daily food templates for user:', user.id);
+  // React Query for template data - no caching since templates change frequently
+  const templateQuery = useBaseQuery(
+    [...queryKeys.dailyTemplate(user?.id || '')],
+    async (): Promise<DailyFoodTemplate[]> => {
+      if (!user?.id) return [];
+      
       const result = await executeWithRetry(async () => {
         return await supabase
           .from('daily_food_templates')
@@ -53,145 +51,99 @@ export const useDailyFoodTemplate = () => {
       });
       
       const { data, error } = result;
-      console.log('🍽️ Template fetch result:', { data, error, count: data?.length });
-
       if (error) throw error;
-
-      setTemplateFoods(data || []);
-      console.log('🍽️ Template foods set:', data?.length || 0, 'items');
       return data || [];
-    }, {
-      onError: (error) => {
-        console.error('🍽️ Error loading daily food template:', error);
-      }
-    });
-  }, [user, executeWithRetry, execute]);
-
-  const saveAsTemplate = useCallback(async (foodEntries: Array<{
-    name: string;
-    calories: number;
-    carbs: number;
-    serving_size: number;
-    image_url?: string;
-  }>, appendMode = false) => {
-    if (!user) return { error: { message: 'User not authenticated' } };
-
-    // Optimistic update
-    const previousFoods = [...templateFoods];
-    const optimisticFoods = foodEntries.map((entry, index) => ({
-      id: `optimistic-${Date.now()}-${index}`,
-      user_id: user.id,
-      name: entry.name,
-      calories: entry.calories,
-      carbs: entry.carbs,
-      serving_size: entry.serving_size,
-      image_url: entry.image_url,
-      sort_order: appendMode ? templateFoods.length + index : index,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }));
-
-    if (appendMode) {
-      setTemplateFoods(prev => [...prev, ...optimisticFoods]);
-    } else {
-      setTemplateFoods(optimisticFoods);
+    },
+    {
+      enabled: !!user?.id,
+      staleTime: 0, // Templates change frequently, always fresh
     }
+  );
 
-    const result = await execute(async () => {
+  // Save as template mutation
+  const saveAsTemplateMutation = useMutation({
+    mutationFn: async ({ foodEntries, appendMode }: {
+      foodEntries: Array<{
+        name: string;
+        calories: number;
+        carbs: number;
+        serving_size: number;
+        image_url?: string;
+      }>;
+      appendMode: boolean;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
       if (!appendMode) {
-        console.log('🍽️ Saving template - clearing existing for user:', user.id);
         // Clear existing template
         const { error: deleteError } = await supabase
           .from('daily_food_templates')
           .delete()
           .eq('user_id', user.id);
 
-        if (deleteError) {
-          console.error('🍽️ Error clearing existing template:', deleteError);
-          throw deleteError;
-        }
-      } else {
-        console.log('🍽️ Appending to existing template for user:', user.id);
+        if (deleteError) throw deleteError;
       }
 
       // Insert new template foods
-      const currentSortOrder = appendMode ? previousFoods.length : 0;
+      const currentSortOrder = appendMode ? (templateQuery.data?.length || 0) : 0;
       const templateData = foodEntries.map((entry, index) => ({
         ...entry,
         user_id: user.id,
         sort_order: currentSortOrder + index
       }));
 
-      console.log('🍽️ Inserting template data:', templateData);
       const { data, error } = await supabase
         .from('daily_food_templates')
         .insert(templateData)
         .select();
 
-      if (error) {
-        console.error('🍽️ Error inserting template data:', error);
-        throw error;
-      }
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate template cache immediately
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyTemplate(user?.id || '') });
+    },
+    onError: (error: any) => {
+      console.error('Error saving daily template:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save template"
+      });
+    }
+  });
 
-      // Replace optimistic data with real data
-      if (appendMode) {
-        setTemplateFoods(prev => [
-          ...prev.filter(f => !optimisticFoods.some(opt => opt.id === f.id)),
-          ...(data || [])
-        ]);
-      } else {
-        setTemplateFoods(data || []);
-      }
+  // Clear template mutation
+  const clearTemplateMutation = useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('User not authenticated');
 
-      console.log('🍽️ Template saved successfully with optimistic update');
-      return null;
-    }, {
-      onError: (error: any) => {
-        console.error('🍽️ Error saving daily template:', error);
-        // Rollback optimistic update
-        setTemplateFoods(previousFoods);
-      }
-    });
-
-    return result.success ? { error: null } : { error: result.error };
-  }, [user, templateFoods, execute]);
-
-  const clearTemplate = useCallback(async () => {
-    if (!user) return { error: { message: 'User not authenticated' } };
-
-    const result = await execute(async () => {
       const { error } = await supabase
         .from('daily_food_templates')
         .delete()
         .eq('user_id', user.id);
 
       if (error) throw error;
-
-      setTemplateFoods([]);
-      return null;
-    }, {
-      onError: (error: any) => {
-        console.error('Error clearing daily template:', error);
-      }
-    });
-
-    return result.success ? { error: null } : { error: result.error };
-  }, [user, execute]);
-
-  const deleteTemplateFood = useCallback(async (foodId: string) => {
-    if (!user) return { error: { message: 'User not authenticated' } };
-
-    // Find the food to be deleted for optimistic update
-    const foodToDelete = templateFoods.find(f => f.id === foodId);
-    if (!foodToDelete) {
-      return { error: { message: 'Food not found' } };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyTemplate(user?.id || '') });
+    },
+    onError: (error: any) => {
+      console.error('Error clearing daily template:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to clear template"
+      });
     }
+  });
 
-    // Optimistic update - remove from local state immediately
-    const previousFoods = [...templateFoods];
-    setTemplateFoods(prev => prev.filter(f => f.id !== foodId));
+  // Delete template food mutation
+  const deleteTemplateFoodMutation = useMutation({
+    mutationFn: async (foodId: string) => {
+      if (!user) throw new Error('User not authenticated');
 
-    try {
       const { data, error } = await supabase
         .from('daily_food_templates')
         .delete()
@@ -202,30 +154,37 @@ export const useDailyFoodTemplate = () => {
       if (error) throw error;
 
       if (!data || data.length === 0) {
-        // Rollback optimistic update
-        setTemplateFoods(previousFoods);
-        return { error: { message: 'Food item not found or already deleted' } };
+        throw new Error('Food item not found or already deleted');
       }
 
-      return { error: null, deletedFood: foodToDelete };
-    } catch (error: any) {
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyTemplate(user?.id || '') });
+    },
+    onError: (error: any) => {
       console.error('Error deleting template food:', error);
-      // Rollback optimistic update
-      setTemplateFoods(previousFoods);
-      return { error };
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete template food"
+      });
     }
-  }, [user, templateFoods]);
+  });
 
-  const applyTemplate = useCallback(async () => {
-    if (!user || templateFoods.length === 0) return { error: { message: 'No template available' } };
+  // Apply template mutation
+  const applyTemplateMutation = useMutation({
+    mutationFn: async () => {
+      if (!user || !templateQuery.data?.length) {
+        throw new Error('No template available');
+      }
 
-    const result = await execute(async () => {
       // Get today's date for query key alignment
       const today = new Date().toISOString().split('T')[0];
       const foodEntriesQueryKey = ['food-entries', user.id, today];
 
       // Prepare food entries for insertion
-      const foodEntries = templateFoods.map(template => ({
+      const foodEntries = templateQuery.data.map(template => ({
         name: template.name,
         calories: template.calories,
         carbs: template.carbs,
@@ -236,30 +195,6 @@ export const useDailyFoodTemplate = () => {
         source_date: today
       }));
 
-      // OPTIMISTIC UPDATE: Add template foods to cache immediately
-      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey);
-      
-      // Generate optimistic entries with temporary IDs
-      const optimisticEntries = templateFoods.map((template, index) => ({
-        id: `template-optimistic-${Date.now()}-${index}`,
-        user_id: user.id,
-        name: template.name,
-        calories: template.calories,
-        carbs: template.carbs,
-        serving_size: template.serving_size,
-        consumed: false,
-        image_url: template.image_url,
-        created_at: new Date().toISOString(),
-      }));
-
-      // Update cache optimistically
-      queryClient.setQueryData(
-        foodEntriesQueryKey,
-        (old: any[] = []) => [...optimisticEntries, ...old]
-      );
-
-      console.log('🍽️ Applied optimistic update for template:', optimisticEntries.length, 'items');
-
       // Insert into database
       const { data, error } = await supabase
         .from('food_entries')
@@ -267,86 +202,48 @@ export const useDailyFoodTemplate = () => {
         .select();
 
       if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      // Invalidate food entries and daily totals to show new entries immediately
+      const today = new Date().toISOString().split('T')[0];
+      queryClient.invalidateQueries({ queryKey: ['food-entries', user?.id, today] });
+      queryClient.invalidateQueries({ queryKey: ['daily-totals', user?.id, today] });
+    },
+    onError: (error: any) => {
+      console.error('Error applying daily template:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to apply template"
+      });
+    }
+  });
 
-      // Replace optimistic entries with real data
-      queryClient.setQueryData(
-        foodEntriesQueryKey,
-        (old: any[] = []) => {
-          const withoutOptimistic = old.filter(entry => 
-            !optimisticEntries.some(opt => opt.id === entry.id)
-          );
-          return [...(data || []), ...withoutOptimistic];
-        }
-      );
+  // Add to template mutation
+  const addToTemplateMutation = useMutation({
+    mutationFn: async ({ foodEntries, insertAfterIndex }: {
+      foodEntries: {
+        name: string;
+        calories: number;
+        carbs: number;
+        serving_size: number;
+        image_url?: string;
+      }[];
+      insertAfterIndex?: number;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
 
-      // Invalidate daily totals to recalculate
-      queryClient.invalidateQueries({ queryKey: ['daily-totals', user.id, today] });
-
-      console.log('🍽️ Successfully applied template and updated cache with real data');
-      return null;
-    }, {
-      onError: (error: any) => {
-        console.error('Error applying daily template:', error);
-        
-        // Rollback optimistic update on error
-        const today = new Date().toISOString().split('T')[0];
-        const foodEntriesQueryKey = ['food-entries', user.id, today];
-        const previousEntries = queryClient.getQueryData(foodEntriesQueryKey);
-        
-        if (previousEntries) {
-          queryClient.setQueryData(foodEntriesQueryKey, previousEntries);
-        }
-      }
-    });
-
-    return result.success ? { error: null } : { error: result.error };
-  }, [user, templateFoods, queryClient, execute]);
-
-  useEffect(() => {
-    loadTemplate();
-  }, [loadTemplate]);
-
-  // Add to template with optional positioning
-  const addToTemplate = useCallback(async (foodEntries: {
-    name: string;
-    calories: number;
-    carbs: number;
-    serving_size: number;
-    image_url?: string;
-  }[], insertAfterIndex?: number) => {
-    if (!user) return { error: { message: 'User not authenticated' } };
-
-    // Optimistic update
-    const previousFoods = [...templateFoods];
-    const optimisticFoods = foodEntries.map((entry, index) => ({
-      id: `optimistic-add-${Date.now()}-${index}`,
-      user_id: user.id,
-      name: entry.name,
-      calories: entry.calories,
-      carbs: entry.carbs,
-      serving_size: entry.serving_size,
-      image_url: entry.image_url,
-      sort_order: templateFoods.length + index,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }));
-
-    // Update UI immediately
-    setTemplateFoods(prev => [...prev, ...optimisticFoods]);
-
-    const result = await execute(async () => {
       let sortOrder: number;
       let templateData: any[];
 
       if (insertAfterIndex !== undefined && insertAfterIndex >= 0) {
         // Insert at specific position
-        console.log('🍽️ Inserting into template at position:', insertAfterIndex + 1);
+        const existingItems = templateQuery.data || [];
+        const itemsToShift = existingItems.filter((_, index) => index > insertAfterIndex);
         
-        // First, shift existing items to make room
-        const itemsToShift = previousFoods.filter((_, index) => index > insertAfterIndex);
-        
+        // Shift existing items
         if (itemsToShift.length > 0) {
-          // Update sort_order for items that need to be shifted
           for (const item of itemsToShift) {
             const { error: shiftError } = await supabase
               .from('daily_food_templates')
@@ -356,14 +253,10 @@ export const useDailyFoodTemplate = () => {
               .eq('id', item.id)
               .eq('user_id', user.id);
 
-            if (shiftError) {
-              console.error('🍽️ Error shifting template item:', shiftError);
-              throw shiftError;
-            }
+            if (shiftError) throw shiftError;
           }
         }
 
-        // Insert new items at the correct position
         sortOrder = insertAfterIndex + 1;
         templateData = foodEntries.map((entry, index) => ({
           ...entry,
@@ -371,9 +264,8 @@ export const useDailyFoodTemplate = () => {
           sort_order: sortOrder + index
         }));
       } else {
-        // Append mode (existing behavior)
-        console.log('🍽️ Appending to template');
-        sortOrder = previousFoods.length;
+        // Append mode
+        sortOrder = templateQuery.data?.length || 0;
         templateData = foodEntries.map((entry, index) => ({
           ...entry,
           user_id: user.id,
@@ -381,39 +273,98 @@ export const useDailyFoodTemplate = () => {
         }));
       }
 
-      console.log('🍽️ Inserting template data:', templateData);
       const { data, error } = await supabase
         .from('daily_food_templates')
         .insert(templateData)
         .select();
 
-      if (error) {
-        console.error('🍽️ Error inserting template data:', error);
-        throw error;
-      }
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyTemplate(user?.id || '') });
+    },
+    onError: (error: any) => {
+      console.error('Error adding to template:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add to template"
+      });
+    }
+  });
 
-      // Replace optimistic data with real data
-      setTemplateFoods(prev => [
-        ...prev.filter(f => !optimisticFoods.some(opt => opt.id === f.id)),
-        ...(data || [])
-      ]);
+  // Wrapper functions for backward compatibility
+  const saveAsTemplate = useCallback(async (foodEntries: Array<{
+    name: string;
+    calories: number;
+    carbs: number;
+    serving_size: number;
+    image_url?: string;
+  }>, appendMode = false) => {
+    try {
+      await saveAsTemplateMutation.mutateAsync({ foodEntries, appendMode });
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  }, [saveAsTemplateMutation]);
 
-      console.log('🍽️ Template item(s) added successfully with optimistic update');
-      return null;
-    }, {
-      onError: (error: any) => {
-        console.error('🍽️ Error adding to template:', error);
-        // Rollback optimistic update
-        setTemplateFoods(previousFoods);
-      }
-    });
+  const clearTemplate = useCallback(async () => {
+    try {
+      await clearTemplateMutation.mutateAsync();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  }, [clearTemplateMutation]);
 
-    return result.success ? { error: null } : { error: result.error };
-  }, [user, templateFoods, execute]);
+  const deleteTemplateFood = useCallback(async (foodId: string) => {
+    try {
+      const deletedFood = await deleteTemplateFoodMutation.mutateAsync(foodId);
+      return { error: null, deletedFood };
+    } catch (error) {
+      return { error };
+    }
+  }, [deleteTemplateFoodMutation]);
+
+  const applyTemplate = useCallback(async () => {
+    try {
+      await applyTemplateMutation.mutateAsync();
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  }, [applyTemplateMutation]);
+
+  const addToTemplate = useCallback(async (foodEntries: {
+    name: string;
+    calories: number;
+    carbs: number;
+    serving_size: number;
+    image_url?: string;
+  }[], insertAfterIndex?: number) => {
+    try {
+      await addToTemplateMutation.mutateAsync({ foodEntries, insertAfterIndex });
+      return { error: null };
+    } catch (error) {
+      return { error };
+    }
+  }, [addToTemplateMutation]);
+
+  const loadTemplate = useCallback(async () => {
+    // Force refetch template data
+    await templateQuery.refetch();
+  }, [templateQuery]);
 
   return {
-    templateFoods,
-    loading: isLoading,
+    templateFoods: templateQuery.data || [],
+    loading: templateQuery.isInitialLoading || 
+             saveAsTemplateMutation.isPending ||
+             clearTemplateMutation.isPending ||
+             deleteTemplateFoodMutation.isPending ||
+             applyTemplateMutation.isPending ||
+             addToTemplateMutation.isPending,
     saveAsTemplate,
     addToTemplate,
     clearTemplate,

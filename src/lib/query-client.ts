@@ -114,8 +114,8 @@ export const queryKeys = {
   userMotivators: (userId: string) => ['motivators', 'user', userId] as const,
   adminTemplates: ['motivators', 'admin-templates'] as const,
   
-  // Food-related queries
-  food: ['food'] as const,
+  // Daily template queries
+  dailyTemplate: (userId: string) => ['daily-template', userId] as const,
   foodEntries: (userId: string, date?: string) => 
     date ? ['food', 'entries', userId, date] as const 
          : ['food', 'entries', userId] as const,
