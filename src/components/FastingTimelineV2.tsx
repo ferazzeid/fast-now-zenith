@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 // Removed Button and icon imports - no longer needed for rotation controls
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 import { FastingSliderHeader } from "@/components/FastingSliderHeader";
 import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/optimized/useFastingHoursQuery";
 import { useContentRotation } from '@/hooks/useContentRotation';
@@ -76,7 +77,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
       <FastingSliderHeader currentHour={selectedHour} className="mb-3" onHourChange={handleHourChange} />
 
       {/* Details panel - boxed */}
-      <div className="mt-4 rounded-md border bg-card p-4" role="region" aria-live="polite">
+      <Card className="mt-4 p-4" role="region" aria-live="polite">
         {isLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-5 w-1/2" />
@@ -136,7 +137,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
             )}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Admin Insight Display - Shows how it appears to regular users */}
       {selected?.admin_personal_log && isPersonalLogEnabled && (

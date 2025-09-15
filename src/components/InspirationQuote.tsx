@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bookmark, Hand } from 'lucide-react';
 import { Quote } from '@/hooks/useQuoteSettings';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 interface InspirationQuoteProps {
   quotes: Quote[];
@@ -70,8 +71,8 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
   }
 
   return (
-    <div 
-      className={`max-w-md mx-auto bg-ceramic-plate border border-ceramic-shadow rounded-lg shadow-sm ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
+    <Card 
+      className={`max-w-md mx-auto bg-ceramic-plate ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative text-center">
@@ -105,6 +106,6 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
           </Button>
         )}
       </div>
-    </div>
+    </Card>
   );
 };

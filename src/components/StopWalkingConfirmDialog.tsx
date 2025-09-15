@@ -2,6 +2,7 @@ import { UniversalModal } from "@/components/ui/universal-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { formatDistance } from '@/utils/unitConversions';
@@ -159,7 +160,7 @@ export const StopWalkingConfirmDialog = ({
             )}
             
             {calories && distance && (
-              <div className="space-y-2 text-xs bg-muted/50 rounded-lg p-3 border border-border">
+              <Card className="space-y-2 text-xs bg-muted/50 p-3">
                 <div className="flex justify-between">
                   <span>Calories:</span>
                   <span className="font-medium">{calories}</span>
@@ -168,15 +169,15 @@ export const StopWalkingConfirmDialog = ({
                   <span>Distance:</span>
                   <span className="font-medium">{formatDistance(distance, units)}</span>
                 </div>
-              </div>
+              </Card>
             )}
             
-            <div className="text-xs text-muted-foreground font-medium bg-muted/30 rounded-lg p-3 border border-border">
+            <Card className="text-xs text-muted-foreground font-medium bg-muted/30 p-3">
               {actionType === 'cancel' 
                 ? 'This will remove your session from history completely.'
                 : 'This will save your walking progress to history.'
               }
-            </div>
+            </Card>
           </>
         )}
       </div>
