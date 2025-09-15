@@ -39,6 +39,7 @@ import { HealthCheck } from "./pages/HealthCheck";
 import { SmartHomeRedirect } from "./components/SmartHomeRedirect";
 import { NavigationGuard } from "./components/NavigationGuard";
 import { Navigation } from "./components/Navigation";
+import { NavigationPreferencesProvider } from "@/contexts/NavigationPreferencesContext";
 
 
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -356,13 +357,15 @@ const App = () => {
             
             <ThemeProvider>
               <SimpleWalkingStatsProvider>
-                 <Router>
-                   <NavigationGuard>
-                     <AsyncErrorBoundary>
-                       <AppContent />
-                     </AsyncErrorBoundary>
-                   </NavigationGuard>
-                 </Router>
+                <NavigationPreferencesProvider>
+                  <Router>
+                    <NavigationGuard>
+                      <AsyncErrorBoundary>
+                        <AppContent />
+                      </AsyncErrorBoundary>
+                    </NavigationGuard>
+                  </Router>
+                </NavigationPreferencesProvider>
               </SimpleWalkingStatsProvider>
             </ThemeProvider>
           </TooltipProvider>
