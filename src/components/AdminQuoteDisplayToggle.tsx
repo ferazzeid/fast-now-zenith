@@ -5,12 +5,14 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const AdminQuoteDisplayToggle = () => {
   const [fastingQuotesEnabled, setFastingQuotesEnabled] = useState(false);
   const [walkingQuotesEnabled, setWalkingQuotesEnabled] = useState(false);
   const { isLoading, execute } = useStandardizedLoading();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     loadSettings();
@@ -24,12 +26,12 @@ export const AdminQuoteDisplayToggle = () => {
           .from('shared_settings')
           .select('setting_value')
           .eq('setting_key', 'fasting_quotes_display_enabled')
-          .single(),
+          .maybeSingle(),
         supabase
           .from('shared_settings')
           .select('setting_value')
           .eq('setting_key', 'walking_quotes_display_enabled')
-          .single()
+          .maybeSingle()
       ]);
 
       setFastingQuotesEnabled(fastingResult.data?.setting_value === 'true');
@@ -55,6 +57,10 @@ export const AdminQuoteDisplayToggle = () => {
       if (error) throw error;
 
       setFastingQuotesEnabled(enabled);
+      
+      // Force refresh of quote display settings across the app
+      queryClient.invalidateQueries({ queryKey: ['quote-display-settings'] });
+      
       toast({
         title: "Setting updated",
         description: `Fasting quotes ${enabled ? 'enabled' : 'disabled'}`,
@@ -81,6 +87,10 @@ export const AdminQuoteDisplayToggle = () => {
       if (error) throw error;
 
       setWalkingQuotesEnabled(enabled);
+      
+      // Force refresh of quote display settings across the app
+      queryClient.invalidateQueries({ queryKey: ['quote-display-settings'] });
+      
       toast({
         title: "Setting updated",
         description: `Walking quotes ${enabled ? 'enabled' : 'disabled'}`,

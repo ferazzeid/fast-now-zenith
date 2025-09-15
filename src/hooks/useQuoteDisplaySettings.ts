@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useStandardizedLoading } from './useStandardizedLoading';
 
 export interface QuoteDisplaySettings {
   fastingQuotesEnabled: boolean;
@@ -9,29 +8,20 @@ export interface QuoteDisplaySettings {
 }
 
 export const useQuoteDisplaySettings = (): QuoteDisplaySettings => {
-  const { data: settings, isLoading, execute } = useStandardizedLoading<{
-    fastingQuotesEnabled: boolean;
-    walkingQuotesEnabled: boolean;
-  }>({ fastingQuotesEnabled: true, walkingQuotesEnabled: true });
-
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    await execute(async () => {
-      // Load both settings
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['quote-display-settings'],
+    queryFn: async () => {
       const [fastingResult, walkingResult] = await Promise.all([
         supabase
           .from('shared_settings')
           .select('setting_value')
           .eq('setting_key', 'fasting_quotes_display_enabled')
-          .single(),
+          .maybeSingle(),
         supabase
           .from('shared_settings')
           .select('setting_value')
           .eq('setting_key', 'walking_quotes_display_enabled')
-          .single()
+          .maybeSingle()
       ]);
 
       console.log('Quote display settings loaded:', { 
@@ -43,13 +33,10 @@ export const useQuoteDisplaySettings = (): QuoteDisplaySettings => {
       const walkingQuotesEnabled = walkingResult.data?.setting_value === 'true';
       
       return { fastingQuotesEnabled, walkingQuotesEnabled };
-    }, {
-      onError: (error) => {
-        // Default both to false if settings don't exist
-        console.log('Quote display settings error, using defaults:', error);
-      }
-    });
-  };
+    },
+    staleTime: 0, // Always refetch when needed
+    gcTime: 0, // Don't cache long term
+  });
 
   return {
     fastingQuotesEnabled: settings?.fastingQuotesEnabled ?? false,
