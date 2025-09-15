@@ -29,6 +29,7 @@ interface UserProfile {
   enable_notes_in_animations?: boolean;
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
+  primary_color?: string;
 }
 
 export const useProfile = () => {
