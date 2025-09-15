@@ -38,7 +38,7 @@ export const DailyStatsPanel = memo(() => {
   };
 
   const getDeficitColor = useMemo(() => (deficit: number) => {
-    if (deficit > 0) return 'text-accent';
+    if (deficit > 0) return 'text-primary';
     if (deficit < 0) return 'text-red-600 dark:text-red-400';
     return 'text-muted-foreground';
   }, []);
@@ -153,7 +153,7 @@ export const DailyStatsPanel = memo(() => {
                 Today's Deficit:
               </span>
               <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
-                <Info className="w-3 h-3 text-muted-foreground" />
+                <Info className="w-3 h-3 text-primary" />
               </ClickableTooltip>
               <AccessGate feature="food">
                 {({ hasAccess }) => (
@@ -171,7 +171,7 @@ export const DailyStatsPanel = memo(() => {
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
-              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
           </div>
         </div>
