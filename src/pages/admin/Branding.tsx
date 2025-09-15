@@ -3,7 +3,7 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { StaticBrandAssetsManager } from "@/components/StaticBrandAssetsManager";
 import { StaticAppIdentitySettings } from "@/components/StaticAppIdentitySettings";
 import { StaticPWASettings } from "@/components/StaticPWASettings";
-import { ColorManagement } from "@/components/ColorManagement";
+import EnhancedColorManagement from "@/components/EnhancedColorManagement";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
 
@@ -32,8 +32,8 @@ export default function AdminBranding() {
           <StaticPWASettings />
         </section>
 
-        <section aria-label="Color management development tool" className="pb-24">
-          <ColorManagement />
+        <section aria-label="Enhanced color management development tool" className="pb-24">
+          <EnhancedColorManagement />
         </section>
       </main>
     </AdminHealthCheck>

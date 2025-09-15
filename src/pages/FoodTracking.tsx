@@ -395,7 +395,7 @@ const FoodTracking = () => {
       {({ hasAccess, requestUpgrade }) => 
         hasAccess ? (
           <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-            <div className="max-w-md mx-auto pt-16 pb-32 safe-bottom">
+            <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
               {/* Header with Responsive Page Header */}
               <ResponsivePageHeader
                 title="Food Tracking"
