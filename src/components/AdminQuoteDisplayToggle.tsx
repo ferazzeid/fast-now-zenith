@@ -27,7 +27,7 @@ export const AdminQuoteDisplayToggle = () => {
       console.log('📊 DATABASE SETTINGS:', data);
       return data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always refetch for immediate updates
   });
 
   // Get current values
@@ -36,57 +36,123 @@ export const AdminQuoteDisplayToggle = () => {
 
   console.log('🎯 CURRENT TOGGLE STATES:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
-  // Mutation for updating settings
-  const updateSettingMutation = useMutation({
-    mutationFn: async ({ settingKey, value }: { settingKey: string; value: boolean }) => {
-      console.log(`🔄 UPDATING ${settingKey} to:`, value);
-      
+  // Separate mutations for each setting to avoid conflicts
+  const fastingMutation = useMutation({
+    mutationFn: async (value: boolean) => {
       const { data, error } = await supabase
         .from('shared_settings')
         .upsert({
-          setting_key: settingKey,
+          setting_key: 'fasting_quotes_display_enabled',
           setting_value: value.toString()
         })
         .select();
 
-      console.log(`📊 UPDATE RESULT for ${settingKey}:`, { data, error });
-
       if (error) throw error;
       return data;
     },
-    onSuccess: (data, variables) => {
-      console.log(`✅ SUCCESSFULLY UPDATED ${variables.settingKey}`);
-      // Invalidate and refetch the settings
-      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
+    onMutate: async (value: boolean) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
       
-      const settingName = variables.settingKey.includes('fasting') ? 'Fasting' : 'Walking';
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(QUOTE_SETTINGS_QUERY_KEY);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, (old: any) => {
+        if (!old) return old;
+        return old.map((setting: any) => 
+          setting.setting_key === 'fasting_quotes_display_enabled'
+            ? { ...setting, setting_value: value.toString() }
+            : setting
+        );
+      });
+      
+      return { previousData };
+    },
+    onSuccess: (data, value) => {
       toast({
         title: "Setting updated",
-        description: `${settingName} quotes ${variables.value ? 'enabled' : 'disabled'}`,
+        description: `Fasting quotes ${value ? 'enabled' : 'disabled'}`,
       });
     },
-    onError: (error, variables) => {
-      console.error(`❌ FAILED TO UPDATE ${variables.settingKey}:`, error);
+    onError: (error, value, context) => {
+      // Revert to previous data on error
+      if (context?.previousData) {
+        queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, context.previousData);
+      }
       toast({
         title: "Error updating setting",
         description: "Please try again",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
+    }
+  });
+
+  const walkingMutation = useMutation({
+    mutationFn: async (value: boolean) => {
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .upsert({
+          setting_key: 'walking_quotes_display_enabled',
+          setting_value: value.toString()
+        })
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onMutate: async (value: boolean) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
+      
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(QUOTE_SETTINGS_QUERY_KEY);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, (old: any) => {
+        if (!old) return old;
+        return old.map((setting: any) => 
+          setting.setting_key === 'walking_quotes_display_enabled'
+            ? { ...setting, setting_value: value.toString() }
+            : setting
+        );
+      });
+      
+      return { previousData };
+    },
+    onSuccess: (data, value) => {
+      toast({
+        title: "Setting updated",
+        description: `Walking quotes ${value ? 'enabled' : 'disabled'}`,
+      });
+    },
+    onError: (error, value, context) => {
+      // Revert to previous data on error
+      if (context?.previousData) {
+        queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, context.previousData);
+      }
+      toast({
+        title: "Error updating setting",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      // Always refetch after error or success
+      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
     }
   });
 
   const handleFastingToggle = (enabled: boolean) => {
-    updateSettingMutation.mutate({
-      settingKey: 'fasting_quotes_display_enabled',
-      value: enabled
-    });
+    fastingMutation.mutate(enabled);
   };
 
   const handleWalkingToggle = (enabled: boolean) => {
-    updateSettingMutation.mutate({
-      settingKey: 'walking_quotes_display_enabled', 
-      value: enabled
-    });
+    walkingMutation.mutate(enabled);
   };
 
   if (isLoading) {
@@ -105,7 +171,7 @@ export const AdminQuoteDisplayToggle = () => {
               id="fasting-quotes-display"
               checked={fastingQuotesEnabled}
               onCheckedChange={handleFastingToggle}
-              disabled={updateSettingMutation.isPending}
+              disabled={fastingMutation.isPending}
             />
           </div>
         </CardContent>
@@ -121,7 +187,7 @@ export const AdminQuoteDisplayToggle = () => {
               id="walking-quotes-display"
               checked={walkingQuotesEnabled}
               onCheckedChange={handleWalkingToggle}
-              disabled={updateSettingMutation.isPending}
+              disabled={walkingMutation.isPending}
             />
           </div>
         </CardContent>
