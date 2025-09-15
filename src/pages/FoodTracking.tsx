@@ -206,24 +206,34 @@ const FoodTracking = () => {
 
   const handleClearAll = async () => {
     return executeClearAll(async () => {
-      clearAllEntries();
-
       const todayDate = new Date();
       const startOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
       const endOfDay = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate() + 1);
       
-      const { error } = await supabase
-        .from('food_entries')
-        .delete()
-        .eq('user_id', user?.id)
-        .gte('created_at', startOfDay.toISOString())
-        .lt('created_at', endOfDay.toISOString());
-      
-      if (error) throw error;
+      // Add timeout wrapper to prevent indefinite processing
+      const deleteOperation = async () => {
+        const { error } = await supabase
+          .from('food_entries')
+          .delete()
+          .eq('user_id', user?.id)
+          .gte('created_at', startOfDay.toISOString())
+          .lt('created_at', endOfDay.toISOString());
+        
+        if (error) throw error;
+        return true;
+      };
+
+      const timeoutPromise = new Promise<never>((_, reject) => 
+        setTimeout(() => reject(new Error('Operation timed out')), 15000)
+      );
+
+      await Promise.race([deleteOperation(), timeoutPromise]);
       
       return true;
     }, {
       onSuccess: () => {
+        // Only clear UI cache AFTER successful database deletion
+        clearAllEntries();
         toast({
           title: "All Foods Cleared",
           description: "All food entries for today have been removed"
@@ -232,6 +242,7 @@ const FoodTracking = () => {
       },
       onError: async (error) => {
         console.error('Error clearing foods:', error);
+        // Refresh to ensure UI reflects actual database state
         await refreshFoodEntries();
         toast({
           variant: "destructive",
