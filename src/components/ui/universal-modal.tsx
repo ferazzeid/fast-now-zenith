@@ -130,7 +130,7 @@ export const UniversalModal = ({
                     variant="ghost"
                     size="sm"
                     onClick={handleClose}
-                    className="w-8 h-8 hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0"
+                    className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200 p-0"
                     title={`Close ${title}`}
                   >
                     <X className="w-4 h-4" />
@@ -204,13 +204,13 @@ export const UniversalModal = ({
                 size="sm"
                 onClick={handleClose}
                 className={cn(
-                  'h-8 w-8 p-0 rounded-md',
+                  'h-8 w-8 p-0 rounded-full',
                   'text-muted-foreground hover:text-foreground',
-                  'hover:bg-muted'
+                  'hover:bg-muted hover:scale-110 transition-all duration-200'
                 )}
                 aria-label="Close modal"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </Button>
             )}
           </div>

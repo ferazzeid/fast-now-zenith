@@ -57,7 +57,7 @@ export const PremiumUpgradeModal = ({ isOpen, onClose, feature }: PremiumUpgrade
               </div>
               <h2 className="text-lg font-semibold text-foreground">Premium Feature</h2>
             </div>
-            <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 p-0">
+            <Button variant="ghost" size="sm" onClick={onClose} className="w-8 h-8 p-0 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200">
               <X className="w-4 h-4" />
             </Button>
           </div>

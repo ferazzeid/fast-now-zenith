@@ -35,9 +35,9 @@ export const MotivatorContentModal = ({ isOpen, onClose, content }: MotivatorCon
                 </h1>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   onClick={onClose}
-                  className="flex-shrink-0 h-8 w-8"
+                  className="flex-shrink-0 h-8 w-8 p-0 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
                 >
                   <X className="w-4 h-4" />
                 </Button>
