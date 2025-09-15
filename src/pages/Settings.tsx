@@ -727,6 +727,27 @@ const Settings = () => {
                 </div>
               </Card>
 
+            {/* Appearance Section */}
+            <Card className="p-6 bg-card border-ceramic-rim">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Brain className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-warm-text">Theme</div>
+                  <ThemeToggle />
+                </div>
+                
+                <UserColorPicker 
+                  value={primaryColor}
+                  onChange={setPrimaryColor}
+                  disabled={profileLoading}
+                />
+              </div>
+            </Card>
+
             {/* Save Settings Button - under Profile */}
             <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full">
               Save Settings
@@ -815,25 +836,6 @@ const Settings = () => {
               </div>
             </Card>
 
-            {/* Appearance Section */}
-            <Card className="p-6 bg-card border-ceramic-rim">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Brain className="w-5 h-5 text-primary" />
-                  <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
-                </div>
-                
-                <UserColorPicker 
-                  value={primaryColor}
-                  onChange={setPrimaryColor}
-                  disabled={profileLoading}
-                />
-                
-                <div className="flex justify-center pt-2">
-                  <ThemeToggle />
-                </div>
-              </div>
-            </Card>
 
             {/* About */}
             <Card className="p-6 bg-card border-ceramic-rim">

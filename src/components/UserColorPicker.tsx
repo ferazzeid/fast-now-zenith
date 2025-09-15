@@ -68,92 +68,77 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h4 className="text-sm font-medium text-warm-text">Primary Color</h4>
-          <p className="text-xs text-muted-foreground">Customize your app's primary color</p>
-        </div>
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={disabled}
-              className="w-24 h-8 p-1 bg-ceramic-base border-ceramic-rim"
-            >
-              <div className="flex items-center gap-2">
-                <div 
-                  className="w-4 h-4 rounded border border-ceramic-rim"
-                  style={{ backgroundColor: localColor }}
-                />
-                <Palette className="w-3 h-3" />
-              </div>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-4 bg-ceramic-base border-ceramic-rim" align="end">
-            <div className="space-y-4">
-              <div className="text-center">
-                <h5 className="font-medium text-warm-text">Choose Primary Color</h5>
-                <p className="text-xs text-muted-foreground mt-1">
-                  This color will be used throughout the app
-                </p>
-              </div>
-              
-              <HexColorPicker 
-                color={localColor} 
-                onChange={handleColorChange}
-                style={{ width: '200px', height: '120px' }}
+    <div className="flex items-center justify-between">
+      <div className="text-sm font-medium text-warm-text">Primary Color</div>
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            className="w-24 h-8 p-1 bg-ceramic-base border-ceramic-rim"
+          >
+            <div className="flex items-center gap-2">
+              <div 
+                className="w-4 h-4 rounded border border-ceramic-rim"
+                style={{ backgroundColor: localColor }}
               />
-              
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-muted-foreground font-mono">
-                  {localColor.toUpperCase()}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetToDefault}
-                  className="text-xs"
-                >
-                  Reset
-                </Button>
-              </div>
-              
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  '#3b82f6', // Blue
-                  '#10b981', // Emerald
-                  '#f59e0b', // Amber
-                  '#ef4444', // Red
-                  '#8b5cf6', // Violet
-                  '#06b6d4', // Cyan
-                  '#84cc16', // Lime
-                  '#f97316', // Orange
-                ].map((presetColor) => (
-                  <button
-                    key={presetColor}
-                    onClick={() => handleColorChange(presetColor)}
-                    className="w-8 h-8 rounded border-2 border-ceramic-rim hover:border-primary transition-colors"
-                    style={{ backgroundColor: presetColor }}
-                    title={presetColor}
-                  />
-                ))}
-              </div>
+              <Palette className="w-3 h-3" />
             </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-      
-      {/* Preview section */}
-      <div className="text-xs text-muted-foreground">
-        <span>Preview: </span>
-        <span 
-          className="inline-block w-3 h-3 rounded-full border border-ceramic-rim align-middle"
-          style={{ backgroundColor: localColor }}
-        />
-        <span className="ml-2">Changes will apply after saving settings</span>
-      </div>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-4 bg-ceramic-base border-ceramic-rim" align="end">
+          <div className="space-y-4">
+            <div className="text-center">
+              <h5 className="font-medium text-warm-text">Choose Primary Color</h5>
+              <p className="text-xs text-muted-foreground mt-1">
+                This color will be used throughout the app
+              </p>
+            </div>
+            
+            <HexColorPicker 
+              color={localColor} 
+              onChange={handleColorChange}
+              style={{ width: '200px', height: '120px' }}
+            />
+            
+            <div className="flex items-center justify-between">
+              <div className="text-xs text-muted-foreground font-mono">
+                {localColor.toUpperCase()}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={resetToDefault}
+                className="text-xs"
+              >
+                Reset
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                '#3b82f6', // Blue
+                '#10b981', // Emerald
+                '#f59e0b', // Amber
+                '#ef4444', // Red
+                '#8b5cf6', // Violet
+                '#06b6d4', // Cyan
+                '#84cc16', // Lime
+                '#f97316', // Orange
+              ].map((presetColor) => (
+                <button
+                  key={presetColor}
+                  onClick={() => handleColorChange(presetColor)}
+                  className="w-8 h-8 rounded border-2 border-ceramic-rim hover:border-primary transition-colors"
+                  style={{ backgroundColor: presetColor }}
+                  title={presetColor}
+                />
+              ))}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 };
