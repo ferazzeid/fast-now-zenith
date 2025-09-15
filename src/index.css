@@ -133,7 +133,7 @@ All colors MUST be HSL.
     --info-foreground: 0 0% 98%;
 
     --border: 0 0% 85%;
-    --input: 0 0% 92%;
+    --input: 0 0% 96%;
     --ring: 220 85% 50%;
 
     /* Ceramic plate colors - Light Mode (neutral with subtle warmth) */
@@ -206,7 +206,7 @@ All colors MUST be HSL.
     --destructive-foreground: 0 0% 88%;
 
     --border: 0 0% 20%;
-    --input: 0 0% 15%;
+    --input: 0 0% 8%;
     --ring: 220 85% 50%;
 
     /* Dark ceramic colors (brightened for visibility) */
