@@ -292,7 +292,7 @@ const Walking = () => {
 
 
         {/* Inspirational Quote */}
-        {walkingQuotesEnabled && (
+        {walkingQuotesEnabled && quotes.walking_timer_quotes && quotes.walking_timer_quotes.length > 0 && (
           <InspirationQuote 
             quotes={quotes.walking_timer_quotes} 
             className="mt-8"

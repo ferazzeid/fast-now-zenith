@@ -53,8 +53,6 @@ import { useAuthStore } from '@/stores/authStore';
 
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
-import { InstallationProgress } from './components/InstallationProgress';
-import { useInstallationProgress, installationManager } from './utils/installationManager';
 
 
 
@@ -87,22 +85,6 @@ const AppContent = () => {
   const initialize = useAuthStore(state => state.initialize);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  // Re-enable installation progress screen - shows data preloading
-  const { progress: installProgress } = useInstallationProgress();
-  const [showInstallation, setShowInstallation] = useState(false); // DISABLED - was causing issues with regular web browsing
-  
-  // Hide installation screen when complete
-  useEffect(() => {
-    if (installProgress.stage === 'complete') {
-      // Small delay for UX, then hide installation screen
-      setTimeout(() => setShowInstallation(false), 1000);
-    }
-    // Also check if we need to show it when installation starts
-    else if (installProgress.stage === 'installing' || installProgress.stage === 'preloading') {
-      setShowInstallation(true);
-    }
-  }, [installProgress.stage]);
-  
   // Initialize auth system on app startup (critical)
   useEffect(() => {
     initialize();
@@ -151,21 +133,6 @@ const AppContent = () => {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
-
-  // Show installation progress if needed
-  if (showInstallation) {
-    return (
-      <div className="min-h-screen bg-frame-background overflow-x-hidden">
-        <div className="mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden">
-          <SEOManager />
-          <InstallationProgress 
-            onComplete={() => setShowInstallation(false)}
-            showOnlyDuringInstall={true}
-          />
-        </div>
-      </div>
-    );
-  }
 
   // App is ready to render
   return (

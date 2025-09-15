@@ -174,12 +174,6 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
         </div>
 
         {/* Empty State - Only show if truly no entries */}
-        {(!entries || entries.length === 0) && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-muted-foreground">
-            <Utensils className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No foods tracked yet</p>
-          </div>
-        )}
       </div>
     </Card>
   );
