@@ -34,21 +34,26 @@ export const useQuoteDisplaySettings = (): QuoteDisplaySettings => {
           .single()
       ]);
 
-      const fastingQuotesEnabled = fastingResult.data?.setting_value !== 'false';
-      const walkingQuotesEnabled = walkingResult.data?.setting_value !== 'false';
+      console.log('Quote display settings loaded:', { 
+        fasting: fastingResult.data?.setting_value, 
+        walking: walkingResult.data?.setting_value 
+      });
+
+      const fastingQuotesEnabled = fastingResult.data?.setting_value === 'true';
+      const walkingQuotesEnabled = walkingResult.data?.setting_value === 'true';
       
       return { fastingQuotesEnabled, walkingQuotesEnabled };
     }, {
       onError: (error) => {
-        // Default both to true if settings don't exist
-        console.log('Quote display settings not found, using defaults');
+        // Default both to false if settings don't exist
+        console.log('Quote display settings error, using defaults:', error);
       }
     });
   };
 
   return {
-    fastingQuotesEnabled: settings?.fastingQuotesEnabled ?? true,
-    walkingQuotesEnabled: settings?.walkingQuotesEnabled ?? true,
+    fastingQuotesEnabled: settings?.fastingQuotesEnabled ?? false,
+    walkingQuotesEnabled: settings?.walkingQuotesEnabled ?? false,
     loading: isLoading
   };
 };
