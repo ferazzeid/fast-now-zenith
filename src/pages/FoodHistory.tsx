@@ -212,7 +212,7 @@ const FoodHistory = () => {
   if (isLoading && (!dailySummaries || dailySummaries.length === 0)) {
     return (
       <div className="relative min-h-screen bg-background p-4">
-      <div className="max-w-md mx-auto pt-10 pb-32">
+      <div className="max-w-md mx-auto pt-16 pb-32">
         {/* Header with title and close button on same line - Loading state */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Food History</h1>
@@ -254,7 +254,7 @@ const FoodHistory = () => {
     <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
       <SEOManager />
       
-      <div className="max-w-md mx-auto pt-10 pb-32">
+      <div className="max-w-md mx-auto pt-16 pb-32">
         {/* Header with title and close button on same line */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Food History</h1>
