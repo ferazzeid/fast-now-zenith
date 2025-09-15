@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 
@@ -32,7 +32,18 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
   const selectedSpeed = walkingSession?.selectedSpeed || 3;
   const { profile, calculateWalkingCalories } = useOptimizedProfile();
 
-  // Update stats every 2 minutes when active (reduced frequency)
+  // Stabilize calculateWalkingCalories to prevent infinite loops
+  const stableCalculateWalkingCalories = useCallback(
+    (duration: number, speed: number) => {
+      if (calculateWalkingCalories) {
+        return calculateWalkingCalories(duration, speed);
+      }
+      return 0;
+    },
+    [calculateWalkingCalories]
+  );
+
+  // Update stats every 30 seconds when active
   useEffect(() => {
     if (!currentSession || currentSession.status !== 'active') {
       setWalkingStats({
@@ -67,8 +78,8 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
 
       // FIXED: Use proper MET-based calorie calculation with user profile
       let calories = 0;
-      if (profile?.weight && calculateWalkingCalories) {
-        calories = calculateWalkingCalories(activeDurationMinutes, selectedSpeed);
+      if (profile?.weight && stableCalculateWalkingCalories) {
+        calories = stableCalculateWalkingCalories(activeDurationMinutes, selectedSpeed);
       } else {
         // Fallback calculation if no profile
         const met = selectedSpeed <= 3 ? 3.0 : selectedSpeed <= 4 ? 3.5 : 4.0;
@@ -112,7 +123,7 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     return () => {
       clearInterval(interval);
     };
-  }, [currentSession, selectedSpeed, profile, calculateWalkingCalories]);
+  }, [currentSession, selectedSpeed, profile, stableCalculateWalkingCalories]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 

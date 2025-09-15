@@ -65,8 +65,9 @@ export const useDailyDeficitQuery = () => {
 
   // Create a profile hash for cache invalidation when profile changes
   const effectiveActivityLevel = todayOverride?.activity_level || profile?.activity_level || 'lightly_active';
+  const overrideKey = todayOverride ? `override-${todayOverride.activity_level}-${today}` : 'no-override';
   const profileHash = profile ? 
-    `${profile.weight}-${profile.height}-${profile.age}-${effectiveActivityLevel}-${profile.manual_tdee_override || 'auto'}` : 
+    `${profile.weight}-${profile.height}-${profile.age}-${effectiveActivityLevel}-${profile.manual_tdee_override || 'auto'}-${overrideKey}` : 
     'no-profile';
 
   // Get manual calorie burns for today
@@ -204,10 +205,11 @@ export const useDailyDeficitQuery = () => {
 
   // PERFORMANCE: Optimized refresh function
   const refreshDeficit = useCallback(async () => {
-    // Only refresh the queries that might have changed
+    // Refresh all queries that might have changed
+    await bmrTdeeQuery.refetch();
     await walkingCaloriesQuery.refetch();
     await dailyDeficitQuery.refetch();
-  }, [walkingCaloriesQuery.refetch, dailyDeficitQuery.refetch]);
+  }, [bmrTdeeQuery.refetch, walkingCaloriesQuery.refetch, dailyDeficitQuery.refetch]);
 
   return {
     // Data

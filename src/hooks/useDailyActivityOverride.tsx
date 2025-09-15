@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useStandardizedLoading } from './useStandardizedLoading';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface DailyActivityOverride {
   id: string;
@@ -18,6 +19,7 @@ export const useDailyActivityOverride = () => {
   const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const getTodayOverride = useCallback(async () => {
     if (!user) return;
@@ -72,6 +74,11 @@ export const useDailyActivityOverride = () => {
       console.log('Successfully set activity override:', data);
 
       setTodayOverride(data);
+      
+      // Invalidate relevant caches immediately for instant UI updates  
+      queryClient.invalidateQueries({ queryKey: ['bmr-tdee-stable'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable', user.id, today] });
+      queryClient.invalidateQueries({ queryKey: ['profile-optimized'] });
 
       // If permanent, also update the profile
       if (isPermanent) {
@@ -131,6 +138,13 @@ export const useDailyActivityOverride = () => {
       if (error) throw error;
 
       setTodayOverride(null);
+      
+      // Invalidate relevant caches immediately
+      const today = new Date().toISOString().split('T')[0];
+      queryClient.invalidateQueries({ queryKey: ['bmr-tdee-stable'] });
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable', user.id, today] });
+      queryClient.invalidateQueries({ queryKey: ['profile-optimized'] });
+      
       toast({
         title: "Override Cleared",
         description: "Reverted to your default activity level for today."
