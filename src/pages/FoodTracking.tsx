@@ -456,50 +456,48 @@ const FoodTracking = () => {
 
               {/* Food Entries List */}
               <div className="mb-6">
-                <div className="bg-card rounded-lg p-4">
-                  {todayEntries.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8 space-y-2">
-                      <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p>No foods added yet</p>
-                      <p className="text-sm mt-2">Add foods using the buttons above</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {/* Sort entries so consumed items appear at the bottom */}
-                      {[...todayEntries].sort((a, b) => {
-                        if (a.consumed && !b.consumed) return 1;
-                        if (!a.consumed && b.consumed) return -1;
-                        return 0;
-                      }).map((entry) => 
-                        renderFoodEntryCard(entry)
-                      )}
-                      
-                      {/* Action Buttons */}
-                      {todayEntries.length > 0 && (
-                        <div className="flex justify-between items-center mt-6 pt-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowSaveToTemplateDialog(true)}
-                            className="text-primary hover:bg-primary/10 text-xs px-3 py-2 h-auto flex items-center gap-1"
-                          >
-                            <Save className="w-3 h-3" />
-                            Save to Template
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowClearAllDialog(true)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
-                            disabled={isClearingAll}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {todayEntries.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8 space-y-2">
+                    <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p>No foods added yet</p>
+                    <p className="text-sm mt-2">Add foods using the buttons above</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {/* Sort entries so consumed items appear at the bottom */}
+                    {[...todayEntries].sort((a, b) => {
+                      if (a.consumed && !b.consumed) return 1;
+                      if (!a.consumed && b.consumed) return -1;
+                      return 0;
+                    }).map((entry) => 
+                      renderFoodEntryCard(entry)
+                    )}
+                    
+                    {/* Action Buttons */}
+                    {todayEntries.length > 0 && (
+                      <div className="flex justify-between items-center mt-6 pt-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowSaveToTemplateDialog(true)}
+                          className="text-primary hover:bg-primary/10 text-xs px-3 py-2 h-auto flex items-center gap-1"
+                        >
+                          <Save className="w-3 h-3" />
+                          Save to Template
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowClearAllDialog(true)}
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
+                          disabled={isClearingAll}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
