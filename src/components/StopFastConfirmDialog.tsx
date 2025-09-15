@@ -31,7 +31,7 @@ export const StopFastConfirmDialog = ({
             variant="secondary" 
             size="action-main"
             onClick={handleClose}
-            className="text-sm w-full border border-muted-foreground/20"
+            className="text-sm w-full border border-muted-foreground/10"
           >
             Close
           </Button>

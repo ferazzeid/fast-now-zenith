@@ -185,7 +185,7 @@ const SquareTimerComponent = ({
                       onClick={onCancel}
                       variant="secondary"
                       size="action-secondary"
-                      className="flex-1 border border-muted-foreground/20"
+                      className="flex-1 border border-muted-foreground/10"
                     >
                       <X className="w-6 h-6" />
                     </Button>

@@ -160,69 +160,69 @@ export const ImageUpload = ({
   };
 
   return (
-    <div className="space-y-4">
-      {previewUrl ? (
-        <div className="space-y-4">
-          <div className="relative">
-            <div className="aspect-video max-h-[120px] bg-ceramic-rim rounded-lg overflow-hidden flex items-center justify-center">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full h-full object-contain"
-              />
-            </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleRemoveImage}
-              className="absolute top-2 right-2 h-8 w-8 p-0"
-              disabled={isUploading}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-            
-            {/* Custom regenerate button */}
-            {regenerateButton && (
-              <div className="absolute top-2 right-12">
-                {regenerateButton}
+        <div className="space-y-3">
+          {previewUrl ? (
+            <div className="space-y-2">
+              <div className="relative">
+                <div className="aspect-video max-h-[120px] bg-ceramic-rim rounded-lg overflow-hidden flex items-center justify-center">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveImage}
+                  className="absolute top-1 right-1 h-6 w-6 p-0 rounded-full bg-black/20 hover:bg-black/40 text-white border-0"
+                  disabled={isUploading}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+                
+                {/* Custom regenerate button */}
+                {regenerateButton && (
+                  <div className="absolute top-1 right-8">
+                    {regenerateButton}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          
-          {showUploadOptionsWhenImageExists && (
-            <div className="space-y-3">
-              {/* Mobile: Single camera button */}
-              {isMobile && (
-                <Button
-                  variant="outline"
-                  onClick={handleCameraCapture}
-                  disabled={isUploading}
-                  className="w-full h-16 flex-col space-y-1 bg-ceramic-base border border-ceramic-shadow"
-                >
-                  <Camera className="w-4 h-4" />
-                  <span className="text-xs">Use camera</span>
-                </Button>
-              )}
+              
+              {showUploadOptionsWhenImageExists && (
+                <div>
+                  {/* Mobile: Single camera button */}
+                  {isMobile && (
+                    <Button
+                      variant="outline"
+                      onClick={handleCameraCapture}
+                      disabled={isUploading}
+                      className="w-full h-12 flex-col space-y-1 bg-ceramic-base border border-ceramic-shadow"
+                    >
+                      <Camera className="w-4 h-4" />
+                      <span className="text-xs">Use camera</span>
+                    </Button>
+                  )}
 
-              {/* Desktop: Single upload button */}
-              {!isMobile && (
-                <Button
-                  variant="outline"
-                  onClick={handleFileSelect}
-                  disabled={isUploading}
-                  className="w-full bg-ceramic-base border border-ceramic-shadow"
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload New Image
-                </Button>
+                  {/* Desktop: Single upload button */}
+                  {!isMobile && (
+                    <Button
+                      variant="outline"
+                      onClick={handleFileSelect}
+                      disabled={isUploading}
+                      className="w-full bg-ceramic-base border border-ceramic-shadow"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload New Image
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {/* Desktop: Drag & drop area - Big camera */}
-          {!isMobile && (
+          ) : (
+            <div>
+              {/* Desktop: Drag & drop area - Big camera */}
+              {!isMobile && (
             <div
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
@@ -256,10 +256,10 @@ export const ImageUpload = ({
             >
               <Camera className="w-12 h-12" />
             </Button>
-          )}
+              )}
 
-        </div>
-      )}
+            </div>
+          )}
 
       {/* Hidden file inputs */}
       <input

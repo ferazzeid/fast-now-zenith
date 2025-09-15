@@ -200,7 +200,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
               id="content"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[80px]"
+              className="min-h-[100px]"
             />
           </div>
 

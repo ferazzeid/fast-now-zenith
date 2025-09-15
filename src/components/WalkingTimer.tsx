@@ -162,9 +162,9 @@ const WalkingTimerComponent = ({
                         });
                       }
                     }}
-                    variant="secondary"
-                    size="action-secondary"
-                    className="flex-1 border border-muted-foreground/20"
+                     variant="secondary"
+                     size="action-secondary"
+                     className="flex-1 border border-muted-foreground/10"
                   >
                     {isPaused ? (
                       <Play className="w-6 h-6" />
@@ -206,7 +206,7 @@ const WalkingTimerComponent = ({
                       }}
                       variant="secondary"
                       size="action-secondary"
-                      className="flex-1 border border-muted-foreground/20"
+                      className="flex-1 border border-muted-foreground/10"
                     >
                       <X className="w-6 h-6" />
                     </Button>
