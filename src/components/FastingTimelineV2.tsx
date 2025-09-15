@@ -139,7 +139,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
       </div>
 
       {/* Admin Insight Display - Shows how it appears to regular users */}
-      {selected?.admin_personal_log && (
+      {selected?.admin_personal_log && isPersonalLogEnabled && (
         <AdminInsightDisplay 
           content={selected.admin_personal_log}
         />
