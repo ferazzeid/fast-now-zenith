@@ -222,7 +222,7 @@ export const DailyStatsPanel = memo(() => {
                 </AccessGate>
 
                 {/* Breakdown */}
-                <div className="grid grid-cols-2 gap-1 px-0.5">
+                <div className="grid grid-cols-2 gap-3 px-0.5">
                   {/* Calories In with Carbs */}
                   <AccessGate feature="food">
                     {({ hasAccess, requestUpgrade }) => (
