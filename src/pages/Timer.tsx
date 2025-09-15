@@ -487,19 +487,16 @@ const Timer = () => {
 
 
 
-         {/* Inspirational Content - positioned consistently for both modes */}
-         <div className="mt-8">
-           {currentMode === 'fasting' && profile?.enable_fasting_slideshow && fastingQuotesEnabled ? (
-             <FastingInspirationRotator 
-               quotes={quotes.fasting_timer_quotes}
-               currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
-               onSaveQuote={saveQuoteAsGoal}
-             />
-           ) : (
-             // Empty placeholder to maintain consistent spacing
-             <div className="h-0"></div>
-           )}
-         </div>
+          {/* Inspirational Content - positioned consistently for both modes */}
+          <div className="mt-8">
+            {currentMode === 'fasting' && fastingQuotesEnabled && quotes.fasting_timer_quotes && quotes.fasting_timer_quotes.length > 0 && (
+              <FastingInspirationRotator 
+                quotes={quotes.fasting_timer_quotes}
+                currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
+                onSaveQuote={saveQuoteAsGoal}
+              />
+            )}
+          </div>
       </div>
 
       {/* Fast Selector Modal */}
