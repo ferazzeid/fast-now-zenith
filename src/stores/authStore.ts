@@ -65,10 +65,9 @@ export const useAuthStore = create<AuthState>()(
                 userId: session?.user?.id
               });
               
-              // Handle token refresh errors by clearing invalid sessions
+              // Handle token refresh errors - simplified with PKCE fix
               if (event === 'TOKEN_REFRESHED' && !session) {
-                authLogger.warn('Token refresh failed, clearing session');
-                localStorage.removeItem('sb-texnkijwcygodtywgedm-auth-token');
+                authLogger.warn('Token refresh failed - this should be rare with PKCE');
                 set({
                   session: null,
                   user: null,
@@ -93,13 +92,7 @@ export const useAuthStore = create<AuthState>()(
           
           if (error) {
             authLogger.error('Error getting session:', error);
-            // Clear corrupted auth tokens
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => {
-              if (key.startsWith('sb-') && key.includes('auth-token')) {
-                localStorage.removeItem(key);
-              }
-            });
+            // With PKCE fix, token corruption should be rare
             set({ 
               session: null, 
               user: null, 
