@@ -328,7 +328,7 @@ const Motivators = () => {
   return (
     <TooltipProvider>
       <div className="relative min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4">
-        <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
+        <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
           <div className="space-y-6">
           {/* Header */}
           <div className="mb-4 mt-4 relative">

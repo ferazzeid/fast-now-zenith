@@ -259,7 +259,7 @@ All colors MUST be HSL.
   }
   
   .safe-bottom {
-    padding-bottom: max(6rem, env(safe-area-inset-bottom) + 4rem);
+    padding-bottom: max(8rem, env(safe-area-inset-bottom) + 5rem);
   }
 }
 

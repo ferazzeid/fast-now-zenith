@@ -67,7 +67,7 @@ const MyFoods = () => {
       <SEOManager />
       
       {/* Full Width Container */}
-      <div className="max-w-md mx-auto pt-10 pb-32">
+      <div className="max-w-md mx-auto pt-10 pb-40">
         <div className="flex items-center justify-between mb-6 px-4">
           <h1 className="text-2xl font-bold">My Foods</h1>
           <Button
