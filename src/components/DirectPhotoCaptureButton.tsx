@@ -8,6 +8,7 @@ import { useAccess } from '@/hooks/useAccess';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { useToast } from '@/hooks/use-toast';
 import { useUploadLoading } from '@/hooks/useStandardizedLoading';
+import { saveImageLocally } from '@/utils/localImageStorage';
 
 interface DirectPhotoCaptureButtonProps {
   onFoodAdded?: (food: any) => void;
@@ -86,30 +87,28 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       try {
         startUpload();
         
-        // Upload image to Supabase storage
-        const fileName = `${Date.now()}_${Math.random().toString().replace('.', '')}.jpg`;
-        const filePath = `${user!.id}/${fileName}`;
-        
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('motivator-images')
-          .upload(filePath, file);
-
-        if (uploadError) throw uploadError;
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('motivator-images')
-          .getPublicUrl(filePath);
-
-        const imageUrl = urlData.publicUrl;
+        // Save image locally instead of uploading to cloud
+        const localImageId = await saveImageLocally(file);
+        console.log('Image saved locally with ID:', localImageId);
 
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
           startAnalysis();
 
           try {
+            // Convert file to base64 for AI analysis
+            const base64Data = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                const result = reader.result as string;
+                resolve(result.split(',')[1]); // Remove data URL prefix
+              };
+              reader.onerror = reject;
+              reader.readAsDataURL(file);
+            });
+
             const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-              body: { imageUrl: imageUrl },
+              body: { imageData: base64Data },
             });
             
             if (error) throw error;
@@ -137,7 +136,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               const foodEntry = {
                 ...foodItem,
                 source: 'photo_analysis',
-                image_url: imageUrl
+                image_url: localImageId // Store local image ID instead of URL
               };
               
               onFoodAdded?.(foodEntry);
@@ -169,7 +168,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             });
           }
         } else {
-          // Show error for non-premium users
+          // Show error for non-premium users trying to use AI analysis
           reset();
           toast({
             title: "Premium Feature",

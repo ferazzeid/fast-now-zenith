@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { ImageUpload } from '@/components/ImageUpload';
+import { LocalImageUpload } from '@/components/LocalImageUpload';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
 interface FoodEntry {
@@ -140,8 +141,8 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
         {/* Food Image Upload */}
         <div className="space-y-2">
           <Label>Food Image</Label>
-          <ImageUpload
-            currentImageUrl={imageUrl}
+          <LocalImageUpload
+            currentImageId={imageUrl}
             onImageUpload={setImageUrl}
             onImageRemove={() => setImageUrl('')}
           />
