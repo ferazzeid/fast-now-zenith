@@ -112,19 +112,19 @@ export default function MotivatorIdeas() {
 
   return (
     <GoalIdeasErrorBoundary>
-      <div className="pt-20 pb-20 relative"> {/* Increased spacing from deficit bar */}
-        
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-semibold text-foreground">Goal Ideas</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/motivators')}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="pt-20 pb-20 relative p-4"> {/* Increased spacing from deficit bar */}
+        <div className="max-w-md mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-semibold text-foreground">Goal Ideas</h1>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/motivators')}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
       <main>
         {loading ? (
@@ -282,6 +282,7 @@ export default function MotivatorIdeas() {
         onClose={() => setShowContentModal(false)}
         content={selectedContent}
       />
+        </div>
     </div>
     </GoalIdeasErrorBoundary>
   );
