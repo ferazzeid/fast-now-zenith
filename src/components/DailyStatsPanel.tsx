@@ -242,7 +242,7 @@ export const DailyStatsPanel = memo(() => {
                         </div>
 
                         <div className="flex items-center justify-between">
-                          <div className="text-lg font-bold text-primary">
+                          <div className="text-lg font-bold text-foreground">
                             {Math.round(deficitData.caloriesConsumed)} cal
                           </div>
 
@@ -250,9 +250,9 @@ export const DailyStatsPanel = memo(() => {
                           <div className="flex items-center space-x-2">
                             <div className="w-px h-6 bg-border"></div>
                             <div className="flex items-center space-x-1">
-                              <span className="text-sm font-medium text-primary">{Math.round(todayTotals.carbs)}g</span>
+                              <span className="text-sm font-medium text-foreground">{Math.round(todayTotals.carbs)}g</span>
                               <ClickableTooltip content="Total carbs consumed from food today">
-                                <Info className="w-3 h-3 text-primary" />
+                                <Info className="w-3 h-3 text-muted-foreground" />
                               </ClickableTooltip>
                             </div>
                           </div>
@@ -263,7 +263,7 @@ export const DailyStatsPanel = memo(() => {
 
                   {/* Calories Out */}
                   <StatDisplay
-                    icon={<Activity className="w-4 h-4 text-primary" />}
+                    icon={<Activity className="w-4 h-4 text-muted-foreground" />}
                     label="Calories Out"
                     value={deficitData.totalCaloriesBurned}
                     tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.totalCaloriesBurned)}`}
@@ -276,13 +276,13 @@ export const DailyStatsPanel = memo(() => {
                   {/* Base Daily Burn Section */}
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <Target className="w-4 h-4 text-primary" />
+                      <Target className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
                       <ClickableTooltip content={`Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`}>
-                        <Info className="w-4 h-4 text-primary" />
+                        <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>
                     </div>
-                    <div className="text-sm font-bold text-primary">
+                    <div className="text-sm font-bold text-foreground">
                       {formatNumber(deficitData.tdee)} cal
                     </div>
                   </div>
