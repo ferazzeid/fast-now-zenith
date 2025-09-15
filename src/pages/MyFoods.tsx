@@ -63,12 +63,12 @@ const MyFoods = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="relative min-h-[calc(100vh-80px)] bg-background overflow-x-hidden">
       <SEOManager />
       
       {/* Full Width Container */}
-      <div className="max-w-md mx-auto p-4 pt-10 pb-32">
-        <div className="flex items-center justify-between mb-6">
+      <div className="max-w-md mx-auto pt-10 pb-32">
+        <div className="flex items-center justify-between mb-6 px-4">
           <h1 className="text-2xl font-bold">My Foods</h1>
           <Button
             variant="ghost"
@@ -80,7 +80,8 @@ const MyFoods = () => {
           </Button>
         </div>
         
-        <FoodLibraryView
+        <div className="px-4">
+          <FoodLibraryView
           onSelectFood={handleSelectFood}
           onBack={handleBack}
           templateFoods={templateFoods}
@@ -91,7 +92,8 @@ const MyFoods = () => {
           onApplyTemplate={applyTemplate}
           onDeleteTemplateFood={deleteTemplateFood}
           onForceLoadTemplate={forceLoadTemplate}
-        />
+          />
+        </div>
       </div>
     </div>
   );

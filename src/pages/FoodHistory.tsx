@@ -211,10 +211,10 @@ const FoodHistory = () => {
   // Show loading skeleton
   if (isLoading && (!dailySummaries || dailySummaries.length === 0)) {
     return (
-      <div className="relative min-h-screen bg-background p-4">
+      <div className="relative min-h-screen bg-background">
       <div className="max-w-md mx-auto pt-10 pb-32">
         {/* Header with title and close button on same line - Loading state */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 px-4">
           <h1 className="text-2xl font-bold">Food History</h1>
           <Button
             variant="ghost"
@@ -227,7 +227,7 @@ const FoodHistory = () => {
         </div>
           
           {/* Loading skeletons */}
-          <div className="space-y-4">
+          <div className="space-y-4 px-4">
             {[1, 2, 3].map((i) => (
               <Card key={i} className="p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -251,12 +251,12 @@ const FoodHistory = () => {
   console.log('🍽️ FoodHistory: Rendering main container');
   
   return (
-    <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
+    <div className="relative min-h-screen bg-background overflow-x-hidden">
       <SEOManager />
       
       <div className="max-w-md mx-auto pt-10 pb-32">
         {/* Header with title and close button on same line */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 px-4">
           <h1 className="text-2xl font-bold">Food History</h1>
           <div className="flex items-center gap-2">
             {dailySummaries && dailySummaries.length > 0 && (
@@ -281,7 +281,7 @@ const FoodHistory = () => {
         </div>
 
         {!dailySummaries || dailySummaries.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 px-4">
             <Utensils className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Food Entries Yet</h3>
             <p className="text-muted-foreground mb-4">
@@ -292,7 +292,7 @@ const FoodHistory = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 px-4">
             {dailySummaries?.map((summary) => (
               <Card key={summary.date} className="overflow-hidden">
                 <CardHeader 
