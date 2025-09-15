@@ -179,7 +179,7 @@ export const AdminPredefinedMotivators = () => {
   }
 
   return (
-    <Card className="bg-ceramic-plate border-ceramic-rim">
+    <Card className="bg-ceramic-plate border border-ceramic-shadow">
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="text-warm-text">Predefined Motivators</CardTitle>
@@ -195,7 +195,7 @@ export const AdminPredefinedMotivators = () => {
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {motivators.map((motivator) => (
-            <Card key={motivator.id} className="bg-ceramic-base border-ceramic-rim">
+            <Card key={motivator.id} className="bg-ceramic-base border border-ceramic-shadow">
               <CardContent className="p-4">
                 {motivator.imageUrl && (
                   <img 

@@ -109,7 +109,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
 
   if (loadingMotivators) {
     return (
-      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-shadow shadow-lg text-center">
         <SmartInlineLoading text="Loading motivators" />
       </div>
     );
@@ -118,7 +118,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
   // If already imported, show success state
   if (imported) {
     return (
-      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-shadow shadow-lg text-center">
         <div className="flex justify-center mb-4">
           <div className="bg-primary/20 rounded-full p-4">
             <Check className="w-8 h-8 text-primary" />
@@ -135,7 +135,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
   // If no motivators available, show empty state
   if (motivators.length === 0) {
     return (
-      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg text-center">
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-shadow shadow-lg text-center">
         <h3 className="text-xl font-bold text-warm-text mb-2">No Predefined Motivators</h3>
         <p className="text-warm-text/70 mb-6">
           No predefined motivators are currently available. Contact your admin to add some.
@@ -143,7 +143,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
         <Button
           variant="outline"
           onClick={onComplete}
-          className="bg-ceramic-base border-ceramic-rim"
+          className="bg-ceramic-base border border-ceramic-shadow"
         >
           Continue
         </Button>
@@ -164,7 +164,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
   };
 
   return (
-    <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-rim shadow-lg">
+    <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-shadow shadow-lg">
       <div className="text-center mb-6">
         <h3 className="text-xl font-bold text-warm-text mb-2">Import Custom Motivators</h3>
         <p className="text-warm-text/70">
@@ -176,7 +176,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
         {motivators.map((motivator, index) => {
           const IconComponent = getCategoryIcon(motivator.category);
           return (
-            <Card key={index} className="bg-ceramic-base border-ceramic-rim p-4">
+            <Card key={index} className="bg-ceramic-base border border-ceramic-shadow p-4">
               <CardContent className="p-0">
                 <div className="flex items-start space-x-4">
                   {motivator.imageUrl && (
@@ -219,7 +219,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
         <Button
           variant="outline"
           onClick={onComplete}
-          className="bg-ceramic-base border-ceramic-rim"
+          className="bg-ceramic-base border border-ceramic-shadow"
         >
           Skip for now
         </Button>

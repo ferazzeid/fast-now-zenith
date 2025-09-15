@@ -197,7 +197,7 @@ export const ImageUpload = ({
                   variant="outline"
                   onClick={handleCameraCapture}
                   disabled={isUploading}
-                  className="w-full h-16 flex-col space-y-1 bg-ceramic-base border-ceramic-rim"
+                  className="w-full h-16 flex-col space-y-1 bg-ceramic-base border border-ceramic-shadow"
                 >
                   <Camera className="w-4 h-4" />
                   <span className="text-xs">Use camera</span>
@@ -210,7 +210,7 @@ export const ImageUpload = ({
                   variant="outline"
                   onClick={handleFileSelect}
                   disabled={isUploading}
-                  className="w-full bg-ceramic-base border-ceramic-rim"
+                  className="w-full bg-ceramic-base border border-ceramic-shadow"
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Upload New Image
@@ -226,7 +226,7 @@ export const ImageUpload = ({
             <div
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                ${isDragOver ? 'border-primary bg-primary/5' : 'border-ceramic-rim'}
+                ${isDragOver ? 'border-primary bg-primary/5' : 'border-ceramic-shadow'}
                 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
               `}
               onDragOver={handleDragOver}
@@ -252,7 +252,7 @@ export const ImageUpload = ({
               variant="outline"
               onClick={handleCameraCapture}
               disabled={isUploading}
-              className="w-full h-32 flex-col bg-ceramic-base border-ceramic-rim"
+              className="w-full h-32 flex-col bg-ceramic-base border border-ceramic-shadow"
             >
               <Camera className="w-12 h-12" />
             </Button>

@@ -219,7 +219,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
 
           {/* Completed sessions */}
           {completedSessions.map((session, index) => (
-            <Card key={session.id} className="p-2 bg-ceramic-base border-ceramic-rim">
+            <Card key={session.id} className="p-2 bg-ceramic-base border border-ceramic-shadow">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Clock className="w-3 h-3 text-muted-foreground" />

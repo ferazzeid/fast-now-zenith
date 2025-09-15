@@ -435,7 +435,7 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
           {/* Footer - Quantity selector and Add button */}
           <div className="flex gap-3 pt-4">
             {/* Quantity selector */}
-            <div className="flex items-center border-ceramic-rim rounded-md">
+            <div className="flex items-center border border-ceramic-shadow rounded-md">
               <Button
                 variant="ghost"
                 size="sm"

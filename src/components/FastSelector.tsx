@@ -123,7 +123,7 @@ export const FastSelector = ({
                 onClick={() => setDuration(preset.hours)}
                 className={duration === preset.hours 
                   ? "justify-start bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/20" 
-                  : "justify-start bg-ceramic-base border-ceramic-rim hover:bg-ceramic-rim"
+                  : "justify-start bg-ceramic-base border border-ceramic-shadow hover:bg-ceramic-rim"
                 }
               >
                 <span className="font-medium">{preset.name}</span>

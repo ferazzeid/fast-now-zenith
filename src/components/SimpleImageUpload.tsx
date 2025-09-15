@@ -111,7 +111,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
             variant="outline"
             onClick={handleCameraCapture}
             disabled={isUploading}
-            className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+            className="h-20 flex-col space-y-2 bg-ceramic-base border border-ceramic-shadow"
           >
             <Camera className="w-6 h-6" />
             <span className="text-sm">Use camera</span>
@@ -121,7 +121,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
             variant="outline"
             onClick={handleFileSelect}
             disabled={isUploading}
-            className="h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+            className="h-20 flex-col space-y-2 bg-ceramic-base border border-ceramic-shadow"
           >
             <Image className="w-6 h-6" />
             <span className="text-sm">Upload photo</span>
@@ -133,7 +133,7 @@ export const SimpleImageUpload = ({ onImageUpload }: SimpleImageUploadProps) => 
           variant="outline"
           onClick={handleFileSelect}
           disabled={isUploading}
-          className="w-full h-20 flex-col space-y-2 bg-ceramic-base border-ceramic-rim"
+          className="w-full h-20 flex-col space-y-2 bg-ceramic-base border border-ceramic-shadow"
         >
           {isUploading ? (
             <>
