@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { SquareCelebrationEffects } from './SquareCelebrationEffects';
-import { useAnimationControl } from '@/components/AnimationController';
+
 import { useToast } from '@/hooks/use-toast';
 
 interface SquareTimerProps {
@@ -49,7 +49,7 @@ const SquareTimerComponent = ({
 }: SquareTimerProps) => {
   
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
-  const { isAnimationsSuspended } = useAnimationControl();
+  const isAnimationsSuspended = false;
   const { toast } = useToast();
 
   const formatTimeFasting = useCallback((seconds: number) => {

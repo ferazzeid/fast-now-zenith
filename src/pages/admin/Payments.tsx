@@ -2,7 +2,7 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
-import { GooglePlayConfigPanel } from "@/components/GooglePlayConfigPanel";
+
 
 export default function AdminPayments() {
   usePageSEO({
@@ -19,7 +19,6 @@ export default function AdminPayments() {
 
         <section aria-label="Payment provider settings" className="space-y-6 pb-24">
           <PaymentProviderSettings />
-          <GooglePlayConfigPanel />
         </section>
       </main>
     </AdminHealthCheck>

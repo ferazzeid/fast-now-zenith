@@ -15,7 +15,7 @@ import { ColorManagement } from "@/components/ColorManagement";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
-import { CancellationTracker } from "@/components/CancellationTracker";
+
 import BrandAssetsManager from "@/components/BrandAssetsManager";
 import { PaymentProviderSettings } from "@/components/PaymentProviderSettings";
 import { AdminTimelineSettings } from "@/components/AdminTimelineSettings";
@@ -222,11 +222,6 @@ const AdminOverview = () => {
       {/* SEO Settings */}
       <section aria-label="SEO settings">
         <AdminSEOSettings />
-      </section>
-      
-      {/* Cancellation Tracking */}
-      <section aria-label="Cancellation tracking">
-        <CancellationTracker />
       </section>
       
       {/* Most Important Metric - User Tiers Overview */}

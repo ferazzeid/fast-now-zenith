@@ -2,7 +2,7 @@ import React from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
-import { CancellationTracker } from "@/components/CancellationTracker";
+
 import { AdminTierStats } from "@/components/AdminTierStats";
 
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
@@ -29,10 +29,6 @@ export default function AdminOperations() {
 
         <section aria-label="Real-time analytics">
           <SimpleAnalyticsWidget />
-        </section>
-
-        <section aria-label="Cancellation tracking">
-          <CancellationTracker />
         </section>
 
         <section aria-label="User tiers overview">

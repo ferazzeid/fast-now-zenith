@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { AdminImageUploadSilent } from './AdminImageUploadSilent';
+import { AdminImageUpload } from './AdminImageUpload';
+
 import { useToast } from '@/hooks/use-toast';
 import { useAccess } from '@/hooks/useAccess';
 import { Save } from 'lucide-react';
@@ -191,34 +192,28 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
 
         <div className="space-y-2">
           <Label className="text-warm-text font-medium">General Image (Fallback)</Label>
-          <AdminImageUploadSilent
+          <AdminImageUpload
             currentImageUrl={imageUrl}
             onImageUpload={setImageUrl}
             onImageRemove={() => setImageUrl('')}
-            onError={(error) => setInlineError(error)}
-            onSuccess={(message) => setInlineSuccess(message)}
           />
         </div>
 
         <div className="space-y-2">
           <Label className="text-warm-text font-medium">Male-Specific Image</Label>
-          <AdminImageUploadSilent
+          <AdminImageUpload
             currentImageUrl={maleImageUrl}
             onImageUpload={setMaleImageUrl}
             onImageRemove={() => setMaleImageUrl('')}
-            onError={(error) => setInlineError(error)}
-            onSuccess={(message) => setInlineSuccess(message)}
           />
         </div>
 
         <div className="space-y-2">
           <Label className="text-warm-text font-medium">Female-Specific Image</Label>
-          <AdminImageUploadSilent
+          <AdminImageUpload
             currentImageUrl={femaleImageUrl}
             onImageUpload={setFemaleImageUrl}
             onImageRemove={() => setFemaleImageUrl('')}
-            onError={(error) => setInlineError(error)}
-            onSuccess={(message) => setInlineSuccess(message)}
           />
         </div>
 

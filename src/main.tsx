@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import { StrictMode } from 'react';
 import App from './App.tsx';
 import './index.css';
-import { AnimationProvider } from './components/AnimationController';
+
 import { initOfflineStorage } from './utils/offlineStorage';
 import { conditionalPWAInit } from './utils/conditionalPWA';
 import './debug/prodErrorBridge'; // Import error bridge at startup
@@ -33,9 +33,7 @@ const SimplifiedApp = () => {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RootErrorBoundary>
-      <AnimationProvider>
-        <SimplifiedApp />
-      </AnimationProvider>
+      <SimplifiedApp />
     </RootErrorBoundary>
   </StrictMode>
 );

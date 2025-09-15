@@ -19,7 +19,7 @@ import { SubscriptionStatus } from '@/components/SubscriptionStatus';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
-import { ClearCacheButton } from '@/components/ClearCacheButton';
+
 import { CalorieGoalWarning } from '@/components/CalorieGoalWarning';
 
 import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';

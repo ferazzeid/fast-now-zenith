@@ -11,7 +11,7 @@ import { useWalkingSession } from '@/hooks/useWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
 import { CalorieBadge } from '@/components/CalorieBadge';
 import { TrialTimerBadge } from '@/components/TrialTimerBadge';
-import { useAnimationControl } from '@/components/AnimationController';
+
 import { useConnectionStore } from '@/stores/connectionStore';
 import { PremiumGate } from '@/components/PremiumGate';
 import { useAccess } from '@/hooks/useAccess';
@@ -26,7 +26,7 @@ export const Navigation = () => {
   const { currentSession: fastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { todayTotals } = useFoodEntriesQuery();
   const { currentSession: walkingSession } = useWalkingSession();
-  const { isAnimationsSuspended } = useAnimationControl();
+  const isAnimationsSuspended = false;
   const { isOnline } = useConnectionStore();
   const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch } = useAccess();
   // Calculate trial end date from days remaining

@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { AuthorTooltip } from './AuthorTooltip';
-import { useAnimationControl } from '@/components/AnimationController';
+
 import { useToast } from '@/hooks/use-toast';
 import { formatDistance } from '@/utils/unitConversions';
 
@@ -54,7 +54,7 @@ const WalkingTimerComponent = ({
 }: WalkingTimerProps) => {
   
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
-  const { isAnimationsSuspended } = useAnimationControl();
+  const isAnimationsSuspended = false;
   const { toast } = useToast();
 
   // Simplified speed display logic without console spam
