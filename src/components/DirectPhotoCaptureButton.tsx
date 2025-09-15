@@ -136,7 +136,8 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               // Add the food immediately without showing modal
               const foodEntry = {
                 ...foodItem,
-                source: 'photo_analysis'
+                source: 'photo_analysis',
+                image_url: imageUrl
               };
               
               onFoodAdded?.(foodEntry);

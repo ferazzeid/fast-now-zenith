@@ -64,7 +64,7 @@ export default function MotivatorIdeas() {
 
       const result = await createMotivator({
         title: goal.title,
-        content: excerpt,
+        content: goal.description || excerpt,
         category: 'personal',
         imageUrl: selectedImageUrl || undefined,
         linkUrl: goal.linkUrl || undefined,
