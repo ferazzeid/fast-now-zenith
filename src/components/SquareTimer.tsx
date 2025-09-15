@@ -105,28 +105,30 @@ const SquareTimerComponent = ({
               </div>
             )}
             
-            {/* Count Direction Toggle Button */}
-            <div className="absolute top-4 right-4 z-20">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={onToggleCountDirection}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90"
-                  >
-                    {countDirection === 'up' ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+            {/* Count Direction Toggle Button - only show when active */}
+            {isActive && (
+              <div className="absolute top-4 right-4 z-20">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={onToggleCountDirection}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90"
+                    >
+                      {countDirection === 'up' ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
             
             {/* Main time display */}
             <div 

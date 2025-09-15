@@ -39,7 +39,7 @@ import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
 const Timer = () => {
   const navigate = useNavigate();
   const [timeElapsed, setTimeElapsed] = useState(0); // in seconds
-  const [fastDuration, setFastDuration] = useState(60 * 60 * 60); // 60 hours default (water fast)
+  const [fastDuration, setFastDuration] = useState(16 * 60 * 60); // 16 hours default
   const [fastType, setFastType] = useState<'longterm'>('longterm');
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
   const [showFastSelector, setShowFastSelector] = useState(false);
@@ -300,6 +300,11 @@ const Timer = () => {
         await endFastingSession(fastingSession.id);
         trackFastingEvent('stop', fastType, timeElapsed);
       }
+      
+      // Reset timer state immediately after ending
+      setTimeElapsed(0);
+      setFastDuration(16 * 60 * 60); // Reset to 16 hours default
+      setCountDirection('up');
     }, {
       onError: (error) => {
         console.error('Error stopping fasting session:', error);
@@ -348,6 +353,11 @@ const Timer = () => {
 
 
   const getDisplayTime = () => {
+    // If no active session, show zeros
+    if (!isRunning || !fastingSession) {
+      return '00:00:00';
+    }
+    
     if (countDirection === 'up') {
       return formatTimeFasting(timeElapsed);
     } else {
