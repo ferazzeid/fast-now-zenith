@@ -478,7 +478,7 @@ const Settings = () => {
                   Settings
                 </h1>
                 {(accessIsAdmin) && (
-                  <Button size="sm" variant="outline" onClick={() => navigate('/admin')}>
+                  <Button size="sm" variant="secondary" onClick={() => navigate('/admin')} className="border border-muted-foreground/20">
                     Admin Dashboard
                   </Button>
                 )}
@@ -803,8 +803,8 @@ const Settings = () => {
                 <div className="pt-2 space-y-2">
                   <Button 
                     onClick={() => navigate('/account')}
-                    variant="outline" 
-                    className="w-full"
+                    variant="secondary" 
+                    className="w-full border border-muted-foreground/20"
                   >
                     Manage Account
                   </Button>
