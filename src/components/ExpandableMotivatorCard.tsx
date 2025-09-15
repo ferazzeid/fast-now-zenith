@@ -126,7 +126,7 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const displayContent = motivator.content;
   
   return (
-    <Card className={`overflow-hidden relative ${isSavedQuote ? 'bg-gray-900 border-gray-700' : ''}`}>
+    <Card className="overflow-hidden relative">
       <CardContent className="p-0">
         <div className="flex">
           {/* Image */}
@@ -153,14 +153,14 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
             <div className="flex items-start justify-between h-full">
                 <div className="space-y-1">
                   <div className="flex items-center">
-                    <h3 className={`font-semibold ${isSavedQuote ? 'text-white' : 'text-warm-text'} ${isExpanded ? '' : 'line-clamp-2'}`}>
+                    <h3 className={`font-semibold text-warm-text ${isExpanded ? '' : 'line-clamp-2'}`}>
                       {motivator.title}
                     </h3>
                   </div>
                   
                   {/* User goals show full content, not excerpts */}
                   {displayContent && (
-                    <p className={`text-sm ${isSavedQuote ? 'text-gray-300' : 'text-muted-foreground'} ${
+                    <p className={`text-sm text-muted-foreground ${
                       isExpanded ? '' : shouldShowExpandButton ? 'line-clamp-2' : ''
                     }`}>
                       {displayContent}

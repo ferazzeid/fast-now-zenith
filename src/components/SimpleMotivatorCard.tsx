@@ -30,7 +30,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
     setLocalShowInAnimations(motivator.show_in_animations);
   }, [motivator.show_in_animations]);
   return (
-    <Card className="overflow-hidden relative bg-card border-border">
+    <Card className="overflow-hidden relative bg-card">
       <CardContent className="p-6">
         <blockquote className="relative mb-4">
            {motivator.content && (

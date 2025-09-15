@@ -162,7 +162,7 @@ const WalkingTimerComponent = ({
                         });
                       }
                     }}
-                    variant="outline"
+                    variant="action-secondary"
                     size="action-secondary"
                     className="flex-1"
                   >
@@ -204,7 +204,7 @@ const WalkingTimerComponent = ({
                           });
                         }
                       }}
-                      variant="outline"
+                      variant="action-secondary"
                       size="action-secondary"
                       className="flex-1"
                     >
