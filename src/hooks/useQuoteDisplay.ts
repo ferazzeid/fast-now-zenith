@@ -1,50 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export const useQuoteDisplay = () => {
-  const [fastingQuotesEnabled, setFastingQuotesEnabled] = useState(false);
-  const [walkingQuotesEnabled, setWalkingQuotesEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
+const QUOTE_SETTINGS_QUERY_KEY = ['quote-display-settings'];
 
-  const loadSettings = async () => {
-    try {
-      setLoading(true);
-      
-      const { data: settings } = await supabase
+export const useQuoteDisplay = () => {
+  const { data: settings, isLoading } = useQuery({
+    queryKey: QUOTE_SETTINGS_QUERY_KEY,
+    queryFn: async () => {
+      console.log('🔄 USEQUERYDISPLAY: Fetching quote settings...');
+      const { data, error } = await supabase
         .from('shared_settings')
         .select('setting_key, setting_value')
         .in('setting_key', ['fasting_quotes_display_enabled', 'walking_quotes_display_enabled']);
       
-      console.log('Quote settings loaded:', settings);
+      if (error) throw error;
       
-      const fastingSetting = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled');
-      const walkingSetting = settings?.find(s => s.setting_key === 'walking_quotes_display_enabled');
-      
-      setFastingQuotesEnabled(fastingSetting?.setting_value === 'true');
-      setWalkingQuotesEnabled(walkingSetting?.setting_value === 'true');
-      
-      console.log('Quote display state:', {
-        fasting: fastingSetting?.setting_value === 'true',
-        walking: walkingSetting?.setting_value === 'true'
-      });
-      
-    } catch (error) {
-      console.error('Error loading quote settings:', error);
-      setFastingQuotesEnabled(false);
-      setWalkingQuotesEnabled(false);
-    } finally {
-      setLoading(false);
-    }
-  };
+      console.log('📊 USEQUERYDISPLAY: Settings fetched:', data);
+      return data || [];
+    },
+    staleTime: 0, // Always fetch fresh data
+  });
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
+  const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled')?.setting_value === 'true';
+  const walkingQuotesEnabled = settings?.find(s => s.setting_key === 'walking_quotes_display_enabled')?.setting_value === 'true';
+
+  console.log('🎯 USEQUERYDISPLAY: Current state:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
   return {
-    fastingQuotesEnabled,
-    walkingQuotesEnabled,
-    loading,
-    refresh: loadSettings
+    fastingQuotesEnabled: fastingQuotesEnabled || false,
+    walkingQuotesEnabled: walkingQuotesEnabled || false,
+    loading: isLoading
   };
 };

@@ -1,80 +1,97 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useQuoteDisplay } from '@/hooks/useQuoteDisplay';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+
+const QUOTE_SETTINGS_QUERY_KEY = ['quote-display-settings'];
 
 export const AdminQuoteDisplayToggle = () => {
-  const { fastingQuotesEnabled, walkingQuotesEnabled, refresh } = useQuoteDisplay();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const handleFastingToggle = async (enabled: boolean) => {
-    try {
-      console.log('Updating fasting quotes setting to:', enabled);
+  // Fetch quote settings using React Query
+  const { data: settings, isLoading } = useQuery({
+    queryKey: QUOTE_SETTINGS_QUERY_KEY,
+    queryFn: async () => {
+      console.log('🔄 FETCHING quote settings from database...');
+      const { data, error } = await supabase
+        .from('shared_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['fasting_quotes_display_enabled', 'walking_quotes_display_enabled']);
+      
+      if (error) throw error;
+      
+      console.log('📊 DATABASE SETTINGS:', data);
+      return data || [];
+    },
+    staleTime: 0, // Always fetch fresh data
+  });
+
+  // Get current values
+  const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled')?.setting_value === 'true';
+  const walkingQuotesEnabled = settings?.find(s => s.setting_key === 'walking_quotes_display_enabled')?.setting_value === 'true';
+
+  console.log('🎯 CURRENT TOGGLE STATES:', { fastingQuotesEnabled, walkingQuotesEnabled });
+
+  // Mutation for updating settings
+  const updateSettingMutation = useMutation({
+    mutationFn: async ({ settingKey, value }: { settingKey: string; value: boolean }) => {
+      console.log(`🔄 UPDATING ${settingKey} to:`, value);
+      
       const { data, error } = await supabase
         .from('shared_settings')
         .upsert({
-          setting_key: 'fasting_quotes_display_enabled',
-          setting_value: enabled.toString()
+          setting_key: settingKey,
+          setting_value: value.toString()
         })
         .select();
 
-      console.log('Fasting upsert result:', { data, error });
+      console.log(`📊 UPDATE RESULT for ${settingKey}:`, { data, error });
 
       if (error) throw error;
+      return data;
+    },
+    onSuccess: (data, variables) => {
+      console.log(`✅ SUCCESSFULLY UPDATED ${variables.settingKey}`);
+      // Invalidate and refetch the settings
+      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
       
-      // Refresh settings to get latest values
-      await refresh();
-      
+      const settingName = variables.settingKey.includes('fasting') ? 'Fasting' : 'Walking';
       toast({
         title: "Setting updated",
-        description: `Fasting quotes ${enabled ? 'enabled' : 'disabled'}`,
+        description: `${settingName} quotes ${variables.value ? 'enabled' : 'disabled'}`,
       });
-    } catch (error) {
-      console.error('Error updating fasting quotes setting:', error);
+    },
+    onError: (error, variables) => {
+      console.error(`❌ FAILED TO UPDATE ${variables.settingKey}:`, error);
       toast({
         title: "Error updating setting",
         description: "Please try again",
         variant: "destructive",
       });
     }
+  });
+
+  const handleFastingToggle = (enabled: boolean) => {
+    updateSettingMutation.mutate({
+      settingKey: 'fasting_quotes_display_enabled',
+      value: enabled
+    });
   };
 
-  const handleWalkingToggle = async (enabled: boolean) => {
-    try {
-      console.log('Updating walking quotes setting to:', enabled);
-      const { data, error } = await supabase
-        .from('shared_settings')
-        .upsert({
-          setting_key: 'walking_quotes_display_enabled',
-          setting_value: enabled.toString()
-        })
-        .select();
-
-      console.log('Walking upsert result:', { data, error });
-
-      if (error) throw error;
-      
-      // Refresh settings to get latest values
-      await refresh();
-      
-      toast({
-        title: "Setting updated",
-        description: `Walking quotes ${enabled ? 'enabled' : 'disabled'}`,
-      });
-    } catch (error) {
-      console.error('Error updating walking quotes setting:', error);
-      toast({
-        title: "Error updating setting",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    }
+  const handleWalkingToggle = (enabled: boolean) => {
+    updateSettingMutation.mutate({
+      settingKey: 'walking_quotes_display_enabled', 
+      value: enabled
+    });
   };
+
+  if (isLoading) {
+    return <div>Loading settings...</div>;
+  }
 
   return (
     <>
@@ -88,6 +105,7 @@ export const AdminQuoteDisplayToggle = () => {
               id="fasting-quotes-display"
               checked={fastingQuotesEnabled}
               onCheckedChange={handleFastingToggle}
+              disabled={updateSettingMutation.isPending}
             />
           </div>
         </CardContent>
@@ -103,6 +121,7 @@ export const AdminQuoteDisplayToggle = () => {
               id="walking-quotes-display"
               checked={walkingQuotesEnabled}
               onCheckedChange={handleWalkingToggle}
+              disabled={updateSettingMutation.isPending}
             />
           </div>
         </CardContent>
