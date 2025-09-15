@@ -459,7 +459,7 @@ export const CircularVoiceButton = React.forwardRef<
     if (hasPermission === false) return 'bg-gray-500 hover:bg-gray-600';
     if (isProcessing) return 'bg-blue-500 hover:bg-blue-600';
     if (isRecording) return 'bg-red-500 hover:bg-red-600 animate-pulse';
-    return 'bg-ai hover:bg-ai/90';
+    return 'bg-primary hover:bg-primary/90';
   };
 
   const getStatusText = () => {
