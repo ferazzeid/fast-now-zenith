@@ -1,7 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 import { ProcessingDots } from '@/components/ProcessingDots';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,25 +25,7 @@ interface AnalysisResult {
   description?: string;
 }
 
-interface FoodItem {
-  name: string;
-  serving_size: number;
-  calories: number;
-  carbs: number;
-  protein?: number;
-  fat?: number;
-}
-
-interface FoodSuggestion {
-  foods: FoodItem[];
-  destination: 'today' | 'library';
-  isProcessed: boolean;
-}
-
 export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
-  const [showSelectionModal, setShowSelectionModal] = useState(false);
-  const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
-  const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const cameraInputRef = useRef<HTMLInputElement>(null);
   
   const { user } = useAuth();
@@ -143,7 +124,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               const totalProtein = Math.round((result.protein_per_100g || 0) * servingSize / 100 * 10) / 10;
               const totalFat = Math.round((result.fat_per_100g || 0) * servingSize / 100 * 10) / 10;
 
-              const foodItem: FoodItem = {
+              const foodItem = {
                 name: result.name || 'Unknown Food',
                 serving_size: servingSize,
                 calories: totalCalories,
@@ -152,15 +133,19 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                 fat: totalFat
               };
 
-              const suggestion: FoodSuggestion = {
-                foods: [foodItem],
-                destination: 'today',
-                isProcessed: true
+              // Add the food immediately without showing modal
+              const foodEntry = {
+                ...foodItem,
+                source: 'photo_analysis'
               };
-
-              setFoodSuggestion(suggestion);
-              setSelectedFoodIds(new Set([0])); // Select the first (and only) food by default
-              setShowSelectionModal(true);
+              
+              onFoodAdded?.(foodEntry);
+              
+              toast({
+                title: "✓ Food Added",
+                description: `${result.name || 'Food'} added to your log`,
+              });
+              
               completeAnalysis();
             } else {
               // Show error and allow retry
@@ -205,67 +190,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     }, 'Photo Capture');
   };
 
-  // Handle selection changes in modal
-  const handleSelectionChange = (selectedIds: Set<number>) => {
-    setSelectedFoodIds(selectedIds);
-  };
-
-  // Handle food updates in modal
-  const handleFoodUpdate = (index: number, updates: Partial<FoodItem>) => {
-    if (foodSuggestion) {
-      const updatedFoods = [...foodSuggestion.foods];
-      updatedFoods[index] = { ...updatedFoods[index], ...updates };
-      setFoodSuggestion({
-        ...foodSuggestion,
-        foods: updatedFoods
-      });
-    }
-  };
-
-  // Handle food removal in modal
-  const handleFoodRemove = (index: number) => {
-    if (foodSuggestion) {
-      const updatedFoods = foodSuggestion.foods.filter((_, i) => i !== index);
-      setFoodSuggestion({
-        ...foodSuggestion,
-        foods: updatedFoods
-      });
-      
-      // Update selected IDs after removal
-      const newSelectedIds = new Set<number>();
-      selectedFoodIds.forEach(id => {
-        if (id < index) newSelectedIds.add(id);
-        else if (id > index) newSelectedIds.add(id - 1);
-      });
-      setSelectedFoodIds(newSelectedIds);
-    }
-  };
-
-  // Handle adding selected foods
-  const handleAddFoods = async () => {
-    if (foodSuggestion) {
-      const selectedFoods = foodSuggestion.foods.filter((_, index) => selectedFoodIds.has(index));
-      
-      selectedFoods.forEach(food => {
-        const foodEntry = {
-          ...food,
-          source: 'photo_analysis'
-        };
-        onFoodAdded?.(foodEntry);
-      });
-
-      setShowSelectionModal(false);
-      setFoodSuggestion(null);
-      setSelectedFoodIds(new Set());
-      reset();
-
-      toast({
-        title: "✓ Food Added",
-        description: `${selectedFoods.length} food${selectedFoods.length > 1 ? 's' : ''} added to your log`,
-      });
-    }
-  };
-
   // Get button content based on state
   const getButtonContent = () => {
     if (isUploading || uploadState === 'analyzing') {
@@ -293,7 +217,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         {getButtonContent()}
       </Button>
 
-      {/* Hidden camera input */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -302,31 +225,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         onChange={handleFileChange}
         className="hidden"
       />
-
-      {/* Food Selection Modal */}
-      {foodSuggestion && (
-        <FoodSelectionModal
-          isOpen={showSelectionModal}
-          onClose={() => {
-            setShowSelectionModal(false);
-            setFoodSuggestion(null);
-            setSelectedFoodIds(new Set());
-            reset();
-          }}
-          foodSuggestion={foodSuggestion}
-          selectedFoodIds={selectedFoodIds}
-          onSelectionChange={handleSelectionChange}
-          onFoodUpdate={handleFoodUpdate}
-          onFoodRemove={handleFoodRemove}
-          onDestinationChange={(destination: 'today' | 'library') => {
-            if (foodSuggestion) {
-              setFoodSuggestion({ ...foodSuggestion, destination });
-            }
-          }}
-          onAddFoods={handleAddFoods}
-          isProcessing={isUploading || uploadState === 'analyzing'}
-        />
-      )}
     </>
   );
 };

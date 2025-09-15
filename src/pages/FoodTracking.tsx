@@ -38,6 +38,7 @@ const FoodTracking = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
+  const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState<any>(null);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -58,26 +59,55 @@ const FoodTracking = () => {
       setShowUnifiedEntry(false);
       setEditingEntry(null);
       setShowClearAllDialog(false);
+      setShowSaveToTemplateDialog(null);
     }
   }, [location.pathname]);
 
-  const handlePhotoCapture = async (foods: any[]) => {
+  const handlePhotoCapture = async (food: any) => {
     try {
-      if (foods && foods.length > 0) {
-        await addMultipleFoodEntries(foods);
-        toast({
-          title: "Foods Added",
-          description: `${foods.length} food${foods.length > 1 ? 's' : ''} added from photo`
-        });
+      if (food) {
+        await addFoodEntry(food);
+        // Toast is already shown by DirectPhotoCaptureButton
       }
     } catch (error) {
-      console.error('Error adding foods from photo:', error);
+      console.error('Error adding food from photo:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add foods from photo"
+        description: "Failed to add food from photo"
       });
     }
+  };
+
+  const handleSaveToTemplateConfirm = async (entry: any) => {
+    try {
+      const foodToAdd = {
+        name: entry.name,
+        calories: entry.calories,
+        carbs: entry.carbs,
+        serving_size: entry.serving_size,
+        image_url: entry.image_url
+      };
+      
+      const result = await addToTemplate([foodToAdd]);
+      
+      if (!result.error) {
+        toast({
+          title: "Added to Template",
+          description: `${entry.name} added to your daily template`
+        });
+      } else {
+        throw new Error(result.error.message);
+      }
+    } catch (error) {
+      console.error('Error adding to template:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add food to template"
+      });
+    }
+    setShowSaveToTemplateDialog(null);
   };
 
   const handleVoiceInput = async (entries: any[]) => {
@@ -267,35 +297,7 @@ const FoodTracking = () => {
               Duplicate
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={async () => {
-                try {
-                  const foodToAdd = {
-                    name: entry.name,
-                    calories: entry.calories,
-                    carbs: entry.carbs,
-                    serving_size: entry.serving_size,
-                    image_url: entry.image_url
-                  };
-                  
-                  const result = await addToTemplate([foodToAdd]);
-                  
-                  if (!result.error) {
-                    toast({
-                      title: "Added to Template",
-                      description: `${entry.name} added to your daily template`
-                    });
-                  } else {
-                    throw new Error(result.error.message);
-                  }
-                } catch (error) {
-                  console.error('Error adding to template:', error);
-                  toast({
-                    variant: "destructive",
-                    title: "Error",
-                    description: "Failed to add food to template"
-                  });
-                }
-              }}
+              onClick={() => setShowSaveToTemplateDialog(entry)}
               className="py-2.5 px-3 focus:text-foreground"
             >
               <Save className="w-4 h-4 mr-2" />
@@ -537,7 +539,6 @@ const FoodTracking = () => {
                 </PageOnboardingModal>
               )}
 
-              {/* Clear All Confirmation Dialog */}
               <ConfirmationModal
                 isOpen={showClearAllDialog}
                 onClose={() => setShowClearAllDialog(false)}
@@ -548,6 +549,17 @@ const FoodTracking = () => {
                 cancelText="Cancel"
                 variant="destructive"
                 isLoading={isClearingAll}
+              />
+
+              {/* Save to Template Confirmation Modal */}
+              <ConfirmationModal
+                isOpen={!!showSaveToTemplateDialog}
+                onClose={() => setShowSaveToTemplateDialog(null)}
+                onConfirm={() => handleSaveToTemplateConfirm(showSaveToTemplateDialog)}
+                title="Add to Daily Template"
+                description={`This will add "${showSaveToTemplateDialog?.name}" to your daily template. You can reuse this template to quickly add all your favorite foods.`}
+                confirmText="Add to Template"
+                cancelText="Cancel"
               />
             </TooltipProvider>
           </div>
@@ -620,7 +632,7 @@ const FoodTracking = () => {
               </div>
             </div>
           </div>
-        )
+        ) 
       }
     </AccessGate>
   );
