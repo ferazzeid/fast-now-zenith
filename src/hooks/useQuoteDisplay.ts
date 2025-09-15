@@ -18,7 +18,7 @@ export const useQuoteDisplay = () => {
       console.log('📊 USEQUERYDISPLAY: Settings fetched:', data);
       return data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always refetch for immediate updates
   });
 
   const fastingQuotesEnabled = settings?.find(s => s.setting_key === 'fasting_quotes_display_enabled')?.setting_value === 'true';

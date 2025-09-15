@@ -13,7 +13,7 @@ import { useTimerDesign } from '@/hooks/useTimerDesign';
 import { FastSelector } from '@/components/FastSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
-import { FastingHistory } from '@/components/FastingHistory';
+import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { useToast } from '@/hooks/use-toast';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { useAuth } from '@/hooks/useAuth';
@@ -58,7 +58,15 @@ const Timer = () => {
   const { user } = useAuth();
   const { profile } = useProfile();
   const { quotes } = useQuoteSettings();
-  const { fastingQuotesEnabled } = useQuoteDisplay();
+  const { fastingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
+  
+  console.log('🎯 TIMER PAGE - Quote Display State:', { 
+    fastingQuotesEnabled, 
+    quoteDisplayLoading,
+    hasFastingQuotes: quotes?.fasting_timer_quotes?.length > 0,
+    currentMode,
+    quotesObject: quotes
+  });
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
   const { timerDesign } = useTimerDesign();
@@ -490,11 +498,13 @@ const Timer = () => {
           {/* Inspirational Content - positioned consistently for both modes */}
           <div className="mt-8">
             {currentMode === 'fasting' && fastingQuotesEnabled && quotes.fasting_timer_quotes && quotes.fasting_timer_quotes.length > 0 && (
-              <FastingInspirationRotator 
-                quotes={quotes.fasting_timer_quotes}
-                currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
-                onSaveQuote={saveQuoteAsGoal}
-              />
+              <ComponentErrorBoundary>
+                <FastingInspirationRotator 
+                  quotes={quotes.fasting_timer_quotes}
+                  currentFastingHour={Math.max(1, Math.ceil(timeElapsed / 3600))}
+                  onSaveQuote={saveQuoteAsGoal}
+                />
+              </ComponentErrorBoundary>
             )}
           </div>
       </div>

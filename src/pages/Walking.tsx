@@ -17,6 +17,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
 import { InspirationQuote } from '@/components/InspirationQuote';
+import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useQuoteDisplay } from '@/hooks/useQuoteDisplay';
@@ -52,7 +53,14 @@ const Walking = () => {
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
-  const { walkingQuotesEnabled } = useQuoteDisplay();
+  const { walkingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
+  
+  console.log('🚶 WALKING PAGE - Quote Display State:', { 
+    walkingQuotesEnabled, 
+    quoteDisplayLoading,
+    hasWalkingQuotes: quotes?.walking_timer_quotes?.length > 0,
+    quotesObject: quotes
+  });
   const { saveQuoteAsGoal } = useMotivators();
   const { isAdmin } = useAccess();
 
@@ -293,12 +301,14 @@ const Walking = () => {
 
         {/* Inspirational Quote */}
         {walkingQuotesEnabled && quotes.walking_timer_quotes && quotes.walking_timer_quotes.length > 0 && (
-          <InspirationQuote 
-            quotes={quotes.walking_timer_quotes} 
-            className="mt-8"
-            onSaveQuote={saveQuoteAsGoal}
-            compact={true}
-          />
+          <ComponentErrorBoundary>
+            <InspirationQuote 
+              quotes={quotes.walking_timer_quotes} 
+              className="mt-8"
+              onSaveQuote={saveQuoteAsGoal}
+              compact={true}
+            />
+          </ComponentErrorBoundary>
         )}
 
 

@@ -36,7 +36,7 @@ export const AdminQuoteDisplayToggle = () => {
 
   console.log('🎯 CURRENT TOGGLE STATES:', { fastingQuotesEnabled, walkingQuotesEnabled });
 
-  // Separate mutations for each setting to avoid conflicts
+// Remove the onMutate optimistic updates that are causing conflicts
   const fastingMutation = useMutation({
     mutationFn: async (value: boolean) => {
       const { data, error } = await supabase
@@ -50,45 +50,20 @@ export const AdminQuoteDisplayToggle = () => {
       if (error) throw error;
       return data;
     },
-    onMutate: async (value: boolean) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
-      
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData(QUOTE_SETTINGS_QUERY_KEY);
-      
-      // Optimistically update to the new value
-      queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, (old: any) => {
-        if (!old) return old;
-        return old.map((setting: any) => 
-          setting.setting_key === 'fasting_quotes_display_enabled'
-            ? { ...setting, setting_value: value.toString() }
-            : setting
-        );
-      });
-      
-      return { previousData };
-    },
     onSuccess: (data, value) => {
+      // Invalidate to force refetch
+      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
       toast({
         title: "Setting updated",
         description: `Fasting quotes ${value ? 'enabled' : 'disabled'}`,
       });
     },
-    onError: (error, value, context) => {
-      // Revert to previous data on error
-      if (context?.previousData) {
-        queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, context.previousData);
-      }
+    onError: (error) => {
       toast({
         title: "Error updating setting",
         description: "Please try again",
         variant: "destructive",
       });
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
     }
   });
 
@@ -105,45 +80,20 @@ export const AdminQuoteDisplayToggle = () => {
       if (error) throw error;
       return data;
     },
-    onMutate: async (value: boolean) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
-      
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData(QUOTE_SETTINGS_QUERY_KEY);
-      
-      // Optimistically update to the new value
-      queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, (old: any) => {
-        if (!old) return old;
-        return old.map((setting: any) => 
-          setting.setting_key === 'walking_quotes_display_enabled'
-            ? { ...setting, setting_value: value.toString() }
-            : setting
-        );
-      });
-      
-      return { previousData };
-    },
     onSuccess: (data, value) => {
+      // Invalidate to force refetch
+      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
       toast({
         title: "Setting updated",
         description: `Walking quotes ${value ? 'enabled' : 'disabled'}`,
       });
     },
-    onError: (error, value, context) => {
-      // Revert to previous data on error
-      if (context?.previousData) {
-        queryClient.setQueryData(QUOTE_SETTINGS_QUERY_KEY, context.previousData);
-      }
+    onError: (error) => {
       toast({
         title: "Error updating setting",
         description: "Please try again",
         variant: "destructive",
       });
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: QUOTE_SETTINGS_QUERY_KEY });
     }
   });
 
