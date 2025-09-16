@@ -1,7 +1,8 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Camera, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProcessingDots } from '@/components/ProcessingDots';
+import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccess } from '@/hooks/useAccess';
@@ -9,6 +10,8 @@ import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { useToast } from '@/hooks/use-toast';
 import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 import { saveImageLocally } from '@/utils/localImageStorage';
+import { compressImage, getBase64FromFile } from '@/utils/imageCompression';
+import { getPhotoWorkflowUseConfirmation } from '@/utils/adminSettings';
 
 interface DirectPhotoCaptureButtonProps {
   onFoodAdded?: (food: any) => void;
@@ -24,10 +27,20 @@ interface AnalysisResult {
   estimated_serving_size?: number;
   confidence?: number;
   description?: string;
+  // Extended properties for confirmation workflow
+  totalCalories?: number;
+  totalCarbs?: number;
+  totalProtein?: number;
+  totalFat?: number;
+  servingSize?: number;
+  image_url?: string;
 }
 
 export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>('');
   
   const { user } = useAuth();
   const { access_level, hasAIAccess } = useAccess();
@@ -71,7 +84,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       return;
     }
 
-    // Validate file size (max 5MB)
+    // Validate file size (max 5MB before compression)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -87,25 +100,29 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       try {
         startUpload();
         
-        // Save image locally instead of uploading to cloud
-        const localImageId = await saveImageLocally(file);
-        console.log('Image saved locally with ID:', localImageId);
+        // Compress image first (absolute priority for speed)
+        console.log('Compressing image...');
+        const compressedFile = await compressImage(file, {
+          maxWidth: 1024,
+          maxHeight: 1024,
+          quality: 0.7
+        });
+        
+        // Save compressed image locally
+        const localImageId = await saveImageLocally(compressedFile);
+        console.log('Compressed image saved locally with ID:', localImageId);
+        
+        // Create object URL for preview
+        const previewUrl = URL.createObjectURL(compressedFile);
+        setImageUrl(previewUrl);
 
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
           startAnalysis();
 
           try {
-            // Convert file to base64 for AI analysis
-            const base64Data = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => {
-                const result = reader.result as string;
-                resolve(result.split(',')[1]); // Remove data URL prefix
-              };
-              reader.onerror = reject;
-              reader.readAsDataURL(file);
-            });
+            // Get base64 from compressed image for faster AI analysis
+            const base64Data = await getBase64FromFile(compressedFile);
 
             const { data, error } = await supabase.functions.invoke('analyze-food-image', {
               body: { imageData: base64Data },
@@ -115,7 +132,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             
             const result = data as AnalysisResult;
             
-            // Convert analysis result to FoodSuggestion format
             if (result) {
               const servingSize = result.estimated_serving_size || 100;
               const totalCalories = Math.round((result.calories_per_100g || 0) * servingSize / 100);
@@ -123,58 +139,58 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               const totalProtein = Math.round((result.protein_per_100g || 0) * servingSize / 100 * 10) / 10;
               const totalFat = Math.round((result.fat_per_100g || 0) * servingSize / 100 * 10) / 10;
 
-              const foodItem = {
-                name: result.name || 'Unknown Food',
-                serving_size: servingSize,
-                calories: totalCalories,
-                carbs: totalCarbs,
-                protein: totalProtein,
-                fat: totalFat
+              const analysisWithTotals = {
+                ...result,
+                totalCalories,
+                totalCarbs,
+                totalProtein,
+                totalFat,
+                servingSize,
+                image_url: localImageId
               };
 
-              // Add the food immediately without showing modal
-              const foodEntry = {
-                ...foodItem,
-                source: 'photo_analysis',
-                image_url: localImageId // Store local image ID instead of URL
-              };
+              // Check admin setting for workflow choice
+              const useConfirmation = getPhotoWorkflowUseConfirmation();
               
-              onFoodAdded?.(foodEntry);
-              
-              toast({
-                title: "✓ Food Added",
-                description: `${result.name || 'Food'} added to your log`,
-              });
-              
-              completeAnalysis();
+              if (useConfirmation) {
+                // Show confirmation dialog
+                setAnalysisResult(analysisWithTotals);
+                setShowConfirmation(true);
+                completeAnalysis();
+              } else {
+                // Add immediately (original behavior)
+                const foodEntry = {
+                  name: result.name || 'Unknown Food',
+                  serving_size: servingSize,
+                  calories: totalCalories,
+                  carbs: totalCarbs,
+                  protein: totalProtein,
+                  fat: totalFat,
+                  source: 'photo_analysis',
+                  image_url: localImageId
+                };
+                
+                onFoodAdded?.(foodEntry);
+                
+                toast({
+                  title: "✓ Food Added",
+                  description: `${result.name || 'Food'} added to your log`,
+                });
+                
+                completeAnalysis();
+                cleanup();
+              }
             } else {
-              // Show error and allow retry
-              toast({
-                title: "Analysis Failed",
-                description: "Could not analyze the image. Please try again or add food manually.",
-                variant: "destructive"
-              });
-              reset();
+              handleAnalysisError('Could not analyze the image. Please try again or add food manually.');
             }
 
           } catch (analysisError) {
             console.error('Analysis error:', analysisError);
-            reset();
-            
-            toast({
-              title: "Analysis failed",
-              description: "Could not analyze the image. Please try again.",
-              variant: "destructive",
-            });
+            handleAnalysisError('Could not analyze the image. Please try again.');
           }
         } else {
           // Show error for non-premium users trying to use AI analysis
-          reset();
-          toast({
-            title: "Premium Feature",
-            description: "AI photo analysis requires a premium subscription.",
-            variant: "destructive",
-          });
+          handleAnalysisError('AI photo analysis requires a premium subscription.');
         }
 
       } catch (uploadError) {
@@ -188,6 +204,51 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         });
       }
     }, 'Photo Capture');
+  };
+
+  const handleAnalysisError = (message: string) => {
+    reset();
+    cleanup();
+    toast({
+      title: "Analysis failed",
+      description: message,
+      variant: "destructive",
+    });
+  };
+
+  const handleConfirmFood = (result: AnalysisResult) => {
+    const foodEntry = {
+      name: result.name || 'Unknown Food',
+      serving_size: result.servingSize || result.estimated_serving_size || 100,
+      calories: result.totalCalories || Math.round((result.calories_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100),
+      carbs: result.totalCarbs || Math.round((result.carbs_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100 * 10) / 10,
+      protein: result.totalProtein || Math.round((result.protein_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100 * 10) / 10,
+      fat: result.totalFat || Math.round((result.fat_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100 * 10) / 10,
+      source: 'photo_analysis',
+      image_url: result.image_url || '' // Use the image_url from the result
+    };
+    
+    onFoodAdded?.(foodEntry);
+    
+    toast({
+      title: "✓ Food Added",
+      description: `${result.name || 'Food'} added to your log`,
+    });
+    
+    handleRejectFood();
+  };
+
+  const handleRejectFood = () => {
+    setShowConfirmation(false);
+    setAnalysisResult(null);
+    cleanup();
+  };
+
+  const cleanup = () => {
+    if (imageUrl && imageUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(imageUrl);
+    }
+    setImageUrl('');
   };
 
   // Get button content based on state
@@ -230,6 +291,18 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         onChange={handleFileChange}
         className="hidden"
       />
+
+      {/* Confirmation Modal */}
+      {showConfirmation && analysisResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <FoodAnalysisResults
+            result={analysisResult}
+            imageUrl={imageUrl}
+            onConfirm={handleConfirmFood}
+            onReject={handleRejectFood}
+          />
+        </div>
+      )}
     </>
   );
 };

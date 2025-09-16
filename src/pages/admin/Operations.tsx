@@ -7,6 +7,7 @@ import { AdminTrialSettings } from "@/components/AdminTrialSettings";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
+import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -35,6 +36,10 @@ export default function AdminOperations() {
 
         <section aria-label="Static SEO code generator">
           <StaticSEOManager />
+        </section>
+
+        <section aria-label="Photo analysis workflow settings">
+          <AdminPhotoWorkflowSettings />
         </section>
 
         <section aria-label="Google authentication settings" className="pb-24">
