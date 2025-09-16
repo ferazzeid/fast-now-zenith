@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { ComponentSpinner } from '@/components/LoadingStates';
-import { DollarSign, TrendingUp, Activity, Calendar } from 'lucide-react';
+import { DollarSign } from 'lucide-react';
 
 interface ApiStats {
   // Current month (calendar month)
@@ -198,8 +198,7 @@ export const EnhancedOpenAIStats: React.FC = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
+          <CardTitle className="text-base font-medium">
             OpenAI API Usage & Costs
           </CardTitle>
         </CardHeader>
@@ -219,158 +218,134 @@ export const EnhancedOpenAIStats: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
+        <CardTitle className="text-base font-medium">
           OpenAI API Usage & Costs
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="current-month" className="w-full">
+        <Tabs defaultValue="recent-activity" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="current-month" className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
-              This Month
-            </TabsTrigger>
-            <TabsTrigger value="rolling-30" className="flex items-center gap-1">
-              <TrendingUp className="h-4 w-4" />
-              Last 30 Days
-            </TabsTrigger>
-            <TabsTrigger value="recent-activity">Recent Activity</TabsTrigger>
+            <TabsTrigger value="recent-activity" className="text-xs">Recent</TabsTrigger>
+            <TabsTrigger value="current-month" className="text-xs">This Month</TabsTrigger>
+            <TabsTrigger value="rolling-30" className="text-xs">Last 30D</TabsTrigger>
           </TabsList>
 
           <TabsContent value="current-month" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Left Column - Key Metrics */}
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Total Requests</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    {stats?.currentMonth.totalRequests.toLocaleString()}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Total Cost</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    ${stats?.currentMonth.totalCost.toFixed(3)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Avg Cost/Request</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    ${stats?.currentMonth.averageCostPerRequest.toFixed(4)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Success Rate</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    {stats?.currentMonth.successRate.toFixed(1)}%
-                  </span>
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Total Requests</div>
+                <div className="text-sm font-semibold">{stats?.currentMonth.totalRequests.toLocaleString()}</div>
+              </div>
+              
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Total Cost</div>
+                <div className="text-sm font-semibold">${stats?.currentMonth.totalCost.toFixed(3)}</div>
+              </div>
+              
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Avg/Request</div>
+                <div className="text-sm font-semibold">${stats?.currentMonth.averageCostPerRequest.toFixed(4)}</div>
               </div>
 
-              {/* Right Column - Today & Model Breakdown */}
-              <div className="space-y-3">
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium text-blue-800">Today</span>
-                    <DollarSign className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-blue-700">{stats?.today.totalRequests} requests</span>
-                    <span className="font-semibold text-blue-800">${stats?.today.totalCost.toFixed(3)}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-muted-foreground">Top Models (This Month)</h4>
-                  {getTopModels(stats?.currentMonth.requestsByModel || {}).map(([model, count]) => (
-                    <div key={model} className="flex justify-between items-center text-sm">
-                      <span className="truncate">{model}</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {count}
-                        </Badge>
-                        <span className="text-muted-foreground min-w-[3rem] text-right">
-                          ${((stats?.currentMonth.costsByModel || {})[model] || 0).toFixed(3)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Success Rate</div>
+                <div className="text-sm font-semibold">{stats?.currentMonth.successRate.toFixed(1)}%</div>
               </div>
+            </div>
+
+            <div className="mt-4 p-2 bg-blue-50 border border-blue-200 rounded">
+              <div className="text-xs text-blue-600 mb-1">Today</div>
+              <div className="flex justify-between text-sm">
+                <span className="text-blue-700">{stats?.today.totalRequests} requests</span>
+                <span className="font-semibold text-blue-800">${stats?.today.totalCost.toFixed(3)}</span>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <div className="text-xs font-medium text-muted-foreground">Top Models</div>
+              {getTopModels(stats?.currentMonth.requestsByModel || {}).map(([model, count]) => (
+                <div key={model} className="flex justify-between items-center text-xs p-1">
+                  <span className="truncate">{model}</span>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="secondary" className="text-xs px-1 py-0">
+                      {count}
+                    </Badge>
+                    <span className="text-muted-foreground min-w-[2.5rem] text-right">
+                      ${((stats?.currentMonth.costsByModel || {})[model] || 0).toFixed(3)}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="rolling-30" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Total Requests</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    {stats?.rolling30Days.totalRequests.toLocaleString()}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Total Cost</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    ${stats?.rolling30Days.totalCost.toFixed(3)}
-                  </span>
-                </div>
-                
-                <div className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
-                  <span className="text-sm text-muted-foreground">Daily Average</span>
-                  <span className="text-lg font-semibold text-foreground">
-                    {stats?.rolling30Days.dailyAverage} req/day
-                  </span>
-                </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Total Requests</div>
+                <div className="text-sm font-semibold">{stats?.rolling30Days.totalRequests.toLocaleString()}</div>
               </div>
+              
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Total Cost</div>
+                <div className="text-sm font-semibold">${stats?.rolling30Days.totalCost.toFixed(3)}</div>
+              </div>
+              
+              <div className="p-2 bg-muted/30 rounded col-span-2">
+                <div className="text-xs text-muted-foreground mb-1">Daily Average</div>
+                <div className="text-sm font-semibold">{stats?.rolling30Days.dailyAverage} req/day</div>
+              </div>
+            </div>
 
-              <div className="space-y-2">
-                <h4 className="text-sm font-medium text-muted-foreground">Model Usage (30 Days)</h4>
-                {getTopModels(stats?.rolling30Days.requestsByModel || {}).map(([model, count]) => (
-                  <div key={model} className="flex justify-between items-center text-sm">
-                    <span className="truncate">{model}</span>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {count}
-                      </Badge>
-                      <span className="text-muted-foreground min-w-[3rem] text-right">
-                        ${((stats?.rolling30Days.costsByModel || {})[model] || 0).toFixed(3)}
-                      </span>
-                    </div>
+            <div className="mt-4 space-y-2">
+              <div className="text-xs font-medium text-muted-foreground">Model Usage</div>
+              {getTopModels(stats?.rolling30Days.requestsByModel || {}).map(([model, count]) => (
+                <div key={model} className="flex justify-between items-center text-xs p-1">
+                  <span className="truncate">{model}</span>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="outline" className="text-xs px-1 py-0">
+                      {count}
+                    </Badge>
+                    <span className="text-muted-foreground min-w-[2.5rem] text-right">
+                      ${((stats?.rolling30Days.costsByModel || {})[model] || 0).toFixed(3)}
+                    </span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
 
           <TabsContent value="recent-activity" className="mt-4">
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-muted-foreground">Last 7 Days Activity</h4>
-              <div className="space-y-2">
-                {stats?.recentDays.map((day, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium min-w-[3rem]">{day.date}</span>
-                      <div className="flex gap-1">
-                        {Object.entries(day.models).slice(0, 3).map(([model, count]) => (
-                        <Badge key={model} variant="outline" className="text-xs px-1">
-                          {model.split('-')[0]} ({count.toString()})
-                        </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 text-sm">
-                      <span className="text-muted-foreground">{day.requests} req</span>
-                      <span className="font-semibold min-w-[4rem] text-right">${day.cost.toFixed(3)}</span>
-                    </div>
-                  </div>
-                ))}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Today</div>
+                <div className="flex justify-between text-sm">
+                  <span>{stats?.today.totalRequests} req</span>
+                  <span className="font-semibold">${stats?.today.totalCost.toFixed(3)}</span>
+                </div>
               </div>
+              
+              <div className="p-2 bg-muted/30 rounded">
+                <div className="text-xs text-muted-foreground mb-1">Success Rate</div>
+                <div className="text-sm font-semibold">{stats?.rolling30Days.successRate.toFixed(1)}%</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="text-xs font-medium text-muted-foreground">Most Used Models</div>
+              {getTopModels(stats?.rolling30Days.requestsByModel || {}).slice(0, 3).map(([model, count]) => (
+                <div key={model} className="flex justify-between items-center text-xs p-1">
+                  <span className="truncate">{model}</span>
+                  <div className="flex items-center gap-1">
+                    <Badge variant="secondary" className="text-xs px-1 py-0">
+                      {count}
+                    </Badge>
+                    <span className="text-muted-foreground min-w-[2.5rem] text-right">
+                      ${((stats?.rolling30Days.costsByModel || {})[model] || 0).toFixed(3)}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
         </Tabs>
