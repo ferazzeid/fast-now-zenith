@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Trash2, Edit, Clock, MapPin, Zap, Footprints, Calendar } from 'lucide-react';
+import { X, Trash2, Edit, Clock, MapPin, Zap, Footprints, Calendar, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ConfirmationModal } from '@/components/ui/universal-modal';
 import { EditWalkingSessionTimeModal } from '@/components/EditWalkingSessionTimeModal';
 import { useToast } from '@/hooks/use-toast';
@@ -10,16 +11,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOManager } from '@/components/SEOManager';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 
 interface WalkingSession {
   id: string;
   start_time: string;
-  end_time: string | null;
-  distance: number | null;
-  calories_burned: number | null;
-  status: string;
-  average_speed?: number;
-  steps_count?: number;
+  end_time?: string | null;
+  distance?: number | null;
+  calories_burned?: number | null;
+  status?: string;
+  session_state?: string;
+  speed_mph?: number;
+  estimated_steps?: number;
+  user_id?: string;
+  created_at?: string;
   isEditing?: boolean;
 }
 
@@ -28,6 +33,7 @@ const WalkingHistory = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: sessions, isLoading, execute: fetchSessions } = useStandardizedLoading<WalkingSession[]>([]);
+  const { activeSession } = useOptimizedWalkingSession();
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -133,6 +139,29 @@ const WalkingHistory = () => {
   const groupSessionsByDate = (sessions: WalkingSession[]) => {
     const groups: { [key: string]: WalkingSession[] } = {};
     
+    // Add active session to today's date if it exists
+    if (activeSession) {
+      const today = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      if (!groups[today]) {
+        groups[today] = [];
+      }
+      // Convert the optimized session to our local interface
+      const convertedSession: WalkingSession = {
+        ...activeSession,
+        status: 'active',
+        end_time: activeSession.end_time || null,
+        distance: activeSession.distance || null,
+        calories_burned: activeSession.calories_burned || null,
+      };
+      groups[today].push(convertedSession);
+    }
+    
+    // Add completed sessions
     sessions.forEach(session => {
       const date = new Date(session.start_time).toLocaleDateString('en-US', {
         year: 'numeric',
@@ -215,86 +244,100 @@ const WalkingHistory = () => {
                 </div>
                 
                 <div className="space-y-3 ml-6">
-                  {daySessions.map((session) => (
-                    <Card key={session.id} className="overflow-hidden">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(session.start_time).toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                              {session.end_time && ` - ${new Date(session.end_time).toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}`}
-                            </p>
+                  {daySessions.map((session) => {
+                    const isActiveSession = session.status === 'active' || session.session_state === 'active';
+                    
+                    return (
+                      <Card key={session.id} className={`overflow-hidden ${isActiveSession ? 'border-primary/50 bg-primary/5' : ''}`}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-center gap-2">
+                              <div>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(session.start_time).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                  {session.end_time && ` - ${new Date(session.end_time).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}`}
+                                </p>
+                              </div>
+                              {isActiveSession && (
+                                <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                                  <Play className="w-3 h-3" />
+                                  In Progress
+                                </Badge>
+                              )}
+                            </div>
+                            {!isActiveSession && (
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="w-8 h-8"
+                                  onClick={() => setEditingSession(session)}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="w-8 h-8 text-destructive hover:text-destructive"
+                                  onClick={() => setDeletingId(session.id)}
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-8 h-8"
-                              onClick={() => setEditingSession(session)}
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="w-8 h-8 text-destructive hover:text-destructive"
-                              onClick={() => setDeletingId(session.id)}
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
 
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Duration</p>
-                              <p className="font-medium">
-                                {session.end_time 
-                                  ? formatDuration(calculateDuration(session.start_time, session.end_time))
-                                  : 'In Progress'
-                                }
-                              </p>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Duration</p>
+                                <p className="font-medium">
+                                  {session.end_time 
+                                    ? formatDuration(calculateDuration(session.start_time, session.end_time))
+                                    : 'In Progress'
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Distance</p>
+                                <p className="font-medium">
+                                  {session.distance ? session.distance.toFixed(2) : 'N/A'} km
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Zap className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Calories</p>
+                                <p className="font-medium">
+                                  {session.calories_burned ? Math.round(session.calories_burned) : 'N/A'}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Footprints className="w-4 h-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-xs text-muted-foreground">Steps</p>
+                                <p className="font-medium">
+                                  {session.estimated_steps ? session.estimated_steps.toLocaleString() : 'N/A'}
+                                </p>
+                              </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Distance</p>
-                              <p className="font-medium">
-                                {session.distance ? session.distance.toFixed(2) : 'N/A'} km
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Calories</p>
-                              <p className="font-medium">
-                                {session.calories_burned ? Math.round(session.calories_burned) : 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Footprints className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Steps</p>
-                              <p className="font-medium">
-                                {session.steps_count ? session.steps_count.toLocaleString() : 'N/A'}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               </div>
             ))}
