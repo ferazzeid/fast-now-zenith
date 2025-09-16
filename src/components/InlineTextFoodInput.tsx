@@ -77,12 +77,12 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         const isSimpleFood = inputText.trim().split(' ').length <= 2;
         
         if (isSimpleFood) {
-          // Retry with more explicit prompt for simple foods
+          // Retry with very explicit prompt for simple foods
           const retryResponse = await supabase.functions.invoke('chat-completion', {
             body: {
               messages: [{ 
                 role: 'user', 
-                content: `Add ${inputText.trim()} with standard serving size and nutrition info` 
+                content: `LOG FOOD: ${inputText.trim()}. Use 75g serving size for pasta/rice, 150g for fruits/vegetables, 100g for meats. Include calories and carbs.` 
               }],
               context: 'food_only'
             }
@@ -256,7 +256,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="pasta, 2 apples, 100g chicken..."
+            placeholder="Type..."
             className="flex-1 h-9 text-sm border-border/50 bg-background/80 placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring"
             autoFocus
             disabled={isProcessing}
