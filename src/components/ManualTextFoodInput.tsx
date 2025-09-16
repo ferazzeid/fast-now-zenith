@@ -66,7 +66,23 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
           messages: [
             { 
               role: 'system', 
-              content: 'You are a focused food tracking assistant. Extract food items from user input and return them with proper nutrition data.' 
+              content: `You are a focused food tracking assistant. Extract food items from user input and return them with proper nutrition data. 
+
+IMPORTANT: When users don't specify quantities, use standard serving sizes:
+- Pasta/rice/grains: 75g dry weight (≈200g cooked)
+- Bread: 2 medium slices (≈60g)
+- Fruits (apple, orange, banana): 1 medium piece (≈150-180g)
+- Vegetables: 1 cup chopped (≈100-150g depending on vegetable)
+- Meat/fish: 150g portion
+- Chicken breast: 150g
+- Eggs: 2 large eggs (≈100g)
+- Cheese: 30g portion
+- Nuts: 30g portion
+- Milk: 250ml (1 cup)
+- Yogurt: 150g container
+- Cooking oil: 1 tablespoon (≈15ml)
+
+Always return food items with realistic serving sizes that users can easily adjust.` 
             },
             { role: 'user', content: textInput }
           ],
@@ -211,13 +227,14 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
   return (
     <>
       <Button 
-        variant="outline"
-        size="icon"
-        className="h-8 w-8 rounded-full shrink-0"
+        variant="ghost"
+        size="sm"
+        className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border-ceramic-shadow hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
         onClick={handleButtonClick}
         title={hasAccess ? "Add food manually by typing" : "Manual text input (Premium Feature)"}
+        aria-label={hasAccess ? "Add food manually by typing" : "Manual text input (Premium Feature)"}
       >
-        {hasAccess ? <Type className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+        {hasAccess ? <Type className="w-4 h-4 text-warm-text" /> : <Lock className="w-4 h-4 text-warm-text" />}
       </Button>
 
       {/* Text Input Modal */}
