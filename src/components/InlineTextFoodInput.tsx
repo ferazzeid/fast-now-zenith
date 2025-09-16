@@ -59,8 +59,13 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
       if (error) throw error;
 
+      console.log('🔍 API Response:', data);
+      console.log('🔍 Function call:', data?.functionCall);
+      console.log('🔍 Foods:', data?.functionCall?.arguments?.foods);
+
       // Handle function call response first (success case)
       if (data.functionCall?.name === 'add_multiple_foods' && data.functionCall?.arguments?.foods) {
+        console.log('✅ Success case - showing food modal');
         const suggestion: FoodSuggestion = {
           foods: data.functionCall.arguments.foods,
           destination: 'today'
@@ -74,6 +79,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
       // Handle clarification requests (AI asking for more details)
       if (data.completion && !data.functionCall) {
+        console.log('💬 Clarification case');
         // If AI asks for more details, show helpful message
         if (data.completion.toLowerCase().includes('more details') || 
             data.completion.toLowerCase().includes('serving size') ||
@@ -88,6 +94,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         }
       }
 
+      console.log('❌ Falling through to error case');
       // If we reach here, it's an error case
       throw new Error('No food items could be parsed from your input');
     } catch (error) {
@@ -228,15 +235,15 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         onClick={handleCancel}
       />
       
-      {/* Dropdown overlay */}
-      <div className="absolute top-12 right-0 z-50 w-80 p-3 bg-ceramic-plate/95 backdrop-blur-md rounded-2xl border border-ceramic-shadow/30 shadow-lg shadow-ceramic-shadow/20">
-        <div className="flex items-center gap-2">
+      {/* Dropdown overlay - centered */}
+      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 w-64 p-2 bg-background/95 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm">
+        <div className="flex items-center gap-1">
           <Input
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type food (e.g., '2 apples, pasta')"
-            className="flex-1 border-ceramic-shadow/20 bg-white/50 text-sm placeholder:text-warm-text/60 focus-visible:ring-1 focus-visible:ring-primary/30 focus-visible:border-primary/50"
+            placeholder="Type..."
+            className="flex-1 h-8 text-sm border-border/30 bg-background/50 placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-ring/30 focus-visible:border-border"
             autoFocus
             disabled={isProcessing}
           />
@@ -244,7 +251,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
             onClick={handleSubmit}
             disabled={!inputText.trim() || isProcessing}
             size="sm"
-            className="shrink-0 h-8 px-3 bg-gradient-primary hover:bg-gradient-primary/90 text-white border-0"
+            variant="default"
+            className="shrink-0 h-8 w-8 p-0"
           >
             {isProcessing ? (
               <Loader2 className="w-3 h-3 animate-spin" />
