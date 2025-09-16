@@ -108,7 +108,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
-                  calories eaten
+                  Calories eaten
                 </div>
               </div>
             </ClickableTooltip>
@@ -131,7 +131,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
-                  carbs eaten
+                  Carbs eaten
                 </div>
               </div>
             </ClickableTooltip>
@@ -151,7 +151,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                   {Math.round(totalCalories)}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
-                  calories planned
+                  Calories planned
                 </div>
               </div>
             </ClickableTooltip>
@@ -166,7 +166,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                   <span className="text-xs font-mono">g</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
-                  carbs planned
+                  Carbs planned
                 </div>
               </div>
             </ClickableTooltip>
