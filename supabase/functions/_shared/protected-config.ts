@@ -16,12 +16,9 @@ export const PROTECTED_CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 } as const;
 
-// 🔑 OPENAI API CONFIGURATION - STABLE SETTINGS
+// 🔑 OPENAI API CONFIGURATION - STABLE SETTINGS (COST OPTIMIZED)
 export const PROTECTED_OPENAI_CONFIG = {
-  CHAT_MODEL: 'gpt-4.1-2025-04-14',
-  IMAGE_MODEL: 'dall-e-2',
-  IMAGE_SIZE: '512x512',
-  IMAGE_FORMAT: 'b64_json',
+  CHAT_MODEL: 'gpt-4o-mini', // Changed from gpt-4.1-2025-04-14 for 90% cost savings
   BURST_LIMIT: 5,
   BURST_WINDOW_MS: 10_000,
 } as const;

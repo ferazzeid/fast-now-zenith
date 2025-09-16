@@ -9,13 +9,10 @@ interface ModelUsage {
 }
 
 const currentModels: ModelUsage[] = [
-  { feature: "Chat & Conversations", model: "gpt-4.1-2025-04-14", type: "chat" },
+  { feature: "Voice Food Parsing", model: "gpt-4o-mini", type: "chat" },
   { feature: "Food Image Analysis", model: "gpt-4o-mini", type: "analysis" },
   { feature: "Text-to-Speech", model: "tts-1", type: "audio" },
   { feature: "Speech Transcription", model: "whisper-1", type: "audio" },
-  { feature: "Image Generation", model: "dall-e-2", type: "image" },
-  { feature: "Realtime Chat", model: "gpt-4o-realtime-preview-2024-12-17", type: "chat" },
-  { feature: "Motivator Concepts", model: "gpt-4o-mini", type: "analysis" },
 ];
 
 const getTypeColor = (type: ModelUsage["type"]) => {
@@ -53,8 +50,8 @@ export function AdminCurrentModels() {
         </div>
         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            <strong>Note:</strong> Main chat model is configured in the protected config. 
-            Other models are optimized for specific use cases (cost, speed, capability).
+            <strong>Cost Optimization:</strong> Both voice parsing and image analysis use gpt-4o-mini for 90% cost savings. 
+            Voice parsing was switched from gpt-4.1-2025-04-14 to achieve similar accuracy at much lower cost.
           </p>
         </div>
       </CardContent>

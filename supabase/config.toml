@@ -3,9 +3,6 @@ project_id = "texnkijwcygodtywgedm"
 [functions.transcribe]
 verify_jwt = true
 
-[functions.realtime-chat]
-verify_jwt = false
-
 [functions.delete-account]
 verify_jwt = true
 
@@ -19,9 +16,6 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.google-analytics-data]
-verify_jwt = false
-
-[functions.extract-motivator-concept]
 verify_jwt = false
 
 [functions.chat-completion]
