@@ -49,15 +49,19 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
   const sessionStartTime = currentSession?.start_time;
   const totalPauseDuration = currentSession?.total_pause_duration;
 
-  // Update stats every 30 seconds when active
+  // Update stats every 30 seconds when active - fixed dependencies to prevent infinite loops
   useEffect(() => {
     if (!sessionId || sessionStatus !== 'active') {
-      setWalkingStats({
-        calories: 0,
-        distance: 0,
-        pace: '',
-        startTime: '',
-        fatBurned: 0
+      // Only update if stats are not already reset
+      setWalkingStats(prev => {
+        if (prev.calories === 0 && prev.distance === 0) return prev;
+        return {
+          calories: 0,
+          distance: 0,
+          pace: '',
+          startTime: '',
+          fatBurned: 0
+        };
       });
       return;
     }
@@ -76,8 +80,8 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
 
       // Use proper MET-based calorie calculation with user profile
       let calories = 0;
-      if (profile?.weight && stableCalculateWalkingCalories) {
-        calories = stableCalculateWalkingCalories(activeDurationMinutes, selectedSpeed);
+      if (profile?.weight && calculateWalkingCalories) {
+        calories = calculateWalkingCalories(activeDurationMinutes, selectedSpeed);
       } else {
         // Fallback calculation if no profile
         const met = selectedSpeed <= 3 ? 3.0 : selectedSpeed <= 4 ? 3.5 : 4.0;
@@ -103,12 +107,21 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
       // Correct fat calculation (1g fat = 9 calories)
       const fatBurned = parseFloat((calories / 9).toFixed(1));
 
-      setWalkingStats({
+      const newStats = {
         calories,
         distance: parseFloat(distanceMiles.toFixed(2)),
         pace,
         startTime: startTimeFormatted,
         fatBurned
+      };
+
+      // Only update if values have changed significantly to prevent unnecessary re-renders
+      setWalkingStats(prev => {
+        if (Math.abs(prev.calories - newStats.calories) < 1 && 
+            Math.abs(prev.distance - newStats.distance) < 0.01) {
+          return prev;
+        }
+        return newStats;
       });
     };
 
@@ -121,7 +134,7 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     return () => {
       clearInterval(interval);
     };
-  }, [sessionId, sessionStatus, sessionStartTime, totalPauseDuration, selectedSpeed, profile?.weight, stableCalculateWalkingCalories]);
+  }, [sessionId, sessionStatus, sessionStartTime, totalPauseDuration, selectedSpeed, profile?.weight]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 
