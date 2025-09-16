@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuth } from '@/hooks/useAuth';
 import { useGoogleLoginSettings } from '@/hooks/useGoogleLoginSettings';
+import { EmailAuthForm } from '@/components/EmailAuthForm';
 import { useAppLogo } from '@/hooks/useAppLogo';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 
@@ -131,9 +132,9 @@ const Auth = () => {
               </Button>
             )}
 
-            {/* Email Alternative - Collapsible */}
-            <Collapsible open={emailFormOpen} onOpenChange={setEmailFormOpen}>
-              {googleLoginEnabled && (
+            {/* Email Alternative - Collapsible when Google is enabled, Direct when disabled */}
+            {googleLoginEnabled ? (
+              <Collapsible open={emailFormOpen} onOpenChange={setEmailFormOpen}>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-border" />
@@ -152,76 +153,35 @@ const Auth = () => {
                     </CollapsibleTrigger>
                   </div>
                 </div>
-              )}
-              
-              <CollapsibleContent className={`space-y-4 ${googleLoginEnabled ? 'animate-in slide-in-from-top-2 duration-300' : ''}`}>
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    variant={!isSignUp ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setIsSignUp(false)}
-                  >
-                    Sign In
-                  </Button>
-                  <Button
-                    variant={isSignUp ? "default" : "outline"}
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => setIsSignUp(true)}
-                  >
-                    Sign Up
-                  </Button>
-                </div>
-
-                <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder={isSignUp ? "Create a password" : "Enter your password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      disabled={isLoading}
-                    />
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        {isSignUp ? 'Creating Account...' : 'Signing In...'}
-                      </>
-                    ) : (
-                      isSignUp ? 'Create Account' : 'Sign In'
-                    )}
-                  </Button>
-                  {!isSignUp && (
-                    <div className="text-center">
-                      <Link 
-                        to="/reset-password" 
-                        className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                      >
-                        Forgot your password?
-                      </Link>
-                    </div>
-                  )}
-                </form>
-              </CollapsibleContent>
-            </Collapsible>
+                
+                <CollapsibleContent className="space-y-4 animate-in slide-in-from-top-2 duration-300">
+                  <EmailAuthForm 
+                    email={email}
+                    setEmail={setEmail}
+                    password={password}
+                    setPassword={setPassword}
+                    isSignUp={isSignUp}
+                    setIsSignUp={setIsSignUp}
+                    handleSignIn={handleSignIn}
+                    handleSignUp={handleSignUp}
+                    isLoading={isLoading}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            ) : (
+              <EmailAuthForm 
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                isSignUp={isSignUp}
+                setIsSignUp={setIsSignUp}
+                handleSignIn={handleSignIn}
+                handleSignUp={handleSignUp}
+                isLoading={isLoading}
+                showResetPassword={true}
+              />
+            )}
 
             {/* Privacy Notice */}
             <p className="text-xs text-muted-foreground text-center leading-relaxed">
