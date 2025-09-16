@@ -549,6 +549,7 @@ const FoodTracking = () => {
                       });
                     }
                   }}
+                  isOpen={true}
                   onClose={() => setEditingEntry(null)}
                 />
               )}
