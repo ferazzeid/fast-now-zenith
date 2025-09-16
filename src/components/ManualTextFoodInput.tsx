@@ -95,6 +95,13 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
             variant: "destructive"
           });
         }
+      } else if (data?.completion) {
+        // Handle case where AI asks for clarification
+        toast({
+          title: "Need more details", 
+          description: data.completion,
+          variant: "default"
+        });
       } else {
         toast({
           title: "Processing failed",
@@ -225,12 +232,12 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">
-              Describe your food (e.g., "2 slices of pizza", "1 cup of rice")
+              Describe your food with quantity (e.g., "100g pasta", "2 slices pizza", "1 cup rice")
             </label>
             <Input
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Enter food description..."
+              placeholder="Enter food with quantity (e.g., 100g pasta)..."
               className="mb-4"
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !isProcessing) {
@@ -252,6 +259,7 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
               variant="outline"
               onClick={handleTextModalClose}
               disabled={isProcessing}
+              className="border-border hover:bg-accent"
             >
               Cancel
             </Button>
