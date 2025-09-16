@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { OpenAIApiStats } from "@/components/OpenAIApiStats";
+import { EnhancedOpenAIStats } from "@/components/EnhancedOpenAIStats";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
@@ -100,7 +100,7 @@ export default function AdminAI() {
         </section>
 
         <section aria-label="OpenAI API statistics">
-          <OpenAIApiStats />
+          <EnhancedOpenAIStats />
         </section>
 
 

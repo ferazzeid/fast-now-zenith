@@ -399,6 +399,12 @@ serve(async (req) => {
     const result = await response.json();
     if (!isProd) console.log('Transcription result:', result);
 
+    // Calculate estimated cost for Whisper API
+    // Whisper pricing is $0.006 per minute of audio
+    const audioSizeBytes = bytes.length;
+    const estimatedMinutes = audioSizeBytes / (44100 * 2 * 60); // Rough estimation based on 16-bit 44.1kHz
+    const estimatedCost = Math.max(0.006 * estimatedMinutes, 0.001); // Minimum $0.001
+
     // Increment usage counter (all users count against limits now)
     try {
       await supabase
@@ -419,6 +425,25 @@ serve(async (req) => {
       });
     } catch (e) {
       console.warn('Non-blocking: failed to log usage analytics', e);
+    }
+
+    // Log detailed usage to ai_usage_logs
+    try {
+      await supabase
+        .from('ai_usage_logs')
+        .insert({
+          user_id: userId,
+          request_type: 'transcription',
+          model_used: 'whisper-1',
+          tokens_used: 0, // Whisper doesn't use tokens
+          prompt_tokens: 0,
+          completion_tokens: 0,
+          estimated_cost: estimatedCost,
+          success: true,
+          response_time_ms: Date.now() - new Date().getTime()
+        });
+    } catch (e) {
+      console.warn('Non-blocking: failed to log detailed AI usage', e);
     }
 
     return new Response(

@@ -1152,6 +1152,9 @@ Keep responses brief and action-focused. Always use function calls for food oper
       console.warn('Non-blocking: failed to log usage analytics', e);
     }
 
+    // Log detailed usage to ai_usage_logs (needs to be after response.json() call)
+    // This will be added in the non-streaming section after the result is parsed
+
     if (stream) {
       // Handle streaming response with proper parsing
       console.log('🌊 Processing streaming response...');
@@ -1464,6 +1467,46 @@ Keep responses brief and action-focused. Always use function calls for food oper
       };
       
       console.log('📦 Final formatted result:', formattedResult);
+      
+      // Log detailed usage to ai_usage_logs
+      try {
+        // Calculate actual costs from usage data
+        const usage = result.usage;
+        const model = result.model;
+        let estimatedCost = 0;
+        
+        if (usage && usage.prompt_tokens && usage.completion_tokens) {
+          // OpenAI pricing per 1K tokens (as of current rates)
+          const pricing: Record<string, { input: number; output: number }> = {
+            'gpt-4o': { input: 0.0025, output: 0.01 },
+            'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+            'gpt-5-mini-2025-08-07': { input: 0.00035, output: 0.0014 },
+            'gpt-5-2025-08-07': { input: 0.005, output: 0.02 },
+            'gpt-4-turbo': { input: 0.01, output: 0.03 },
+            'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 }
+          };
+          
+          const modelPricing = pricing[model] || pricing['gpt-4o-mini'];
+          estimatedCost = (usage.prompt_tokens / 1000) * modelPricing.input + 
+                          (usage.completion_tokens / 1000) * modelPricing.output;
+        }
+
+        await supabase
+          .from('ai_usage_logs')
+          .insert({
+            user_id: userId,
+            request_type: 'chat_completion',
+            model_used: model || 'unknown',
+            tokens_used: usage?.total_tokens || 0,
+            prompt_tokens: usage?.prompt_tokens || 0,
+            completion_tokens: usage?.completion_tokens || 0,
+            estimated_cost: estimatedCost,
+            success: true,
+            response_time_ms: Date.now() - new Date().getTime()
+          });
+      } catch (e) {
+        console.warn('Non-blocking: failed to log detailed AI usage', e);
+      }
       
       // If this is a modify_recent_foods function call, execute it directly
       if (functionCall && functionCall.name === 'modify_recent_foods') {

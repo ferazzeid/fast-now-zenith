@@ -172,6 +172,11 @@ serve(async (req) => {
     }
     const base64Audio = btoa(binary);
 
+    // Calculate estimated cost for TTS API
+    // TTS pricing is $0.015 per 1K characters
+    const characterCount = text.length;
+    const estimatedCost = (characterCount / 1000) * 0.015;
+
     // Increment usage counter (all users count against limits now)
     try {
       await supabase
@@ -189,6 +194,25 @@ serve(async (req) => {
       });
     } catch (e) {
       console.warn('Non-blocking: failed to increment usage tracking', e);
+    }
+
+    // Log detailed usage to ai_usage_logs
+    try {
+      await supabase
+        .from('ai_usage_logs')
+        .insert({
+          user_id: userId,
+          request_type: 'text_to_speech',
+          model_used: 'tts-1',
+          tokens_used: 0, // TTS doesn't use tokens
+          prompt_tokens: 0,
+          completion_tokens: characterCount, // Use completion_tokens to store character count
+          estimated_cost: estimatedCost,
+          success: true,
+          response_time_ms: Date.now() - new Date().getTime()
+        });
+    } catch (e) {
+      console.warn('Non-blocking: failed to log detailed AI usage', e);
     }
 
     return new Response(

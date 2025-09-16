@@ -319,6 +319,25 @@ serve(async (req) => {
       throw new Error('Invalid response from OpenAI API');
     }
 
+    // Calculate actual costs from usage data
+    const usage = data.usage;
+    const model = data.model;
+    let estimatedCost = 0;
+    
+    if (usage && usage.prompt_tokens && usage.completion_tokens) {
+      // OpenAI pricing per 1K tokens (as of current rates)
+      const pricing: Record<string, { input: number; output: number }> = {
+        'gpt-4o': { input: 0.0025, output: 0.01 },
+        'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
+        'gpt-5-mini-2025-08-07': { input: 0.00035, output: 0.0014 },
+        'gpt-5-2025-08-07': { input: 0.005, output: 0.02 }
+      };
+      
+      const modelPricing = pricing[model] || pricing['gpt-4o-mini'];
+      estimatedCost = (usage.prompt_tokens / 1000) * modelPricing.input + 
+                      (usage.completion_tokens / 1000) * modelPricing.output;
+    }
+
     const analysisResult = data.choices[0].message.content;
     console.log('Analysis result:', analysisResult);
 
@@ -414,6 +433,25 @@ serve(async (req) => {
       });
     } catch (e) {
       console.warn('Non-blocking: failed to log usage analytics', e);
+    }
+
+    // Log detailed usage to ai_usage_logs
+    try {
+      await dataClient
+        .from('ai_usage_logs')
+        .insert({
+          user_id: userId,
+          request_type: 'food_image_analysis',
+          model_used: model,
+          tokens_used: usage?.total_tokens || 0,
+          prompt_tokens: usage?.prompt_tokens || 0,
+          completion_tokens: usage?.completion_tokens || 0,
+          estimated_cost: estimatedCost,
+          success: true,
+          response_time_ms: Date.now() - new Date().getTime()
+        });
+    } catch (e) {
+      console.warn('Non-blocking: failed to log detailed AI usage', e);
     }
 
     return new Response(
