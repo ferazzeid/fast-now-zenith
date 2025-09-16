@@ -7,7 +7,7 @@ import { useNotificationSystem } from '@/hooks/useNotificationSystem';
 import { useProfile } from '@/hooks/useProfile';
 import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { TimerBadge } from '@/components/TimerBadge';
 import { CalorieBadge } from '@/components/CalorieBadge';
 import { TrialTimerBadge } from '@/components/TrialTimerBadge';
@@ -23,7 +23,7 @@ export const Navigation = () => {
   const { isProfileComplete } = useProfile();
   const { currentSession: fastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { todayTotals } = useFoodEntriesQuery();
-  const { currentSession: walkingSession } = useWalkingSession();
+  const { currentSession: walkingSession } = useOptimizedWalkingSession();
   const isAnimationsSuspended = false;
   const { isOnline } = useConnectionStore();
   const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch } = useAccess();

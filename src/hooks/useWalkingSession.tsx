@@ -23,6 +23,15 @@ interface WalkingSession {
   session_state?: string;
 }
 
+/**
+ * @deprecated This hook uses useState and has performance issues.
+ * Use useOptimizedWalkingSession from @/hooks/optimized instead.
+ * 
+ * MIGRATION REQUIRED:
+ * - Replace with useOptimizedWalkingSession
+ * - Remove local timer state - use elapsedTime from hook
+ * - Update error handling to use React Query patterns
+ */
 export const useWalkingSession = () => {
   const [currentSession, setCurrentSession] = useState<WalkingSession | null>(null);
   const [selectedSpeed, setSelectedSpeed] = useState<number | null>(null);

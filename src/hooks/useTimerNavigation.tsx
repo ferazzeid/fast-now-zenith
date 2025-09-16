@@ -26,13 +26,13 @@ export const useTimerNavigation = () => {
   });
 
   const { currentSession: fastingSession } = useFastingSessionQuery();
-  const { activeSession: walkingSession } = useOptimizedWalkingSession();
+  const { currentSession: walkingSession, elapsedTime: walkingElapsedTime } = useOptimizedWalkingSession();
 
   // Optimized timer status - only update when sessions are active
   useEffect(() => {
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
-      const walkingActive = !!walkingSession && walkingSession.session_state === 'active';
+      const walkingActive = !!walkingSession && ['active', 'paused'].includes(walkingSession.session_state || '');
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
@@ -43,21 +43,9 @@ export const useTimerNavigation = () => {
         fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
       }
 
+      // Use the calculated elapsed time from the hook for walking
       if (walkingSession && walkingActive) {
-        const startTime = new Date(walkingSession.start_time);
-        const now = new Date();
-        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-        
-        // Subtract paused time - use session data for pause tracking
-        const pausedTime = (walkingSession as any).total_pause_duration || 0;
-        let currentPauseTime = 0;
-        
-        // If currently paused, add current pause duration
-        if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
-          currentPauseTime = Math.floor((now.getTime() - new Date(walkingSession.pause_start_time).getTime()) / 1000);
-        }
-        
-        walkingElapsed = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
+        walkingElapsed = walkingElapsedTime || 0;
       }
 
       setTimerStatus({
@@ -70,7 +58,7 @@ export const useTimerNavigation = () => {
     
     // Only set up interval if there are active sessions
     if ((fastingSession && fastingSession.status === 'active') || 
-        (walkingSession && walkingSession.session_state === 'active')) {
+        (walkingSession && ['active', 'paused'].includes(walkingSession.session_state || ''))) {
       updateTimerStatus();
       interval = setInterval(updateTimerStatus, 1000);
     } else {
@@ -81,14 +69,13 @@ export const useTimerNavigation = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [fastingSession?.status, walkingSession?.session_state, fastingSession?.start_time, walkingSession?.start_time]);
+  }, [fastingSession?.status, walkingSession?.session_state, fastingSession?.start_time, walkingSession?.start_time, walkingElapsedTime]);
 
-  // Additional effect to monitor the walking session state refresh trigger
+  // Additional effect to monitor session state changes for immediate sync
   useEffect(() => {
-    // Re-sync timer status when walking session changes are detected
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
-      const walkingActive = !!walkingSession && walkingSession.session_state === 'active';
+      const walkingActive = !!walkingSession && ['active', 'paused'].includes(walkingSession.session_state || '');
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
@@ -99,21 +86,9 @@ export const useTimerNavigation = () => {
         fastingElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
       }
 
+      // Use the calculated elapsed time from the hook for walking
       if (walkingSession && walkingActive) {
-        const startTime = new Date(walkingSession.start_time);
-        const now = new Date();
-        let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-        
-        // Subtract paused time - use session data for pause tracking
-        const pausedTime = (walkingSession as any).total_pause_duration || 0;
-        let currentPauseTime = 0;
-        
-        // If currently paused, add current pause duration
-        if (walkingSession.session_state === 'paused' && walkingSession.pause_start_time) {
-          currentPauseTime = Math.floor((now.getTime() - new Date(walkingSession.pause_start_time).getTime()) / 1000);
-        }
-        
-        walkingElapsed = Math.max(0, totalElapsed - pausedTime - currentPauseTime);
+        walkingElapsed = walkingElapsedTime || 0;
       }
 
       setTimerStatus({
@@ -123,7 +98,7 @@ export const useTimerNavigation = () => {
     };
 
     updateTimerStatus();
-  }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status]);
+  }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status, walkingElapsedTime]);
 
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);

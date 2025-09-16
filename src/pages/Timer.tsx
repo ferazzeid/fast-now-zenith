@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { useAuth } from '@/hooks/useAuth';
 import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -51,7 +51,7 @@ const Timer = () => {
   const [walkingTime, setWalkingTime] = useState(0);
 
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession, refreshActiveSession } = useFastingSessionQuery();
-  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
+  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useOptimizedWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
   const { toast } = useToast();
   const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
@@ -310,17 +310,17 @@ const Timer = () => {
   };
 
   const handleWalkingStart = async () => {
-    const result = await startWalkingSession();
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
+    try {
+      await startWalkingSession();
       toast({
         title: "Walking started",
         description: "Your walking session has begun!"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to start walking session"
       });
     }
   };
@@ -328,17 +328,17 @@ const Timer = () => {
   const handleWalkingStop = async () => {
     if (!walkingSession) return;
     
-    const result = await endWalkingSession();
-    if (result.error) {
+    try {
+      await endWalkingSession();
+      toast({
+        title: "Walking completed",
+        description: "Session completed successfully!"
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error", 
-        description: result.error.message
-      });
-    } else {
-      toast({
-        title: "Walking completed",
-        description: `Session completed! Calories burned: ${result.data?.calories_burned || 0}`
+        description: "Failed to end walking session"
       });
     }
   };

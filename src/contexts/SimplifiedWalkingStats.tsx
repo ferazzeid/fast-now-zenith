@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 
 // Simplified walking stats for immediate display
@@ -26,8 +26,8 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     fatBurned: 0
   });
 
-  // Always call useWalkingSession hook consistently
-  const walkingSession = useWalkingSession();
+  // Always call useOptimizedWalkingSession hook consistently
+  const walkingSession = useOptimizedWalkingSession();
   const currentSession = walkingSession?.currentSession || null;
   const selectedSpeed = walkingSession?.selectedSpeed || 3;
   const { profile, calculateWalkingCalories } = useOptimizedProfile();

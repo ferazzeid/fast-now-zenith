@@ -14,7 +14,7 @@ import { toast } from '@/hooks/use-toast';
 import { useOfflineGuard } from '@/hooks/useOfflineGuard';
 import { enqueueOperation } from '@/utils/outbox';
 import { useFastingSession } from '@/hooks/useFastingSession';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
@@ -45,7 +45,7 @@ export const AIVoiceButton = () => {
   
   // Import session hooks for function execution
   const { currentSession: fastingSession, startFastingSession, endFastingSession } = useFastingSession();
-  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useWalkingSession();
+  const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useOptimizedWalkingSession();
   const { profile } = useProfile();
   const { context: foodContext, buildContextString, refreshContext } = useFoodContext();
   const { addFoodEntry, addMultipleFoodEntries } = useFoodEntriesQuery();

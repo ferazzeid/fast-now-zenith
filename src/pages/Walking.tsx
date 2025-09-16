@@ -12,7 +12,7 @@ import { WalkingHistoryModal } from '@/components/WalkingHistoryModal';
 
 import { StopWalkingConfirmDialog } from '@/components/StopWalkingConfirmDialog';
 import { useToast } from '@/hooks/use-toast';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useSimpleWalkingStats } from '@/contexts/SimplifiedWalkingStats';
 import { trackWalkingEvent } from '@/utils/analytics';
@@ -35,21 +35,20 @@ const Walking = () => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWalkingHistory, setShowWalkingHistory] = useState(false);
-  const [localTimeElapsed, setLocalTimeElapsed] = useState(0);
   const { toast } = useToast();
   const { 
     currentSession, 
     loading, 
-    selectedSpeed, 
-    updateSelectedSpeed,
+    selectedSpeed,
     isPaused,
+    elapsedTime,
     startWalkingSession, 
     pauseWalkingSession,
     resumeWalkingSession,
     endWalkingSession,
     cancelWalkingSession,
     updateSessionSpeed
-  } = useWalkingSession();
+  } = useOptimizedWalkingSession();
   const { profile } = useProfile();
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
@@ -66,46 +65,18 @@ const Walking = () => {
 
   const isRunning = !!currentSession;
 
-  // Local timer logic - immediate start like fasting timer
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (currentSession && !isPaused) {
-      const updateLocalTime = () => {
-        const now = Date.now();
-        const startTime = new Date(currentSession.start_time).getTime();
-        const pausedDuration = (currentSession.total_pause_duration || 0) * 1000; // Convert to ms
-        const elapsed = Math.floor((now - startTime - pausedDuration) / 1000);
-        setLocalTimeElapsed(Math.max(0, elapsed));
-      };
-
-      // Update immediately for instant feedback
-      updateLocalTime();
-      // Then set interval for continuous updates
-      interval = setInterval(updateLocalTime, 1000);
-    } else if (!currentSession) {
-      // Reset when no session
-      setLocalTimeElapsed(0);
-    }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  }, [currentSession, isPaused]);
+  // Timer is now calculated in real-time from the optimized hook
+  // No local state needed - everything comes from the database
 
   // Stats are now managed by WalkingStatsContext
 
   const handleStart = async () => {
     try {
-      // Remove profile dependency - start immediately
       await startWalkingSession();
       toast({
         title: "Walking session started",
         description: "Good luck on your walk!",
       });
-      
       trackWalkingEvent('start', selectedSpeed);
     } catch (error) {
       console.error('Failed to start walking session:', error);
@@ -118,28 +89,28 @@ const Walking = () => {
   };
 
   const handlePause = async () => {
-    const result = await pauseWalkingSession();
-    if (result.error) {
+    try {
+      await pauseWalkingSession();
+      trackWalkingEvent('pause', selectedSpeed, elapsedTime);
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: result.error.message
+        description: "Failed to pause walking session",
       });
-    } else {
-      trackWalkingEvent('pause', selectedSpeed, localTimeElapsed);
     }
   };
 
   const handleResume = async () => {
-    const result = await resumeWalkingSession();
-    if (result.error) {
+    try {
+      await resumeWalkingSession();
+      trackWalkingEvent('resume', selectedSpeed);
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: result.error.message
+        description: "Failed to resume walking session",
       });
-    } else {
-      trackWalkingEvent('resume', selectedSpeed);
     }
   };
 
@@ -147,24 +118,23 @@ const Walking = () => {
     console.log('Stop walking confirmed - ending session immediately');
     setShowStopConfirm(false);
     
-    // Immediately show feedback that session is ending
     toast({
       title: "Stopping session...",
       description: "Saving your walking session data."
     });
     
-    const result = await endWalkingSession();
-    if (result.error) {
+    try {
+      const result = await endWalkingSession();
+      trackWalkingEvent('stop', selectedSpeed, elapsedTime);
+      toast({
+        title: "Walking completed!",
+        description: `Great job! You walked for ${formatTime(elapsedTime)}.`
+      });
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: result.error.message
-      });
-    } else {
-      trackWalkingEvent('stop', selectedSpeed, localTimeElapsed);
-      toast({
-        title: "Walking completed!",
-        description: `Great job! You walked for ${formatTime(localTimeElapsed)} and burned ${result.data?.calories_burned || 0} calories.`
+        description: "Failed to stop walking session",
       });
     }
   };
@@ -178,18 +148,18 @@ const Walking = () => {
       description: "Saving with manual duration."
     });
     
-    const result = await endWalkingSession();
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
+    try {
+      await endWalkingSession();
       trackWalkingEvent('stop', selectedSpeed, durationMinutes * 60);
       toast({
         title: "Walking completed!",
-        description: `Session corrected to ${durationMinutes} minutes. Calculated data removed for accuracy.`
+        description: `Session corrected to ${durationMinutes} minutes.`
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to complete walking session",
       });
     }
   };
@@ -200,17 +170,17 @@ const Walking = () => {
 
   const handleCancelConfirm = async () => {
     setShowCancelConfirm(false);
-    const result = await cancelWalkingSession();
-    if (result.error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.error.message
-      });
-    } else {
+    try {
+      await cancelWalkingSession();
       toast({
         title: "Session cancelled",
         description: "Walking session was cancelled and removed from history."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to cancel walking session",
       });
     }
   };
@@ -253,7 +223,7 @@ const Walking = () => {
         {/* Timer Display - No Loading State Blocking */}
         <div className="relative mb-6">
           <WalkingTimer
-            displayTime={formatTime(localTimeElapsed)}
+            displayTime={formatTime(elapsedTime)}
             isActive={!!currentSession}
             isPaused={isPaused}
             onStart={handleStart}
@@ -266,15 +236,10 @@ const Walking = () => {
             selectedSpeed={selectedSpeed}
             onSpeedChange={async (newSpeed) => {
               try {
-                // Use the hook's updateSelectedSpeed for immediate saving and UI feedback
-                updateSelectedSpeed(newSpeed);
-                
-                // Also update the current session if one is active
                 if (isRunning) {
                   await updateSessionSpeed(newSpeed);
                 }
                 
-                // Show immediate confirmation
                 const speedLabel = newSpeed >= 4 ? 'fast pace' : 'normal pace';
                 toast({
                   title: "Speed Updated",
@@ -325,8 +290,8 @@ const Walking = () => {
           onOpenChange={setShowStopConfirm}
           onConfirm={handleStopConfirm}
           onManualDurationConfirm={handleManualDurationConfirm}
-          currentDuration={formatTime(localTimeElapsed)}
-          durationMinutes={Math.floor(localTimeElapsed / 60)}
+          currentDuration={formatTime(elapsedTime)}
+          durationMinutes={Math.floor(elapsedTime / 60)}
           calories={walkingStats.calories}
           distance={walkingStats.distance}
           units={profile?.units || 'imperial'}
@@ -337,7 +302,7 @@ const Walking = () => {
           open={showCancelConfirm}
           onOpenChange={setShowCancelConfirm}
           onConfirm={handleCancelConfirm}
-          currentDuration={formatTime(localTimeElapsed)}
+          currentDuration={formatTime(elapsedTime)}
           calories={walkingStats.calories}
           distance={walkingStats.distance}
           units={profile?.units || 'imperial'}

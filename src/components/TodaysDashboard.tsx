@@ -3,7 +3,7 @@ import { TrendingUp, Target, Activity, Apple } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,7 +22,7 @@ export const TodaysDashboard = () => {
   const [todayWalkingStats, setTodayWalkingStats] = useState({ minutes: 0, calories: 0 });
   const { user } = useAuth();
   const { todayTotals } = useFoodEntriesQuery();
-  const { currentSession } = useWalkingSession();
+  const { currentSession } = useOptimizedWalkingSession();
 
   useEffect(() => {
     const fetchProfile = async () => {

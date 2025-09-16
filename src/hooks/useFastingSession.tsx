@@ -17,6 +17,15 @@ export interface FastingSession {
   updated_at: string;
 }
 
+/**
+ * @deprecated This hook uses useState and has performance issues.
+ * Use useFastingSessionQuery from @/hooks/optimized instead.
+ * 
+ * MIGRATION REQUIRED:
+ * - Replace with useFastingSessionQuery
+ * - Remove local session state - use currentSession from hook
+ * - Update error handling to use React Query patterns
+ */
 export const useFastingSession = () => {
   const [currentSession, setCurrentSession] = useState<FastingSession | null>(null);
   const { user } = useAuth();

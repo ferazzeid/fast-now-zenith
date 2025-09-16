@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useWalkingSession } from '@/hooks/useWalkingSession';
+import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
 import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 import { useStepEstimation } from '@/utils/stepEstimation';
 
@@ -32,7 +32,7 @@ export const WalkingStatsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     currentSessionId: null
   });
 
-  const { currentSession, isPaused, selectedSpeed, refreshTrigger } = useWalkingSession();
+  const { currentSession, isPaused, selectedSpeed } = useOptimizedWalkingSession();
   const { profile, loading: profileLoading } = useOptimizedProfile();
   const { estimateStepsForSession } = useStepEstimation();
 
