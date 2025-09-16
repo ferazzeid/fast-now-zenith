@@ -22,7 +22,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useAuth } from '@/hooks/useAuth';
-import { useStaticDefaultFoods } from '@/hooks/useStaticDefaultFoods';
 import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
 
 interface UserFood {
@@ -90,9 +89,6 @@ export const FoodLibraryView = ({
   // Use recent foods hook for "My Foods" tab
   const { recentFoods, loading: recentFoodsLoading, refreshRecentFoods } = useRecentFoods();
   
-  // Use static default foods for instant access
-  const { defaultFoods: staticDefaultFoods } = useStaticDefaultFoods();
-  
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
   const [myFoodFavorites, setMyFoodFavorites] = useState<Set<string>>(new Set()); // Same pattern as defaultFoodFavorites
@@ -115,10 +111,6 @@ export const FoodLibraryView = ({
   // Combined loading state (no longer includes default foods loading)
   const isLoading = recentFoodsLoading;
 
-  // Set default foods from static data immediately
-  useEffect(() => {
-    setDefaultFoods(staticDefaultFoods);
-  }, [staticDefaultFoods]);
 
   useEffect(() => {
     const loadData = async () => {

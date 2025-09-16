@@ -6,7 +6,6 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAccess } from '@/hooks/useAccess';
 import { FoodSelectionModal } from './FoodSelectionModal';
-import { parseVoiceFoodInput } from '@/utils/voiceParsing';
 
 interface InlineTextFoodInputProps {
   onFoodAdded?: (foods: any[]) => void;
@@ -39,115 +38,6 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
   const handleSubmit = async () => {
     if (!inputText.trim() || isProcessing) return;
 
-    setIsProcessing(true);
-    
-    try {
-      // Use the same parsing logic as voice input
-      const parsedResult = parseVoiceFoodInput(inputText.trim());
-      console.log('Parsed result:', parsedResult);
-      
-      // Always use local parsing if we have a food name - no AI fallback for simple foods
-      if (parsedResult.foodName) {
-        // Convert parsed result to food item format
-        const foodItem: FoodItem = {
-          name: parsedResult.foodName,
-          serving_size: getServingSize(parsedResult),
-          calories: getCalories(parsedResult.foodName, getServingSize(parsedResult)),
-          carbs: getCarbs(parsedResult.foodName, getServingSize(parsedResult))
-        };
-
-        const suggestion: FoodSuggestion = {
-          foods: [foodItem],
-          destination: 'today'
-        };
-        
-        setFoodSuggestion(suggestion);
-        setSelectedFoodIds(new Set([0]));
-        setShowFoodModal(true);
-        
-        toast({
-          title: "✓ Food Recognized",
-          description: `${foodItem.name} (${foodItem.serving_size}g)`,
-          className: "bg-green-600 text-white border-0",
-          duration: 2000,
-        });
-      } else {
-        // Only fallback to AI for completely unrecognizable input
-        toast({
-          title: "Need More Details",
-          description: "Please be more specific (e.g., '2 apples' or '100g chicken')",
-          variant: "default",
-        });
-      }
-    } catch (error) {
-      console.error('Error processing food input:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process food input",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const getServingSize = (parsed: any) => {
-    if (parsed.amount && parsed.unit) {
-      // Convert different units to grams
-      switch (parsed.unit) {
-        case 'kg': return parsed.amount * 1000;
-        case 'g': return parsed.amount;
-        case 'cup': return parsed.amount * 100; // Approximate
-        case 'piece': 
-        case 'slice': return parsed.amount * 100; // Standard piece size
-        default: return parsed.amount;
-      }
-    }
-    
-    // Standard serving sizes for common foods
-    const foodName = parsed.foodName?.toLowerCase() || '';
-    if (foodName.includes('pasta') || foodName.includes('rice')) return 75;
-    if (foodName.includes('apple') || foodName.includes('banana')) return 150;
-    if (foodName.includes('chicken') || foodName.includes('meat')) return 150;
-    if (foodName.includes('bread')) return 60;
-    if (foodName.includes('egg')) return 100;
-    
-    return 100; // Default serving size
-  };
-
-  const getCalories = (foodName: string, servingSize: number) => {
-    const name = foodName.toLowerCase();
-    let caloriesPer100g = 100; // Default
-
-    // Common food calorie values per 100g
-    if (name.includes('pasta')) caloriesPer100g = 364;
-    else if (name.includes('rice')) caloriesPer100g = 365;
-    else if (name.includes('apple')) caloriesPer100g = 52;
-    else if (name.includes('banana')) caloriesPer100g = 89;
-    else if (name.includes('chicken')) caloriesPer100g = 165;
-    else if (name.includes('bread')) caloriesPer100g = 265;
-    else if (name.includes('egg')) caloriesPer100g = 155;
-    
-    return Math.round((caloriesPer100g * servingSize) / 100);
-  };
-
-  const getCarbs = (foodName: string, servingSize: number) => {
-    const name = foodName.toLowerCase();
-    let carbsPer100g = 5; // Default
-
-    // Common food carb values per 100g
-    if (name.includes('pasta')) carbsPer100g = 76;
-    else if (name.includes('rice')) carbsPer100g = 76;
-    else if (name.includes('apple')) carbsPer100g = 14;
-    else if (name.includes('banana')) carbsPer100g = 23;
-    else if (name.includes('chicken')) carbsPer100g = 0;
-    else if (name.includes('bread')) carbsPer100g = 49;
-    else if (name.includes('egg')) carbsPer100g = 1;
-    
-    return Math.round((carbsPer100g * servingSize) / 100);
-  };
-
-  const handleAIFallback = async () => {
     if (!hasAIAccess) {
       toast({
         title: "Premium Feature",
@@ -157,10 +47,13 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
       return;
     }
 
+    setIsProcessing(true);
+    
     try {
+      // Send directly to AI like voice input does
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
-          messages: [{ role: 'user', content: inputText }],
+          messages: [{ role: 'user', content: inputText.trim() }],
           context: 'food_only'
         }
       });
@@ -176,19 +69,34 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         setFoodSuggestion(suggestion);
         setSelectedFoodIds(new Set(suggestion.foods.map((_, index) => index)));
         setShowFoodModal(true);
+        
+        toast({
+          title: "✓ Food Recognized",
+          description: `Found ${suggestion.foods.length} food item${suggestion.foods.length === 1 ? '' : 's'}`,
+          className: "bg-green-600 text-white border-0",
+          duration: 2000,
+        });
         return;
       }
 
-      // If AI couldn't parse it either, show helpful message
+      // If AI couldn't parse it, show helpful message
       toast({
-        title: "Need More Details",
-        description: "Please be more specific (e.g., '2 apples' or '100g chicken')",
+        title: "Need More Details", 
+        description: data.completion || "Please be more specific (e.g., '2 apples' or '100g chicken')",
         variant: "default",
       });
     } catch (error) {
-      throw error; // Re-throw to be handled by main catch block
+      console.error('Error processing food input:', error);
+      toast({
+        title: "Error",
+        description: "Failed to process food input",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
+
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
