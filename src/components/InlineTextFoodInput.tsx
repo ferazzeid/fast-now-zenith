@@ -44,7 +44,9 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
     try {
       // Use the same parsing logic as voice input
       const parsedResult = parseVoiceFoodInput(inputText.trim());
+      console.log('Parsed result:', parsedResult);
       
+      // Always use local parsing if we have a food name - no AI fallback for simple foods
       if (parsedResult.foodName) {
         // Convert parsed result to food item format
         const foodItem: FoodItem = {
@@ -70,8 +72,12 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
           duration: 2000,
         });
       } else {
-        // Fallback to AI for complex requests if parsing failed
-        await handleAIFallback();
+        // Only fallback to AI for completely unrecognizable input
+        toast({
+          title: "Need More Details",
+          description: "Please be more specific (e.g., '2 apples' or '100g chicken')",
+          variant: "default",
+        });
       }
     } catch (error) {
       console.error('Error processing food input:', error);
