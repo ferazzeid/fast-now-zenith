@@ -241,46 +241,33 @@ Always return food items with realistic serving sizes that users can easily adju
       <UniversalModal
         isOpen={showTextModal}
         onClose={handleTextModalClose}
-        title="Add Food by Text"
+        title="Add Food"
         variant="standard"
         size="sm"
-        showCloseButton={true}
+        showCloseButton={false}
+        closeOnOverlay={true}
       >
         <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block">
-              Describe your food with quantity (e.g., "100g pasta", "2 slices pizza", "1 cup rice")
-            </label>
-            <Input
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              placeholder="Enter food with quantity (e.g., 100g pasta)..."
-              className="mb-4"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && !isProcessing) {
-                  handleTextSubmit();
-                }
-              }}
-            />
-          </div>
+          <Input
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder="Enter food (e.g., pasta, apple, chicken)..."
+            className="text-center"
+            autoFocus
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && !isProcessing && textInput.trim()) {
+                handleTextSubmit();
+              }
+            }}
+          />
           
-          <div className="flex gap-2">
-            <Button
-              onClick={handleTextSubmit}
-              disabled={!textInput.trim() || isProcessing}
-              className="flex-1"
-            >
-              {isProcessing ? 'Processing...' : 'Analyze Food'}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleTextModalClose}
-              disabled={isProcessing}
-              className="border-border hover:bg-accent"
-            >
-              Cancel
-            </Button>
-          </div>
+          <Button
+            onClick={handleTextSubmit}
+            disabled={!textInput.trim() || isProcessing}
+            className="w-full"
+          >
+            {isProcessing ? 'Processing...' : 'Add Food'}
+          </Button>
         </div>
       </UniversalModal>
 
