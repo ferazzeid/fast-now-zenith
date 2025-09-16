@@ -30,7 +30,7 @@ import { FoodStatsCard } from '@/components/FoodStatsCard';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { AccessGate } from '@/components/AccessGate';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
-import { LocalImage } from '@/components/LocalImage';
+import { SmartImage } from '@/components/SmartImage';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -340,8 +340,8 @@ const FoodTracking = () => {
         {/* Entry Image */}
         <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
           {entry.image_url ? (
-            <LocalImage 
-              imageId={entry.image_url} 
+            <SmartImage 
+              imageUrl={entry.image_url} 
               alt={entry.name}
               className="w-10 h-10 object-cover rounded-lg"
               fallback={<Utensils className="w-5 h-5 text-muted-foreground" />}

@@ -16,6 +16,7 @@ import {
   ConfirmationModal
 } from '@/components/ui/universal-modal';
 import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
+import { SmartImage } from '@/components/SmartImage';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useRecentFoods } from '@/hooks/useRecentFoods';
@@ -835,31 +836,18 @@ export const FoodLibraryView = ({
           </div>
 
           {/* Food Image - Compact but visible with placeholder for deleted images */}
-          {food.image_url ? (
-            <img 
-              src={food.image_url} 
-              alt={food.name}
-              className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-              loading="lazy"
-              onError={(e) => {
-                // Show placeholder if image fails to load
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                const placeholder = target.nextElementSibling as HTMLElement;
-                if (placeholder) {
-                  placeholder.style.display = 'flex';
-                }
-              }}
-            />
-           ) : null}
-           {/* Default placeholder - always present, hidden when image loads */}
-           <div 
-             className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 ${
-               food.image_url ? 'hidden' : 'flex'
-             }`}
-           >
-             <Utensils className="w-5 h-5 text-muted-foreground" />
-           </div>
+          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+            {food.image_url ? (
+              <SmartImage
+                imageUrl={food.image_url}
+                alt={food.name}
+                className="w-10 h-10 object-cover rounded-lg"
+                fallback={<Utensils className="w-5 h-5 text-muted-foreground" />}
+              />
+            ) : (
+              <Utensils className="w-5 h-5 text-muted-foreground" />
+            )}
+          </div>
           
           {/* Food Info - Compact typography */}
           <div className="flex-1 min-w-0">
@@ -1150,18 +1138,19 @@ export const FoodLibraryView = ({
                            </DropdownMenu>
                          </div>
 
-                         {/* Template Food Image */}
-                         <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                           {food.image_url ? (
-                             <img 
-                               src={food.image_url} 
-                               alt={food.name}
-                               className="w-10 h-10 object-cover rounded-lg"
-                             />
-                           ) : (
-                             <Utensils className="w-5 h-5 text-muted-foreground" />
-                           )}
-                         </div>
+                          {/* Template Food Image */}
+                          <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
+                            {food.image_url ? (
+                              <SmartImage 
+                                imageUrl={food.image_url} 
+                                alt={food.name}
+                                className="w-10 h-10 object-cover rounded-lg"
+                                fallback={<Utensils className="w-5 h-5 text-muted-foreground" />}
+                              />
+                            ) : (
+                              <Utensils className="w-5 h-5 text-muted-foreground" />
+                            )}
+                          </div>
 
                          {/* Template Food Info */}
                          <div className="flex-1 min-w-0">

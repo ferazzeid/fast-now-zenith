@@ -127,7 +127,7 @@ const FastingHistory = () => {
   const getSessionStatusText = (session: FastingSession) => {
     if (session.status === 'completed') {
       const duration = calculateDuration(session.start_time, session.end_time);
-      return duration >= (session.goal_duration_seconds / 3600) ? 'Goal Achieved' : 'Completed Early';
+      return duration >= (session.goal_duration_seconds / 3600) ? 'Goal Achieved' : 'Ended Early';
     }
     return 'Stopped';
   };
