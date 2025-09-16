@@ -3,6 +3,7 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
+import { AdminTrialSettings } from "@/components/AdminTrialSettings";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
@@ -22,6 +23,10 @@ export default function AdminOperations() {
 
         <section aria-label="App mode settings">
           <AdminAppModeSwitcher />
+        </section>
+
+        <section aria-label="Trial length settings">
+          <AdminTrialSettings />
         </section>
 
         <section aria-label="Animation settings">
