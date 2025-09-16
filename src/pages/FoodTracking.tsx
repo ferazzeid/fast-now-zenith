@@ -131,6 +131,25 @@ const FoodTracking = () => {
     }
   };
 
+  const handleTextInput = async (entries: any[]) => {
+    try {
+      if (entries && entries.length > 0) {
+        await addMultipleFoodEntries(entries);
+        toast({
+          title: "Foods Added",
+          description: `${entries.length} food${entries.length > 1 ? 's' : ''} added to your log`
+        });
+      }
+    } catch (error) {
+      console.error('Error processing text input:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add foods from text input"
+      });
+    }
+  };
+
   const handleSaveUnifiedEntry = async (entry: any) => {
     try {
       await addFoodEntry(entry);
@@ -417,7 +436,7 @@ const FoodTracking = () => {
                 historyTitle="View food history"
                 onMyFoodsClick={() => navigate('/my-foods')}
                 myFoodsTitle="Browse food library"
-                onFoodAdded={handleVoiceInput}
+                onFoodAdded={handleTextInput}
                 showAuthorTooltip={true}
                 authorTooltipContentKey="food_tracking_insights"
                 authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
