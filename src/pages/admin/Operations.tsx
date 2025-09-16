@@ -9,6 +9,7 @@ import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
+import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -39,8 +40,12 @@ export default function AdminOperations() {
           <AdminAnimationSettings />
         </section>
 
-        <section aria-label="Static SEO code generator" className="pb-24">
+        <section aria-label="Static SEO code generator">
           <StaticSEOManager />
+        </section>
+
+        <section aria-label="Google authentication settings" className="pb-24">
+          <AdminGoogleLoginSettings />
         </section>
       </main>
     </AdminHealthCheck>
