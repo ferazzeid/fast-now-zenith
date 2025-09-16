@@ -81,6 +81,12 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
   const cleanedText = text.replace(/[.,!?;:]+\s*$/g, '').trim();
   const cleaned = cleanedText.toLowerCase().trim();
   
+  // Extract size descriptors before processing - preserve them for the AI
+  const sizeDescriptors = ['large', 'small', 'medium', 'big', 'huge', 'tiny', 'extra large', 'xl', 'jumbo'];
+  const foundSizes = sizeDescriptors.filter(size => 
+    cleaned.includes(size) || cleaned.includes(size.replace(' ', '-'))
+  );
+  
   // Helper function to clean and capitalize food names
   const cleanFoodName = (name: string) => {
     const trimmed = name.trim().replace(/[.,!?;:]+$/g, '');
@@ -118,8 +124,13 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
       const foodName = match[3]?.trim();
       
       if (amount && foodName) {
+        // Include size descriptors in the food name if found
+        const finalFoodName = foundSizes.length > 0 
+          ? `${foundSizes.join(' ')} ${cleanFoodName(foodName)}`
+          : cleanFoodName(foodName);
+        
         return {
-          foodName: cleanFoodName(foodName),
+          foodName: finalFoodName,
           amount,
           unit,
           originalText: text
@@ -135,8 +146,12 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
       const foodName = match[1]?.trim();
       
       if (foodName) {
+        const finalFoodName = foundSizes.length > 0 
+          ? `${foundSizes.join(' ')} ${cleanFoodName(foodName)}`
+          : cleanFoodName(foodName);
+        
         return {
-          foodName: cleanFoodName(foodName),
+          foodName: finalFoodName,
           amount: 1,
           unit,
           originalText: text
@@ -152,8 +167,12 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
     const foodName = simpleMatch[2]?.trim();
     
     if (amount && foodName) {
+      const finalFoodName = foundSizes.length > 0 
+        ? `${foundSizes.join(' ')} ${cleanFoodName(foodName)}`
+        : cleanFoodName(foodName);
+      
       return {
-        foodName: cleanFoodName(foodName),
+        foodName: finalFoodName,
         amount,
         unit: 'g', // Default to grams
         originalText: text
@@ -162,8 +181,12 @@ export const parseVoiceFoodInput = (text: string): FoodParsingResult => {
   }
   
   // If no quantity pattern found, treat as just food name
+  const finalFoodName = foundSizes.length > 0 
+    ? `${foundSizes.join(' ')} ${cleanFoodName(cleanedText)}`
+    : cleanFoodName(cleanedText);
+    
   return {
-    foodName: cleanFoodName(cleanedText),
+    foodName: finalFoodName,
     originalText: text
   };
 };

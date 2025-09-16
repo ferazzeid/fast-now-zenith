@@ -415,6 +415,23 @@ serve(async (req) => {
 
     const result = await response.json();
     if (!isProd) console.log('Transcription result:', result);
+    
+    // Check for empty or very short transcription (poor audio quality)
+    const transcribedText = result.text?.trim();
+    if (!transcribedText || transcribedText.length < 2) {
+      console.warn('Empty or very short transcription received:', transcribedText);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Audio unclear or too quiet', 
+          details: 'Please speak clearly and closer to the microphone, then try again.',
+          transcription: transcribedText || ''
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
 
     // Calculate estimated cost for Whisper API
     // Whisper pricing is $0.006 per minute of audio

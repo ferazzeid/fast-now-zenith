@@ -306,6 +306,15 @@ NUTRITION ESTIMATION REQUIREMENTS:
 - For processed foods, estimate based on similar products and ingredients
 - When unsure, err on the side of slightly higher estimates rather than underestimating
 
+SIZE-BASED PORTION ESTIMATION (CRITICAL):
+- Small apple: 120g, Medium apple: 180g, Large apple: 240g
+- Small cucumber: 150g, Medium cucumber: 200g, Large cucumber: 280g
+- Small banana: 100g, Medium banana: 120g, Large banana: 150g
+- Small potato: 120g, Medium potato: 170g, Large potato: 220g
+- When user says "large [food]", "big [food]", "huge [food]" - use appropriate size portions
+- Default serving sizes when no size given: 150g for fruits/vegetables, 100g for proteins
+- Pay special attention to size descriptors in food names and adjust portions accordingly
+
 CAPABILITIES: You can help users with fasting sessions, walking sessions, food tracking, motivators, and app calculations.`;
 
     const enhancedSystemMessage = `${baseSystemMessage}
