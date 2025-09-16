@@ -9,7 +9,7 @@ interface StatDisplayProps {
   label: string;
   value: string | number;
   subtitle?: string;
-  tooltip: string;
+  tooltip?: string;
   className?: string;
 }
 
@@ -23,14 +23,16 @@ export const StatDisplay = ({
 }: StatDisplayProps) => {
   return (
     <Card className={`p-3 bg-card relative ${className}`}>
-      {/* Tooltip icon positioned in top-right corner */}
-      <div className="absolute top-2 right-2">
-        <ClickableTooltip content={tooltip}>
-          <Info className="w-5 h-5 text-muted-foreground" />
-        </ClickableTooltip>
-      </div>
+      {/* Tooltip icon positioned in top-right corner - only show if tooltip provided */}
+      {tooltip && (
+        <div className="absolute top-2 right-2">
+          <ClickableTooltip content={tooltip}>
+            <Info className="w-5 h-5 text-muted-foreground" />
+          </ClickableTooltip>
+        </div>
+      )}
       
-      <div className="flex items-center space-x-2 mb-1 pr-6">
+      <div className={`flex items-center space-x-2 mb-1 ${tooltip ? 'pr-6' : ''}`}>
         {icon}
         <span className="text-xs font-medium text-warm-text">{label}</span>
       </div>

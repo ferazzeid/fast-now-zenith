@@ -170,7 +170,9 @@ export const DailyStatsPanel = memo(() => {
               </AccessGate>
             </div>
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-muted-foreground hidden sm:inline">Tap to expand</span>
+              <span className="text-xs text-muted-foreground hidden sm:inline">
+                {isExpanded ? 'Tap to close' : 'Tap to expand'}
+              </span>
               <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
           </div>
@@ -266,7 +268,6 @@ export const DailyStatsPanel = memo(() => {
                     icon={<Activity className="w-4 h-4 text-muted-foreground" />}
                     label="Calories Out"
                     value={deficitData.totalCaloriesBurned}
-                    tooltip={`Total calories burned today: Base (${formatNumber(deficitData.tdee)}) + Walking (${formatNumber(deficitData.walkingCalories)}) + Manual (${formatNumber(deficitData.manualCalories)}) = ${formatNumber(deficitData.totalCaloriesBurned)}`}
                   />
                 </div>
 
