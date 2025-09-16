@@ -113,7 +113,7 @@ export const SubscriptionStatus: React.FC = () => {
 
             {/* Trial Countdown */}
             {isTrial && daysRemaining && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <p className="font-medium text-blue-800 dark:text-blue-200">Trial Period</p>

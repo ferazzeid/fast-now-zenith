@@ -1,6 +1,7 @@
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { HistoryButton } from '@/components/HistoryButton';
 import { MyFoodsButton } from '@/components/MyFoodsButton';
+import { ManualTextFoodInput } from '@/components/ManualTextFoodInput';
 import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 import { ReactNode } from 'react';
 
@@ -12,6 +13,7 @@ interface ResponsivePageHeaderProps {
   historyTitle?: string;
   onMyFoodsClick?: () => void;
   myFoodsTitle?: string;
+  onFoodAdded?: (foods: any[]) => void;
   showAuthorTooltip?: boolean;
   authorTooltipContent?: string;
   authorTooltipContentKey?: string;
@@ -26,6 +28,7 @@ export const ResponsivePageHeader = ({
   historyTitle = "View past entries",
   onMyFoodsClick,
   myFoodsTitle = "Browse food library",
+  onFoodAdded,
   showAuthorTooltip = false,
   authorTooltipContent,
   authorTooltipContentKey,
@@ -64,6 +67,9 @@ export const ResponsivePageHeader = ({
             )}
             {onMyFoodsClick && (
               <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
+            )}
+            {onFoodAdded && (
+              <ManualTextFoodInput onFoodAdded={onFoodAdded} />
             )}
           </div>
         </div>

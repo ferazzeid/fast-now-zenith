@@ -416,6 +416,7 @@ const FoodTracking = () => {
                 historyTitle="View food history"
                 onMyFoodsClick={() => navigate('/my-foods')}
                 myFoodsTitle="Browse food library"
+                onFoodAdded={handleVoiceInput}
                 showAuthorTooltip={true}
                 authorTooltipContentKey="food_tracking_insights"
                 authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
