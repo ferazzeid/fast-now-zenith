@@ -110,28 +110,38 @@ export const useMotivators = () => {
   const createMotivator = async (motivatorData: CreateMotivatorData): Promise<string | null> => {
     if (!user) return null;
 
+    console.log('🔍 useMotivators createMotivator: Input data:', motivatorData);
+
     try {
+      const dbData = {
+        user_id: user.id,
+        title: motivatorData.title,
+        content: motivatorData.content,
+        category: motivatorData.category,
+        image_url: motivatorData.imageUrl,
+        link_url: motivatorData.linkUrl,
+        show_in_animations: motivatorData.show_in_animations ?? true,
+        slug: generateUniqueSlug(motivatorData.title),
+        is_active: true,
+        author: motivatorData.author
+      };
+
+      console.log('🔍 useMotivators createMotivator: Database insert data:', dbData);
+
       const { data, error } = await supabase
         .from('motivators')
-        .insert({
-          user_id: user.id,
-          title: motivatorData.title,
-          content: motivatorData.content,
-          category: motivatorData.category,
-          image_url: motivatorData.imageUrl,
-          link_url: motivatorData.linkUrl,
-          show_in_animations: motivatorData.show_in_animations ?? true,
-          slug: generateUniqueSlug(motivatorData.title),
-          is_active: true,
-          author: motivatorData.author
-        })
+        .insert(dbData)
         .select()
         .single();
 
       if (error) throw error;
 
+      console.log('🔍 useMotivators createMotivator: Database response:', data);
+
       if (data) {
         const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
+        console.log('🔍 useMotivators createMotivator: Transformed data:', transformedData);
+        
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         
         // No need to refresh immediately - state is already updated optimistically
