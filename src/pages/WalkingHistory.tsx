@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Trash2, Edit, Clock, MapPin, Zap, Footprints } from 'lucide-react';
+import { X, Trash2, Edit, Clock, MapPin, Zap, Footprints, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ConfirmationModal } from '@/components/ui/universal-modal';
@@ -130,6 +130,25 @@ const WalkingHistory = () => {
     return `${remainingMinutes}m`;
   };
 
+  const groupSessionsByDate = (sessions: WalkingSession[]) => {
+    const groups: { [key: string]: WalkingSession[] } = {};
+    
+    sessions.forEach(session => {
+      const date = new Date(session.start_time).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(session);
+    });
+    
+    return groups;
+  };
+
   if (isLoading) {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
@@ -154,6 +173,8 @@ const WalkingHistory = () => {
       </div>
     );
   }
+
+  const groupedSessions = groupSessionsByDate(sessions || []);
 
   return (
     <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
@@ -184,94 +205,98 @@ const WalkingHistory = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
-            {sessions?.map((session) => (
-              <Card key={session.id} className="overflow-hidden">
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h3 className="font-semibold text-sm">
-                        {new Date(session.start_time).toLocaleDateString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(session.start_time).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                        {session.end_time && ` - ${new Date(session.end_time).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}`}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-8 h-8"
-                        onClick={() => setEditingSession(session)}
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-8 h-8 text-destructive hover:text-destructive"
-                        onClick={() => setDeletingId(session.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
+          <div className="space-y-6">
+            {Object.entries(groupedSessions).map(([date, daySessions]) => (
+              <div key={date}>
+                <div className="flex items-center gap-2 mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="font-semibold text-sm">{date}</h2>
+                  <div className="flex-1 border-t border-border" />
+                </div>
+                
+                <div className="space-y-3 ml-6">
+                  {daySessions.map((session) => (
+                    <Card key={session.id} className="overflow-hidden">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(session.start_time).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                              {session.end_time && ` - ${new Date(session.end_time).toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}`}
+                            </p>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-8 h-8"
+                              onClick={() => setEditingSession(session)}
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-8 h-8 text-destructive hover:text-destructive"
+                              onClick={() => setDeletingId(session.id)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Duration</p>
-                        <p className="font-medium">
-                          {session.end_time 
-                            ? formatDuration(calculateDuration(session.start_time, session.end_time))
-                            : 'In Progress'
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Distance</p>
-                        <p className="font-medium">
-                          {session.distance ? session.distance.toFixed(2) : 'N/A'} km
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Calories</p>
-                        <p className="font-medium">
-                          {session.calories_burned ? Math.round(session.calories_burned) : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Footprints className="w-4 h-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Steps</p>
-                        <p className="font-medium">
-                          {session.steps_count ? session.steps_count.toLocaleString() : 'N/A'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Duration</p>
+                              <p className="font-medium">
+                                {session.end_time 
+                                  ? formatDuration(calculateDuration(session.start_time, session.end_time))
+                                  : 'In Progress'
+                                }
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Distance</p>
+                              <p className="font-medium">
+                                {session.distance ? session.distance.toFixed(2) : 'N/A'} km
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Calories</p>
+                              <p className="font-medium">
+                                {session.calories_burned ? Math.round(session.calories_burned) : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Footprints className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <p className="text-xs text-muted-foreground">Steps</p>
+                              <p className="font-medium">
+                                {session.steps_count ? session.steps_count.toLocaleString() : 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
 
             {/* Load More / Show Less */}
