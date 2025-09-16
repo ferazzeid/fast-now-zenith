@@ -59,7 +59,20 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
       if (error) throw error;
 
-      // Check if AI is asking for clarification
+      // Handle function call response first (success case)
+      if (data.functionCall?.name === 'add_multiple_foods' && data.functionCall?.arguments?.foods) {
+        const suggestion: FoodSuggestion = {
+          foods: data.functionCall.arguments.foods,
+          destination: 'today'
+        };
+        setFoodSuggestion(suggestion);
+        // Pre-select all foods
+        setSelectedFoodIds(new Set(suggestion.foods.map((_, index) => index)));
+        setShowFoodModal(true);
+        return; // Early return on success
+      }
+
+      // Handle clarification requests (AI asking for more details)
       if (data.completion && !data.functionCall) {
         // If AI asks for more details, show helpful message
         if (data.completion.toLowerCase().includes('more details') || 
@@ -75,19 +88,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         }
       }
 
-      // Handle function call response
-      if (data.functionCall?.name === 'add_multiple_foods' && data.functionCall?.arguments?.foods) {
-        const suggestion: FoodSuggestion = {
-          foods: data.functionCall.arguments.foods,
-          destination: 'today'
-        };
-        setFoodSuggestion(suggestion);
-        // Pre-select all foods
-        setSelectedFoodIds(new Set(suggestion.foods.map((_, index) => index)));
-        setShowFoodModal(true);
-      } else {
-        throw new Error('No food items could be parsed from your input');
-      }
+      // If we reach here, it's an error case
+      throw new Error('No food items could be parsed from your input');
     } catch (error) {
       console.error('Error processing food input:', error);
       toast({
