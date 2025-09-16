@@ -121,10 +121,6 @@ export const AdminAnimationSettings = () => {
             />
           </div>
         </div>
-        
-        <div className="text-xs text-muted-foreground">
-          Control visual animations and effects throughout the app. Disabling animations can improve performance on slower devices. Goals will always appear in timer animations regardless of these settings.
-        </div>
       </CardContent>
     </Card>
   );

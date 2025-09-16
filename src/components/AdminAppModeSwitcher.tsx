@@ -80,16 +80,9 @@ export const AdminAppModeSwitcher = () => {
     <Card className="bg-card border-border">
       <CardHeader>
         <CardTitle className="text-lg">App Access Mode</CardTitle>
-        <CardDescription>
-          Control how your app handles user access and premium features globally
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-3">
-          <label htmlFor="app-mode-select" className="text-sm font-medium">
-            Current Mode:
-          </label>
-          
           <Select 
             value={currentMode || 'trial_premium'} 
             onValueChange={handleModeChange}
@@ -103,19 +96,11 @@ export const AdminAppModeSwitcher = () => {
                 <SelectItem key={mode.value} value={mode.value}>
                   <div>
                     <div className="font-medium">{mode.label}</div>
-                    <div className="text-xs text-muted-foreground">{mode.description}</div>
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800">
-          <p className="text-sm text-green-800 dark:text-green-200">
-            <strong>Security Lock:</strong> App is locked to Trial + Premium mode only. 
-            Free users have no access to food tracking or AI features. Admin users always have full access.
-          </p>
         </div>
       </CardContent>
     </Card>

@@ -22,10 +22,11 @@ export function AdminSubnav() {
             <NavLink
               key={item.to}
               to={item.to}
-              className={cn(
-                buttonVariants({ variant: isActive ? "default" : "outline", size: "sm" }),
-                "whitespace-nowrap h-8 px-3 text-xs flex-shrink-0"
-              )}
+            className={cn(
+              buttonVariants({ variant: isActive ? "default" : "ghost", size: "sm" }),
+              "whitespace-nowrap h-8 px-3 text-xs flex-shrink-0 border-0",
+              isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted/50"
+            )}
             >
               {item.label}
             </NavLink>

@@ -74,10 +74,6 @@ export const AdminGoogleLoginSettings = () => {
             onCheckedChange={handleGoogleLoginToggle}
           />
         </div>
-        
-        <div className="text-xs text-muted-foreground mt-3">
-          Controls whether Google sign-in is available on the authentication page.
-        </div>
       </CardContent>
     </Card>
   );
