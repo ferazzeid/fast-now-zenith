@@ -1,7 +1,7 @@
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { HistoryButton } from '@/components/HistoryButton';
 import { MyFoodsButton } from '@/components/MyFoodsButton';
-import { ManualTextFoodInput } from '@/components/ManualTextFoodInput';
+import { InlineTextFoodInput } from '@/components/InlineTextFoodInput';
 import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 import { ReactNode } from 'react';
 
@@ -69,7 +69,7 @@ export const ResponsivePageHeader = ({
               <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
             )}
             {onFoodAdded && (
-              <ManualTextFoodInput onFoodAdded={onFoodAdded} />
+              <InlineTextFoodInput onFoodAdded={onFoodAdded} />
             )}
           </div>
         </div>
