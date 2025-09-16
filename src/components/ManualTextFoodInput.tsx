@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Type, Lock } from 'lucide-react';
+import { Plus, Type, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UniversalModal } from '@/components/ui/universal-modal';
@@ -246,13 +246,14 @@ Always return food items with realistic serving sizes that users can easily adju
         size="sm"
         showCloseButton={false}
         closeOnOverlay={true}
+        className="w-[calc(100vw-2rem)] max-w-sm mx-auto"
       >
-        <div className="space-y-4">
+        <div className="space-y-6 p-2">
           <Input
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder="Enter food (e.g., pasta, apple, chicken)..."
-            className="text-center"
+            className="text-center h-12 text-base border-2 focus-visible:ring-2 focus-visible:ring-ring"
             autoFocus
             onKeyPress={(e) => {
               if (e.key === 'Enter' && !isProcessing && textInput.trim()) {
@@ -264,9 +265,16 @@ Always return food items with realistic serving sizes that users can easily adju
           <Button
             onClick={handleTextSubmit}
             disabled={!textInput.trim() || isProcessing}
-            className="w-full"
+            className="w-full h-12 text-base font-semibold"
           >
-            {isProcessing ? 'Processing...' : 'Add Food'}
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                Processing...
+              </>
+            ) : (
+              'Add Food'
+            )}
           </Button>
         </div>
       </UniversalModal>

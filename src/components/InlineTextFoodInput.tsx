@@ -230,32 +230,40 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         onClick={handleCancel}
       />
       
-      {/* Dropdown overlay - centered */}
-      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 w-72 p-3 bg-background/95 backdrop-blur-sm rounded-lg border border-border shadow-md">
-        <div className="flex items-center gap-2">
-          <Input
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type..."
-            className="flex-1 h-9 text-sm border-border/50 bg-background/80 placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring"
-            autoFocus
-            disabled={isProcessing}
-          />
-          <Button
-            onClick={handleSubmit}
-            disabled={!inputText.trim() || isProcessing}
-            size="sm"
-            variant="default"
-            className="shrink-0 h-9 w-9 p-0 rounded-full"
-            title="Add food"
-          >
-            {isProcessing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Plus className="w-4 h-4" />
-            )}
-          </Button>
+      {/* Dropdown overlay - perfectly centered on mobile */}
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm mx-auto p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-border shadow-lg">
+        <div className="w-full max-w-xs mx-auto">{/* Container to center content within the modal */}
+          <div className="flex items-center gap-3">
+            <Input
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Enter food (e.g., pasta, apple, chicken)..."
+              className="flex-1 h-10 text-sm text-center border-border/50 bg-background/80 placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
+              autoFocus
+              disabled={isProcessing}
+            />
+            <Button
+              onClick={handleSubmit}
+              disabled={!inputText.trim() || isProcessing}
+              size="sm"
+              variant="default"
+              className="shrink-0 h-10 px-4 rounded-full"
+              title="Add food"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 
