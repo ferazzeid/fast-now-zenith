@@ -64,7 +64,7 @@ const Motivators = () => {
   const personalNotes = motivators.filter(m => m.category === 'personal_note');
   const handleSelectQuote = async (quote: Quote) => {
     await handleCreateMotivator({
-      title: quote.text.length > 50 ? `${quote.text.substring(0, 50)}...` : quote.text,
+      title: quote.author || 'Unknown Author',
       content: quote.text,
       category: 'saved_quote',
       author: quote.author
@@ -77,7 +77,8 @@ const Motivators = () => {
         title: motivatorData.title,
         content: motivatorData.content,
         category: motivatorData.category || 'personal',
-        imageUrl: motivatorData.imageUrl
+        imageUrl: motivatorData.imageUrl,
+        author: motivatorData.author
       });
       
       trackMotivatorEvent('create', motivatorData.category || 'personal');

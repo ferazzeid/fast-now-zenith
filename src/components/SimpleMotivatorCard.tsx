@@ -12,6 +12,7 @@ interface SimpleMotivatorCardProps {
     content?: string;
     category?: string;
     show_in_animations?: boolean;
+    author?: string;
   };
   onDelete: () => void;
   onToggleAnimation?: (id: string, showInAnimations: boolean) => Promise<void>;
@@ -39,9 +40,9 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
                "{motivator.content.replace(/^[""]|[""]$/g, '')}"
              </p>
            )}
-           {motivator.title && motivator.category === 'saved_quote' && (
+           {motivator.category === 'saved_quote' && motivator.author && (
              <cite className="text-sm text-muted-foreground not-italic">
-               — {motivator.title}
+               — {motivator.author}
              </cite>
            )}
            {motivator.title && motivator.category !== 'saved_quote' && motivator.title !== motivator.content && (

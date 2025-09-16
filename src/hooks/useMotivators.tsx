@@ -19,6 +19,7 @@ export interface Motivator {
   imageUrl?: string;
   show_in_animations?: boolean;
   linkUrl?: string;
+  author?: string;
 }
 
 export interface CreateMotivatorData {
@@ -28,6 +29,7 @@ export interface CreateMotivatorData {
   imageUrl?: string;
   show_in_animations?: boolean;
   linkUrl?: string;
+  author?: string;
 }
 
 export const useMotivators = () => {
@@ -120,7 +122,8 @@ export const useMotivators = () => {
           link_url: motivatorData.linkUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
           slug: generateUniqueSlug(motivatorData.title),
-          is_active: true
+          is_active: true,
+          author: motivatorData.author
         })
         .select()
         .single();
