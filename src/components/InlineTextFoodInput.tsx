@@ -50,6 +50,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
     setIsProcessing(true);
     
     try {
+      // First attempt with AI
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [{ role: 'user', content: inputText }],
@@ -59,43 +60,56 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
       if (error) throw error;
 
-      console.log('🔍 API Response:', data);
-      console.log('🔍 Function call:', data?.functionCall);
-      console.log('🔍 Foods:', data?.functionCall?.arguments?.foods);
-
-      // Handle function call response first (success case)
+      // Handle successful AI parsing
       if (data.functionCall?.name === 'add_multiple_foods' && data.functionCall?.arguments?.foods) {
-        console.log('✅ Success case - showing food modal');
         const suggestion: FoodSuggestion = {
           foods: data.functionCall.arguments.foods,
           destination: 'today'
         };
         setFoodSuggestion(suggestion);
-        // Pre-select all foods
         setSelectedFoodIds(new Set(suggestion.foods.map((_, index) => index)));
         setShowFoodModal(true);
-        return; // Early return on success
+        return;
       }
 
-      // Handle clarification requests (AI asking for more details)
+      // Handle clarification requests for simple foods - attempt retry with better prompt
       if (data.completion && !data.functionCall) {
-        console.log('💬 Clarification case');
-        // If AI asks for more details, show helpful message
-        if (data.completion.toLowerCase().includes('more details') || 
-            data.completion.toLowerCase().includes('serving size') ||
-            data.completion.toLowerCase().includes('quantity')) {
-          toast({
-            title: "Need More Details",
-            description: data.completion,
-            variant: "default",
+        const isSimpleFood = inputText.trim().split(' ').length <= 2;
+        
+        if (isSimpleFood) {
+          // Retry with more explicit prompt for simple foods
+          const retryResponse = await supabase.functions.invoke('chat-completion', {
+            body: {
+              messages: [{ 
+                role: 'user', 
+                content: `Add ${inputText.trim()} with standard serving size and nutrition info` 
+              }],
+              context: 'food_only'
+            }
           });
-          setIsProcessing(false);
-          return;
+
+          if (retryResponse.data?.functionCall?.name === 'add_multiple_foods' && 
+              retryResponse.data?.functionCall?.arguments?.foods) {
+            const suggestion: FoodSuggestion = {
+              foods: retryResponse.data.functionCall.arguments.foods,
+              destination: 'today'
+            };
+            setFoodSuggestion(suggestion);
+            setSelectedFoodIds(new Set(suggestion.foods.map((_, index) => index)));
+            setShowFoodModal(true);
+            return;
+          }
         }
+
+        // Show clarification message if retry didn't work
+        toast({
+          title: "Need More Details",
+          description: "Please be more specific (e.g., '2 apples' or '100g chicken')",
+          variant: "default",
+        });
+        return;
       }
 
-      console.log('❌ Falling through to error case');
-      // If we reach here, it's an error case
       throw new Error('No food items could be parsed from your input');
     } catch (error) {
       console.error('Error processing food input:', error);
@@ -204,10 +218,10 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
           variant="ghost"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border-ceramic-shadow hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+          className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-muted/80 hover:scale-110 transition-all duration-200"
           title="Add food with text"
         >
-          <Plus className="w-4 h-4 text-warm-text" />
+          <Plus className="w-4 h-4 text-foreground" />
         </Button>
 
         {/* Food Selection Modal */}
@@ -236,14 +250,14 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
       />
       
       {/* Dropdown overlay - centered */}
-      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 w-64 p-2 bg-background/95 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm">
-        <div className="flex items-center gap-1">
+      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 w-72 p-3 bg-background/95 backdrop-blur-sm rounded-lg border border-border shadow-md">
+        <div className="flex items-center gap-2">
           <Input
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder="Type..."
-            className="flex-1 h-8 text-sm border-border/30 bg-background/50 placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-ring/30 focus-visible:border-border"
+            placeholder="pasta, 2 apples, 100g chicken..."
+            className="flex-1 h-9 text-sm border-border/50 bg-background/80 placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-ring focus-visible:border-ring"
             autoFocus
             disabled={isProcessing}
           />
@@ -252,12 +266,13 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
             disabled={!inputText.trim() || isProcessing}
             size="sm"
             variant="default"
-            className="shrink-0 h-8 w-8 p-0"
+            className="shrink-0 h-9 w-9 p-0 rounded-full"
+            title="Add food"
           >
             {isProcessing ? (
-              <Loader2 className="w-3 h-3 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <Plus className="w-3 h-3" />
+              <Plus className="w-4 h-4" />
             )}
           </Button>
         </div>
