@@ -24,42 +24,50 @@ export const SimpleAnalyticsWidget = () => {
       const today = new Date().toISOString().split('T')[0];
       const todayStart = `${today}T00:00:00.000Z`;
       
-      // Users active today (profiles with last_activity_at today)
-      const { data: todayUsers, error: usersError } = await supabase
-        .from('profiles')
-        .select('id')
-        .gte('last_activity_at', todayStart);
+      // Get users who performed any activity today
+      const [foodEntries, walkingSessions, fastingSessions] = await Promise.all([
+        supabase.from('food_entries')
+          .select('user_id')
+          .gte('created_at', todayStart),
+        supabase.from('walking_sessions')
+          .select('user_id')
+          .gte('created_at', todayStart),
+        supabase.from('fasting_sessions')
+          .select('user_id')
+          .gte('created_at', todayStart)
+      ]);
 
-      // Active fasting sessions
-      const { data: fastingSessions, error: fastingError } = await supabase
-        .from('fasting_sessions')
-        .select('id')
-        .eq('status', 'active');
+      // Get active sessions counts
+      const [activeFasting, activeWalking] = await Promise.all([
+        supabase.from('fasting_sessions')
+          .select('id')
+          .eq('status', 'active'),
+        supabase.from('walking_sessions')
+          .select('id')
+          .eq('session_state', 'active')
+      ]);
 
-      // Active walking sessions
-      const { data: walkingSessions, error: walkingError } = await supabase
-        .from('walking_sessions')
-        .select('id')
-        .eq('session_state', 'active');
-
-      // Food entries created today (people actively logging food)
-      const { data: foodEntries, error: foodError } = await supabase
-        .from('food_entries')
-        .select('user_id')
-        .gte('created_at', todayStart);
+      // Calculate unique users active today from any activity
+      const activeUsersToday = new Set([
+        ...(foodEntries.data?.map(entry => entry.user_id) || []),
+        ...(walkingSessions.data?.map(session => session.user_id) || []),
+        ...(fastingSessions.data?.map(session => session.user_id) || [])
+      ]);
 
       // Get unique users who logged food today
-      const uniqueFoodLoggers = new Set(foodEntries?.map(entry => entry.user_id) || []);
+      const uniqueFoodLoggers = new Set(foodEntries.data?.map(entry => entry.user_id) || []);
 
-      if (usersError) console.error('Error fetching users:', usersError);
-      if (fastingError) console.error('Error fetching fasting sessions:', fastingError);
-      if (walkingError) console.error('Error fetching walking sessions:', walkingError);
-      if (foodError) console.error('Error fetching food entries:', foodError);
+      // Log any errors
+      if (foodEntries.error) console.error('Error fetching food entries:', foodEntries.error);
+      if (walkingSessions.error) console.error('Error fetching walking sessions:', walkingSessions.error);
+      if (fastingSessions.error) console.error('Error fetching fasting sessions:', fastingSessions.error);
+      if (activeFasting.error) console.error('Error fetching active fasting:', activeFasting.error);
+      if (activeWalking.error) console.error('Error fetching active walking:', activeWalking.error);
 
       return {
-        usersToday: todayUsers?.length || 0,
-        activeFasting: fastingSessions?.length || 0,
-        activeWalking: walkingSessions?.length || 0,
+        usersToday: activeUsersToday.size,
+        activeFasting: activeFasting.data?.length || 0,
+        activeWalking: activeWalking.data?.length || 0,
         activeFoodLogging: uniqueFoodLoggers.size
       };
     });
@@ -98,8 +106,8 @@ export const SimpleAnalyticsWidget = () => {
               <div className="h-6 flex items-center justify-center">
                 <span className="text-sm font-medium text-foreground">Users Today</span>
               </div>
-              <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <span className="text-2xl font-bold text-foreground">{analytics?.usersToday}</span>
+              <div className="p-2 bg-muted/50 rounded-lg text-center">
+                <span className="text-sm font-semibold text-foreground">{analytics?.usersToday}</span>
               </div>
             </div>
 
@@ -108,8 +116,8 @@ export const SimpleAnalyticsWidget = () => {
               <div className="h-6 flex items-center justify-center">
                 <span className="text-sm font-medium text-foreground">Active Fasting</span>
               </div>
-              <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <span className="text-2xl font-bold text-foreground">{analytics?.activeFasting}</span>
+              <div className="p-2 bg-muted/50 rounded-lg text-center">
+                <span className="text-sm font-semibold text-foreground">{analytics?.activeFasting}</span>
               </div>
             </div>
 
@@ -118,8 +126,8 @@ export const SimpleAnalyticsWidget = () => {
               <div className="h-6 flex items-center justify-center">
                 <span className="text-sm font-medium text-foreground">Active Walking</span>
               </div>
-              <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <span className="text-2xl font-bold text-foreground">{analytics?.activeWalking}</span>
+              <div className="p-2 bg-muted/50 rounded-lg text-center">
+                <span className="text-sm font-semibold text-foreground">{analytics?.activeWalking}</span>
               </div>
             </div>
 
@@ -128,8 +136,8 @@ export const SimpleAnalyticsWidget = () => {
               <div className="h-6 flex items-center justify-center">
                 <span className="text-sm font-medium text-foreground">Food Logging</span>
               </div>
-              <div className="p-3 bg-muted/50 rounded-lg text-center">
-                <span className="text-2xl font-bold text-foreground">{analytics?.activeFoodLogging}</span>
+              <div className="p-2 bg-muted/50 rounded-lg text-center">
+                <span className="text-sm font-semibold text-foreground">{analytics?.activeFoodLogging}</span>
               </div>
             </div>
 
