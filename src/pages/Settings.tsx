@@ -319,13 +319,6 @@ const Settings = () => {
         }
         const error = result?.error;
 
-        // Ensure tier reflects latest settings (own API key overrides others)
-        try {
-          await supabase.rpc('update_user_tier', { _user_id: user.id });
-        } catch (tierErr) {
-          console.warn('Tier update RPC failed:', tierErr);
-        }
-
         console.log('Settings saved successfully');
         toast({
           title: "✅ Settings Saved!",

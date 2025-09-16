@@ -4,15 +4,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { ComponentSpinner } from '@/components/LoadingStates';
 
-interface TierStats {
-  tier: string;
-  total: number;
-  active: number;
-  inactive: number;
+interface UserTierStats {
+  free: { total: number; active: number; inactive: number };
+  trial: { total: number; active: number; inactive: number };
+  paid: { total: number; active: number; inactive: number };
 }
 
 export const AdminTierStats = () => {
-  const { data: stats, isLoading, execute } = useStandardizedLoading<TierStats[]>([]);
+  const { data: stats, isLoading, execute } = useStandardizedLoading<UserTierStats>({
+    free: { total: 0, active: 0, inactive: 0 },
+    trial: { total: 0, active: 0, inactive: 0 },
+    paid: { total: 0, active: 0, inactive: 0 }
+  });
 
   useEffect(() => {
     fetchTierStats();
@@ -20,56 +23,59 @@ export const AdminTierStats = () => {
 
   const fetchTierStats = async () => {
     await execute(async () => {
-      
-      // Get tier counts with activity status
+      // Get user data with access levels and trial information
       const { data, error } = await supabase
         .from('profiles')
         .select(`
-          user_tier,
+          access_level,
+          trial_ends_at,
+          subscription_status,
           last_activity_at
         `);
 
       if (error) throw error;
 
+      const now = new Date();
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      // Process data to calculate stats
-      const tierCounts: Record<string, { total: number; active: number; inactive: number }> = {
-        paid_user: { total: 0, active: 0, inactive: 0 },
-        free_user: { total: 0, active: 0, inactive: 0 }
+      // Initialize counters
+      const tierStats: UserTierStats = {
+        free: { total: 0, active: 0, inactive: 0 },
+        trial: { total: 0, active: 0, inactive: 0 },
+        paid: { total: 0, active: 0, inactive: 0 }
       };
 
       data?.forEach(profile => {
-        const tier = profile.user_tier || 'free_user';
-        if (tierCounts[tier]) {
-          tierCounts[tier].total++;
-          
-          // Check if user was active in last 7 days
-          if (profile.last_activity_at && new Date(profile.last_activity_at) > sevenDaysAgo) {
-            tierCounts[tier].active++;
-          } else {
-            tierCounts[tier].inactive++;
-          }
+        const isActive = profile.last_activity_at && new Date(profile.last_activity_at) > sevenDaysAgo;
+        
+        // Determine user tier based on access_level system
+        let userTier: 'free' | 'trial' | 'paid';
+        
+        if (profile.access_level === 'admin') {
+          // Admin users are always considered paid
+          userTier = 'paid';
+        } else if (profile.subscription_status === 'active' || profile.subscription_status === 'trialing') {
+          // Users with active subscriptions
+          userTier = 'paid';
+        } else if (profile.trial_ends_at && new Date(profile.trial_ends_at) > now) {
+          // Users currently in trial period
+          userTier = 'trial';
+        } else {
+          // Free users (trial ended or never started)
+          userTier = 'free';
+        }
+
+        // Update counters
+        tierStats[userTier].total++;
+        if (isActive) {
+          tierStats[userTier].active++;
+        } else {
+          tierStats[userTier].inactive++;
         }
       });
 
-      const statsArray: TierStats[] = [
-        { 
-          tier: 'Paid Users (Trial + Subscribed)', 
-          total: tierCounts.paid_user.total, 
-          active: tierCounts.paid_user.active,
-          inactive: tierCounts.paid_user.inactive
-        },
-        { 
-          tier: 'Free Users (Trial Ended)', 
-          total: tierCounts.free_user.total, 
-          active: tierCounts.free_user.active,
-          inactive: tierCounts.free_user.inactive
-        }
-      ];
-
-      return statsArray;
+      return tierStats;
     });
   };
 
@@ -91,28 +97,80 @@ export const AdminTierStats = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {stats?.map((stat) => (
-            <div key={stat.tier} className="space-y-3">
-              <h4 className="text-sm font-medium text-foreground mb-3 text-center">
-                {stat.tier}
-              </h4>
+        <div className="overflow-x-auto">
+          <div className="grid grid-cols-4 gap-4 min-w-full">
+            {/* Stats Labels Column */}
+            <div className="space-y-3">
+              <div className="h-6 flex items-center justify-center">
+                <span className="text-sm font-medium text-foreground">Stats</span>
+              </div>
               <div className="space-y-2">
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <div className="p-2 bg-muted/50 rounded-lg">
                   <span className="text-xs text-muted-foreground">Active Users</span>
-                  <span className="text-sm font-semibold text-foreground">{stat.active}</span>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <div className="p-2 bg-muted/50 rounded-lg">
                   <span className="text-xs text-muted-foreground">Inactive Users</span>
-                  <span className="text-sm font-semibold text-foreground">{stat.inactive}</span>
                 </div>
-                <div className="flex justify-between items-center p-2 bg-muted/50 rounded-lg">
+                <div className="p-2 bg-muted/50 rounded-lg">
                   <span className="text-xs text-muted-foreground">Total</span>
-                  <span className="text-sm font-semibold text-foreground">{stat.total}</span>
                 </div>
               </div>
             </div>
-          ))}
+
+            {/* Free Users Column */}
+            <div className="space-y-3">
+              <div className="h-6 flex items-center justify-center">
+                <span className="text-sm font-medium text-foreground">Free</span>
+              </div>
+              <div className="space-y-2">
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.free.active}</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.free.inactive}</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.free.total}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Trial Users Column */}
+            <div className="space-y-3">
+              <div className="h-6 flex items-center justify-center">
+                <span className="text-sm font-medium text-foreground">Trial</span>
+              </div>
+              <div className="space-y-2">
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.trial.active}</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.trial.inactive}</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.trial.total}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Paid Users Column */}
+            <div className="space-y-3">
+              <div className="h-6 flex items-center justify-center">
+                <span className="text-sm font-medium text-foreground">Paid</span>
+              </div>
+              <div className="space-y-2">
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.paid.active}</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.paid.inactive}</span>
+                </div>
+                <div className="p-2 bg-muted/50 rounded-lg text-center">
+                  <span className="text-sm font-semibold text-foreground">{stats?.paid.total}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>
