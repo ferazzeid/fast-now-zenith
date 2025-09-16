@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useTrialLength } from '@/hooks/useTrialLength';
 import { Settings, Zap, Clock, Shield, Sparkles } from 'lucide-react';
 
 interface AppModeOption {
@@ -15,20 +16,21 @@ interface AppModeOption {
   features: string[];
 }
 
-// Only trial_premium mode is supported - other modes removed for security
-const appModeOptions: AppModeOption[] = [
-  {
-    value: 'trial_premium',
-    label: 'Trial + Premium System',
-    description: '7-day trial, then premium subscription required. Free users have no access to food tracking or AI features.',
-    icon: <Clock className="w-4 h-4" />,
-    features: ['7-day free trial', 'Premium subscription required', 'Free users: no food/AI access']
-  }
-];
-
 export const AdminAppModeSwitcher = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { trialDays } = useTrialLength();
+
+  // Dynamic app mode options based on current trial length setting
+  const appModeOptions: AppModeOption[] = [
+    {
+      value: 'trial_premium',
+      label: 'Trial + Premium System',
+      description: `${trialDays}-day trial, then premium subscription required. Free users have no access to food tracking or AI features.`,
+      icon: <Clock className="w-4 h-4" />,
+      features: [`${trialDays}-day free trial`, 'Premium subscription required', 'Free users: no food/AI access']
+    }
+  ];
 
   const { data: currentMode, isLoading } = useQuery({
     queryKey: ['app-mode'],
