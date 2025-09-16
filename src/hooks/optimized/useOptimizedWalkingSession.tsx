@@ -323,16 +323,23 @@ export const useOptimizedWalkingSession = () => {
       const activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id));
       if (!activeSession) throw new Error('No active session found');
 
-      const { data, error } = await supabase
-        .from('walking_sessions')
-        .update({ speed_mph: speed })
-        .eq('id', (activeSession as WalkingSession).id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
+      // Update both the session and save to profile as default
+      const [sessionUpdate, profileUpdate] = await Promise.all([
+        supabase
+          .from('walking_sessions')
+          .update({ speed_mph: speed })
+          .eq('id', (activeSession as WalkingSession).id)
+          .eq('user_id', user.id)
+          .select()
+          .single(),
+        supabase
+          .from('profiles')
+          .update({ default_walking_speed: speed })
+          .eq('user_id', user.id)
+      ]);
 
-      if (error) throw error;
-      return data;
+      if (sessionUpdate.error) throw sessionUpdate.error;
+      return sessionUpdate.data;
     },
     onMutate: async (speed) => {
       // Optimistically update active session
@@ -344,6 +351,11 @@ export const useOptimizedWalkingSession = () => {
     onError: (err, speed, context) => {
       // Revert optimistic update on error
       queryClient.invalidateQueries({ queryKey: activeSessionQueryKey(user?.id || null) });
+      toast({
+        title: "Failed to update speed",
+        description: "Could not save walking speed preference.",
+        variant: "destructive",
+      });
     },
     onSuccess: (data) => {
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), data);
