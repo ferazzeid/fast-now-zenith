@@ -1305,7 +1305,6 @@ export type Database = {
           units: string | null
           updated_at: string
           user_id: string
-          user_tier: Database["public"]["Enums"]["user_tier"] | null
           weight: number | null
         }
         Insert: {
@@ -1357,7 +1356,6 @@ export type Database = {
           units?: string | null
           updated_at?: string
           user_id: string
-          user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
         }
         Update: {
@@ -1409,7 +1407,6 @@ export type Database = {
           units?: string | null
           updated_at?: string
           user_id?: string
-          user_tier?: Database["public"]["Enums"]["user_tier"] | null
           weight?: number | null
         }
         Relationships: []
@@ -2050,10 +2047,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      update_user_tier: {
-        Args: { _user_id: string }
-        Returns: Database["public"]["Enums"]["user_tier"]
-      }
       user_has_premium_access: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -2077,7 +2070,6 @@ export type Database = {
         | "free_food_only"
         | "user"
       app_role: "admin" | "user"
-      user_tier: "api_user" | "paid_user" | "granted_user" | "free_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2215,7 +2207,6 @@ export const Constants = {
         "user",
       ],
       app_role: ["admin", "user"],
-      user_tier: ["api_user", "paid_user", "granted_user", "free_user"],
     },
   },
 } as const
