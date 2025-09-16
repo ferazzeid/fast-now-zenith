@@ -72,8 +72,6 @@ const Motivators = () => {
   };
 
   const handleCreateMotivator = async (motivatorData) => {
-    console.log('🔍 Motivators.tsx handleCreateMotivator: Input data:', motivatorData);
-    
     try {
       const result = await createMotivator({
         title: motivatorData.title,
@@ -82,8 +80,6 @@ const Motivators = () => {
         imageUrl: motivatorData.imageUrl,
         author: motivatorData.author
       });
-      
-      console.log('🔍 Motivators.tsx handleCreateMotivator: Creation result:', result);
       
       trackMotivatorEvent('create', motivatorData.category || 'personal');
       setShowFormModal(false);
@@ -101,7 +97,6 @@ const Motivators = () => {
       
       return result;
     } catch (error) {
-      console.error('🔍 Motivators.tsx handleCreateMotivator: Error:', error);
       toast({
         title: "Error",
         description: motivatorData.category === 'personal_note' 

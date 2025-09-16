@@ -71,18 +71,9 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
   }, [deficit, loading, tdee]);
 
   return (
-    <Card className="p-4 bg-card relative">
-      {/* Tooltip icon positioned in top-right corner */}
-      <div className="absolute top-3 right-3">
-        <ClickableTooltip 
-          content="Your calorie deficit for today. A positive number means you're burning more than you consume (weight loss). This includes your base metabolism, activity level, walking, and any manual activities you've logged."
-        >
-          <Info className="w-5 h-5 text-muted-foreground" />
-        </ClickableTooltip>
-      </div>
-      
+    <Card className="p-4 bg-card">
       <div className="text-center space-y-2">
-        <div className="flex items-center justify-center space-x-2 pr-6">
+        <div className="flex items-center justify-center space-x-2">
           <DeficitIcon className={`w-6 h-6 ${color}`} />
           <h3 className="text-lg font-semibold text-warm-text">Today's Deficit</h3>
         </div>

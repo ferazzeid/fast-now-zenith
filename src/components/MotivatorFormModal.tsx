@@ -60,17 +60,12 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       return;
     }
 
-    // Debug logging for image URL
-    console.log('🔍 MotivatorFormModal: Saving with imageUrl:', imageUrl);
-
     const motivatorData: Motivator = {
       id: motivator?.id || tempMotivatorId || '',
       title: title.trim(),
       content: content.trim(),
       imageUrl: imageUrl || undefined
     };
-
-    console.log('🔍 MotivatorFormModal: Final motivator data:', motivatorData);
 
     // If we have a temporary motivator, update it instead of creating new
     if (tempMotivatorId && !motivator?.id) {
@@ -86,7 +81,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         
         // Include the temp ID in the data for the parent component
         motivatorData.id = tempMotivatorId;
-        console.log('🔍 Updated temporary motivator with image_url:', motivatorData.imageUrl);
       } catch (error) {
         console.error('Error updating temporary motivator:', error);
       }
