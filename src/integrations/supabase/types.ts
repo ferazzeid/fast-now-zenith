@@ -2016,12 +2016,14 @@ export type Database = {
         Returns: string
       }
       track_usage_event: {
-        Args: {
-          _event_type: string
-          _requests_count?: number
-          _subscription_status?: string
-          _user_id: string
-        }
+        Args:
+          | {
+              _event_type: string
+              _requests_count?: number
+              _subscription_status?: string
+              _user_id: string
+            }
+          | { _event_type: string; _requests_count?: number; _user_id: string }
         Returns: undefined
       }
       update_subscription_from_receipt: {

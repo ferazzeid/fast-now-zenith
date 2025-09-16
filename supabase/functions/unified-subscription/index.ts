@@ -190,7 +190,7 @@ async function handleCheckSubscription(
 
       return new Response(JSON.stringify({
         subscribed: isActive,
-        subscription_tier: isActive ? 'premium' : 'free',
+        access_level: profile?.access_level || 'free',
         payment_provider: profile?.payment_provider || provider,
         subscription_end_date: profile?.subscription_end_date
       }), {

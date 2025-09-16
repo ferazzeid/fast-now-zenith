@@ -120,7 +120,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       success: validationResult.isValid,
-      subscription_status: validationResult.status,
+      status: validationResult.status,
       expires_at: validationResult.expiresAt
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
