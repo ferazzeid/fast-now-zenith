@@ -49,12 +49,11 @@ serve(async (req) => {
 
     console.log('Monthly usage reset completed');
 
-    // Log the reset event
+    // Log the reset event  
     await supabase.rpc('track_usage_event', {
       _user_id: null,
       _event_type: 'monthly_reset',
-      _requests_count: null,
-      _subscription_status: 'system'
+      _requests_count: null
     });
 
     const corsHeaders = buildCorsHeaders(req.headers.get('origin'));

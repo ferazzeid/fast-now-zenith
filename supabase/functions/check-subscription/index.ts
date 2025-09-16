@@ -76,20 +76,18 @@ serve(async (req) => {
     
     if (customers.data.length === 0) {
       logStep("No customer found, updating free status");
-      await supabaseClient.from("profiles").upsert({
-        user_id: user.id,
-        subscription_status: "free",
-        subscription_tier: "free",
-        stripe_customer_id: null,
-        subscription_end_date: null,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
+    await supabaseClient.from("profiles").upsert({
+      user_id: user.id,
+      access_level: "free",
+      payment_provider: null,
+      subscription_end_date: null,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
       
     const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
     return new Response(JSON.stringify({ 
         subscribed: false, 
-        subscription_status: "free",
-        subscription_tier: "free" 
+        access_level: "free"
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
@@ -121,8 +119,8 @@ serve(async (req) => {
 
     await supabaseClient.from("profiles").upsert({
       user_id: user.id,
-      subscription_status: hasActiveSub ? "active" : "free",
-      subscription_tier: hasActiveSub ? "premium" : "free",
+      access_level: hasActiveSub ? "premium" : "free",
+      premium_expires_at: subscriptionEndDate,
       stripe_customer_id: customerId,
       subscription_end_date: subscriptionEndDate,
       updated_at: new Date().toISOString(),
@@ -135,8 +133,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({
       subscribed: hasActiveSub,
-      subscription_status: hasActiveSub ? "active" : "free",
-      subscription_tier: hasActiveSub ? "premium" : "free",
+      access_level: hasActiveSub ? "premium" : "free",
       subscription_end_date: subscriptionEndDate
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

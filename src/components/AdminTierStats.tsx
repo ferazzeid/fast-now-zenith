@@ -28,8 +28,7 @@ export const AdminTierStats = () => {
         .from('profiles')
         .select(`
           access_level,
-          trial_ends_at,
-          subscription_status,
+          premium_expires_at,
           last_activity_at
         `);
 
@@ -49,20 +48,22 @@ export const AdminTierStats = () => {
       data?.forEach(profile => {
         const isActive = profile.last_activity_at && new Date(profile.last_activity_at) > sevenDaysAgo;
         
-        // Determine user tier based on access_level system
+        // Determine user tier based on unified access system
         let userTier: 'free' | 'trial' | 'paid';
         
         if (profile.access_level === 'admin') {
           // Admin users are always considered paid
           userTier = 'paid';
-        } else if (profile.subscription_status === 'active' || profile.subscription_status === 'trialing') {
-          // Users with active subscriptions
-          userTier = 'paid';
-        } else if (profile.trial_ends_at && new Date(profile.trial_ends_at) > now) {
-          // Users currently in trial period
-          userTier = 'trial';
+        } else if (profile.access_level === 'premium') {
+          // Check if premium is expired
+          const isExpired = profile.premium_expires_at ? new Date(profile.premium_expires_at) < now : false;
+          userTier = isExpired ? 'free' : 'paid';
+        } else if (profile.access_level === 'trial') {
+          // Check if trial is expired
+          const isExpired = profile.premium_expires_at ? new Date(profile.premium_expires_at) < now : false;
+          userTier = isExpired ? 'free' : 'trial';
         } else {
-          // Free users (trial ended or never started)
+          // Free users
           userTier = 'free';
         }
 

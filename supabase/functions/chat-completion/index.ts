@@ -1146,8 +1146,7 @@ Keep responses brief and action-focused. Always use function calls for food oper
       await supabase.rpc('track_usage_event', {
         _user_id: userId,
         _event_type: 'chat_completion',
-        _requests_count: 1,
-        _subscription_status: profile.subscription_status
+        _requests_count: 1
       });
     } catch (e) {
       console.warn('Non-blocking: failed to log usage analytics', e);

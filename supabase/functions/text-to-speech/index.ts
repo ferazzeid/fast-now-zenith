@@ -75,10 +75,10 @@ serve(async (req) => {
       });
     }
 
-    // Get user profile and check subscription status
+    // Get user profile and check access
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
+      .select('monthly_ai_requests, access_level, premium_expires_at')
       .eq('user_id', userId)
       .single();
 
@@ -106,7 +106,7 @@ serve(async (req) => {
     // Check access permissions and limits
     if (effectiveLevel === 'trial') {
       if (profile.monthly_ai_requests >= trialLimit) {
-        throw new Error('Your free trial has ended. Upgrade to premium to continue using AI features.');
+        throw new Error('You\'ve used all your trial AI requests. Upgrade to premium to continue using AI features.');
       }
     } else if (effectiveLevel === 'premium') {
       if (profile.monthly_ai_requests >= premiumLimit) {
@@ -185,8 +185,7 @@ serve(async (req) => {
       await supabase.rpc('track_usage_event', {
         _user_id: userId,
         _event_type: 'text_to_speech',
-        _requests_count: 1,
-        _subscription_status: profile.subscription_status
+        _requests_count: 1
       });
     } catch (e) {
       console.warn('Non-blocking: failed to increment usage tracking', e);

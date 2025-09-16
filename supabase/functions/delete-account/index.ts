@@ -53,15 +53,17 @@ serve(async (req) => {
     if (!user?.id || !user?.email) throw new Error("User not authenticated or missing user data");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user has an active subscription
+    // Check if user has an active subscription  
     const { data: profile } = await supabaseService
       .from('profiles')
-      .select('subscription_status, subscription_end_date')
+      .select('access_level, premium_expires_at, subscription_end_date')
       .eq('user_id', user.id)
       .single();
 
-    const hasActiveSubscription = profile?.subscription_status === 'active';
-    logStep("Subscription check", { hasActiveSubscription, status: profile?.subscription_status });
+    const now = new Date();
+    const isExpired = profile?.premium_expires_at ? new Date(profile.premium_expires_at) < now : false;
+    const hasActiveSubscription = profile?.access_level === 'premium' && !isExpired;
+    logStep("Subscription check", { hasActiveSubscription, access_level: profile?.access_level });
 
     if (hasActiveSubscription) {
       // Schedule deletion for subscription end date
@@ -83,7 +85,7 @@ serve(async (req) => {
       await supabaseService
         .from('profiles')
         .update({
-          subscription_status: 'canceled'
+          access_level: 'free'
         })
         .eq('user_id', user.id);
 

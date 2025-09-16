@@ -1278,7 +1278,6 @@ export type Database = {
           google_play_purchase_token: string | null
           height: number | null
           id: string
-          is_paid_user: boolean | null
           last_activity_at: string | null
           manual_tdee_override: number | null
           monthly_ai_requests: number | null
@@ -1294,8 +1293,6 @@ export type Database = {
           stripe_customer_id: string | null
           subscription_end_date: string | null
           subscription_product_id: string | null
-          subscription_status: string | null
-          subscription_tier: string | null
           target_deficit: number | null
           transcription_model: string | null
           trial_ends_at: string | null
@@ -1329,7 +1326,6 @@ export type Database = {
           google_play_purchase_token?: string | null
           height?: number | null
           id?: string
-          is_paid_user?: boolean | null
           last_activity_at?: string | null
           manual_tdee_override?: number | null
           monthly_ai_requests?: number | null
@@ -1345,8 +1341,6 @@ export type Database = {
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
           subscription_product_id?: string | null
-          subscription_status?: string | null
-          subscription_tier?: string | null
           target_deficit?: number | null
           transcription_model?: string | null
           trial_ends_at?: string | null
@@ -1380,7 +1374,6 @@ export type Database = {
           google_play_purchase_token?: string | null
           height?: number | null
           id?: string
-          is_paid_user?: boolean | null
           last_activity_at?: string | null
           manual_tdee_override?: number | null
           monthly_ai_requests?: number | null
@@ -1396,8 +1389,6 @@ export type Database = {
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
           subscription_product_id?: string | null
-          subscription_status?: string | null
-          subscription_tier?: string | null
           target_deficit?: number | null
           transcription_model?: string | null
           trial_ends_at?: string | null
@@ -1753,7 +1744,6 @@ export type Database = {
           event_type: string
           id: string
           requests_count: number | null
-          subscription_status: string | null
           user_id: string | null
         }
         Insert: {
@@ -1761,7 +1751,6 @@ export type Database = {
           event_type: string
           id?: string
           requests_count?: number | null
-          subscription_status?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1769,7 +1758,6 @@ export type Database = {
           event_type?: string
           id?: string
           requests_count?: number | null
-          subscription_status?: string | null
           user_id?: string | null
         }
         Relationships: []

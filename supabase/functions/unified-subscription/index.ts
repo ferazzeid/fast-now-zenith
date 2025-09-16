@@ -180,13 +180,17 @@ async function handleCheckSubscription(
       // For native apps, just return current subscription status from database
       const { data: profile } = await supabaseClient
         .from('profiles')
-        .select('subscription_status, subscription_tier, payment_provider, subscription_end_date')
+        .select('access_level, premium_expires_at, payment_provider, subscription_end_date')
         .eq('user_id', user.id)
         .single();
 
+      const now = new Date();
+      const isExpired = profile?.premium_expires_at ? new Date(profile.premium_expires_at) < now : false;
+      const isActive = profile?.access_level === 'premium' && !isExpired;
+
       return new Response(JSON.stringify({
-        subscribed: profile?.subscription_status === 'active',
-        subscription_tier: profile?.subscription_tier || 'free',
+        subscribed: isActive,
+        subscription_tier: isActive ? 'premium' : 'free',
         payment_provider: profile?.payment_provider || provider,
         subscription_end_date: profile?.subscription_end_date
       }), {

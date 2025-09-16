@@ -26,11 +26,10 @@ import { AdminQuoteSettings } from '@/components/AdminQuoteSettings';
 interface User {
   user_id: string;
   display_name: string;
-  is_paid_user: boolean;
+  access_level: string;
   monthly_ai_requests: number;
   created_at: string;
-  subscription_status: string;
-  user_tier: string;
+  premium_expires_at: string;
 }
 
 interface UsageStats {
@@ -64,7 +63,7 @@ const AdminOverview = () => {
       // Fetch users from profiles table for stats only
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('user_id, is_paid_user, monthly_ai_requests, created_at')
+        .select('user_id, access_level, premium_expires_at, monthly_ai_requests, created_at')
         .order('created_at', { ascending: false });
 
       if (usersError) {
@@ -93,6 +92,7 @@ const AdminOverview = () => {
 
       // Calculate usage stats
       if (usersData) {
+        const now = new Date();
         const stats = {
           total_users: usersData.length,
           active_users: usersData.filter(user => {
@@ -100,7 +100,14 @@ const AdminOverview = () => {
             lastWeek.setDate(lastWeek.getDate() - 7);
             return new Date(user.created_at) > lastWeek;
           }).length,
-          paid_users: usersData.filter(user => user.is_paid_user).length,
+          paid_users: usersData.filter(user => {
+            if (user.access_level === 'admin') return true;
+            if (user.access_level === 'premium') {
+              // Check if premium is not expired
+              return !user.premium_expires_at || new Date(user.premium_expires_at) > now;
+            }
+            return false;
+          }).length,
           total_requests: usersData.reduce((sum, user) => sum + (user.monthly_ai_requests || 0), 0)
         };
         setUsageStats(stats);

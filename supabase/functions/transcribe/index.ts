@@ -199,10 +199,10 @@ serve(async (req) => {
       });
     }
 
-    // Get user profile and check subscription status
+    // Get user profile and check access
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('monthly_ai_requests, subscription_status, access_level, premium_expires_at')
+      .select('monthly_ai_requests, access_level, premium_expires_at')
       .eq('user_id', userId)
       .single();
 
@@ -278,7 +278,7 @@ serve(async (req) => {
       
       let errorMessage;
       if (limitType === 'trial') {
-        errorMessage = `You've used all ${currentLimit} trial AI requests this month. Upgrade to premium for ${premiumLimit} monthly requests. Your trial limit will reset on ${resetDateString}.`;
+        errorMessage = `You've used all ${currentLimit} trial AI requests. Upgrade to premium for ${premiumLimit} monthly requests.`;
       } else {
         errorMessage = `You've used all ${currentLimit} premium AI requests this month. Your limit will reset on ${resetDateString}.`;
       }
@@ -415,8 +415,7 @@ serve(async (req) => {
       await supabase.rpc('track_usage_event', {
         _user_id: userId,
         _event_type: 'transcription',
-        _requests_count: 1,
-        _subscription_status: profile.subscription_status
+        _requests_count: 1
       });
     } catch (e) {
       console.warn('Non-blocking: failed to log usage analytics', e);

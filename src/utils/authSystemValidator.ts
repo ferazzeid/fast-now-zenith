@@ -29,7 +29,7 @@ export const validateAuthSystem = async (userId: string): Promise<AuthSystemStat
     // Test 2: Check profiles.access_level
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('access_level, subscription_tier')
+      .select('access_level')
       .eq('user_id', userId)
       .single();
       
