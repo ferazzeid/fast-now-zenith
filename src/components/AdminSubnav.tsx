@@ -3,6 +3,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const items = [
+  { label: "Data", to: "/admin/data" },
   { label: "OPS", to: "/admin/operations" },
   { label: "Content", to: "/admin/content" },
   { label: "AI", to: "/admin/ai" },

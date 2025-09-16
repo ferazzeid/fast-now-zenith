@@ -1,10 +1,6 @@
 import React from "react";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
-import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
-
-import { AdminTierStats } from "@/components/AdminTierStats";
-
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
@@ -26,14 +22,6 @@ export default function AdminOperations() {
 
         <section aria-label="App mode settings">
           <AdminAppModeSwitcher />
-        </section>
-
-        <section aria-label="Real-time analytics">
-          <SimpleAnalyticsWidget />
-        </section>
-
-        <section aria-label="User tiers overview">
-          <AdminTierStats />
         </section>
 
         <section aria-label="Animation settings">

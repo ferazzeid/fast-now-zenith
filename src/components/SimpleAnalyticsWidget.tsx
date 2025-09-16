@@ -104,7 +104,7 @@ export const SimpleAnalyticsWidget = () => {
             {/* Users Today */}
             <div className="space-y-3">
               <div className="h-6 flex items-center justify-center">
-                <span className="text-sm font-medium text-foreground">Users Today</span>
+                <span className="text-xs font-medium text-foreground">Users Today</span>
               </div>
               <div className="p-2 bg-muted/50 rounded-lg text-center">
                 <span className="text-sm font-semibold text-foreground">{analytics?.usersToday}</span>
@@ -114,7 +114,7 @@ export const SimpleAnalyticsWidget = () => {
             {/* Active Fasting */}
             <div className="space-y-3">
               <div className="h-6 flex items-center justify-center">
-                <span className="text-sm font-medium text-foreground">Active Fasting</span>
+                <span className="text-xs font-medium text-foreground">Active Fasting</span>
               </div>
               <div className="p-2 bg-muted/50 rounded-lg text-center">
                 <span className="text-sm font-semibold text-foreground">{analytics?.activeFasting}</span>
@@ -124,7 +124,7 @@ export const SimpleAnalyticsWidget = () => {
             {/* Active Walking */}
             <div className="space-y-3">
               <div className="h-6 flex items-center justify-center">
-                <span className="text-sm font-medium text-foreground">Active Walking</span>
+                <span className="text-xs font-medium text-foreground">Active Walking</span>
               </div>
               <div className="p-2 bg-muted/50 rounded-lg text-center">
                 <span className="text-sm font-semibold text-foreground">{analytics?.activeWalking}</span>
@@ -134,7 +134,7 @@ export const SimpleAnalyticsWidget = () => {
             {/* Food Logging */}
             <div className="space-y-3">
               <div className="h-6 flex items-center justify-center">
-                <span className="text-sm font-medium text-foreground">Food Logging</span>
+                <span className="text-xs font-medium text-foreground">Food Logging</span>
               </div>
               <div className="p-2 bg-muted/50 rounded-lg text-center">
                 <span className="text-sm font-semibold text-foreground">{analytics?.activeFoodLogging}</span>
