@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 function SharedKeySettings() {
   const [sharedKey, setSharedKey] = useState("");
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const { toast } = useToast();
   const { isLoading, execute } = useStandardizedLoading();
 
@@ -22,10 +23,16 @@ function SharedKeySettings() {
     execute(async () => {
       const { data, error } = await supabase
         .from('shared_settings')
-        .select('setting_value')
+        .select('setting_value, updated_at')
         .eq('setting_key', 'shared_api_key')
         .maybeSingle();
-      if (!error && data?.setting_value) setSharedKey(data.setting_value);
+      
+      if (!error && data) {
+        if (data.setting_value) setSharedKey(data.setting_value);
+        if (data.updated_at) {
+          setLastUpdated(new Date(data.updated_at).toLocaleString());
+        }
+      }
       return data;
     });
   }, [execute]);
@@ -36,6 +43,9 @@ function SharedKeySettings() {
         .from('shared_settings')
         .upsert({ setting_key: 'shared_api_key', setting_value: sharedKey });
       if (error) throw error;
+      
+      // Update the timestamp after successful save
+      setLastUpdated(new Date().toLocaleString());
       return true;
     }, {
       onSuccess: () => {
@@ -68,6 +78,11 @@ function SharedKeySettings() {
         <Button onClick={save} className="w-full sm:w-auto" disabled={isLoading}>
           {isLoading ? "Saving..." : "Save"}
         </Button>
+        {lastUpdated && (
+          <div className="text-xs text-muted-foreground mt-2">
+            Last saved: {lastUpdated}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
