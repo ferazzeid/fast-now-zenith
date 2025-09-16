@@ -106,10 +106,10 @@ export const AdminTierStats = () => {
               </div>
               <div className="space-y-2">
                 <div className="p-2 bg-muted/50 rounded-lg">
-                  <span className="text-xs text-muted-foreground">Active Users</span>
+                  <span className="text-xs text-muted-foreground">Active</span>
                 </div>
                 <div className="p-2 bg-muted/50 rounded-lg">
-                  <span className="text-xs text-muted-foreground">Inactive Users</span>
+                  <span className="text-xs text-muted-foreground">Inactive</span>
                 </div>
                 <div className="p-2 bg-muted/50 rounded-lg">
                   <span className="text-xs text-muted-foreground">Total</span>
