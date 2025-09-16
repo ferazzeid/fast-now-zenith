@@ -288,6 +288,7 @@ const FoodTracking = () => {
                     calories: entry.calories,
                     carbs: entry.carbs,
                     serving_size: entry.serving_size,
+                    image_url: entry.image_url,
                     consumed: false
                   };
                   await addFoodEntry(duplicatedFood);

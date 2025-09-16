@@ -205,16 +205,12 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
     <>
       <Button 
         variant="outline"
-        size="sm"
-        className={cn(
-          "flex items-center gap-1 text-xs",
-          hasAccess ? '' : 'opacity-50'
-        )}
+        size="icon"
+        className="h-8 w-8 rounded-full shrink-0"
         onClick={handleButtonClick}
         title={hasAccess ? "Add food manually by typing" : "Manual text input (Premium Feature)"}
       >
-        <Plus className="w-3 h-3" />
-        {hasAccess ? <Type className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
+        {hasAccess ? <Type className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
       </Button>
 
       {/* Text Input Modal */}

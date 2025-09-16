@@ -51,7 +51,7 @@ const EnhancedColorManagement: React.FC = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          Enhanced Color Management
+          Colors
         </CardTitle>
       </CardHeader>
       <CardContent>
