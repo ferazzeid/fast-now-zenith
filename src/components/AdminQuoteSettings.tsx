@@ -173,7 +173,7 @@ export const AdminQuoteSettings: React.FC = () => {
     <>
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="text-base font-medium flex items-center justify-between">
             <span>Fasting Timer Quotes</span>
             <div className="flex items-center space-x-2">
               <Label htmlFor="fasting-quotes-toggle">Enable</Label>
@@ -235,7 +235,7 @@ export const AdminQuoteSettings: React.FC = () => {
 
       <Card className="mt-8">
         <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+          <CardTitle className="text-base font-medium flex items-center justify-between">
             <span>Walking Timer Quotes</span>
             <div className="flex items-center space-x-2">
               <Label htmlFor="walking-quotes-toggle">Enable</Label>

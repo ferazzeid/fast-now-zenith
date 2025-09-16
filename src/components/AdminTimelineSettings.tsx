@@ -335,8 +335,7 @@ export const AdminTimelineSettings = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-medium flex items-center gap-2">
-          <Clock className="w-4 h-4" />
+        <CardTitle className="text-base font-medium">
           Timeline Hours ({fastingHours.length}/72)
         </CardTitle>
         <CardDescription>
