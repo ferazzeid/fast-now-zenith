@@ -108,20 +108,21 @@ export const FoodLibraryView = ({
   const isInteractionSafe = !loading;
   const { toast } = useToast();
   
-  // Combined loading state (no longer includes default foods loading)
-  const isLoading = recentFoodsLoading;
+  // Combined loading state (includes default foods loading)
+  const isLoading = recentFoodsLoading || defaultFoodsLoading;
 
 
   useEffect(() => {
     const loadData = async () => {
       try {
         await Promise.all([
+          loadDefaultFoods(),
           loadDefaultFoodFavorites(),
           loadMyFoodFavorites(), // Load my food favorites like default food favorites
           checkAdminRole()
         ]);
       } finally {
-        // No longer need to set loading state
+        // Loading states handled by individual functions
       }
     };
     
@@ -167,6 +168,28 @@ export const FoodLibraryView = ({
   }, [recentFoods, myFoodFavorites]); // Use myFoodFavorites instead of optimisticFavorites
 
   // Remove old loadDefaultFoods function - now using static data
+
+  const loadDefaultFoods = async () => {
+    setDefaultFoodsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('default_foods')
+        .select('*');
+
+      if (error) throw error;
+
+      setDefaultFoods(data || []);
+    } catch (error) {
+      console.error('Error loading default foods:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load suggested foods",
+        variant: "destructive"
+      });
+    } finally {
+      setDefaultFoodsLoading(false);
+    }
+  };
 
   const loadMyFoodFavorites = async () => {
     if (!user) return;
