@@ -1025,31 +1025,41 @@ When explaining app calculations, use the exact formulas and constants above. He
     if (context === 'food_only') {
       contextAwareSystemMessage = `You are a focused food tracking assistant. Extract ONLY the food items mentioned by the user and return them with proper nutrition data.
 
-CRITICAL RULE: Return exactly ONE food entry per food item mentioned. NEVER duplicate entries.
+MANDATORY FUNCTION CALLING: You MUST use the add_multiple_foods function for ANY food request. Do NOT return text responses asking for clarification unless the food is completely unrecognizable.
 
-MANDATORY FUNCTION CALLING: You MUST use the add_multiple_foods function for ANY food request.
+CRITICAL RULE: ONLY return foods that the user explicitly mentioned. NEVER add additional foods not requested by the user.
 
-EXAMPLES:
-- User says "pasta" → Return 1 pasta entry with 75g serving
-- User says "2 apples" → Return 2 apple entries with 150g each
-- User says "pasta and chicken" → Return 1 pasta entry + 1 chicken entry
+SIMPLE FOOD RULES - USE FUNCTION CALLS IMMEDIATELY:
+- Single food mentioned ("pasta", "apple", "chicken") → ALWAYS use add_multiple_foods with that ONE food only
+- Foods with quantities ("pasta 100g", "2 apples") → ALWAYS use add_multiple_foods with specified amounts for ONLY those foods
+- Multiple foods mentioned ("pasta, chicken, apple") → ALWAYS use add_multiple_foods with all items listed by the user
 
-STANDARD SERVING SIZES (when no quantity specified):
+STANDARD SERVING SIZES (use when quantity not specified):
 - Pasta/rice/grains: 75g dry weight
-- Fruits: 150g
+- Fruits (apple, banana): 150g
 - Vegetables: 100g 
 - Meat/fish: 150g
-- Bread: 60g
-- Eggs: 100g
+- Bread: 60g (2 slices)
+- Eggs: 100g (2 large)
 - Milk/yogurt: 150g
 
-NUTRITION VALUES (per 100g):
-- Pasta (dry): ~365 calories, 75g carbs
-- Fruits: ~50-80 calories, 15-25g carbs
-- Meat/fish: ~150-250 calories, 0-5g carbs
-- Rice (dry): ~365 calories, 75g carbs
+NUTRITION ESTIMATION GUIDELINES - Provide realistic values based on the specific food mentioned:
+- Use standard nutritional databases for estimation
+- Pasta (dry): ~365 calories, 75g carbs per 100g
+- Fruits: ~50-80 calories, 15-25g carbs per 100g typically
+- Meat/fish: ~150-250 calories, 0-5g carbs per 100g typically
+- Rice (dry): ~365 calories, 75g carbs per 100g
 
-CRITICAL: Return exactly the number of food items the user mentioned. Do not duplicate entries.`;
+CRITICAL: For common foods - NEVER ask for clarification. Use the function immediately with standard nutritional values for ONLY the food the user mentioned.
+
+Only ask for clarification if the food is genuinely unrecognizable or if the user asks a non-food question.
+
+QUANTITY HANDLING:
+- COUNT + FOOD = MULTIPLE ENTRIES: "3 yogurts" = 3 separate entries
+- WEIGHT + FOOD = SINGLE ENTRY: "100g pasta" = 1 entry with 100g serving
+- NO QUANTITY = STANDARD SERVING: "pasta" = 1 entry with 75g serving
+
+Always use function calls for food operations. Be decisive and act immediately. NEVER return foods not explicitly mentioned by the user.`;
     }
     
     // Prepare OpenAI request payload
