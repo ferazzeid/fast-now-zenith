@@ -284,7 +284,7 @@ const FoodTracking = () => {
               onClick={async () => {
                 try {
                   const duplicatedFood = {
-                    name: `${entry.name} (copy)`,
+                    name: entry.name,
                     calories: entry.calories,
                     carbs: entry.carbs,
                     serving_size: entry.serving_size,

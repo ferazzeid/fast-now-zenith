@@ -838,6 +838,20 @@ const Settings = () => {
                 </div>
               </div>
             </Card>
+
+            {/* Disclaimer */}
+            <Card className="p-6 bg-card">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Key className="w-5 h-5 text-primary" />
+                  <h3 className="text-lg font-semibold text-warm-text">Disclaimer</h3>
+                </div>
+                
+                <p className="text-sm text-muted-foreground">
+                  This app is not a health or medical application. It is designed for informational and tracking purposes only. Always consult with a qualified healthcare professional before making any changes to your diet, exercise routine, or health regimen. Do not use this app as a substitute for professional medical advice, diagnosis, or treatment.
+                </p>
+              </div>
+            </Card>
         </div>
 
         {/* Modals */}
