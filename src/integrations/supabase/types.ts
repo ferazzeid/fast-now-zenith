@@ -308,39 +308,6 @@ export type Database = {
         }
         Relationships: []
       }
-      conversation_summaries: {
-        Row: {
-          created_at: string | null
-          date_range_end: string
-          date_range_start: string
-          id: string
-          relevance_score: number | null
-          summary_data: Json
-          summary_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          date_range_end: string
-          date_range_start: string
-          id?: string
-          relevance_score?: number | null
-          summary_data: Json
-          summary_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          date_range_end?: string
-          date_range_start?: string
-          id?: string
-          relevance_score?: number | null
-          summary_data?: Json
-          summary_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       coupon_codes: {
         Row: {
           code: string
@@ -882,39 +849,6 @@ export type Database = {
           id?: string
           setting_key?: string
           setting_value?: Json
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      home_steps: {
-        Row: {
-          created_at: string
-          description: string
-          display_order: number
-          icon_name: string | null
-          id: string
-          is_active: boolean
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description: string
-          display_order?: number
-          icon_name?: string | null
-          id?: string
-          is_active?: boolean
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string
-          display_order?: number
-          icon_name?: string | null
-          id?: string
-          is_active?: boolean
-          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -1860,27 +1794,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_roles: {
-        Row: {
-          created_at: string
-          id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
-        }
-        Relationships: []
-      }
       walking_sessions: {
         Row: {
           calories_burned: number | null
@@ -2047,7 +1960,6 @@ export type Database = {
         | "free_full"
         | "free_food_only"
         | "user"
-      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2184,7 +2096,6 @@ export const Constants = {
         "free_food_only",
         "user",
       ],
-      app_role: ["admin", "user"],
     },
   },
 } as const

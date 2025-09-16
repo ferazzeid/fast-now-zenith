@@ -37,16 +37,7 @@ export const validateAuthSystem = async (userId: string): Promise<AuthSystemStat
       errors.push(`Profile access check failed: ${profileError.message}`);
     }
     
-    // Test 3: Check for legacy admin systems (should not be used)
-    const { data: roleData, error: roleError } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', userId)
-      .eq('role', 'admin');
-      
-    if (!roleError && roleData && roleData.length > 0) {
-      warnings.push('Legacy user_roles admin entry found - should be migrated to access_level');
-    }
+    // Test 3: Legacy admin systems have been cleaned up - skip check
     
     // Test 4: Check RLS policy on shared_settings (this was the original issue)
     const { error: settingsError } = await supabase

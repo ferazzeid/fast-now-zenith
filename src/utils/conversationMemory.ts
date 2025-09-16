@@ -270,38 +270,14 @@ export class ConversationMemoryManager {
   }
 
   // Load relevant conversation summaries for context
+  // Note: conversation_summaries table has been removed as part of legacy cleanup
   async loadRelevantSummaries(summaryTypes: string[] = ['food_patterns', 'preferences']): Promise<ConversationSummary[]> {
-    if (!this.userId) return [];
-
-    try {
-      const { data, error } = await supabase
-        .from('conversation_summaries')
-        .select('*')
-        .eq('user_id', this.userId)
-        .in('summary_type', summaryTypes)
-        .order('relevance_score', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        console.error('Error loading conversation summaries:', error);
-        return [];
-      }
-
-      return data?.map(item => ({
-        summary_type: item.summary_type as 'daily' | 'weekly' | 'food_patterns' | 'preferences',
-        summary_data: item.summary_data as Record<string, any>,
-        date_range_start: item.date_range_start,
-        date_range_end: item.date_range_end,
-        relevance_score: item.relevance_score
-      })) || [];
-    } catch (error) {
-      console.error('Failed to load conversation summaries:', error);
-      return [];
-    }
+    // Legacy feature - return empty array
+    return [];
   }
 
   // Create a conversation summary for long-term storage
+  // Note: conversation_summaries table has been removed as part of legacy cleanup
   async createConversationSummary(
     summaryType: 'daily' | 'weekly' | 'food_patterns' | 'preferences',
     summaryData: Record<string, any>,
@@ -309,26 +285,8 @@ export class ConversationMemoryManager {
     dateRangeEnd: Date,
     relevanceScore: number = 100
   ) {
-    if (!this.userId) return;
-
-    try {
-      const { error } = await supabase
-        .from('conversation_summaries')
-        .insert({
-          user_id: this.userId,
-          summary_type: summaryType,
-          summary_data: summaryData,
-          date_range_start: dateRangeStart.toISOString().split('T')[0],
-          date_range_end: dateRangeEnd.toISOString().split('T')[0],
-          relevance_score: relevanceScore
-        });
-
-      if (error) {
-        console.error('Error creating conversation summary:', error);
-      }
-    } catch (error) {
-      console.error('Failed to create conversation summary:', error);
-    }
+    // Legacy feature - this method is kept for compatibility but does nothing
+    return;
   }
 
   // Add clarification state tracking
