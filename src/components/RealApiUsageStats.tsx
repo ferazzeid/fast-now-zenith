@@ -92,11 +92,9 @@ export const RealApiUsageStats = ({ className }: RealApiUsageStatsProps) => {
     const pricing: Record<string, { input: number; output: number }> = {
       'gpt-4o': { input: 0.0025, output: 0.01 },
       'gpt-4o-mini': { input: 0.00015, output: 0.0006 },
-      'gpt-4-turbo': { input: 0.01, output: 0.03 },
       'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 },
       'whisper-1': { input: 0.006, output: 0 }, // per minute
       'tts-1': { input: 0.015, output: 0 }, // per 1K characters
-      'dall-e-3': { input: 0.04, output: 0 } // per image
     };
 
     const modelPricing = pricing[model] || pricing['gpt-4o-mini'];

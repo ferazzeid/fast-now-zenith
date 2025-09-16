@@ -35,10 +35,6 @@ import { useUnifiedCacheManager } from '@/hooks/useUnifiedCacheManager';
 const Settings = () => {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [speechModel, setSpeechModel] = useState('gpt-4o-mini-realtime');
-  const [transcriptionModel, setTranscriptionModel] = useState('whisper-1');
-  const [ttsModel, setTtsModel] = useState('tts-1');
-  const [ttsVoice, setTtsVoice] = useState('alloy');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
   const [age, setAge] = useState('');
@@ -75,7 +71,7 @@ const Settings = () => {
         try {
           const { data: profileData, error } = await supabase
             .from('profiles')
-            .select('speech_model, transcription_model, tts_model, tts_voice, weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, manual_tdee_override, target_deficit, enable_fasting_slideshow, enable_walking_slideshow, primary_color')
+            .select('weight, height, age, sex, daily_calorie_goal, daily_carb_goal, activity_level, manual_tdee_override, target_deficit, enable_fasting_slideshow, enable_walking_slideshow, primary_color')
             .eq('user_id', user.id)
             .maybeSingle() as { data: any; error: any };
 
@@ -86,10 +82,6 @@ const Settings = () => {
 
         if (profileData) {
           // Profile data is now managed by useProfile hook, but we still need to set form fields
-          setSpeechModel(profileData.speech_model || 'gpt-4o-mini-realtime');
-          setTranscriptionModel(profileData.transcription_model || 'whisper-1');
-          setTtsModel(profileData.tts_model || 'tts-1');
-          setTtsVoice(profileData.tts_voice || 'alloy');
           setWeight(profileData.weight?.toString() || '');
           setHeight(profileData.height?.toString() || '');
           setAge(profileData.age?.toString() || '');
@@ -272,10 +264,6 @@ const Settings = () => {
           const { calculatedCalorieGoal, calculatedCarbGoal } = getCalculatedGoals();
           
           const updateData = {
-            speech_model: speechModel,
-            transcription_model: transcriptionModel,
-            tts_model: ttsModel,
-            tts_voice: ttsVoice,
             weight: weight ? parseFloat(weight) : null,
             height: height ? parseInt(height) : null,
             age: age ? parseInt(age) : null,

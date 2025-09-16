@@ -50,8 +50,7 @@ export function AdminCurrentModels() {
         </div>
         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
           <p className="text-xs text-blue-700 dark:text-blue-300">
-            <strong>Cost Optimization:</strong> Both voice parsing and image analysis use gpt-4o-mini for 90% cost savings. 
-            Voice parsing was switched from gpt-4.1-2025-04-14 to achieve similar accuracy at much lower cost.
+            <strong>Cost Optimization:</strong> All AI features use gpt-4o-mini for optimal cost efficiency while maintaining accuracy.
           </p>
         </div>
       </CardContent>

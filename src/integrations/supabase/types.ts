@@ -1272,7 +1272,6 @@ export type Database = {
           enable_ceramic_animations: boolean | null
           enable_daily_reset: boolean | null
           enable_fasting_slideshow: boolean | null
-          enable_food_image_generation: boolean | null
           enable_walking_slideshow: boolean | null
           goal_weight: number | null
           google_play_purchase_token: string | null
@@ -1289,15 +1288,12 @@ export type Database = {
           premium_expires_at: string | null
           primary_color: string | null
           sex: string | null
-          speech_model: string | null
           stripe_customer_id: string | null
           subscription_end_date: string | null
           subscription_product_id: string | null
           target_deficit: number | null
-          transcription_model: string | null
           trial_ends_at: string | null
           trial_started_at: string | null
-          tts_model: string | null
           tts_voice: string | null
           units: string | null
           updated_at: string
@@ -1320,7 +1316,6 @@ export type Database = {
           enable_ceramic_animations?: boolean | null
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
-          enable_food_image_generation?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
@@ -1337,15 +1332,12 @@ export type Database = {
           premium_expires_at?: string | null
           primary_color?: string | null
           sex?: string | null
-          speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
           subscription_product_id?: string | null
           target_deficit?: number | null
-          transcription_model?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
-          tts_model?: string | null
           tts_voice?: string | null
           units?: string | null
           updated_at?: string
@@ -1368,7 +1360,6 @@ export type Database = {
           enable_ceramic_animations?: boolean | null
           enable_daily_reset?: boolean | null
           enable_fasting_slideshow?: boolean | null
-          enable_food_image_generation?: boolean | null
           enable_walking_slideshow?: boolean | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
@@ -1385,15 +1376,12 @@ export type Database = {
           premium_expires_at?: string | null
           primary_color?: string | null
           sex?: string | null
-          speech_model?: string | null
           stripe_customer_id?: string | null
           subscription_end_date?: string | null
           subscription_product_id?: string | null
           target_deficit?: number | null
-          transcription_model?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
-          tts_model?: string | null
           tts_voice?: string | null
           units?: string | null
           updated_at?: string
