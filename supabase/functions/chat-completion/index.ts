@@ -81,8 +81,14 @@ serve(async (req) => {
     const userId = user.user.id;
 
     // 🔒 PROTECTED: Enforce burst limit using protected config
-    if (!checkBurstLimit(`${userId}:chat-completion`, PROTECTED_OPENAI_CONFIG.BURST_LIMIT, PROTECTED_OPENAI_CONFIG.BURST_WINDOW_MS)) {
-      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
+    const burstKey = `${userId}:chat-completion`;
+    if (!checkBurstLimit(burstKey, PROTECTED_OPENAI_CONFIG.BURST_LIMIT, PROTECTED_OPENAI_CONFIG.BURST_WINDOW_MS)) {
+      console.error(`🚫 Burst limit exceeded for user ${userId}. Key: ${burstKey}`);
+      return new Response(JSON.stringify({ 
+        error: 'Too many requests. Please slow down.',
+        details: `Maximum ${PROTECTED_OPENAI_CONFIG.BURST_LIMIT} requests per ${PROTECTED_OPENAI_CONFIG.BURST_WINDOW_MS/1000} seconds`,
+        retry_after: Math.ceil(PROTECTED_OPENAI_CONFIG.BURST_WINDOW_MS/1000)
+      }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -1451,7 +1457,24 @@ Always use function calls for food operations. Be decisive and act immediately. 
               
               if (!nutritionValid) {
                 console.error(`❌ Nutrition validation failed for foods: ${invalidFoods.join(', ')}`);
-                functionCall = null;
+                
+                // Instead of nullifying, provide helpful error message
+                const errorResponse = {
+                  completion: `I found some issues with the nutrition data for these foods: ${invalidFoods.join(', ')}. Could you provide more details about these items so I can give you accurate nutrition information?`,
+                  functionCall: null,
+                  validation_error: true,
+                  invalid_foods: invalidFoods
+                };
+                
+                return new Response(
+                  JSON.stringify(errorResponse),
+                  { 
+                    headers: { 
+                      ...corsHeaders, 
+                      'Content-Type': 'application/json' 
+                    } 
+                  }
+                );
               } else {
                 console.log('✅ Nutrition validation passed for all foods');
               }

@@ -191,13 +191,19 @@ serve(async (req) => {
 
     const userId = userData.user.id;
 
-    // Enforce soft burst limit: 5 requests / 10 seconds per user
-    if (!checkBurstLimit(`${userId}:transcribe`, 5, 10_000)) {
-      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }), {
-        status: 429,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+      // Enforce soft burst limit: 5 requests / 10 seconds per user
+      const burstKey = `${userId}:transcribe`;
+      if (!checkBurstLimit(burstKey, 5, 10_000)) {
+        console.error(`🚫 Transcribe burst limit exceeded for user ${userId}. Key: ${burstKey}`);
+        return new Response(JSON.stringify({ 
+          error: 'Too many transcription requests. Please slow down.',
+          details: 'Maximum 5 requests per 10 seconds',
+          retry_after: 10
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
 
     // Get user profile and check access
     const { data: profile, error: profileError } = await supabase
@@ -367,6 +373,8 @@ serve(async (req) => {
     formData.append('language', 'en');
 
     // Send to OpenAI Whisper API
+    console.log('🎤 Sending to OpenAI Whisper API...');
+    const whisperStartTime = Date.now();
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
@@ -375,19 +383,28 @@ serve(async (req) => {
       body: formData,
     });
 
+    const whisperEndTime = Date.now();
+    console.log(`🎤 Whisper API took ${whisperEndTime - whisperStartTime}ms`);
+
     if (!response.ok) {
       console.error('OpenAI API error. Status:', response.status);
+      console.error('Response headers:', Object.fromEntries(response.headers.entries()));
+      let errorDetails;
       try {
-        const errorData = await response.json();
-        console.error('OpenAI API error details:', errorData);
+        errorDetails = await response.json();
+        console.error('OpenAI API error details:', errorDetails);
       } catch (_) {
-        console.error('OpenAI API error: non-JSON response');
+        const errorText = await response.text();
+        console.error('OpenAI API error text:', errorText);
+        errorDetails = { error: errorText };
       }
       
       return new Response(
         JSON.stringify({ 
           error: 'Transcription service error', 
-          details: `OpenAI API returned status ${response.status}` 
+          details: `OpenAI API returned status ${response.status}`,
+          whisper_error: errorDetails,
+          processing_time_ms: whisperEndTime - whisperStartTime
         }),
         { 
           status: 500, 
