@@ -69,12 +69,12 @@ export const DirectInlineVoiceButton = ({
   } else if (isProcessing) {
     IconComponent = Loader2;
     iconClass += " animate-spin";
-    buttonClass += " bg-ai text-ai-foreground";
+    buttonClass += " bg-primary text-primary-foreground";
   } else if (isRecording) {
     IconComponent = Mic;
     buttonClass += " bg-red-500 text-white animate-pulse";
   } else {
-    buttonClass += " bg-ai hover:bg-ai/90 text-ai-foreground";
+    buttonClass += " bg-primary hover:bg-primary/90 text-primary-foreground";
   }
 
   return (

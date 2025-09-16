@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { AdminTierStats } from "@/components/AdminTierStats";
-import { ColorManagement } from "@/components/ColorManagement";
 import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { SimpleAnalyticsWidget } from "@/components/SimpleAnalyticsWidget";
 import { AdminSEOSettings } from "@/components/AdminSEOSettings";
@@ -357,9 +356,6 @@ const AdminOverview = () => {
         
         {/* Brand Assets - Favicon and Logo */}
         <BrandAssetsManager />
-        
-        {/* Color Management */}
-        <ColorManagement />
         
         {/* Extra spacer to ensure nav doesn't cover content */}
         <div className="h-8"></div>

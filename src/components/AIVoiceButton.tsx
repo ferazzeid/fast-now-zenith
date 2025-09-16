@@ -607,7 +607,7 @@ export const AIVoiceButton = () => {
         variant="action-primary"
         size="action-tall"
         onClick={() => setIsOpen(true)}
-        className="w-full flex items-center justify-center bg-ai hover:bg-ai/90 border-ai hover:border-ai/90 text-white"
+        className="w-full flex items-center justify-center bg-primary hover:bg-primary/90 border-primary hover:border-primary/90 text-primary-foreground"
         title="AI Voice Assistant"
       >
         <Mic className="w-5 h-5" />

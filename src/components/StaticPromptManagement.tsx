@@ -213,7 +213,7 @@ export const StaticPromptManagement = () => {
           AI Prompt Management
         </CardTitle>
         <CardDescription>
-          Configure system prompts for AI features. Colors are now static: Primary: hsl({STATIC_COLORS.primary}), AI: hsl({STATIC_COLORS.ai})
+          Configure system prompts for AI features. Colors are now static: Primary: hsl({STATIC_COLORS.primary})
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

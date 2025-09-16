@@ -44,8 +44,8 @@ export const FloatingBubble = ({ content, role, index, isSuccess }: FloatingBubb
           "max-w-[85%] p-4 rounded-2xl shadow-lg relative",
           "border",
           isUser ? 
-            "bg-chat-user/90 border-chat-user/50 text-white rounded-tr-sm" :
-            "bg-chat-ai/90 border-chat-ai/50 text-white rounded-tl-sm"
+            "bg-primary/90 border-primary/50 text-primary-foreground rounded-tr-sm" :
+            "bg-secondary/90 border-secondary/50 text-secondary-foreground rounded-tl-sm"
         )}
       >
         <div className="flex items-start gap-2">

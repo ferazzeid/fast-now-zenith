@@ -54,8 +54,8 @@ const buttonVariants = cva(
         "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
         // ✅ COMPACT ACTIONS: Smaller buttons with same primary styling
         "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
-        // ✅ AI ACTIONS: Special AI-related buttons (Generate AI Image, Voice Input, etc.)
-        "ai": "bg-ai text-ai-foreground hover:bg-ai/90 text-sm font-medium shadow-sm",
+        // ✅ AI ACTIONS: Special AI-related buttons (Generate AI Image, Voice Input, etc.) - Now using primary
+        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm",
       },
       size: {
         default: "h-10 px-4 py-2",

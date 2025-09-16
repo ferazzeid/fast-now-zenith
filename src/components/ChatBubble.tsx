@@ -59,8 +59,8 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
         "group relative max-w-xs rounded-2xl px-4 py-3 shadow-lg backdrop-blur-sm",
         "border border-border/50",
         isUser 
-          ? "ml-auto bg-chat-user/90 border-chat-user/50 text-white" 
-          : "mr-auto bg-chat-ai/90 border-chat-ai/50 text-white"
+          ? "ml-auto bg-primary/90 border-primary/50 text-primary-foreground" 
+          : "mr-auto bg-secondary/90 border-secondary/50 text-secondary-foreground"
       )}>
         {/* Dismiss Button */}
         <Button
@@ -94,8 +94,8 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
           "absolute top-3 w-3 h-3 transform rotate-45",
           "border-l border-b",
           isUser 
-            ? "right-[-6px] bg-chat-user border-chat-user/50" 
-            : "left-[-6px] bg-chat-ai border-chat-ai/50"
+            ? "right-[-6px] bg-primary border-primary/50" 
+            : "left-[-6px] bg-secondary border-secondary/50"
         )} />
       </div>
     </div>

@@ -9,6 +9,5 @@ export const STATIC_ASSETS = {
 export const STATIC_COLORS = {
   primary: "220 85% 50%",
   secondary: "0 0% 90%",
-  accent: "140 25% 85%",
-  ai: "48 96% 53%"
+  accent: "140 25% 85%"
 } as const;

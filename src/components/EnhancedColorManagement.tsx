@@ -12,20 +12,14 @@ const EnhancedColorManagement: React.FC = () => {
   // Current hard-coded color values
   const currentColors = {
     light: {
-      primary: '220 85% 50%',
+      primary: '0 0% 90%', // Changed to match secondary
       secondary: '0 0% 90%',
-      accent: '140 25% 85%',
-      ai: '48 96% 53%',
-      chatAi: '258 90% 66%',
-      chatUser: '189 94% 43%'
+      accent: '140 25% 85%'
     },
     dark: {
-      primary: '220 85% 50%',
+      primary: '0 0% 15%', // Changed to match secondary in dark mode  
       secondary: '0 0% 15%',
-      accent: '0 0% 15%',
-      ai: '48 96% 53%',
-      chatAi: '258 90% 66%',
-      chatUser: '189 94% 43%'
+      accent: '0 0% 15%'
     }
   };
 
@@ -43,18 +37,12 @@ const EnhancedColorManagement: React.FC = () => {
   --primary: ${currentColors.light.primary};
   --secondary: ${currentColors.light.secondary};
   --accent: ${currentColors.light.accent};
-  --ai: ${currentColors.light.ai};
-  --chat-ai: ${currentColors.light.chatAi};
-  --chat-user: ${currentColors.light.chatUser};
 }
 
 .dark {
   --primary: ${currentColors.dark.primary};
   --secondary: ${currentColors.dark.secondary};
   --accent: ${currentColors.dark.accent};
-  --ai: ${currentColors.dark.ai};
-  --chat-ai: ${currentColors.dark.chatAi};
-  --chat-user: ${currentColors.dark.chatUser};
 }`;
   };
 
