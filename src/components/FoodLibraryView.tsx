@@ -735,11 +735,13 @@ export const FoodLibraryView = ({
                       {isUserFood ? (
                         <>
                             {/* Edit option for all user library foods */}
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowEditModal(true);
-                              }}
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 console.log('Edit button clicked for food:', food);
+                                 setShowEditModal(true);
+                                 console.log('showEditModal set to true');
+                               }}
                                className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
                              >
                                <Edit className="w-4 h-4 mr-3" />
@@ -780,11 +782,13 @@ export const FoodLibraryView = ({
                         <>
                            {/* Edit option for admin on default foods */}
                            {isAdmin && (
-                             <DropdownMenuItem
-                               onClick={(e) => {
-                                 e.stopPropagation();
-                                 setShowEditModal(true);
-                               }}
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  console.log('Admin edit button clicked for default food:', food);
+                                  setShowEditModal(true);
+                                  console.log('Admin showEditModal set to true');
+                                }}
                                 className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-muted/80 transition-colors"
                               >
                                 <Edit className="w-4 h-4 mr-3" />

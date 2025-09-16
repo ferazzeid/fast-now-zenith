@@ -26,6 +26,7 @@ interface EditFoodEntryModalProps {
 }
 
 export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoodEntryModalProps) => {
+  console.log('EditFoodEntryModal rendered with entry:', entry, 'isOpen:', isOpen);
   const [internalOpen, setInternalOpen] = useState(false);
   const [name, setName] = useState(entry.name);
   const [calories, setCalories] = useState(entry.calories.toString());

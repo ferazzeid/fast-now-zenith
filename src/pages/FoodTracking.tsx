@@ -293,7 +293,11 @@ const FoodTracking = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" side="bottom">
             <DropdownMenuItem
-              onClick={() => setEditingEntry(entry)}
+              onClick={() => {
+                console.log('Edit button clicked for entry:', entry);
+                setEditingEntry(entry);
+                console.log('editingEntry state set to:', entry);
+              }}
               className="py-2.5 px-3 focus:text-foreground"
             >
               <Edit className="w-4 h-4 mr-2" />
