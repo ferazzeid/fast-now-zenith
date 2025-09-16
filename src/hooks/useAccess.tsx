@@ -4,7 +4,7 @@ import { useAuth } from './useAuth';
 import { useBaseQuery } from './useBaseQuery';
 
 export interface AccessData {
-  access_level: 'free' | 'trial' | 'premium' | 'admin' | 'free_full' | 'free_food_only';
+  access_level: 'free' | 'trial' | 'premium' | 'admin';
   premium_expires_at: string | null;
   hasAccess: boolean;
   hasPremiumFeatures: boolean;
@@ -14,8 +14,6 @@ export interface AccessData {
   isTrial: boolean;
   isPremium: boolean;
   isFree: boolean;
-  isFreeFull: boolean;
-  isFreeFood: boolean;
   daysRemaining: number | null;
   globalAccessMode: string;
 }
@@ -51,8 +49,6 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
       isTrial: false,
       isPremium: false,
       isFree: true,
-      isFreeFull: false,
-      isFreeFood: false,
       daysRemaining: null,
       globalAccessMode
     };
@@ -66,12 +62,8 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
   const isExpired = premium_expires_at ? new Date(premium_expires_at) < new Date() : false;
   let effectiveLevel = isExpired && access_level !== 'admin' ? 'free' : access_level;
   
-  // Override user access level based on global app mode
-  if (globalAccessMode === 'free_full' && effectiveLevel !== 'admin') {
-    effectiveLevel = 'free_full';
-  } else if (globalAccessMode === 'free_food_only' && effectiveLevel !== 'admin') {
-    effectiveLevel = 'free_food_only';
-  }
+  // Global access mode is now simplified to trial_premium only
+  // No overrides needed since we only have trial_premium mode
   
   // Calculate days remaining for trial/premium
   const daysRemaining = premium_expires_at ? 
@@ -83,17 +75,15 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
   const isPremium = effectiveLevel === 'premium';
   const isTrial = effectiveLevel === 'trial';
   const isFree = effectiveLevel === 'free';
-  const isFreeFull = effectiveLevel === 'free_full';
-  const isFreeFood = effectiveLevel === 'free_food_only';
   
   // Access logic based on effective level
-  const hasPremiumFeatures = isAdmin || isPremium || isTrial || isFreeFull;
-  const hasFoodAccess = isAdmin || isPremium || isTrial || isFreeFull || isFreeFood;
-  const hasAIAccess = isAdmin || isPremium || isTrial || isFreeFull;
+  const hasPremiumFeatures = isAdmin || isPremium || isTrial;
+  const hasFoodAccess = isAdmin || isPremium || isTrial;
+  const hasAIAccess = isAdmin || isPremium || isTrial;
   const hasAccess = hasPremiumFeatures || hasFoodAccess;
 
   return {
-    access_level: effectiveLevel as 'free' | 'trial' | 'premium' | 'admin' | 'free_full' | 'free_food_only',
+    access_level: effectiveLevel as 'free' | 'trial' | 'premium' | 'admin',
     premium_expires_at,
     hasAccess,
     hasPremiumFeatures,
@@ -103,8 +93,6 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
     isTrial,
     isPremium,
     isFree,
-    isFreeFull,
-    isFreeFood,
     daysRemaining,
     globalAccessMode
   };
@@ -150,8 +138,6 @@ export const useAccess = () => {
     isTrial: false,
     isPremium: false,
     isFree: true,
-    isFreeFull: false,
-    isFreeFood: false,
     daysRemaining: null,
     globalAccessMode: 'trial_premium'
   };

@@ -24,7 +24,8 @@ export const useOptimizedAppMode = () => {
     }
   );
 
-  const shouldShowPremiumUpgrade = appMode !== 'free_full';
+  // Since we only have trial_premium mode now, always show premium upgrade
+  const shouldShowPremiumUpgrade = true;
   
   return {
     appMode,
