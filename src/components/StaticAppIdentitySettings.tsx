@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Settings, Copy, Code } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export const StaticAppIdentitySettings: React.FC = () => {
@@ -23,7 +22,7 @@ export const StaticAppIdentitySettings: React.FC = () => {
     appName: 'FastNow - The No-BS Fat Loss Protocol',
     shortName: 'FastNow',
     description: 'Weight loss protocol combining fasting, walking, and calorie restriction for sustainable results',
-    themeColor: '#3B82F6',
+    themeColor: '#D4AF37',
     backgroundColor: '#F8FAFC'
   };
 
@@ -73,101 +72,44 @@ export const StaticAppIdentitySettings: React.FC = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <Settings className="w-5 h-5" />
-          Static App Identity Generator
+          App Identity Settings
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Development tool to generate static configuration code
-        </p>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="current" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="current">Current Values</TabsTrigger>
-            <TabsTrigger value="manifest">Manifest.json</TabsTrigger>
-            <TabsTrigger value="html">HTML Meta</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="current" className="space-y-4 mt-6">
-            <div className="space-y-3">
-              <div>
-                <Label className="text-sm font-medium">App Name:</Label>
-                <p className="text-sm text-muted-foreground mt-1">{currentValues.appName}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Short Name:</Label>
-                <p className="text-sm text-muted-foreground mt-1">{currentValues.shortName}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Description:</Label>
-                <p className="text-sm text-muted-foreground mt-1">{currentValues.description}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Theme Color:</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <div 
-                    className="w-6 h-6 rounded border"
-                    style={{ backgroundColor: currentValues.themeColor }}
-                  />
-                  <p className="text-sm text-muted-foreground">{currentValues.themeColor}</p>
-                </div>
-              </div>
-              <div>
-                <Label className="text-sm font-medium">Background Color:</Label>
-                <div className="flex items-center gap-2 mt-1">
-                  <div 
-                    className="w-6 h-6 rounded border"
-                    style={{ backgroundColor: currentValues.backgroundColor }}
-                  />
-                  <p className="text-sm text-muted-foreground">{currentValues.backgroundColor}</p>
-                </div>
-              </div>
+      <CardContent className="space-y-4">
+        <div className="space-y-3">
+          <div>
+            <Label className="text-sm font-medium">App Name:</Label>
+            <p className="text-sm text-muted-foreground mt-1">{currentValues.appName}</p>
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Short Name:</Label>
+            <p className="text-sm text-muted-foreground mt-1">{currentValues.shortName}</p>
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Description:</Label>
+            <p className="text-sm text-muted-foreground mt-1">{currentValues.description}</p>
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Theme Color:</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <div 
+                className="w-6 h-6 rounded border"
+                style={{ backgroundColor: currentValues.themeColor }}
+              />
+              <p className="text-sm text-muted-foreground">{currentValues.themeColor}</p>
             </div>
-          </TabsContent>
-
-          <TabsContent value="manifest" className="space-y-4 mt-6">
-            <div>
-              <Label className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                public/manifest.json
-              </Label>
-              <div className="max-h-48 overflow-y-auto bg-muted rounded-md">
-                <pre className="text-xs p-3 whitespace-pre-wrap">
-                  {generateManifestCode()}
-                </pre>
-              </div>
-              <Button
-                onClick={() => copyToClipboard(generateManifestCode(), "Manifest JSON")}
-                size="sm"
-                className="mt-2"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy Manifest Code
-              </Button>
+          </div>
+          <div>
+            <Label className="text-sm font-medium">Background Color:</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <div 
+                className="w-6 h-6 rounded border"
+                style={{ backgroundColor: currentValues.backgroundColor }}
+              />
+              <p className="text-sm text-muted-foreground">{currentValues.backgroundColor}</p>
             </div>
-          </TabsContent>
-
-          <TabsContent value="html" className="space-y-4 mt-6">
-            <div>
-              <Label className="text-sm font-medium mb-2 flex items-center gap-2">
-                <Code className="w-4 h-4" />
-                index.html &lt;head&gt; section
-              </Label>
-              <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
-                <pre className="text-xs p-3 whitespace-pre-wrap">
-                  {generateHTMLMetaCode()}
-                </pre>
-              </div>
-              <Button
-                onClick={() => copyToClipboard(generateHTMLMetaCode(), "HTML Meta Tags")}
-                size="sm"
-                className="mt-2"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy HTML Meta Code
-              </Button>
-            </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

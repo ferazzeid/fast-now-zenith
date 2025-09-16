@@ -222,10 +222,10 @@ colors: {
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-center gap-2">
+        <CardTitle className="text-lg flex items-center gap-2">
           <Palette className="w-5 h-5" />
-          <CardTitle>Enhanced Color Management</CardTitle>
-        </div>
+          Enhanced Color Management
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Mode Selection */}
@@ -259,7 +259,10 @@ colors: {
 
         {/* Color Previews */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Colors for {currentMode} mode</h3>
+          <h4 className="font-medium">Current Colors for {currentMode} mode</h4>
+          <p className="text-sm text-muted-foreground">
+            These colors are currently hard-coded in the design system. The color pickers below are for reference and preview only.
+          </p>
           <div className="grid grid-cols-2 gap-4">
             {(Object.keys(colors[currentMode]) as Array<keyof ColorValues>).map((colorKey) => (
               <div key={colorKey} className="space-y-2">
@@ -278,41 +281,6 @@ colors: {
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-
-        {/* Code Generation */}
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Generated CSS Variables</Label>
-            <div className="bg-muted p-4 rounded text-xs font-mono overflow-x-auto">
-              <pre>{generateEnhancedCSSCode()}</pre>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => copyToClipboard(generateEnhancedCSSCode(), "Enhanced CSS code")}
-              className="w-full"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Enhanced CSS
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Tailwind Config</Label>
-            <div className="bg-muted p-4 rounded text-xs font-mono overflow-x-auto">
-              <pre>{generateTailwindCode()}</pre>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => copyToClipboard(generateTailwindCode(), "Tailwind config")}
-              className="w-full"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Copy Tailwind Config
-            </Button>
           </div>
         </div>
 

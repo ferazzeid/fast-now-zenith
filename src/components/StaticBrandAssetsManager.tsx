@@ -122,20 +122,17 @@ export const useStaticLogo = () => {
       <CardHeader>
         <CardTitle className="text-lg flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Static Brand Assets Generator
+          Brand Assets Manager
         </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Development tool to generate static asset configuration code
-        </p>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-6">
+        <div className="space-y-4">
+          <h4 className="font-medium">Current Brand Assets</h4>
           <div className="space-y-4">
-            <h4 className="font-medium">Brand Assets Preview</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Object.entries(brandAssets).map(([key, asset]) => (
-                <div key={key} className="border rounded-lg p-3 space-y-2">
-                  <div className="aspect-square bg-muted rounded-md overflow-hidden flex items-center justify-center">
+            {Object.entries(brandAssets).map(([key, asset]) => (
+              <div key={key} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-muted rounded-md overflow-hidden flex items-center justify-center flex-shrink-0">
                     <img 
                       src={asset.url} 
                       alt={asset.name}
@@ -150,76 +147,16 @@ export const useStaticLogo = () => {
                       }}
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="flex-1 min-w-0">
                     <h5 className="font-medium text-sm">{asset.name}</h5>
                     <p className="text-xs text-muted-foreground">{asset.usage}</p>
-                    <p className="text-xs font-mono break-all">{asset.url}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">HTML Head Tags</h4>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(generateIndexHtmlCode(), "HTML")}
-                  className="flex items-center gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  Copy HTML
-                </Button>
+                <div className="bg-muted rounded-md p-2">
+                  <p className="text-xs font-mono break-all">{asset.url}</p>
+                </div>
               </div>
-              <div className="bg-muted p-3 rounded-md max-h-40 overflow-auto">
-                <pre className="text-xs whitespace-pre-wrap break-all">
-                  {generateIndexHtmlCode()}
-                </pre>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">Manifest.json</h4>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(generateManifestCode(), "Manifest")}
-                  className="flex items-center gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  Copy JSON
-                </Button>
-              </div>
-              <div className="bg-muted p-3 rounded-md max-h-48 overflow-auto">
-                <pre className="text-xs whitespace-pre-wrap break-all">
-                  {generateManifestCode()}
-                </pre>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium">Static Logo Hook</h4>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(generateStaticLogoCode(), "Hook")}
-                  className="flex items-center gap-2"
-                >
-                  <Copy className="h-4 w-4" />
-                  Copy Code
-                </Button>
-              </div>
-              <div className="bg-muted p-3 rounded-md max-h-32 overflow-auto">
-                <pre className="text-xs whitespace-pre-wrap break-all">
-                  {generateStaticLogoCode()}
-                </pre>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </CardContent>

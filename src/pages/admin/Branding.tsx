@@ -2,7 +2,6 @@ import { AdminSubnav } from "@/components/AdminSubnav";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { StaticBrandAssetsManager } from "@/components/StaticBrandAssetsManager";
 import { StaticAppIdentitySettings } from "@/components/StaticAppIdentitySettings";
-import { StaticPWASettings } from "@/components/StaticPWASettings";
 import EnhancedColorManagement from "@/components/EnhancedColorManagement";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 
@@ -20,19 +19,15 @@ export default function AdminBranding() {
         <h1 className="sr-only">Admin Branding</h1>
         <AdminSubnav />
 
-        <section aria-label="App identity settings generator">
+        <section aria-label="App identity settings">
           <StaticAppIdentitySettings />
         </section>
 
-        <section aria-label="Static brand assets development tool">
+        <section aria-label="Brand assets manager">
           <StaticBrandAssetsManager />
         </section>
 
-        <section aria-label="PWA settings generator">
-          <StaticPWASettings />
-        </section>
-
-        <section aria-label="Enhanced color management development tool" className="pb-24">
+        <section aria-label="Enhanced color management" className="pb-24">
           <EnhancedColorManagement />
         </section>
       </main>
