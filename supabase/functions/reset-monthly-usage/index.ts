@@ -31,13 +31,15 @@ serve(async (req) => {
     const now = new Date();
     const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-    // Reset monthly usage for all users who have passed their reset date
+    // Reset monthly usage only for active premium users who have passed their reset date
     const { data, error } = await supabase
       .from('profiles')
       .update({
         monthly_ai_requests: 0,
         ai_requests_reset_date: nextMonth.toISOString()
       })
+      .eq('access_level', 'premium')
+      .gt('premium_expires_at', now.toISOString())
       .lte('ai_requests_reset_date', now.toISOString());
 
     if (error) {

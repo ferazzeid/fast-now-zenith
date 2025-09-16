@@ -129,11 +129,10 @@ async function handleSubscriptionEvent(subscription: Stripe.Subscription, supaba
     const { error } = await supabase
       .from('profiles')
       .update({
-        subscription_status: subscription.status,
-        subscription_tier: isActive ? 'premium' : 'free',
-        user_tier: isActive ? 'paid_user' : 'free_user',
+        access_level: isActive ? 'premium' : 'free',
+        premium_expires_at: isActive ? subscriptionEnd.toISOString() : null,
+        ai_requests_reset_date: isActive ? subscriptionEnd.toISOString() : null,
         stripe_customer_id: customerId,
-        subscription_end_date: subscriptionEnd.toISOString(),
         payment_provider: 'stripe',
         platform_subscription_id: subscription.id,
         updated_at: new Date().toISOString()
@@ -171,10 +170,9 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription, supa
     const { error } = await supabase
       .from('profiles')
       .update({
-        subscription_status: 'cancelled',
-        subscription_tier: 'free',
-        user_tier: 'free_user',
-        subscription_end_date: null,
+        access_level: 'free',
+        premium_expires_at: null,
+        ai_requests_reset_date: null,
         updated_at: new Date().toISOString()
       })
       .eq('user_id', (await supabase.auth.admin.getUserByEmail(customer.email)).data.user?.id);
