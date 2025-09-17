@@ -153,7 +153,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
           
           <div className="flex gap-3">
             <Button
-              variant="ghost"
+              variant="outline"
               size="action-secondary"
               onClick={() => {
                 setLogText(originalText); // Restore to original text, not existingLog
@@ -161,7 +161,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
                 setShowVoiceRecorder(false);
               }}
               disabled={isSaving}
-              className="w-12 border border-subtle hover:bg-muted"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>

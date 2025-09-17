@@ -459,7 +459,7 @@ const Settings = () => {
                   Settings
                 </h1>
                 {(accessIsAdmin) && (
-                  <Button size="sm" variant="secondary" onClick={() => navigate('/admin')} className="border border-subtle text-ui-sm">
+                  <Button size="sm" variant="secondary" onClick={() => navigate('/admin')} className="border border-subtle text-ui-sm text-secondary-foreground">
                     Admin Dashboard
                   </Button>
                 )}
