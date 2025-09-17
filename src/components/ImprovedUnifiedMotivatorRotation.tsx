@@ -28,8 +28,8 @@ export const ImprovedUnifiedMotivatorRotation = ({
   isActive, 
   onModeChange,
   className = "",
-  contentDurationMs = 4500, // 4.5 seconds visible content
-  timerFocusDurationMs = 5000, // 5 seconds for timer focus (doubled)
+  contentDurationMs = 5000, // 5 seconds for content (same as timer for reading time)
+  timerFocusDurationMs = 5000, // 5 seconds for timer focus
   quotesType = 'fasting'
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
@@ -86,16 +86,26 @@ export const ImprovedUnifiedMotivatorRotation = ({
       );
       
       savedQuotes.forEach(quote => {
-        // Extract author from content if it exists (format: "quote text" — Author)
+        // Use content as primary quote text, title as fallback
+        const quoteText = (quote.content && quote.content.trim() !== '') ? quote.content : quote.title;
+        
+        // Try to extract author from content first, then use title if it looks like an author
         const contentWithAttribution = quote.content || '';
-        const authorMatch = contentWithAttribution.match(/—\s*(.+)$/);
-        const extractedAuthor = authorMatch ? authorMatch[1].trim() : null;
+        const authorFromContent = contentWithAttribution.match(/—\s*(.+)$/);
+        
+        let author = 'Unknown Author';
+        if (authorFromContent) {
+          author = authorFromContent[1].trim();
+        } else if (quote.title && quote.title !== quoteText && quote.title.length < 50) {
+          // If title is different from content and short, it's likely the author
+          author = quote.title;
+        }
         
         quotesArray.push({
           id: quote.id,
-          title: quote.title, // Use title as the quote text (this is the clean quote)
+          title: quoteText.replace(/—\s*.+$/, '').trim(), // Remove author attribution from quote text
           type: 'quote',
-          author: extractedAuthor || 'Unknown Author',
+          author,
         });
       });
 
@@ -297,12 +307,12 @@ export const ImprovedUnifiedMotivatorRotation = ({
               ) : current.type === 'note' ? (
                 <p 
                   className={`font-medium leading-snug text-white drop-shadow-lg ${
-                    (current.content?.length || 0) > 200 ? 'text-sm' :
-                    (current.content?.length || 0) > 120 ? 'text-base' : 'text-lg'
+                    (current.content?.length || 0) > 100 ? 'text-base' :
+                    (current.content?.length || 0) > 60 ? 'text-lg' : 'text-xl'
                   }`}
                 >
-                  {current.content && current.content.length > 300 
-                    ? `${current.content.substring(0, 300)}...` 
+                  {current.content && current.content.length > 150 
+                    ? `${current.content.substring(0, 150)}...` 
                     : current.content
                   }
                 </p>
