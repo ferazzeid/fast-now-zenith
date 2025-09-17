@@ -111,7 +111,7 @@ const SquareTimerComponent = ({
             
             {/* Count Direction Toggle Button - only show when active */}
             {isActive && (
-              <div className="absolute top-4 right-4 z-20">
+              <div className="absolute bottom-4 right-4 z-20">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -187,9 +187,9 @@ const SquareTimerComponent = ({
                   <TooltipTrigger asChild>
                     <Button 
                       onClick={onCancel}
-                      variant="secondary"
+                      variant="outline"
                       size="action-secondary"
-                      className="flex-1 border border-subtle"
+                      className="flex-1 text-muted-foreground hover:text-foreground"
                     >
                       <X className="w-6 h-6" />
                     </Button>

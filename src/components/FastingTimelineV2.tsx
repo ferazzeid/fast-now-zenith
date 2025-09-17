@@ -8,6 +8,7 @@ import { useFastingHoursQuery, FastingHour, fastingHoursKey } from "@/hooks/opti
 import { useContentRotation } from '@/hooks/useContentRotation';
 import { AdminPersonalLogInterface } from './AdminPersonalLogInterface';
 import { AdminInsightDisplay } from './AdminInsightDisplay';
+import { FullCoverageContentDisplay } from './FullCoverageContentDisplay';
 import { useAccess } from '@/hooks/useAccess';
 import { useNavigate } from 'react-router-dom';
 import { useOptimizedAdminPersonalLog } from '@/hooks/optimized/useOptimizedAdminPersonalLog';
@@ -76,54 +77,32 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
     <div className={cn("w-full", className)}>
       <FastingSliderHeader currentHour={selectedHour} className="mb-3" onHourChange={handleHourChange} />
 
-      {/* Details panel - boxed */}
-      <Card className="mt-4 p-4" role="region" aria-live="polite">
+      {/* Full Coverage Content Display */}
+      <div className="mt-4" role="region" aria-live="polite">
         {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-5 w-1/2" />
-            <Skeleton className="h-4 w-3/4" />
-            <div className="flex gap-2">
-              <Skeleton className="h-5 w-20" />
-              <Skeleton className="h-5 w-24" />
+          <div className="bg-background border border-border rounded-lg p-6">
+            <div className="space-y-3">
+              <Skeleton className="h-5 w-1/2" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
             </div>
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-5/6" />
           </div>
         ) : (
-          <div className="space-y-3">
-            {/* Display Stage and Encouragement (original two-field system) */}
-            <div className="min-h-[80px] relative">
-              {/* Hour Number Indicator - Admin Only */}
-              {isAdmin && (
-                <div className="absolute bottom-2 right-2 bg-muted/20 text-foreground border border-muted rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold z-10">
-                  {selectedHour}
-                </div>
-              )}
-
-              <div className="relative pr-10">
-                {/* Stage Title */}
-                {selected?.stage && (
-                  <div className="font-semibold text-foreground mb-2 text-sm">
-                    {selected.stage}
-                  </div>
-                )}
-                
-                {/* Encouragement Content */}
-                <div 
-                  key={`${selectedHour}-encouragement`}
-                  className="text-sm text-muted-foreground animate-fade-in"
-                  style={{
-                    animation: isTransitioning ? 'fade-in 0.3s ease-in-out' : 'fade-in 0.8s ease-in-out'
-                  }}
-                >
-                  {rotation.currentContent}
-                </div>
-              </div>
-            </div>
+          <div className="space-y-4">
+            <FullCoverageContentDisplay
+              key={`content-${selectedHour}-${rotation.currentContent}`}
+              stage={selected?.stage}
+              content={rotation.currentContent}
+              isTransitioning={isTransitioning}
+              showAdminHour={isAdmin}
+              adminHour={selectedHour}
+              className="mt-0"
+            />
             
             {/* Read More Link */}
             {selected?.read_more_url && (
-              <div className="pt-2 border-t border-subtle">
+              <div className="px-2">
                 <button
                   onClick={() => {
                     // Navigate to content page using React Router
@@ -137,7 +116,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
             )}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Admin Insight Display - Shows how it appears to regular users */}
       {selected?.admin_personal_log && isPersonalLogEnabled && (
