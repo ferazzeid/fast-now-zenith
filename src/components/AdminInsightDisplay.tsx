@@ -51,28 +51,31 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
   }
 
   return (
-    <div className={cn("mt-4 mb-4 w-full", className)}>
-      {/* Full width content box without speech bubble constraints */}
-      <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm w-full">
+    <div className={cn("absolute inset-0 z-30 rounded-lg overflow-hidden", className)}>
+      {/* Full overlay background */}
+      <div className="absolute inset-0 bg-background/95 backdrop-blur-sm" />
+      
+      {/* Content centered in the overlay */}
+      <div className="relative z-10 h-full flex flex-col justify-center items-center p-6">
         {/* Header */}
-        <div className="flex items-center space-x-3 mb-3">
+        <div className="flex items-center space-x-2 mb-3">
           <img
             src={authorData.image}
             alt={authorData.name}
-            className="w-6 h-6 rounded-full object-cover"
+            className="w-4 h-4 rounded-full object-cover"
           />
-          <div>
-            <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+          <div className="text-center">
+            <div className="font-semibold text-[10px] text-foreground">
               {authorData.name}
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-[8px] text-muted-foreground">
               {authorData.title}
             </div>
           </div>
         </div>
         
-        {/* Content - Reduced font size by 50% */}
-        <div className="text-xs text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
+        {/* Content - Much smaller font size */}
+        <div className="text-[11px] text-foreground leading-relaxed font-medium text-center max-w-[90%]">
           {content}
         </div>
       </div>

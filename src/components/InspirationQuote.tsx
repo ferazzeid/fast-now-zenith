@@ -71,41 +71,47 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
   }
 
   return (
-    <Card 
-      className={`w-full bg-card ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
-      onClick={handleRefresh}
-    >
-      <blockquote className="relative text-center">
-        <p className={`${compact ? 'text-lg' : 'text-2xl'} font-bold text-warm-text leading-relaxed mb-3`}>
-          "{currentQuote.text}"
-        </p>
-        {currentQuote.author && (
-          <cite className={`${compact ? 'text-xs' : 'text-sm'} text-muted-foreground not-italic`}>
-            — {currentQuote.author}
-          </cite>
-        )}
-      </blockquote>
+    <div className={`absolute inset-0 z-30 rounded-lg overflow-hidden ${className}`}>
+      {/* Full overlay background */}
+      <div className="absolute inset-0 bg-background/95 backdrop-blur-sm" />
       
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-subtle">
-        <div className={`${compact ? 'text-xs' : 'text-sm'} text-muted-foreground flex items-center gap-2`}>
-          <Hand className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
-          Tap for another quote
+      {/* Content centered in the overlay */}
+      <div 
+        className="relative z-10 h-full flex flex-col justify-center items-center p-4 cursor-pointer"
+        onClick={handleRefresh}
+      >
+        <blockquote className="text-center">
+          <p className="text-[11px] font-bold text-foreground leading-relaxed mb-2">
+            "{currentQuote.text}"
+          </p>
+          {currentQuote.author && (
+            <cite className="text-[9px] text-muted-foreground not-italic">
+              — {currentQuote.author}
+            </cite>
+          )}
+        </blockquote>
+        
+        <div className="flex items-center justify-between mt-3 pt-2 border-t border-muted w-full max-w-[90%]">
+          <div className="text-[8px] text-muted-foreground flex items-center gap-1">
+            <Hand className="w-3 h-3" />
+            Tap for another
+          </div>
+          {onSaveQuote && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSaveQuote();
+              }}
+              className="h-5 px-2 text-[8px] text-muted-foreground hover:text-foreground hover:bg-muted/50 flex items-center gap-1"
+            >
+              <Bookmark className="w-3 h-3" />
+              Save
+            </Button>
+          )}
         </div>
-        {onSaveQuote && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSaveQuote();
-            }}
-            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-muted-foreground hover:text-warm-text hover:bg-muted flex items-center gap-2`}
-          >
-            <Bookmark className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
-            Save to Goals
-          </Button>
-        )}
       </div>
-    </Card>
+    </div>
   );
 };
