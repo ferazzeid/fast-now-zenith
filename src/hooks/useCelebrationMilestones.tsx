@@ -47,6 +47,29 @@ const getAnimationTypeForMilestone = (type: 'hourly' | 'completion', hours: numb
   return 'color-wave';
 };
 
+// Enhanced milestone messages for different durations
+const getEnhancedMilestoneMessage = (hours: number, type: 'hourly' | 'completion'): string => {
+  if (type === 'completion') {
+    if (hours >= 168) return `🏆 LEGENDARY! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 120) return `🏆 INCREDIBLE! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 96) return `🥇 AMAZING! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 72) return `🥇 OUTSTANDING! 3 day fast completed!`;
+    if (hours >= 48) return `🏅 EXCELLENT! 2 day fast completed!`;
+    if (hours >= 24) return `🎖️ GREAT! 1 day fast completed!`;
+    return `⭐ Fast completed! ${hours} hours achieved!`;
+  }
+  
+  // Hourly milestones
+  if (hours >= 168) return `🏆 ${Math.floor(hours/24)} days of pure dedication!`;
+  if (hours >= 120) return `🏆 ${Math.floor(hours/24)} days - You're unstoppable!`;
+  if (hours >= 96) return `🥇 ${Math.floor(hours/24)} days - Incredible willpower!`;
+  if (hours >= 72) return `🥇 3+ days - Exceptional commitment!`;
+  if (hours >= 48) return `🏅 ${hours} hours - You're crushing it!`;
+  if (hours >= 24) return `🎖️ ${hours} hours - Amazing progress!`;
+  if (hours >= 12) return `⭐ ${hours} hours - Great momentum!`;
+  return `✨ ${hours} hour${hours === 1 ? '' : 's'} completed!`;
+};
+
 export const useCelebrationMilestones = (sessionId?: string) => {
   const [celebration, setCelebration] = useState<CelebrationState>({
     lastMilestoneHour: 0,
@@ -94,7 +117,7 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     }
 
     // Auto-hide celebration after duration based on milestone importance
-    const duration = event.hours >= 12 ? 12000 : event.hours >= 4 ? 8000 : 6000;
+    const duration = event.hours >= 96 ? 15000 : event.hours >= 48 ? 12000 : event.hours >= 24 ? 10000 : event.hours >= 12 ? 8000 : 6000;
     setTimeout(() => {
       setCelebration(prev => ({ ...prev, isVisible: false, enhancedVisible: false }));
     }, duration);
@@ -107,12 +130,31 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     
     const celebrated = getCelebratedMilestones(sessionId);
     
-    // Check for hourly milestones (every full hour)
-    if (currentHours > 0 && !celebrated.has(currentHours)) {
+    // Enhanced milestone system for long fasts
+    const shouldCelebrate = (hours: number): boolean => {
+      if (hours <= 0) return false;
+      
+      // Short fasts (1-12h): Every hour
+      if (hours <= 12) return true;
+      
+      // Medium fasts (12-24h): Every 3 hours starting at 12
+      if (hours <= 24) return hours >= 12 && (hours - 12) % 3 === 0;
+      
+      // Long fasts (24-48h): Every 6 hours starting at 24  
+      if (hours <= 48) return hours >= 24 && (hours - 24) % 6 === 0;
+      
+      // Epic fasts (48h+): Every 12 hours starting at 48
+      if (hours >= 48) return (hours - 48) % 12 === 0;
+      
+      return false;
+    };
+    
+    // Check for hourly milestones
+    if (currentHours > 0 && shouldCelebrate(currentHours) && !celebrated.has(currentHours)) {
       const event: MilestoneEvent = {
         type: 'hourly',
         hours: currentHours,
-        message: `${currentHours} hour${currentHours === 1 ? '' : 's'} of fasting completed!`
+        message: getEnhancedMilestoneMessage(currentHours, 'hourly')
       };
       triggerCelebration(event);
       return;
@@ -125,7 +167,7 @@ export const useCelebrationMilestones = (sessionId?: string) => {
         const event: MilestoneEvent = {
           type: 'completion',
           hours: goalHours,
-          message: `🏆 Goal completed! ${goalHours} hour fast achieved!`
+          message: getEnhancedMilestoneMessage(goalHours, 'completion')
         };
         triggerCelebration(event);
       }
@@ -166,4 +208,86 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     triggerCelebration,
     closeCelebration
   };
+};
+
+// Enhanced milestone messages for different durations
+const getEnhancedMilestoneMessage = (hours: number, type: 'hourly' | 'completion'): string => {
+  if (type === 'completion') {
+    if (hours >= 168) return `🏆 LEGENDARY! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 120) return `🏆 INCREDIBLE! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 96) return `🥇 AMAZING! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 72) return `🥇 OUTSTANDING! 3 day fast completed!`;
+    if (hours >= 48) return `🏅 EXCELLENT! 2 day fast completed!`;
+    if (hours >= 24) return `🎖️ GREAT! 1 day fast completed!`;
+    return `⭐ Fast completed! ${hours} hours achieved!`;
+  }
+  
+  // Hourly milestones
+  if (hours >= 168) return `🏆 ${Math.floor(hours/24)} days of pure dedication!`;
+  if (hours >= 120) return `🏆 ${Math.floor(hours/24)} days - You're unstoppable!`;
+  if (hours >= 96) return `🥇 ${Math.floor(hours/24)} days - Incredible willpower!`;
+  if (hours >= 72) return `🥇 3+ days - Exceptional commitment!`;
+  if (hours >= 48) return `🏅 ${hours} hours - You're crushing it!`;
+  if (hours >= 24) return `🎖️ ${hours} hours - Amazing progress!`;
+  if (hours >= 12) return `⭐ ${hours} hours - Great momentum!`;
+  return `✨ ${hours} hour${hours === 1 ? '' : 's'} completed!`;
+};
+
+  const resetMilestones = useCallback(() => {
+    setCelebration({
+      lastMilestoneHour: 0,
+      isVisible: false,
+      currentEvent: null,
+      animationType: 'color-wave',
+      enhancedVisible: false
+    });
+    
+    // Clear celebrated milestones for this session when starting a new fast
+    if (sessionId) {
+      try {
+        localStorage.removeItem(`${CELEBRATION_STORAGE_KEY}_${sessionId}`);
+      } catch {
+        // Silent fail for localStorage issues
+      }
+    }
+  }, [sessionId]);
+
+  const closeCelebration = useCallback(() => {
+    setCelebration(prev => ({ 
+      ...prev, 
+      isVisible: false,
+      enhancedVisible: false
+    }));
+  }, []);
+
+  return {
+    celebration,
+    checkForMilestones,
+    resetMilestones,
+    triggerCelebration,
+    closeCelebration
+  };
+};
+
+// Enhanced milestone messages for different durations
+const getEnhancedMilestoneMessage = (hours: number, type: 'hourly' | 'completion'): string => {
+  if (type === 'completion') {
+    if (hours >= 168) return `🏆 LEGENDARY! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 120) return `🏆 INCREDIBLE! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 96) return `🥇 AMAZING! ${Math.floor(hours/24)} day fast completed!`;
+    if (hours >= 72) return `🥇 OUTSTANDING! 3 day fast completed!`;
+    if (hours >= 48) return `🏅 EXCELLENT! 2 day fast completed!`;
+    if (hours >= 24) return `🎖️ GREAT! 1 day fast completed!`;
+    return `⭐ Fast completed! ${hours} hours achieved!`;
+  }
+  
+  // Hourly milestones
+  if (hours >= 168) return `🏆 ${Math.floor(hours/24)} days of pure dedication!`;
+  if (hours >= 120) return `🏆 ${Math.floor(hours/24)} days - You're unstoppable!`;
+  if (hours >= 96) return `🥇 ${Math.floor(hours/24)} days - Incredible willpower!`;
+  if (hours >= 72) return `🥇 3+ days - Exceptional commitment!`;
+  if (hours >= 48) return `🏅 ${hours} hours - You're crushing it!`;
+  if (hours >= 24) return `🎖️ ${hours} hours - Amazing progress!`;
+  if (hours >= 12) return `⭐ ${hours} hours - Great momentum!`;
+  return `✨ ${hours} hour${hours === 1 ? '' : 's'} completed!`;
 };

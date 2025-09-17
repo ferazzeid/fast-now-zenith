@@ -5,20 +5,15 @@ import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminAppModeSwitcher } from "@/components/AdminAppModeSwitcher";
 import { AdminTrialSettings } from "@/components/AdminTrialSettings";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
-import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
 import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSettings";
-import { EnhancedCelebrationSystem } from "@/components/EnhancedCelebrationSystem";
-import { useCelebrationMilestones } from "@/hooks/useCelebrationMilestones";
 
 export default function AdminOperations() {
   usePageSEO({
-    title: "Admin Operations – Animation, SEO & Monitoring",
-    description: "Manage animation settings, SEO indexing, and operational thresholds.",
+    title: "Admin Operations – SEO & Monitoring",
+    description: "Manage SEO indexing and operational thresholds.",
     canonicalPath: "/admin/operations",
   });
-
-  const { celebration, triggerCelebration } = useCelebrationMilestones();
 
   return (
     <AdminHealthCheck>
@@ -34,10 +29,6 @@ export default function AdminOperations() {
           <AdminTrialSettings />
         </section>
 
-        <section aria-label="Animation settings">
-          <AdminAnimationSettings onTestCelebration={triggerCelebration} />
-        </section>
-
         <section aria-label="Static SEO code generator">
           <StaticSEOManager />
         </section>
@@ -50,14 +41,6 @@ export default function AdminOperations() {
           <AdminGoogleLoginSettings />
         </section>
       </main>
-
-      {/* Celebration Display System */}
-      <EnhancedCelebrationSystem
-        isVisible={celebration.enhancedVisible}
-        type={celebration.currentEvent?.type || 'hourly'}
-        hours={celebration.currentEvent?.hours || 0}
-        message={celebration.currentEvent?.message || ''}
-      />
     </AdminHealthCheck>
   );
 }

@@ -10,6 +10,7 @@ const items = [
   { label: "Func", to: "/admin/functions" },
   { label: "Brand", to: "/admin/branding" },
   { label: "Pay", to: "/admin/payments" },
+  { label: "Anim", to: "/admin/animations" },
 ];
 
 export function AdminSubnav() {
@@ -26,7 +27,7 @@ export function AdminSubnav() {
               to={item.to}
             className={cn(
               buttonVariants({ variant: isActive ? "default" : "ghost", size: "sm" }),
-              "whitespace-nowrap h-7 px-2 text-xs font-medium flex-shrink-0",
+              "whitespace-nowrap h-6 px-1.5 text-[10px] font-medium flex-shrink-0",
               isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
             >
