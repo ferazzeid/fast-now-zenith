@@ -24,7 +24,6 @@ import { useNavigate } from 'react-router-dom';
 import { CalorieGoalWarning } from '@/components/CalorieGoalWarning';
 import { UserColorPicker } from '@/components/UserColorPicker';
 
-import { MotivatorAiChatModal } from '@/components/MotivatorAiChatModal';
 import { MotivatorsModal } from '@/components/MotivatorsModal';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
@@ -56,7 +55,6 @@ const Settings = () => {
   const platformName = 'Stripe'; // Default to Stripe for now
   
   const [showMotivatorsModal, setShowMotivatorsModal] = useState(false);
-  const [showAiGeneratorModal, setShowAiGeneratorModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { profile, updateProfile, loading: profileLoading } = useProfile();
   const { isOnline } = useConnectionStore();
@@ -878,10 +876,6 @@ const Settings = () => {
               isOpen={showMotivatorsModal}
               onClose={() => setShowMotivatorsModal(false)} 
             />
-          )}
-          
-          {showAiGeneratorModal && (
-            <MotivatorAiChatModal onClose={() => setShowAiGeneratorModal(false)} />
           )}
 
         {/* Profile Onboarding Modal */}

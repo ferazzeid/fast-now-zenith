@@ -167,13 +167,10 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
     try {
       console.log('🎤 Voice transcription:', transcription);
       
-      // Call AI to process the voice input for foods - let edge function handle the system prompt
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
+      // Call AI to process the voice input for foods
+      const { data, error } = await supabase.functions.invoke('analyze-food-voice', {
         body: {
-          messages: [
-            { role: 'user', content: transcription }
-          ],
-          context: 'food_only'
+          message: transcription
         }
       });
 

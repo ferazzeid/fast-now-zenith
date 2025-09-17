@@ -50,17 +50,10 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
     setIsProcessing(true);
     
     try {
-      // Send directly to AI like voice input does
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
+      // Send to AI for food processing
+      const { data, error } = await supabase.functions.invoke('analyze-food-voice', {
         body: {
-          messages: [
-            { 
-              role: 'system', 
-              content: 'You are a focused food tracking assistant. Extract ONLY the food items mentioned by the user and return them with proper nutrition data. NEVER add foods not explicitly mentioned by the user.' 
-            },
-            { role: 'user', content: inputText.trim() }
-          ],
-          context: 'food_only'
+          message: inputText.trim()
         }
       });
 

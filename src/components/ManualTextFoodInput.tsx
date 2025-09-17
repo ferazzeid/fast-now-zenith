@@ -61,32 +61,9 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
     setIsProcessing(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
+      const { data, error } = await supabase.functions.invoke('analyze-food-voice', {
         body: {
-          messages: [
-            { 
-              role: 'system', 
-              content: `You are a focused food tracking assistant. Extract food items from user input and return them with proper nutrition data. 
-
-IMPORTANT: When users don't specify quantities, use standard serving sizes:
-- Pasta/rice/grains: 75g dry weight (≈200g cooked)
-- Bread: 2 medium slices (≈60g)
-- Fruits (apple, orange, banana): 1 medium piece (≈150-180g)
-- Vegetables: 1 cup chopped (≈100-150g depending on vegetable)
-- Meat/fish: 150g portion
-- Chicken breast: 150g
-- Eggs: 2 large eggs (≈100g)
-- Cheese: 30g portion
-- Nuts: 30g portion
-- Milk: 250ml (1 cup)
-- Yogurt: 150g container
-- Cooking oil: 1 tablespoon (≈15ml)
-
-Always return food items with realistic serving sizes that users can easily adjust.` 
-            },
-            { role: 'user', content: textInput }
-          ],
-          context: 'food_only'
+          message: textInput
         }
       });
 
