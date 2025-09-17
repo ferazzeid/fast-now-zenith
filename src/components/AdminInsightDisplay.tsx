@@ -52,68 +52,28 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
 
   return (
     <div className={cn("mt-4 mb-4 w-full", className)}>
-      <div className="flex items-start gap-4">
-        {/* Speech Bubble */}
-        <div
-          className={cn(
-            "relative flex-shrink-0 w-12 h-12",
-            "border-2 border-primary bg-gradient-to-br from-primary/20 to-primary/10",
-            "author-tooltip-bubble shadow-lg"
-          )}
-          style={{
-            borderRadius: '50% 50% 50% 10%'
-          }}
-        >
-          {/* Golden Glow Effect */}
-          <div 
-            className="absolute inset-0 opacity-50"
-            style={{
-              background: 'radial-gradient(circle, #dac471 0%, rgba(218, 196, 113, 0.3) 50%, transparent 70%)',
-              borderRadius: '50% 50% 50% 10%',
-              filter: 'blur(4px)',
-              transform: 'scale(1.1)'
-            }}
-          />
-          
-          {/* Author Image */}
+      {/* Full width content box without speech bubble constraints */}
+      <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm w-full">
+        {/* Header */}
+        <div className="flex items-center space-x-3 mb-3">
           <img
             src={authorData.image}
             alt={authorData.name}
-            className="w-full h-full object-cover"
-            style={{
-              borderRadius: '50% 50% 50% 10%'
-            }}
+            className="w-6 h-6 rounded-full object-cover"
           />
-        </div>
-
-        {/* Always-visible Content Box - Now fills remaining width */}
-        <div className="flex-1 min-w-0">
-          <div className="relative bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm w-full">
-            {/* Header */}
-            <div className="flex items-center space-x-3 mb-3">
-              <img
-                src={authorData.image}
-                alt={authorData.name}
-                className="w-6 h-6 rounded-full object-cover"
-              />
-              <div>
-                <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                  {authorData.name}
-                </div>
-                <div className="text-xs text-gray-600 dark:text-gray-400">
-                  {authorData.title}
-                </div>
-              </div>
+          <div>
+            <div className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+              {authorData.name}
             </div>
-            
-            {/* Content - Reduced font size by 50% */}
-            <div className="text-xs text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
-              {content}
+            <div className="text-xs text-gray-600 dark:text-gray-400">
+              {authorData.title}
             </div>
-
-            {/* Speech bubble arrow pointing to the bubble */}
-            <div className="absolute left-0 top-6 w-3 h-3 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 rotate-45 -ml-1.5 border-l border-t" />
           </div>
+        </div>
+        
+        {/* Content - Reduced font size by 50% */}
+        <div className="text-xs text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
+          {content}
         </div>
       </div>
     </div>

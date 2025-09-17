@@ -72,7 +72,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <Card 
-      className={`max-w-md mx-auto bg-card ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
+      className={`w-full bg-card ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative text-center">
