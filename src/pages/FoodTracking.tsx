@@ -549,7 +549,7 @@ const FoodTracking = () => {
                     )}
                     
                     {/* Save to Template Button */}
-                    <div className="flex justify-start items-center mt-6 pt-2 border-t border-border">
+                    <div className="flex justify-between items-center mt-6 pt-2 border-t border-border">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -559,6 +559,38 @@ const FoodTracking = () => {
                         <Save className="w-3 h-3" />
                         Save to Template
                       </Button>
+                      <div className="flex items-center gap-2 mr-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => setShowClearAllDialog(true)}
+                          className={`h-5 w-5 p-1 rounded text-destructive hover:text-destructive ${
+                            isClearingAll 
+                              ? 'bg-muted/50 hover:bg-muted/70' 
+                              : 'bg-transparent hover:bg-destructive/10'
+                          }`}
+                          disabled={isClearingAll}
+                          title="Delete all foods"
+                          aria-label="Delete all foods"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={handleMarkAllAsEaten}
+                          disabled={isBulkMarking}
+                          className={`h-5 w-5 p-1 rounded ${
+                            todayEntries.some(entry => !entry.consumed)
+                              ? 'bg-accent hover:bg-accent/90 text-accent-foreground' 
+                              : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
+                          }`}
+                          title="Mark all foods as eaten"
+                          aria-label="Mark all foods as eaten"
+                        >
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 )}
