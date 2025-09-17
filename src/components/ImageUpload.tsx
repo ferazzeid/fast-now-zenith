@@ -175,7 +175,7 @@ export const ImageUpload = ({
                   variant="ghost"
                   size="sm"
                   onClick={handleRemoveImage}
-                  className="absolute top-1 right-1 h-6 w-6 p-0 rounded-full bg-black/20 hover:bg-black/40 text-white border-0"
+                  className="absolute top-1 left-1 h-6 w-6 p-0 rounded-full bg-black/20 hover:bg-black/40 text-white border-0"
                   disabled={isUploading}
                 >
                   <X className="w-3 h-3" />

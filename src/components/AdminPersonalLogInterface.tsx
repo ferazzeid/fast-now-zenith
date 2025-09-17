@@ -93,7 +93,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   };
 
   return (
-    <div className="mt-4 p-4 rounded-md border border-subtle bg-card/50 backdrop-blur-sm">
+    <div className="mt-4 p-4 rounded-md border border-subtle bg-muted/50 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <h4 className="text-sm font-medium text-foreground">

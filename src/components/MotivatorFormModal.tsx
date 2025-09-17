@@ -118,20 +118,22 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       showCloseButton={true}
       footer={
         <>
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="w-full"
+          <Button 
+            variant="ghost" 
+            size="action-secondary"
+            onClick={onClose} 
+            className="w-12"
           >
-            Cancel
+            <X className="w-4 h-4" />
           </Button>
-          <Button
+          <Button 
+            variant="action-primary"
+            size="action-secondary"
             onClick={handleSave}
             disabled={!title.trim()}
-            className="w-full"
+            className="flex-1"
           >
-            <Save className="w-4 h-4 mr-2" />
-            {isEditing ? 'Save' : 'Create'}
+            {isEditing ? 'Update' : 'Create'}
           </Button>
         </>
       }
