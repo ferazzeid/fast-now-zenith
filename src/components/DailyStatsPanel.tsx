@@ -39,7 +39,7 @@ export const DailyStatsPanel = memo(() => {
 
   const getDeficitColor = useMemo(() => (deficit: number) => {
     if (deficit > 0) return 'text-accent';
-    if (deficit < 0) return 'text-red-600 dark:text-red-400';
+    if (deficit < 0) return 'text-destructive';
     return 'text-muted-foreground';
   }, []);
 
@@ -147,7 +147,7 @@ export const DailyStatsPanel = memo(() => {
                   className="w-5 h-5 object-contain"
                 />
               ) : (
-                <Target className="w-5 h-5 text-primary" />
+                <Target className="w-5 h-5 text-accent" />
               )}
               <span className="text-sm font-medium text-warm-text">
                 Today's Deficit:
@@ -155,7 +155,7 @@ export const DailyStatsPanel = memo(() => {
               <AccessGate feature="food">
                 {({ hasAccess }) => (
                   hasAccess ? (
-                    <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-white">
+                    <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-accent-foreground">
                       {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0
                         ? '...'
                         : `${formatNumber(deficitData.todayDeficit)} cal`}
@@ -170,7 +170,7 @@ export const DailyStatsPanel = memo(() => {
               <span className="text-xs text-muted-foreground hidden sm:inline">
                 {isExpanded ? 'Tap to close' : 'Tap to expand'}
               </span>
-              <ChevronDown className={`w-5 h-5 text-primary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-5 h-5 text-accent transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
             </div>
           </div>
         </div>
