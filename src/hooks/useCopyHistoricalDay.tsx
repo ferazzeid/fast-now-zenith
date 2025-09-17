@@ -15,10 +15,12 @@ export const useCopyHistoricalDay = () => {
     }
 
     const result = await execute(async () => {
-      // Get the date range for the specified day
+      // Parse date consistently with the display format
       const targetDate = new Date(date);
       const dayStart = startOfDay(targetDate);
       const dayEnd = endOfDay(targetDate);
+
+      console.log(`Copying from ${date} (${dayStart.toISOString()} to ${dayEnd.toISOString()})`);
 
       // Fetch food entries for the specified day (only consumed items like the UI shows)
       const { data: dayEntries, error: fetchError } = await supabase
@@ -65,7 +67,9 @@ export const useCopyHistoricalDay = () => {
         day: 'numeric' 
       });
       
-      toast.success(`Copied ${insertedEntries?.length || 0} food items from ${formattedDate} to today's plan`);
+      console.log(`Successfully copied ${insertedEntries?.length} entries from ${formattedDate}`);
+      
+      toast.success(`Copied ${insertedEntries?.length || 0} entries from ${formattedDate} to today's plan`);
       return { success: true, count: insertedEntries?.length || 0 };
     }, {
       onError: (error) => {

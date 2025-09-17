@@ -68,15 +68,17 @@ const FoodHistory = () => {
 
       if (error) throw error;
 
-      // Group entries by date
+      // Group entries by date (using same format as copy function)
       const grouped = new Map<string, DailySummary>();
       
       entries?.forEach(entry => {
-        const date = new Date(entry.created_at).toDateString();
+        // Use same date format as copy function for consistency
+        const entryDate = new Date(entry.created_at);
+        const dateKey = entryDate.toDateString();
         
-        if (!grouped.has(date)) {
-          grouped.set(date, {
-            date,
+        if (!grouped.has(dateKey)) {
+          grouped.set(dateKey, {
+            date: dateKey,
             totalCalories: 0,
             totalCarbs: 0,
             entryCount: 0,
@@ -84,10 +86,10 @@ const FoodHistory = () => {
           });
         }
         
-        const summary = grouped.get(date)!;
+        const summary = grouped.get(dateKey)!;
         summary.totalCalories += entry.calories || 0;
         summary.totalCarbs += entry.carbs || 0;
-        summary.entryCount += 1;
+        summary.entryCount += 1; // Count every individual entry (including duplicates)
         summary.entries.push({
           id: entry.id,
           name: entry.name,
@@ -331,7 +333,10 @@ const FoodHistory = () => {
                             <Utensils className="w-4 h-4 text-muted-foreground" />
                             <div>
                               <div className="text-sm font-medium">
-                                {summary.totalCalories} cal • {summary.entryCount} items
+                                {summary.totalCalories} cal • {summary.entryCount} entries
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {new Set(summary.entries.map(e => e.name)).size} unique foods
                               </div>
                             </div>
                           </div>
