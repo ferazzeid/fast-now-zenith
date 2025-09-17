@@ -122,7 +122,7 @@ export const AdminSubscriptionOverview = () => {
         )}
 
         {/* Debug Info */}
-        <div className="border-t pt-3">
+        <div className="border-t-subtle pt-3">
           <h4 className="text-xs font-semibold mb-2 text-muted-foreground">Debug Information</h4>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div>Source: useAccess</div>

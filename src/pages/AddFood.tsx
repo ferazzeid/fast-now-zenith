@@ -292,9 +292,9 @@ export default function AddFood() {
     <div className="min-h-screen bg-background pb-20">
       {/* Modal-like Container */}
       <div className="max-w-md mx-auto p-4 pt-20 pb-8">
-        <div className="bg-background rounded-xl shadow-sm border">
+        <div className="bg-background rounded-xl shadow-sm border-subtle">
           {/* Header inside the box */}
-          <div className="px-6 py-4 border-b rounded-t-xl flex items-center justify-between">
+          <div className="px-6 py-4 border-b-subtle rounded-t-xl flex items-center justify-between">
             <h1 className="text-lg font-semibold">Add Food</h1>
             <Button
               variant="ghost"

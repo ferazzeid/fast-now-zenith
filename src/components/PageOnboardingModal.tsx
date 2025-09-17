@@ -30,7 +30,7 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
           />
         )}
         {/* Header with optional close button */}
-        <div className="flex justify-between items-start p-4 border-b border-border/30 relative z-10">
+        <div className="flex justify-between items-start p-4 border-b border-subtle relative z-10">
           <div className={`${showCloseButton ? 'flex-1 mr-3' : 'w-full'}`}>
             <h1 className="text-xl font-bold text-warm-text mb-1">{title}</h1>
             {subtitle && (

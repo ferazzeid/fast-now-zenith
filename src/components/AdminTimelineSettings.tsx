@@ -360,7 +360,7 @@ export const AdminTimelineSettings = () => {
         </div>
 
         {/* Hours List */}
-        <div className="divide-y rounded-md border max-h-96 overflow-y-auto">
+        <div className="divide-y rounded-md border-subtle max-h-96 overflow-y-auto">
           {fastingHours.map((hour) => (
             <div key={hour.id || hour.hour} className="flex items-center justify-between py-2 px-3">
               <span className="text-sm">Hour {hour.hour}</span>

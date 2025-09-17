@@ -213,7 +213,7 @@ const FastingHistory = () => {
                 <div className="flex items-center gap-2 mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
                   <h2 className="font-semibold text-sm">{date}</h2>
-                  <div className="flex-1 border-t border-border" />
+                  <div className="flex-1 border-t-subtle" />
                 </div>
                 
                 <div className="space-y-3 ml-6">

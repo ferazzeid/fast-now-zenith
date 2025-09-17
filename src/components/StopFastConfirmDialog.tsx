@@ -54,7 +54,7 @@ export const StopFastConfirmDialog = ({
           }
         </p>
         
-        <div className="text-xs text-muted-foreground font-medium bg-muted/30 rounded-lg p-3 border border-border">
+        <div className="text-xs text-muted-foreground font-medium bg-muted/30 rounded-lg p-3 border-subtle">
           {actionType === 'cancel' 
             ? 'This will remove your fast from history completely.'
             : 'This will save your fast progress to history.'

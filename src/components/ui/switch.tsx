@@ -9,8 +9,8 @@ const switchVariants = cva(
   {
     variants: {
       variant: {
-        default: "data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted data-[state=unchecked]:border-border",
-        neutral: "data-[state=checked]:bg-muted-foreground data-[state=unchecked]:bg-muted data-[state=unchecked]:border-border",
+        default: "data-[state=checked]:bg-primary data-[state=unchecked]:bg-muted data-[state=unchecked]:border-subtle",
+        neutral: "data-[state=checked]:bg-muted-foreground data-[state=unchecked]:bg-muted data-[state=unchecked]:border-subtle",
       },
     },
     defaultVariants: {

@@ -100,7 +100,7 @@ export const AdminGoalManagementSection: React.FC = () => {
                 {systemMotivators.map((motivator) => (
                   <div 
                     key={motivator.id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
+                    className="flex items-center justify-between p-3 border-subtle rounded-lg"
                   >
                     <div className="flex-1">
                       <div className="font-medium">{motivator.title}</div>

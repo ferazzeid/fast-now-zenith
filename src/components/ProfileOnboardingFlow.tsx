@@ -330,7 +330,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                     className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                       isSelected 
                         ? 'border-primary bg-primary/5' 
-                        : 'border-border hover:bg-muted/50'
+                        : 'border-subtle hover:bg-muted/50'
                     }`}
                   >
                     <div className="flex items-start justify-between">

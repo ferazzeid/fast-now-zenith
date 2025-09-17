@@ -137,7 +137,7 @@ const Auth = () => {
               <Collapsible open={emailFormOpen} onOpenChange={setEmailFormOpen}>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
+                    <div className="w-full border-t-subtle" />
                   </div>
                   <div className="relative flex justify-center">
                     <CollapsibleTrigger asChild>

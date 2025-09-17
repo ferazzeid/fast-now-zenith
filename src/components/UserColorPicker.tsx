@@ -82,7 +82,7 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
           >
             <div className="flex items-center gap-2">
               <div 
-                className="w-4 h-4 rounded border border-border shadow-sm"
+                className="w-4 h-4 rounded border-subtle shadow-sm"
                 style={{ backgroundColor: localColor }}
               />
               <Palette className="w-3 h-3" />
@@ -132,7 +132,7 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
                 <button
                   key={presetColor}
                   onClick={() => handleColorChange(presetColor)}
-                  className="w-8 h-8 rounded border-2 border-border hover:border-primary transition-colors shadow-sm"
+                  className="w-8 h-8 rounded border-2 border-subtle hover:border-primary transition-colors shadow-sm"
                   style={{ backgroundColor: presetColor }}
                   title={presetColor}
                 />

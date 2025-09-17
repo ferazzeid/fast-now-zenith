@@ -123,7 +123,7 @@ export const SquareCelebrationEffects = ({ isActive, animationType, onAnimationE
       default:
         return (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-4xl animate-pulse bg-background/80 rounded-full px-3 py-2 border border-border/30 backdrop-blur-sm">
+            <div className="text-4xl animate-pulse bg-background/80 rounded-full px-3 py-2 border-subtle backdrop-blur-sm">
               ⭐
             </div>
           </div>

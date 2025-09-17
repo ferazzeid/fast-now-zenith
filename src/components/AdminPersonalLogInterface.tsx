@@ -93,7 +93,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
   };
 
   return (
-    <div className="mt-4 p-4 rounded-md border bg-card/50 backdrop-blur-sm">
+    <div className="mt-4 p-4 rounded-md border-subtle bg-card/50 backdrop-blur-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <h4 className="text-sm font-medium text-foreground">
@@ -132,7 +132,7 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       </div>
 
       {showVoiceRecorder && isEditing && (
-        <div className="mb-3 p-3 rounded border bg-muted/30">
+        <div className="mb-3 p-3 rounded border-subtle bg-muted/30">
           <div className="text-xs text-muted-foreground mb-2">Voice Recording</div>
           <SimpleVoiceRecorder
             onTranscription={handleVoiceTranscription}
@@ -181,11 +181,11 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
       ) : (
         <div className="space-y-2">
           {logText ? (
-            <div className="text-sm text-foreground p-3 rounded border bg-muted/20">
+            <div className="text-sm text-foreground p-3 rounded border-subtle bg-muted/20">
               {logText}
             </div>
           ) : (
-            <div className="text-sm text-muted-foreground italic p-3 rounded border bg-muted/10">
+            <div className="text-sm text-muted-foreground italic p-3 rounded border-subtle bg-muted/10">
               No personal log for hour {currentHour} yet. Click the edit button or mic to add one.
             </div>
           )}

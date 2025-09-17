@@ -204,7 +204,7 @@ export const AdminQuoteSettings: React.FC = () => {
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {quotes.fasting_timer_quotes.map((quote, index) => (
-                  <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
+                  <div key={index} className="flex items-start gap-3 p-2 border-subtle rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm italic">"{quote.text}"</p>
                       {quote.author && (
@@ -266,7 +266,7 @@ export const AdminQuoteSettings: React.FC = () => {
               </div>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {quotes.walking_timer_quotes.map((quote, index) => (
-                  <div key={index} className="flex items-start gap-3 p-2 border rounded-lg">
+                  <div key={index} className="flex items-start gap-3 p-2 border-subtle rounded-lg">
                     <div className="flex-1 min-w-0">
                       <p className="text-sm italic">"{quote.text}"</p>
                       {quote.author && (

@@ -206,7 +206,7 @@ export const WalkingHistoryModal = ({ onClose }: WalkingHistoryModalProps) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <Card className="w-full max-w-md mx-auto max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-        <CardHeader className="border-b border-border py-4 px-0 flex-shrink-0">
+        <CardHeader className="border-b-subtle py-4 px-0 flex-shrink-0">
           <div className="flex justify-between items-center px-6">
             <CardTitle className="text-lg font-semibold">Walking History</CardTitle>
             <div className="flex gap-2">

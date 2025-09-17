@@ -64,7 +64,7 @@ export const SpeedSelectionModal = ({ selectedSpeed, onSpeedChange, children }: 
                 className={`p-4 cursor-pointer transition-all hover:shadow-md ${
                   isSelected 
                     ? 'border-primary bg-primary/10 shadow-sm' 
-                    : 'border-border hover:border-primary/50'
+                    : 'border-subtle hover:border-primary/50'
                 }`}
                 onClick={() => handleSpeedSelect(option.storageSpeed)}
               >

@@ -340,7 +340,7 @@ const FoodHistory = () => {
                     </div>
                     
                     {/* Action buttons */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <div className="flex items-center gap-2 pt-2 border-t-subtle">
                       <Button
                         variant="outline"
                         size="sm"

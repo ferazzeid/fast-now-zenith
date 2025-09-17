@@ -142,7 +142,7 @@ export const AdminImageUpload = ({
           <img 
             src={currentImageUrl} 
             alt="Goal idea" 
-            className="w-full h-32 object-cover rounded-lg border border-ceramic-shadow"
+            className="w-full h-32 object-cover rounded-lg border-subtle"
           />
           <Button
             type="button"
@@ -159,7 +159,7 @@ export const AdminImageUpload = ({
       
       {/* Upload area */}
       {!currentImageUrl && (
-        <div className="border-2 border-dashed border-ceramic-shadow rounded-lg p-6 text-center bg-ceramic-plate">
+        <div className="border-2 border-dashed border-subtle rounded-lg p-6 text-center bg-ceramic-plate">
           <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
           <p className="text-sm text-muted-foreground mb-3">
             Upload an image for this goal idea
@@ -170,7 +170,7 @@ export const AdminImageUpload = ({
               variant="outline"
               size="sm"
               disabled={isUploading}
-              className="bg-ceramic-base border border-ceramic-shadow"
+              className="bg-ceramic-base border-subtle"
               asChild
             >
               <span>
@@ -213,7 +213,7 @@ export const AdminImageUpload = ({
               variant="outline"
               size="sm"
               disabled={isUploading}
-              className="bg-ceramic-base border border-ceramic-shadow"
+              className="bg-ceramic-base border-subtle"
               asChild
             >
               <span>

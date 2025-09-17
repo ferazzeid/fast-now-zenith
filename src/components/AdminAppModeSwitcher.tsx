@@ -93,7 +93,7 @@ export const AdminAppModeSwitcher = () => {
             <SelectTrigger id="app-mode-select" className="w-full">
               <SelectValue placeholder="Select app mode..." />
             </SelectTrigger>
-            <SelectContent className="z-50 bg-background border">
+            <SelectContent className="z-50 bg-background border-normal">
               {appModeOptions.map((mode) => (
                 <SelectItem key={mode.value} value={mode.value}>
                   <div>
