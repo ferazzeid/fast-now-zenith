@@ -109,7 +109,7 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
         setShowFoodModal(true);
         
         toast({
-          title: "✏️ Added for Manual Entry",
+          title: "Added for Manual Entry",
           description: `"${textInput}" added with 0 values - please edit the nutritional information`,
           className: "bg-amber-600 text-white border-0",
           duration: 3000,
@@ -198,7 +198,7 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
       onFoodAdded?.(selectedFoods);
       
       toast({
-        title: "✅ Foods Added",
+        title: "Foods Added",
         description: `Added ${selectedFoods.length} food${selectedFoods.length === 1 ? '' : 's'} to today's plan`,
       });
       

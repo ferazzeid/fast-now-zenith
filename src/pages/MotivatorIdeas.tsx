@@ -75,7 +75,7 @@ export default function MotivatorIdeas() {
       await refreshMotivators();
       
       toast({ 
-        title: '✅ Added to My Goals', 
+        title: 'Added to My Goals', 
         description: 'The motivator was added successfully.' 
       });
       
@@ -96,7 +96,7 @@ export default function MotivatorIdeas() {
     try {
       const success = await updateGoalIdea(updatedGoal.id, updatedGoal);
       if (success) {
-        toast({ title: '✅ Idea Updated', description: 'Changes saved successfully.' });
+        toast({ title: 'Idea Updated', description: 'Changes saved successfully.' });
         setEditingGoal(null);
       } else {
         throw new Error('Update failed');

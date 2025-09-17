@@ -87,7 +87,7 @@ const Motivators = () => {
       
       // Simple success message and refresh
       toast({
-        title: "✅ Created Successfully!",
+        title: "Created Successfully!",
         description: motivatorData.category === 'personal_note' 
           ? "Your new note has been saved successfully." 
           : "Your new motivator has been saved successfully.",
@@ -131,7 +131,7 @@ const Motivators = () => {
           setEditingMotivator(null);
           
           toast({
-            title: "✅ Admin Goal Updated!",
+            title: "Admin Goal Updated!",
             description: "The goal idea has been updated successfully.",
           });
           
@@ -150,7 +150,7 @@ const Motivators = () => {
         setEditingMotivator(null);
         
         toast({
-          title: "✨ Motivator Updated!",
+          title: "Motivator Updated!",
           description: "Your changes have been saved.",
         });
         
@@ -215,7 +215,7 @@ const Motivators = () => {
       try {
         await updateMotivator(motivator_id, updates);
         toast({
-          title: "✅ Motivator Updated!",
+          title: "Motivator Updated!",
           description: "Your motivator has been updated via voice command.",
         });
       } catch (error) {
@@ -235,7 +235,7 @@ const Motivators = () => {
       try {
         await handleDeleteMotivator(motivator_id);
         toast({
-          title: "✅ Motivator Deleted!",
+          title: "Motivator Deleted!",
           description: "Your motivator has been deleted via voice command.",
         });
       } catch (error) {
@@ -265,7 +265,7 @@ const Motivators = () => {
         
         // Show success toast
         toast({
-          title: "✅ Motivators Created!",
+          title: "Motivators Created!",
           description: `Created ${motivators.length} motivator${motivators.length > 1 ? 's' : ''} successfully!`,
         });
       } catch (error) {
@@ -307,7 +307,7 @@ const Motivators = () => {
         
         // Show success toast
         toast({
-          title: "✅ Motivator Created!",
+          title: "Motivator Created!",
           description: "Your AI-generated motivator has been saved.",
         });
       } catch (error) {

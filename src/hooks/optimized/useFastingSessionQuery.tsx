@@ -291,7 +291,7 @@ export const useFastingSessionQuery = () => {
       const minutes = Math.floor(((data.duration_seconds || 0) % 3600) / 60);
       
       toast({
-        title: "🎉 Fasting Completed!",
+        title: "Fasting Completed!",
         description: `Great job! You fasted for ${hours}h ${minutes}m.`,
       });
     },

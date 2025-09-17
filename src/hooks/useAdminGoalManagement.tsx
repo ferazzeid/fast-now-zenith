@@ -222,7 +222,7 @@ export const useAdminGoalManagement = () => {
 
       console.log('✅ Successfully updated admin goal ideas in database');
       toast({
-        title: "✅ Goal Updated!",
+        title: "Goal Updated!",
         description: "Admin goal idea has been updated successfully",
       });
 

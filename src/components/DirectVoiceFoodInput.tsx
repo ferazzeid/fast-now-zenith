@@ -367,7 +367,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
       onFoodAdded?.(selectedFoods);
       
       toast({
-        title: "✅ Foods Added",
+        title: "Foods Added",
         description: `Added ${selectedFoods.length} food${selectedFoods.length === 1 ? '' : 's'} to today's plan`,
       });
       

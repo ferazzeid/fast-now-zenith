@@ -310,7 +310,7 @@ const Settings = () => {
 
         console.log('Settings saved successfully');
         toast({
-          title: "✅ Settings Saved!",
+          title: "Settings Saved!",
           description: "Your settings have been updated successfully.",
         });
       }

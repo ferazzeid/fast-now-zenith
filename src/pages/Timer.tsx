@@ -183,7 +183,7 @@ const Timer = () => {
               
               await stableEndSession(fastingSession.id);
               toast({
-                title: "🎉 Goal Achieved!",
+                title: "Goal Achieved!",
                 description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
               });
             } catch (error) {
@@ -221,7 +221,7 @@ const Timer = () => {
                 
                 await stableEndSession(fastingSession.id);
                 toast({
-                  title: "🎉 Goal Achieved!",
+                  title: "Goal Achieved!",
                   description: `Congratulations! You've completed your ${formatTimeFasting(fastingSession.goal_duration_seconds)} fast!`,
                 });
               } catch (error) {

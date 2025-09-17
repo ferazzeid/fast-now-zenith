@@ -103,7 +103,7 @@ export const AdminPredefinedMotivators = () => {
       loadMotivators();
       
       toast({
-        title: "✅ Motivators Updated",
+        title: "Motivators Updated",
         description: "System motivators have been updated successfully.",
       });
     } catch (error) {
@@ -157,7 +157,7 @@ export const AdminPredefinedMotivators = () => {
       loadMotivators();
       
       toast({
-        title: "✅ Motivator Deleted",
+        title: "Motivator Deleted",
         description: "System motivator has been deactivated.",
       });
     } catch (error) {

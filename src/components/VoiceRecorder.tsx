@@ -56,7 +56,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       const recordingTimeout = setTimeout(() => {
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
           toast({
-            title: "⏱️ Recording Timeout",
+            title: "Recording Timeout",
             description: "Recording automatically stopped after 2 minutes. For longer messages, please break them into smaller parts.",
             variant: "destructive"
           });
@@ -149,7 +149,7 @@ export const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
     }, {
       onSuccess: () => {
         toast({
-          title: "✨ Transcription Complete",
+          title: "Transcription Complete",
           description: "Your voice has been converted to text!",
         });
       },

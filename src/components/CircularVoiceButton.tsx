@@ -188,7 +188,7 @@ export const CircularVoiceButton = React.forwardRef<
         if (isRecording && mediaRecorderRef.current?.state === 'recording') {
           console.log('🎤 [Mobile Debug] Recording timeout reached');
           toast({
-            title: "⏱️ Recording Timeout",
+            title: "Recording Timeout",
             description: "Recording automatically stopped after 90 seconds.",
             variant: "destructive"
           });

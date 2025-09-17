@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
@@ -29,6 +29,23 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
   const consumedCalories = entries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.calories, 0);
   const totalCarbs = entries.reduce((sum, entry) => sum + entry.carbs, 0);
   const consumedCarbs = entries.filter(entry => entry.consumed).reduce((sum, entry) => sum + entry.carbs, 0);
+
+  // Animated counter states
+  const [animatedConsumedCalories, setAnimatedConsumedCalories] = useState(consumedCalories);
+  const [animatedTotalCalories, setAnimatedTotalCalories] = useState(totalCalories);
+  const [animatedConsumedCarbs, setAnimatedConsumedCarbs] = useState(consumedCarbs);
+  const [animatedTotalCarbs, setAnimatedTotalCarbs] = useState(totalCarbs);
+
+  // Animate numbers when they change
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setAnimatedConsumedCalories(consumedCalories);
+      setAnimatedTotalCalories(totalCalories);
+      setAnimatedConsumedCarbs(consumedCarbs);
+      setAnimatedTotalCarbs(totalCarbs);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [consumedCalories, totalCalories, consumedCarbs, totalCarbs]);
 
   const dailyCalorieGoal = profile?.daily_calorie_goal || 2000;
   const dailyCarbGoal = profile?.daily_carb_goal || 30;
@@ -97,14 +114,14 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
             <ClickableTooltip content={`Daily goal: ${dailyAllowance} cal`}>
               <div className="cursor-pointer">
                 <div 
-                  className={`text-4xl font-mono font-bold tracking-wide ${consumedCalories > dailyAllowance ? 'text-destructive' : 'text-warm-text'}`}
+                  className={`text-4xl font-mono font-bold tracking-wide transition-all duration-500 animate-fade-in ${animatedConsumedCalories > dailyAllowance ? 'text-destructive' : 'text-warm-text'}`}
                   style={{ 
                     fontFeatureSettings: '"tnum" 1',
                     textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                   }}
                 >
                   <div className="flex items-baseline justify-center">
-                    <span>{Math.round(consumedCalories)}</span>
+                    <span>{Math.round(animatedConsumedCalories)}</span>
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
@@ -119,14 +136,14 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
             <ClickableTooltip content={`Daily goal: ${Math.round(dailyCarbGoal)}g`}>
               <div className="cursor-pointer">
                 <div 
-                  className={`text-4xl font-mono font-bold tracking-wide ${consumedCarbs > dailyCarbGoal ? 'text-destructive' : 'text-warm-text'}`}
+                  className={`text-4xl font-mono font-bold tracking-wide transition-all duration-500 animate-fade-in ${animatedConsumedCarbs > dailyCarbGoal ? 'text-destructive' : 'text-warm-text'}`}
                   style={{ 
                     fontFeatureSettings: '"tnum" 1',
                     textShadow: '0 1px 2px rgba(0,0,0,0.1)'
                   }}
                 >
                   <div className="flex items-baseline justify-center gap-1">
-                    <span>{Math.round(consumedCarbs)}</span>
+                    <span>{Math.round(animatedConsumedCarbs)}</span>
                     <span className="text-lg font-mono">g</span>
                   </div>
                 </div>
@@ -147,8 +164,8 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
           <div className="text-center">
             <ClickableTooltip content={`Daily goal: ${dailyAllowance} cal`}>
               <div className="cursor-pointer">
-                <div className={`text-sm font-mono ${getProgressColor(totalCalories, dailyAllowance)}`}>
-                  {Math.round(totalCalories)}
+                <div className={`text-sm font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCalories, dailyAllowance)}`}>
+                  {Math.round(animatedTotalCalories)}
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">
                   Calories planned
@@ -161,8 +178,8 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
           <div className="text-center">
             <ClickableTooltip content={`Daily goal: ${Math.round(dailyCarbGoal)}g`}>
               <div className="cursor-pointer">
-                <div className={`text-sm font-mono ${getProgressColor(totalCarbs, dailyCarbGoal)} flex items-baseline justify-center gap-1`}>
-                  <span>{Math.round(totalCarbs)}</span>
+                <div className={`text-sm font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCarbs, dailyCarbGoal)} flex items-baseline justify-center gap-1`}>
+                  <span>{Math.round(animatedTotalCarbs)}</span>
                   <span className="text-xs font-mono">g</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1 font-medium">

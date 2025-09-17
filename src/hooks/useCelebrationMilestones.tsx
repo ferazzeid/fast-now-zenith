@@ -87,7 +87,7 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     // Show toast notification for smaller milestones only
     if (event.hours < 4) {
       toast({
-        title: "🎉 Milestone Reached!",
+        title: "Milestone Reached!",
         description: event.message,
         duration: 3000,
       });

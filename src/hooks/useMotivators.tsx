@@ -137,7 +137,7 @@ export const useMotivators = () => {
         // No need to refresh immediately - state is already updated optimistically
         
         toast({
-          title: "✨ Motivator Created!",
+          title: "Motivator Created!",
           description: "Your new motivator has been saved.",
         });
         return data.id;
@@ -187,7 +187,7 @@ export const useMotivators = () => {
       );
 
       toast({
-        title: "✨ Motivator Updated!",
+        title: "Motivator Updated!",
         description: "Your changes have been saved.",
       });
       return true;
@@ -229,7 +229,7 @@ export const useMotivators = () => {
         const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url, linkUrl: item.link_url }));
         setMotivators(prev => [...transformedData as Motivator[], ...prev]);
         toast({
-          title: "✨ Motivators Created!",
+          title: "Motivators Created!",
           description: `Successfully created ${data.length} motivator${data.length > 1 ? 's' : ''}`,
         });
         return data.map(item => item.id);
@@ -306,7 +306,7 @@ export const useMotivators = () => {
       setMotivators(prev => prev.filter(m => m.id !== id));
       
       toast({
-        title: "🗑️ Motivator Removed",
+        title: "Motivator Removed",
         description: "Motivator has been deleted.",
       });
       return true;

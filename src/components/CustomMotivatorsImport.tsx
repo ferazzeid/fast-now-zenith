@@ -86,7 +86,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
       onSuccess: (successCount) => {
         if (successCount === motivators.length) {
           toast({
-            title: "🎉 Success!",
+            title: "Success!",
             description: `Imported ${successCount} motivators to your collection.`,
           });
         } else {

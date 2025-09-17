@@ -197,7 +197,7 @@ export const AppIdentitySettings: React.FC = () => {
     }, {
       onSuccess: () => {
         toast({
-          title: "✅ Settings Saved!",
+          title: "Settings Saved!",
           description: "App identity settings updated successfully. PWA manifest refreshed - try 'Add to Home Screen' again!",
         });
       },

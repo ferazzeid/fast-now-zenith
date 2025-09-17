@@ -109,7 +109,7 @@ export const ProgressiveImageUpload = ({
         onImageUpload(result.url);
         
         toast({
-          title: "✅ Image uploaded",
+          title: "Image uploaded",
           description: "Image ready! You can now add food details.",
         });
 
