@@ -12,18 +12,16 @@ export default function Functions() {
 
   return (
     <AdminHealthCheck>
-      <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 space-y-8 bg-background min-h-[calc(100vh-80px)]">
         <AdminSubnav />
-        <div className="container mx-auto p-6 space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-foreground">Function Management</h1>
-            <p className="text-muted-foreground">Configure AI prompts for food recognition functions</p>
-          </div>
-          
-          <div className="grid gap-6">
-            <VoicePromptManager />
-            <ImagePromptManager />
-          </div>
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground">Function Management</h1>
+          <p className="text-muted-foreground">Configure AI prompts for food recognition functions</p>
+        </div>
+        
+        <div className="grid gap-6 pb-24">
+          <VoicePromptManager />
+          <ImagePromptManager />
         </div>
       </div>
     </AdminHealthCheck>
