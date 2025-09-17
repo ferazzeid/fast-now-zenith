@@ -465,16 +465,21 @@ const FoodTracking = () => {
               {/* Food Statistics Card */}
               <div className="mb-6 relative">
                 <ComponentErrorBoundary>
-                  <FoodStatsCard entries={todayEntries} />
-                  
-                  {/* Food Slideshow Integration */}
+                  {/* Food Slideshow Background Layer */}
                   {profile?.enable_food_slideshow && (
-                    <ImprovedUnifiedMotivatorRotation
-                      isActive={true}
-                      className="absolute inset-0 pointer-events-none rounded-lg overflow-hidden"
-                      quotesType="walking"
-                    />
+                    <div className="absolute inset-0 rounded-lg overflow-hidden">
+                      <ImprovedUnifiedMotivatorRotation
+                        isActive={true}
+                        className="absolute inset-0 pointer-events-none"
+                        quotesType="walking"
+                      />
+                    </div>
                   )}
+                  
+                  {/* Stats Card with proper background and z-index */}
+                  <div className="relative z-10">
+                    <FoodStatsCard entries={todayEntries} />
+                  </div>
                 </ComponentErrorBoundary>
               </div>
 
