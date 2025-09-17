@@ -87,7 +87,7 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
 
       {/* Always-visible Content Box */}
       <div className="flex-1 min-w-0">
-        <div className="relative bg-card border border-normal rounded-lg p-4 shadow-sm">
+        <div className="relative bg-card border border-subtle rounded-lg p-4 shadow-sm">
           {/* Header */}
           <div className="flex items-center space-x-3 mb-3">
             <img
@@ -111,7 +111,7 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
           </div>
 
           {/* Speech bubble arrow pointing to the bubble */}
-          <div className="absolute left-0 top-6 w-3 h-3 bg-card border-normal rotate-45 -ml-1.5 border-l border-t" />
+          <div className="absolute left-0 top-6 w-3 h-3 bg-card border-subtle rotate-45 -ml-1.5 border-l border-t" />
         </div>
       </div>
     </div>

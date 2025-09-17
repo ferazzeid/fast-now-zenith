@@ -80,7 +80,7 @@ export const AdminTrialSettings = () => {
   };
 
   return (
-    <Card className="bg-card border-normal">
+    <Card className="bg-card border-subtle">
       <CardHeader>
         <CardTitle className="text-lg">Trial Length</CardTitle>
       </CardHeader>

@@ -126,10 +126,10 @@ All colors MUST be HSL.
     --info: 215 85% 65%;
     --info-foreground: 0 0% 98%;
 
-    --border: 0 0% 85%;
-    --border-subtle: 0 0% 90%;
-    --border-normal: 0 0% 85%;
-    --border-emphasis: 0 0% 75%;
+    --border: 0 0% 92%;
+    --border-subtle: 0 0% 94%;
+    --border-normal: 0 0% 88%;
+    --border-emphasis: 0 0% 80%;
     --input: 0 0% 96%;
     --ring: 0 0% 85%;
 
@@ -196,10 +196,10 @@ All colors MUST be HSL.
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 88%;
 
-    --border: 0 0% 30%;
-    --border-subtle: 0 0% 25%;
-    --border-normal: 0 0% 30%;
-    --border-emphasis: 0 0% 40%;
+    --border: 0 0% 22%;
+    --border-subtle: 0 0% 18%;
+    --border-normal: 0 0% 28%;
+    --border-emphasis: 0 0% 35%;
     --input: 0 0% 8%;
     --ring: 0 0% 20%;
 

@@ -117,7 +117,7 @@ export const ImageFoodAnalysis = ({ isOpen, onClose, onSave, data, onDataChange 
         </div>
 
         {/* Estimated Values */}
-        <div className="pt-2 border-t border-normal">
+        <div className="pt-2 border-t border-subtle">
           <p className="text-sm text-muted-foreground mb-3">
             {hasAiAnalysis ? 'AI Estimated Values (for serving):' : 'Nutritional Information (for serving):'}
           </p>

@@ -79,7 +79,7 @@ export const AdminAppModeSwitcher = () => {
   const currentModeOption = appModeOptions.find(mode => mode.value === currentMode);
 
   return (
-    <Card className="bg-card border-normal">
+    <Card className="bg-card border-subtle">
       <CardHeader>
         <CardTitle className="text-lg">App Access Mode</CardTitle>
       </CardHeader>
@@ -93,7 +93,7 @@ export const AdminAppModeSwitcher = () => {
             <SelectTrigger id="app-mode-select" className="w-full">
               <SelectValue placeholder="Select app mode..." />
             </SelectTrigger>
-            <SelectContent className="z-50 bg-background border-normal">
+            <SelectContent className="z-50 bg-background border-subtle">
               {appModeOptions.map((mode) => (
                 <SelectItem key={mode.value} value={mode.value}>
                   <div>

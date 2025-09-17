@@ -46,7 +46,7 @@ export const LoadingSpinner = ({
       </div>
 
       {showTimeout && (
-        <div className="space-y-3 pt-6 border-t border-normal">
+        <div className="space-y-3 pt-6 border-t border-subtle">
           <p className="text-sm text-muted-foreground">
             Taking longer than expected?
           </p>

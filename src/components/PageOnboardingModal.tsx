@@ -19,7 +19,7 @@ export const PageOnboardingModal = ({ isOpen, onClose, title, subtitle, heroQuot
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4">
       {/* Mobile-optimized modal container */}
-      <div className="w-full max-w-md max-h-[90vh] bg-card/90 backdrop-blur-sm rounded-2xl border border-normal overflow-hidden flex flex-col relative">
+      <div className="w-full max-w-md max-h-[90vh] bg-card/90 backdrop-blur-sm rounded-2xl border border-subtle overflow-hidden flex flex-col relative">
         {/* Background Image */}
         {backgroundImage && (
           <div 

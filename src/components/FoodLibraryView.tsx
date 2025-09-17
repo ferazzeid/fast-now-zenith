@@ -751,7 +751,7 @@ export const FoodLibraryView = ({
                  sideOffset={8}
                  avoidCollisions={true}
                  collisionPadding={16}
-                  className="w-52 z-[9999] bg-background border border-normal shadow-xl backdrop-blur-sm"
+                  className="w-52 z-[9999] bg-background border border-subtle shadow-xl backdrop-blur-sm"
                  style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                  onCloseAutoFocus={(e) => e.preventDefault()}
                >
@@ -1142,7 +1142,7 @@ export const FoodLibraryView = ({
                                sideOffset={8}
                                avoidCollisions={true}
                                collisionPadding={16}
-                               className="w-52 z-[9999] bg-background border border-normal shadow-xl backdrop-blur-sm"
+                               className="w-52 z-[9999] bg-background border border-subtle shadow-xl backdrop-blur-sm"
                                style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                                onCloseAutoFocus={(e) => e.preventDefault()}
                              >

@@ -70,7 +70,7 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
           className={cn(
             "absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full",
             "opacity-0 group-hover:opacity-100 transition-opacity",
-            "bg-background border border-normal shadow-sm"
+            "bg-background border border-subtle shadow-sm"
           )}
         >
           <X className="h-3 w-3" />
