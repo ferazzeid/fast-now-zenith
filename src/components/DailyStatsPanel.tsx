@@ -130,7 +130,7 @@ export const DailyStatsPanel = memo(() => {
 
   return (
     <TooltipProvider>
-      <div ref={panelRef} className="fixed top-0 left-0 right-0 z-30">{/* Lower z-index than AI chat header */}
+      <div ref={panelRef} className="fixed top-0 left-1/2 transform -translate-x-1/2 z-30 w-full max-w-md">{/* Lower z-index than AI chat header, constrained width like navigation */}
         {/* Collapsed View - Always visible thin bar */}
         <div 
           className="cursor-pointer transition-colors select-none"
@@ -138,7 +138,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className={`w-full px-8 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-ceramic-shadow' : ''}`}>
+          <div className={`w-full px-4 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-ceramic-shadow' : ''}`}>
             <div className="flex items-center space-x-2">
               {appLogo ? (
                 <img 
@@ -149,16 +149,13 @@ export const DailyStatsPanel = memo(() => {
               ) : (
                 <Target className="w-5 h-5 text-primary" />
               )}
-                <span className="text-sm font-medium text-warm-text">
+              <span className="text-sm font-medium text-warm-text">
                 Today's Deficit:
               </span>
-              <ClickableTooltip content="Updates every 15 minutes when walking, hourly when idle - optimized for performance">
-                <Info className="w-3 h-3 text-primary" />
-              </ClickableTooltip>
               <AccessGate feature="food">
                 {({ hasAccess }) => (
                   hasAccess ? (
-                    <span className={`text-sm font-bold ${getDeficitColor(deficitData.todayDeficit)}`}>
+                    <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-white">
                       {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0
                         ? '...'
                         : `${formatNumber(deficitData.todayDeficit)} cal`}
