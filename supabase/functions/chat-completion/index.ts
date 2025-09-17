@@ -1040,41 +1040,38 @@ When explaining app calculations, use the exact formulas and constants above. He
     if (context === 'food_only') {
       contextAwareSystemMessage = `You are a focused food tracking assistant. Extract ONLY the food items mentioned by the user and return them with proper nutrition data.
 
-MANDATORY FUNCTION CALLING: You MUST use the add_multiple_foods function for ANY food request. Do NOT return text responses asking for clarification unless the food is completely unrecognizable.
+MANDATORY FUNCTION CALLING: You MUST use the add_multiple_foods function for ANY food request. NEVER make multiple identical function calls - make ONE call only.
 
-CRITICAL RULE: ONLY return foods that the user explicitly mentioned. NEVER add additional foods not requested by the user.
+CRITICAL RULES:
+- MAKE EXACTLY ONE add_multiple_foods CALL ONLY - never duplicate calls
+- When user describes a DISH like "omelette from 4 eggs with mushrooms", understand realistic portions for that dish
+- For omelettes: 4 eggs = ~240g eggs, handful mushrooms = ~50g, handful cheese = ~30g
+- For salads with "handful" ingredients: lettuce ~100g, tomatoes ~80g, handful nuts ~20g
+- For pasta dishes: "pasta with chicken" = ~75g pasta + ~100g chicken (cooked portions)
 
-SIMPLE FOOD RULES - USE FUNCTION CALLS IMMEDIATELY:
-- Single food mentioned ("pasta", "apple", "chicken") → ALWAYS use add_multiple_foods with that ONE food only
-- Foods with quantities ("pasta 100g", "2 apples") → ALWAYS use add_multiple_foods with specified amounts for ONLY those foods
-- Multiple foods mentioned ("pasta, chicken, apple") → ALWAYS use add_multiple_foods with all items listed by the user
+DISH INTELLIGENCE - Recognize when user describes prepared dishes:
+- "Omelette from 4 eggs with mushrooms and cheese" = ONE dish with realistic ingredient portions
+- "Chicken pasta" = pasta portion + chicken portion combined as a meal
+- "Salad with tomatoes and cheese" = salad base + realistic topping amounts
+- "Sandwich with ham and cheese" = bread + reasonable filling amounts
 
-STANDARD SERVING SIZES (use when quantity not specified):
-- Pasta/rice/grains: 75g dry weight
-- Fruits (apple, banana): 150g
-- Vegetables: 100g 
-- Meat/fish: 150g
-- Bread: 60g (2 slices)
-- Eggs: 100g (2 large)
-- Milk/yogurt: 150g
+REALISTIC PORTION ESTIMATION:
+- Eggs: Large egg = ~60g, so "4 eggs" = ~240g total
+- Handful vegetables (mushrooms, spinach) = ~50g
+- Handful cheese/nuts = ~30g  
+- Pasta serving = ~75g dry weight (becomes ~200g cooked)
+- Meat serving = ~100-150g cooked weight
+- Bread slice = ~30g, so "2 slices" = ~60g
 
-NUTRITION ESTIMATION GUIDELINES - Provide realistic values based on the specific food mentioned:
-- Use standard nutritional databases for estimation
-- Pasta (dry): ~365 calories, 75g carbs per 100g
-- Fruits: ~50-80 calories, 15-25g carbs per 100g typically
-- Meat/fish: ~150-250 calories, 0-5g carbs per 100g typically
-- Rice (dry): ~365 calories, 75g carbs per 100g
+NUTRITION DATABASE VALUES (per 100g):
+- Eggs: 143 cal, 1g carbs
+- Mushrooms (white): 22 cal, 3g carbs  
+- Mozzarella cheese: 280 cal, 3g carbs
+- Chicken breast: 165 cal, 0g carbs
+- Pasta (dry): 350 cal, 70g carbs
+- Bread (white): 265 cal, 49g carbs
 
-CRITICAL: For common foods - NEVER ask for clarification. Use the function immediately with standard nutritional values for ONLY the food the user mentioned.
-
-Only ask for clarification if the food is genuinely unrecognizable or if the user asks a non-food question.
-
-QUANTITY HANDLING:
-- COUNT + FOOD = MULTIPLE ENTRIES: "3 yogurts" = 3 separate entries
-- WEIGHT + FOOD = SINGLE ENTRY: "100g pasta" = 1 entry with 100g serving
-- NO QUANTITY = STANDARD SERVING: "pasta" = 1 entry with 75g serving
-
-Always use function calls for food operations. Be decisive and act immediately. NEVER return foods not explicitly mentioned by the user.`;
+CRITICAL: Make ONE function call with ALL foods at their realistic portions. Never duplicate identical foods.`;
     }
     
     // Prepare OpenAI request payload
@@ -1310,15 +1307,25 @@ Always use function calls for food operations. Be decisive and act immediately. 
         if (addFoodCalls.length > 1) {
           console.log(`🔧 Combining ${addFoodCalls.length} add_multiple_foods calls`);
           
-          // Combine all foods from multiple calls
-          const allFoods: any[] = [];
+          // Combine all foods from multiple calls with deduplication
+          const foodMap = new Map<string, any>();
           let destination = 'today';
           
           for (const call of addFoodCalls) {
             try {
               const parsedArgs = JSON.parse(call.function.arguments);
               if (parsedArgs.foods && Array.isArray(parsedArgs.foods)) {
-                allFoods.push(...parsedArgs.foods);
+                for (const food of parsedArgs.foods) {
+                  const key = `${food.name.toLowerCase().trim()}-${food.serving_size}`;
+                  if (foodMap.has(key)) {
+                    // Found duplicate - merge quantities if it makes sense
+                    const existing = foodMap.get(key);
+                    console.log(`⚠️ Duplicate food detected: ${food.name} (${food.serving_size}g)`);
+                    // For now, just keep the first one to avoid duplication
+                  } else {
+                    foodMap.set(key, food);
+                  }
+                }
                 if (parsedArgs.destination) destination = parsedArgs.destination;
               }
             } catch (parseError) {
@@ -1326,15 +1333,22 @@ Always use function calls for food operations. Be decisive and act immediately. 
             }
           }
           
+          const deduplicatedFoods = Array.from(foodMap.values());
+          
           functionCall = {
             name: 'add_multiple_foods',
             arguments: {
-              foods: allFoods,
+              foods: deduplicatedFoods,
               destination: destination
             }
           };
           
-          console.log(`✅ Combined ${addFoodCalls.length} calls into single function with ${allFoods.length} foods`);
+          console.log(`✅ Combined ${addFoodCalls.length} calls into single function with ${deduplicatedFoods.length} foods (deduplicated from ${addFoodCalls.reduce((total, call) => {
+            try {
+              const args = JSON.parse(call.function.arguments);
+              return total + (args.foods?.length || 0);
+            } catch { return total; }
+          }, 0)} original foods)`);
         } else {
           // Single function call - process normally
           const toolCall = toolCalls[0];

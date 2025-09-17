@@ -115,6 +115,17 @@ export const FoodSelectionModal = ({
       return;
     }
 
+    // Check for unrealistic calorie totals and warn user
+    const totalCalories = selectedCalories;
+    if (totalCalories > 3000) {
+      toast({
+        title: "High calorie warning",
+        description: `${totalCalories} calories seems very high. Please double-check your portions.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     await onAddFoods();
   };
 
@@ -150,16 +161,16 @@ export const FoodSelectionModal = ({
 
         {/* Original Voice Input Display */}
         {foodSuggestion.originalTranscription && (
-          <Card className="p-3 bg-blue-50 border-blue-200">
+          <Card className="p-3 bg-muted/30 border border-muted-foreground/20">
             <div className="text-xs text-muted-foreground mb-1">What I heard:</div>
-            <div className="text-sm text-blue-800 italic">
+            <div className="text-sm font-medium">
               "{foodSuggestion.originalTranscription}"
             </div>
           </Card>
         )}
 
         {/* Food Items */}
-        <div className="space-y-2 max-h-[400px] overflow-y-auto">
+        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
           {foodSuggestion.foods.map((food: FoodItem, index: number) => (
             <Card key={index} className="p-3 bg-background">
               {editingFoodIndex === index ? (
@@ -282,14 +293,13 @@ export const FoodSelectionModal = ({
 
         {/* Action Bar */}
         {!foodSuggestion.added && (
-          <div className="border-t pt-3">
+          <div className="border-t pt-4 bg-background sticky bottom-0">
             <Button
-              size="sm"
               onClick={handleAddSelectedFoods}
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={isProcessing || selectedFoodIds.size === 0}
             >
-              {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''}`}
+              {isProcessing ? 'Adding...' : `Add ${selectedFoodIds.size} Selected Food${selectedFoodIds.size !== 1 ? 's' : ''} (${selectedCalories} cal)`}
             </Button>
           </div>
         )}
