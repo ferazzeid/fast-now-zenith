@@ -13,6 +13,7 @@ interface CelebrationState {
   isVisible: boolean;
   currentEvent: MilestoneEvent | null;
   animationType: CeramicAnimationType;
+  enhancedVisible: boolean; // New enhanced celebration visibility
 }
 
 // Persistent storage key for celebrated milestones per session
@@ -51,7 +52,8 @@ export const useCelebrationMilestones = (sessionId?: string) => {
     lastMilestoneHour: 0,
     isVisible: false,
     currentEvent: null,
-    animationType: 'color-wave'
+    animationType: 'color-wave',
+    enhancedVisible: false
   });
   const { toast } = useToast();
 
@@ -78,20 +80,24 @@ export const useCelebrationMilestones = (sessionId?: string) => {
       lastMilestoneHour: event.hours,
       isVisible: true,
       currentEvent: event,
-      animationType: animationType
+      animationType: animationType,
+      enhancedVisible: true // Show enhanced celebration
     });
 
-    // Show toast notification
-    toast({
-      title: "🎉 Milestone Reached!",
-      description: event.message,
-      duration: 5000,
-    });
+    // Show toast notification for smaller milestones only
+    if (event.hours < 4) {
+      toast({
+        title: "🎉 Milestone Reached!",
+        description: event.message,
+        duration: 3000,
+      });
+    }
 
-    // Auto-hide celebration after 3 seconds
+    // Auto-hide celebration after duration based on milestone importance
+    const duration = event.hours >= 12 ? 12000 : event.hours >= 4 ? 8000 : 6000;
     setTimeout(() => {
-      setCelebration(prev => ({ ...prev, isVisible: false }));
-    }, 3000);
+      setCelebration(prev => ({ ...prev, isVisible: false, enhancedVisible: false }));
+    }, duration);
   }, [toast, sessionId]);
 
   const checkForMilestones = useCallback((currentElapsedSeconds: number, goalDurationSeconds?: number) => {
@@ -131,7 +137,8 @@ export const useCelebrationMilestones = (sessionId?: string) => {
       lastMilestoneHour: 0,
       isVisible: false,
       currentEvent: null,
-      animationType: 'color-wave'
+      animationType: 'color-wave',
+      enhancedVisible: false
     });
     
     // Clear celebrated milestones for this session when starting a new fast
@@ -147,7 +154,8 @@ export const useCelebrationMilestones = (sessionId?: string) => {
   const closeCelebration = useCallback(() => {
     setCelebration(prev => ({ 
       ...prev, 
-      isVisible: false
+      isVisible: false,
+      enhancedVisible: false
     }));
   }, []);
 

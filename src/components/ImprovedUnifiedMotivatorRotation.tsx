@@ -3,12 +3,15 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { useOptimizedQuoteSettings } from '@/hooks/optimized/useOptimizedQuoteSettings';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAdminAnimationSettings } from '@/hooks/useAdminAnimationSettings';
+import { MilestoneMotivatorCard } from '@/components/MilestoneMotivatorCard';
 
 interface ImprovedUnifiedMotivatorRotationProps {
   isActive: boolean;
   onModeChange?: (mode: 'timer-focused' | 'motivator-focused') => void;
   className?: string;
   quotesType?: 'fasting' | 'walking'; // Which quotes to use
+  milestoneHours?: number; // Current milestone hours for special content
+  milestoneType?: 'hourly' | 'completion'; // Type of milestone
 }
 
 type UnifiedItem = {
@@ -16,8 +19,10 @@ type UnifiedItem = {
   title: string;
   content?: string;
   imageUrl?: string;
-  type: 'motivator' | 'quote' | 'note';
+  type: 'motivator' | 'quote' | 'note' | 'milestone';
   author?: string;
+  hours?: number;
+  milestoneType?: 'hourly' | 'completion';
 };
 
 type Phase = 'timer' | 'content';
@@ -26,7 +31,9 @@ export const ImprovedUnifiedMotivatorRotation = ({
   isActive, 
   onModeChange,
   className = "",
-  quotesType = 'fasting'
+  quotesType = 'fasting',
+  milestoneHours,
+  milestoneType
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
   const { quotes } = useOptimizedQuoteSettings();
@@ -53,6 +60,18 @@ export const ImprovedUnifiedMotivatorRotation = ({
     const goals: UnifiedItem[] = [];
     const quotesArray: UnifiedItem[] = [];
     const notes: UnifiedItem[] = [];
+    const milestones: UnifiedItem[] = [];
+
+    // Add milestone cards for major achievements
+    if (milestoneHours && milestoneType && (milestoneHours >= 4 || milestoneType === 'completion')) {
+      milestones.push({
+        id: `milestone-${milestoneHours}`,
+        title: `${milestoneHours}h Milestone`,
+        type: 'milestone',
+        hours: milestoneHours,
+        milestoneType: milestoneType
+      });
+    }
 
     // Collect goals - but only if admin allows the category
     if (adminSettings.enable_goals_in_animations) {
@@ -151,18 +170,19 @@ export const ImprovedUnifiedMotivatorRotation = ({
       });
     }
 
-    // Round-robin mixing algorithm for equal weight (1:1:1)
+    // Round-robin mixing algorithm for equal weight (1:1:1:1 including milestones)
     const mixedItems: UnifiedItem[] = [];
-    const maxLength = Math.max(goals.length, quotesArray.length, notes.length);
+    const maxLength = Math.max(goals.length, quotesArray.length, notes.length, milestones.length);
     
     for (let i = 0; i < maxLength; i++) {
+      if (milestones[i]) mixedItems.push(milestones[i]); // Milestones first for prominence
       if (goals[i]) mixedItems.push(goals[i]);
       if (quotesArray[i]) mixedItems.push(quotesArray[i]); 
       if (notes[i]) mixedItems.push(notes[i]);
     }
 
     return mixedItems;
-  }, [motivators, quotes, quotesType, adminSettings]);
+  }, [motivators, quotes, quotesType, adminSettings, milestoneHours, milestoneType]);
 
   // Handle visibility changes - reset to timer when document becomes visible
   useEffect(() => {
@@ -259,83 +279,94 @@ export const ImprovedUnifiedMotivatorRotation = ({
 
   return (
     <div className={`absolute inset-0 ${className}`}>
-      {/* Content overlay - fades smoothly over timer */}
-      {current && phase === 'content' && (
-        <div 
-          className="absolute inset-0 transition-all duration-500 ease-in-out"
-          style={{ 
-            opacity: showContent ? 1 : 0,
-            transform: `scale(${showContent ? 1 : 0.95})`,
-            zIndex: 20 // Always above timer
-          }}
-        >
-          {/* Background image layer */}
-          {current.imageUrl && (
-            <div className="absolute inset-0 overflow-hidden">
-              <MotivatorImageWithFallback
-                src={current.imageUrl}
-                alt={current.title || "Content image"}
-                className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out"
-                style={{ 
-                  filter: "brightness(0.7) saturate(1.1) contrast(1.05)",
-                  transform: `scale(${showContent ? 1.05 : 1})` 
-                }}
-              />
-            </div>
-          )}
-
-          {/* Dark overlay for text readability */}
-          <div 
-            className="absolute inset-0 bg-black/40 transition-all duration-500 ease-in-out"
-            style={{ opacity: showContent ? 1 : 0 }}
-          />
-
-          {/* Text content */}
-          <div className="absolute inset-0 flex items-center justify-center p-6">
+          {/* Content overlay - fades smoothly over timer */}
+          {current && phase === 'content' && (
             <div 
-              className="text-center max-w-3xl w-full transition-all duration-500 ease-in-out"
+              className="absolute inset-0 transition-all duration-500 ease-in-out"
               style={{ 
                 opacity: showContent ? 1 : 0,
-                transform: `translateY(${showContent ? 0 : 20}px)` 
+                transform: `scale(${showContent ? 1 : 0.95})`,
+                zIndex: 20 // Always above timer
               }}
             >
-              {current.type === 'motivator' ? (
-                <p className="text-lg font-bold leading-tight text-white uppercase tracking-wide drop-shadow-lg">
-                  {current.title}
-                </p>
-              ) : current.type === 'note' ? (
-                <p 
-                  className={`font-medium leading-snug text-white drop-shadow-lg ${
-                    (current.content?.length || 0) > 100 ? 'text-base' :
-                    (current.content?.length || 0) > 60 ? 'text-lg' : 'text-xl'
-                  }`}
-                >
-                  {current.content && current.content.length > 150 
-                    ? `${current.content.substring(0, 150)}...` 
-                    : current.content
-                  }
-                </p>
+              {/* Milestone cards get special treatment */}
+              {current.type === 'milestone' ? (
+                <MilestoneMotivatorCard
+                  hours={current.hours!}
+                  type={current.milestoneType!}
+                  isActive={showContent}
+                />
               ) : (
-                <div className="text-center">
-                  <p 
-                    className={`font-medium leading-snug text-white drop-shadow-lg ${
-                      current.title.length > 150 ? 'text-sm' : 
-                      current.title.length > 100 ? 'text-base' : 'text-lg'
-                    }`}
-                  >
-                    "{current.title}"
-                  </p>
-                  {current.author && current.author !== 'Unknown Author' && current.author.trim() !== '' && (
-                    <p className="text-sm text-white/90 mt-3 font-medium drop-shadow-lg">
-                      — {current.author}
-                    </p>
+                <>
+                  {/* Background image layer */}
+                  {current.imageUrl && (
+                    <div className="absolute inset-0 overflow-hidden">
+                      <MotivatorImageWithFallback
+                        src={current.imageUrl}
+                        alt={current.title || "Content image"}
+                        className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out"
+                        style={{ 
+                          filter: "brightness(0.7) saturate(1.1) contrast(1.05)",
+                          transform: `scale(${showContent ? 1.05 : 1})` 
+                        }}
+                      />
+                    </div>
                   )}
-                </div>
+
+                  {/* Dark overlay for text readability */}
+                  <div 
+                    className="absolute inset-0 bg-black/40 transition-all duration-500 ease-in-out"
+                    style={{ opacity: showContent ? 1 : 0 }}
+                  />
+
+                  {/* Text content */}
+                  <div className="absolute inset-0 flex items-center justify-center p-6">
+                    <div 
+                      className="text-center max-w-3xl w-full transition-all duration-500 ease-in-out"
+                      style={{ 
+                        opacity: showContent ? 1 : 0,
+                        transform: `translateY(${showContent ? 0 : 20}px)` 
+                      }}
+                    >
+                      {current.type === 'motivator' ? (
+                        <p className="text-lg font-bold leading-tight text-white uppercase tracking-wide drop-shadow-lg">
+                          {current.title}
+                        </p>
+                      ) : current.type === 'note' ? (
+                        <p 
+                          className={`font-medium leading-snug text-white drop-shadow-lg ${
+                            (current.content?.length || 0) > 100 ? 'text-base' :
+                            (current.content?.length || 0) > 60 ? 'text-lg' : 'text-xl'
+                          }`}
+                        >
+                          {current.content && current.content.length > 150 
+                            ? `${current.content.substring(0, 150)}...` 
+                            : current.content
+                          }
+                        </p>
+                      ) : (
+                        <div className="text-center">
+                          <p 
+                            className={`font-medium leading-snug text-white drop-shadow-lg ${
+                              current.title.length > 150 ? 'text-sm' : 
+                              current.title.length > 100 ? 'text-base' : 'text-lg'
+                            }`}
+                          >
+                            "{current.title}"
+                          </p>
+                          {current.author && current.author !== 'Unknown Author' && current.author.trim() !== '' && (
+                            <p className="text-sm text-white/90 mt-3 font-medium drop-shadow-lg">
+                              — {current.author}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
             </div>
-          </div>
-        </div>
-      )}
+          )}
     </div>
   );
 };

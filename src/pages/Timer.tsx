@@ -32,6 +32,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
+import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSystem';
 
 import { useAccess } from '@/hooks/useAccess';
 import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
@@ -564,6 +565,16 @@ const Timer = () => {
         </div>
       </PageOnboardingModal>
 
+      {/* Enhanced Celebration System - Overlays everything */}
+      {celebration.enhancedVisible && celebration.currentEvent && (
+        <EnhancedCelebrationSystem
+          isVisible={celebration.enhancedVisible}
+          type={celebration.currentEvent.type}
+          hours={celebration.currentEvent.hours}
+          message={celebration.currentEvent.message}
+          onClose={closeCelebration}
+        />
+      )}
 
     </div>
   );
