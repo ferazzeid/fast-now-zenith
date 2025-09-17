@@ -87,7 +87,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
   const remainingCalories = dailyAllowance - consumedCalories;
 
   return (
-    <Card className="p-4 text-center relative min-h-[160px]">
+    <Card className="p-4 text-center relative min-h-[180px] overflow-hidden">
       {/* Main Content */}
       <div className="flex flex-col justify-center items-center h-full space-y-3">
         {/* Top Row - Eaten (Large Numbers with Labels) */}
