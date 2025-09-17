@@ -69,6 +69,13 @@ export const WalkingHistory = () => {
       if (error) throw error;
       console.log('Walking sessions fetched:', data?.length || 0);
 
+      // Filter out sessions with duration less than 1 minute
+      const filteredData = data?.filter(session => {
+        if (!session.start_time || !session.end_time) return false;
+        const duration = calculateDuration(session.start_time, session.end_time);
+        return duration >= 1;
+      }) || [];
+
       // Check if there are more sessions available
       if (!showAll) {
         const { count } = await supabase
@@ -83,7 +90,7 @@ export const WalkingHistory = () => {
         setHasMore(false);
       }
 
-      return data || [];
+      return filteredData;
     });
 
     // Force immediate refresh when refreshTrigger changes
@@ -251,7 +258,7 @@ export const WalkingHistory = () => {
                   <Zap className="w-4 h-4 text-orange-500" />
                   <div>
                     <p className="text-sm font-medium">
-                      {session.is_edited ? 'Data removed' : `${session.calories_burned || 0} cal`}
+                      {session.is_edited ? 'Data removed' : `${Math.round(session.calories_burned || 0)} cal`}
                     </p>
                     <p className="text-xs text-muted-foreground">Burned</p>
                   </div>
@@ -261,7 +268,7 @@ export const WalkingHistory = () => {
                   <TrendingUp className="w-4 h-4 text-purple-500" />
                   <div>
                     <p className="text-sm font-medium">
-                      {session.is_edited ? 'Data removed' : (session.estimated_steps?.toLocaleString() || 'N/A')}
+                      {session.is_edited ? 'Data removed' : (session.estimated_steps?.toLocaleString() || '0')}
                     </p>
                     <p className="text-xs text-muted-foreground">Steps (est.)</p>
                   </div>

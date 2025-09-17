@@ -61,8 +61,15 @@ const WalkingHistory = () => {
 
       if (error) throw error;
 
+      // Filter out sessions with duration less than 1 minute
+      const filteredData = data?.filter(session => {
+        if (!session.start_time || !session.end_time) return false;
+        const duration = calculateDuration(session.start_time, session.end_time);
+        return duration >= 1;
+      }) || [];
+
       // Check if there are more sessions available
-      if (!showAll && data && data.length >= 10) {
+      if (!showAll && filteredData.length >= 10) {
         const { count } = await supabase
           .from('walking_sessions')
           .select('*', { count: 'exact', head: true })
@@ -74,7 +81,7 @@ const WalkingHistory = () => {
         setHasMore(false);
       }
 
-      return data || [];
+      return filteredData;
     }, {
       onError: (error) => {
         console.error('Error fetching walking sessions:', error);
@@ -311,7 +318,7 @@ const WalkingHistory = () => {
                               <div>
                                 <p className="text-xs text-muted-foreground">Distance</p>
                                 <p className="font-medium">
-                                  {session.distance ? session.distance.toFixed(2) : 'N/A'} km
+                                  {session.distance && session.distance > 0 ? session.distance.toFixed(2) : '0.00'} km
                                 </p>
                               </div>
                             </div>
@@ -320,7 +327,7 @@ const WalkingHistory = () => {
                               <div>
                                 <p className="text-xs text-muted-foreground">Calories</p>
                                 <p className="font-medium">
-                                  {session.calories_burned ? Math.round(session.calories_burned) : 'N/A'}
+                                  {session.calories_burned && session.calories_burned > 0 ? Math.round(session.calories_burned) : '0'}
                                 </p>
                               </div>
                             </div>
@@ -329,7 +336,7 @@ const WalkingHistory = () => {
                               <div>
                                 <p className="text-xs text-muted-foreground">Steps</p>
                                 <p className="font-medium">
-                                  {session.estimated_steps ? session.estimated_steps.toLocaleString() : 'N/A'}
+                                  {session.estimated_steps && session.estimated_steps > 0 ? session.estimated_steps.toLocaleString() : '0'}
                                 </p>
                               </div>
                             </div>
