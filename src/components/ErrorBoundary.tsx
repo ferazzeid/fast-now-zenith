@@ -129,7 +129,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // Component-level error (graceful degradation)
       return (
-        <div className="bg-muted/50 border border-border rounded-lg p-4 text-center">
+        <div className="bg-muted/50 border border-normal rounded-lg p-4 text-center">
           <div className="flex items-center justify-center space-x-2 text-muted-foreground">
             <AlertTriangle className="w-4 h-4" />
             <span className="text-sm">Component unavailable</span>

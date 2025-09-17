@@ -26,7 +26,7 @@ export const GlobalProfileOnboarding = ({ isOpen, onClose }: GlobalProfileOnboar
       showCloseButton={false}
     >
       {/* Profile setup flow */}
-      <div className="mt-6 bg-muted/20 rounded-xl border border-border/50 p-6">
+      <div className="mt-6 bg-muted/20 rounded-xl border border-subtle p-6">
         <ProfileOnboardingFlow onComplete={onClose} onSkip={onClose} />
       </div>
     </PageOnboardingModal>

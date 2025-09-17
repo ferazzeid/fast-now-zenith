@@ -199,7 +199,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
           variant="ghost"
           size="sm"
           onClick={() => setIsOpen(true)}
-          className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-muted/80 hover:scale-110 transition-all duration-200"
+          className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-subtle hover:bg-muted/80 hover:scale-110 transition-all duration-200"
           title="Add food with text"
         >
           <Plus className="w-4 h-4 text-foreground" />
@@ -231,7 +231,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
       />
       
       {/* Dropdown overlay - perfectly centered on mobile */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm mx-auto p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-border shadow-lg">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm mx-auto p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-normal shadow-lg">
         <div className="w-full max-w-xs mx-auto">{/* Container to center content within the modal */}
           <div className="flex items-center gap-3">
             <Input

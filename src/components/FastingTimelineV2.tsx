@@ -123,7 +123,7 @@ export const FastingTimelineV2: React.FC<FastingTimelineV2Props> = ({ currentHou
             
             {/* Read More Link */}
             {selected?.read_more_url && (
-              <div className="pt-2 border-t border-border/50">
+              <div className="pt-2 border-t border-subtle">
                 <button
                   onClick={() => {
                     // Navigate to content page using React Router

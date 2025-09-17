@@ -114,7 +114,7 @@ const SquareTimerComponent = ({
                       onClick={onToggleCountDirection}
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90"
+                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
                     >
                       {countDirection === 'up' ? (
                         <ChevronUp className="h-4 w-4" />

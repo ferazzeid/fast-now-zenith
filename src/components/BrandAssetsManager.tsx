@@ -769,7 +769,7 @@ const BrandAssetsManager = () => {
                 <img
                   src={authorData.image}
                   alt="Author"
-                  className="w-16 h-16 rounded-full object-cover border-2 border-border"
+                  className="w-16 h-16 rounded-full object-cover border-2 border-normal"
                 />
               </div>
               <div className="flex-1 space-y-2">
@@ -787,7 +787,7 @@ const BrandAssetsManager = () => {
                   />
                   <label
                     htmlFor="author-image-upload"
-                    className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-border rounded-lg cursor-pointer hover:bg-accent transition-colors flex-1 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`flex items-center space-x-2 px-4 py-2 border border-dashed border-normal rounded-lg cursor-pointer hover:bg-accent transition-colors flex-1 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <Upload className="w-4 h-4" />
                     <span className="text-sm">Upload author image</span>
@@ -854,7 +854,7 @@ const BrandAssetsManager = () => {
           {/* Preview */}
           <div className="space-y-2">
             <Label>Preview</Label>
-            <div className="flex items-center space-x-3 p-3 border border-border rounded-lg bg-muted/30">
+            <div className="flex items-center space-x-3 p-3 border border-normal rounded-lg bg-muted/30">
               <AuthorTooltip content="This is how your tooltips will appear throughout the app. You can customize the image, name, and title above." />
               <span className="text-sm text-muted-foreground">
                 Hover or click the icon to see your tooltip

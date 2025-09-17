@@ -109,7 +109,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
 
   if (loadingMotivators) {
     return (
-      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-shadow shadow-lg text-center">
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-subtle shadow-lg text-center">
         <SmartInlineLoading text="Loading motivators" />
       </div>
     );
@@ -118,7 +118,7 @@ export const CustomMotivatorsImport: React.FC<CustomMotivatorsImportProps> = ({ 
   // If already imported, show success state
   if (imported) {
     return (
-      <div className="bg-ceramic-plate rounded-3xl p-8 border border-ceramic-shadow shadow-lg text-center">
+      <div className="bg-ceramic-plate rounded-3xl p-8 border border-subtle shadow-lg text-center">
         <div className="flex justify-center mb-4">
           <div className="bg-primary/20 rounded-full p-4">
             <Check className="w-8 h-8 text-primary" />

@@ -274,7 +274,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
             ref={tooltipRef}
             onMouseLeave={handleTooltipMouseLeave}
             className={cn(
-              "absolute z-[60] px-4 py-3 bg-popover border border-border rounded-lg shadow-xl",
+              "absolute z-[60] px-4 py-3 bg-popover border border-normal rounded-lg shadow-xl",
               "w-[280px] max-w-[calc(100vw-32px)] text-left",
               "animate-fade-in",
               position === 'bottom' 
@@ -349,7 +349,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
 
             {/* Speech bubble arrow */}
             <div className={cn(
-              "absolute w-3 h-3 bg-popover border-border rotate-45",
+              "absolute w-3 h-3 bg-popover border-normal rotate-45",
               alignLeft ? "right-6" : "left-6", // Position arrow based on alignment
               position === 'bottom' 
                 ? "top-0 -mt-1.5 border-l border-t"

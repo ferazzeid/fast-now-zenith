@@ -79,7 +79,7 @@ export const AdminAppModeSwitcher = () => {
   const currentModeOption = appModeOptions.find(mode => mode.value === currentMode);
 
   return (
-    <Card className="bg-card border-border">
+    <Card className="bg-card border-normal">
       <CardHeader>
         <CardTitle className="text-lg">App Access Mode</CardTitle>
       </CardHeader>

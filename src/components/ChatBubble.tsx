@@ -57,7 +57,7 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
     >
       <div className={cn(
         "group relative max-w-xs rounded-2xl px-4 py-3 shadow-lg backdrop-blur-sm",
-        "border border-border/50",
+        "border border-subtle",
         isUser 
           ? "ml-auto bg-primary/90 border-primary/50 text-primary-foreground" 
           : "mr-auto bg-secondary/90 border-secondary/50 text-secondary-foreground"
@@ -70,7 +70,7 @@ export const ChatBubble = ({ message, isLast, onDismiss }: ChatBubbleProps) => {
           className={cn(
             "absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full",
             "opacity-0 group-hover:opacity-100 transition-opacity",
-            "bg-background border border-border shadow-sm"
+            "bg-background border border-normal shadow-sm"
           )}
         >
           <X className="h-3 w-3" />

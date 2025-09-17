@@ -108,7 +108,7 @@ const Auth = () => {
           </p>
         </div>
 
-        <Card className="border-border/50 backdrop-blur-sm bg-card/80 shadow-elegant">
+        <Card className="border-subtle backdrop-blur-sm bg-card/80 shadow-elegant">
           <CardContent className="space-y-6 pt-6">
             {/* Primary Google Sign In */}
             {googleLoginEnabled && (

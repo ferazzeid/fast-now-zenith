@@ -12,7 +12,7 @@ export const HistoryButton = ({ onClick, title = "View past entries" }: HistoryB
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-muted/80 hover:scale-110 transition-all duration-200"
+      className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-subtle hover:bg-muted/80 hover:scale-110 transition-all duration-200"
       title={title}
     >
       <History className="w-4 h-4 text-foreground" />

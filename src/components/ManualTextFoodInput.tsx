@@ -229,7 +229,7 @@ Always return food items with realistic serving sizes that users can easily adju
       <Button 
         variant="ghost"
         size="sm"
-        className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border-ceramic-shadow hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+        className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm border-subtle hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
         onClick={handleButtonClick}
         title={hasAccess ? "Add food manually by typing" : "Manual text input (Premium Feature)"}
         aria-label={hasAccess ? "Add food manually by typing" : "Manual text input (Premium Feature)"}

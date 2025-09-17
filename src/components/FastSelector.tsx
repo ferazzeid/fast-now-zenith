@@ -123,7 +123,7 @@ export const FastSelector = ({
                 onClick={() => setDuration(preset.hours)}
                 className={duration === preset.hours 
                   ? "justify-start bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/20" 
-                  : "justify-start bg-ceramic-base border border-ceramic-shadow hover:bg-ceramic-rim"
+                  : "justify-start bg-ceramic-base border border-subtle hover:bg-ceramic-rim"
                 }
               >
                 <span className="font-medium">{preset.name}</span>
@@ -157,7 +157,7 @@ export const FastSelector = ({
         </div>
 
         {/* Start in Past Section */}
-        <div className="space-y-4 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border-ceramic-shadow/50">
+        <div className="space-y-4 p-3 sm:p-4 rounded-lg bg-ceramic-base/30 border-subtle/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calendar className="w-4 h-4 text-primary" />

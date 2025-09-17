@@ -622,7 +622,7 @@ export const AIVoiceButton = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(false)}
-                className="absolute top-4 right-4 z-10 w-12 h-12 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:scale-110 transition-all duration-200"
+                className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90 hover:scale-110 transition-all duration-200"
                 title="Close"
               >
                 <X className="w-6 h-6 text-foreground" />
@@ -631,7 +631,7 @@ export const AIVoiceButton = () => {
               {/* Offline/Sync indicator */}
               {(pending > 0 || isSyncing || !isOnline) && (
                 <div className="absolute top-4 left-4 z-10">
-                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 text-sm">
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-background/80 backdrop-blur-sm border border-subtle text-sm">
                     {!isOnline && <span className="text-destructive">Offline</span>}
                     {pending > 0 && <span className="text-muted-foreground">{pending} pending</span>}
                     {isSyncing && <span className="text-primary">Syncing...</span>}
@@ -648,12 +648,12 @@ export const AIVoiceButton = () => {
                     {/* Food Preview Section - Now appears first */}
                     {pendingFoods.length > 0 && (
                       <div className="px-4 space-y-4">
-                        <Card className="bg-background/90 backdrop-blur-sm border-border/50">
+                        <Card className="bg-background/90 backdrop-blur-sm border-subtle">
                           <CardContent className="p-4">
                             <h3 className="font-semibold mb-3">Review and Add Foods</h3>
                             <div className="space-y-3">
                               {pendingFoods.map((food, index) => (
-                                <div key={index} className="flex items-center gap-3 p-2 rounded border border-border/50">
+                                <div key={index} className="flex items-center gap-3 p-2 rounded border border-subtle">
                                   <Checkbox
                                     checked={selectedFoodIds.has(index)}
                                     onCheckedChange={() => toggleFoodSelection(index)}

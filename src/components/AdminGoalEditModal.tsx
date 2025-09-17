@@ -124,7 +124,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             variant="outline"
             onClick={onClose}
             disabled={isSubmitting}
-            className="w-full bg-ceramic-base border border-ceramic-shadow"
+            className="w-full bg-ceramic-base border border-subtle"
           >
             Cancel
           </Button>
@@ -170,7 +170,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             id="goal-title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-ceramic-base border border-ceramic-shadow"
+            className="bg-ceramic-base border border-subtle"
             placeholder="Enter the motivator title..."
             disabled={isSubmitting}
           />
@@ -184,7 +184,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
             id="goal-description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="bg-ceramic-base border border-ceramic-shadow min-h-[80px]"
+            className="bg-ceramic-base border border-subtle min-h-[80px]"
             placeholder="Enter the motivator description..."
             disabled={isSubmitting}
           />
@@ -226,7 +226,7 @@ export const AdminGoalEditModal = ({ goal, onSave, onClose }: AdminGoalEditModal
               id="goal-link"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
-              className="bg-ceramic-base border border-ceramic-shadow"
+              className="bg-ceramic-base border border-subtle"
               placeholder="https://website.com/detailed-story..."
               disabled={isSubmitting}
               type="url"

@@ -178,7 +178,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
             toast({
               title: "✨ Motivator Created!",
               description: `"${motivatorData.title}" has been added to your motivators.`,
-              className: "bg-card border border-border text-foreground",
+              className: "bg-card border border-normal text-foreground",
             });
 
             // Note: AI image generation has been removed from this app
@@ -290,7 +290,7 @@ ALWAYS create the motivator immediately when they describe one. Don't ask for pe
       </div>
 
       {/* Input area */}
-      <div className="border-t border-border pt-4 mt-4 space-y-3">
+      <div className="border-t border-normal pt-4 mt-4 space-y-3">
         {/* Text Input */}
         <div className="flex gap-2 items-end">
           <Input

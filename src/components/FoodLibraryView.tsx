@@ -726,7 +726,7 @@ export const FoodLibraryView = ({
 
     return (
       <div 
-        className="rounded-lg p-2 transition-all duration-200 border border-border/50 bg-card cursor-pointer"
+        className="rounded-lg p-2 transition-all duration-200 border border-subtle bg-card cursor-pointer"
         onClick={handleCardClick}
       >
         <div className="flex items-center gap-2">
@@ -751,7 +751,7 @@ export const FoodLibraryView = ({
                  sideOffset={8}
                  avoidCollisions={true}
                  collisionPadding={16}
-                 className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
+                  className="w-52 z-[9999] bg-background border border-normal shadow-xl backdrop-blur-sm"
                  style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                  onCloseAutoFocus={(e) => e.preventDefault()}
                >
@@ -1122,7 +1122,7 @@ export const FoodLibraryView = ({
               ) : (
                 <div className="space-y-1 overflow-x-hidden">
                   {templateFoods.map((food) => (
-                     <div key={food.id} className="rounded-lg p-2 transition-all duration-200 border border-border/50 bg-card">
+                     <div key={food.id} className="rounded-lg p-2 transition-all duration-200 border border-subtle bg-card">
                        <div className="flex items-center gap-2">
                          {/* Options Dropdown */}
                          <div className="flex-shrink-0">
@@ -1142,7 +1142,7 @@ export const FoodLibraryView = ({
                                sideOffset={8}
                                avoidCollisions={true}
                                collisionPadding={16}
-                               className="w-52 z-[9999] bg-background border border-border shadow-xl backdrop-blur-sm"
+                               className="w-52 z-[9999] bg-background border border-normal shadow-xl backdrop-blur-sm"
                                style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                                onCloseAutoFocus={(e) => e.preventDefault()}
                              >

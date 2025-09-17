@@ -72,7 +72,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
 
   return (
     <Card 
-      className={`max-w-md mx-auto bg-ceramic-plate ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
+      className={`max-w-md mx-auto bg-card ${compact ? 'px-4 py-3' : 'px-6 py-4'} cursor-pointer transition-all duration-300 hover:shadow-md ${className}`}
       onClick={handleRefresh}
     >
       <blockquote className="relative text-center">
@@ -86,7 +86,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
         )}
       </blockquote>
       
-      <div className="flex items-center justify-between mt-4 pt-3 border-t border-ceramic-shadow">
+      <div className="flex items-center justify-between mt-4 pt-3 border-t border-subtle">
         <div className={`${compact ? 'text-xs' : 'text-sm'} text-muted-foreground flex items-center gap-2`}>
           <Hand className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
           Tap for another quote
@@ -99,7 +99,7 @@ export const InspirationQuote: React.FC<InspirationQuoteProps> = ({
               e.stopPropagation();
               handleSaveQuote();
             }}
-            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-muted-foreground hover:text-warm-text hover:bg-ceramic-shadow flex items-center gap-2`}
+            className={`${compact ? 'h-6 px-2 text-xs' : 'h-8 px-3 text-sm'} text-muted-foreground hover:text-warm-text hover:bg-muted flex items-center gap-2`}
           >
             <Bookmark className={`${compact ? 'w-4 h-4' : 'w-4 h-4'}`} />
             Save to Goals

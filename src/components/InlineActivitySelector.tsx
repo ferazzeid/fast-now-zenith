@@ -88,7 +88,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
         onOpenChange={setIsOpen}
         disabled={loading}
       >
-        <SelectTrigger className="h-7 text-xs bg-ceramic-base border-ceramic-shadow hover:bg-ceramic-plate transition-colors">
+        <SelectTrigger className="h-7 text-xs bg-ceramic-base border-subtle hover:bg-ceramic-plate transition-colors">
           <SelectValue>
             <div className="flex items-center gap-2">
               <span>{getDisplayLabel(getCurrentValue())}</span>
@@ -98,7 +98,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
             </div>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-ceramic-plate border-ceramic-shadow z-50">
+        <SelectContent className="bg-ceramic-plate border-subtle z-50">
           {Object.entries(ACTIVITY_LEVELS).map(([key, label]) => (
             <SelectItem 
               key={key} 
@@ -126,7 +126,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
           ))}
           {todayOverride && (
             <>
-              <div className="border-t border-ceramic-shadow/50 my-1" />
+              <div className="border-t border-subtle/50 my-1" />
               <div className="px-2 py-1 text-[10px] text-muted-foreground flex items-center gap-1">
                 <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                 <span>Active for today only</span>
