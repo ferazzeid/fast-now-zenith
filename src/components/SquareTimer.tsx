@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
+import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { SquareCelebrationEffects } from './SquareCelebrationEffects';
 
@@ -97,10 +98,13 @@ const SquareTimerComponent = ({
             {/* Unified motivator rotation (images + titles) */}
             {showSlideshow && isActive && (
               <div className="absolute inset-0 rounded-lg overflow-hidden">
-                <UnifiedMotivatorRotation 
+                <ImprovedUnifiedMotivatorRotation 
                   isActive={showSlideshow && isActive} 
                   onModeChange={setMotivatorMode}
                   className="rounded-lg"
+                  quotesType="fasting"
+                  contentDurationMs={6000}
+                  timerFocusDurationMs={4000}
                 />
               </div>
             )}

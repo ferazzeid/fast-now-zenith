@@ -6,6 +6,7 @@ import { SpeedSelectionModal } from './SpeedSelectionModal';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
+import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { AuthorTooltip } from './AuthorTooltip';
 
@@ -83,10 +84,13 @@ const WalkingTimerComponent = ({
           {/* Unified motivator rotation (images + titles) */}
           {showSlideshow && isActive && !isPaused && (
             <div className="absolute inset-0 rounded-lg overflow-hidden">
-              <UnifiedMotivatorRotation 
+              <ImprovedUnifiedMotivatorRotation 
                 isActive={showSlideshow && isActive && !isPaused} 
                 onModeChange={setMotivatorMode}
                 className="rounded-lg"
+                quotesType="walking"
+                contentDurationMs={6000}
+                timerFocusDurationMs={4000}
               />
             </div>
           )}

@@ -22,6 +22,14 @@ export interface UserProfile {
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
   updated_at?: string;
+  
+  // Slideshow settings
+  enable_fasting_slideshow?: boolean;
+  enable_walking_slideshow?: boolean;
+  enable_food_slideshow?: boolean;
+  enable_ceramic_animations?: boolean;
+  enable_quotes_in_animations?: boolean;
+  enable_notes_in_animations?: boolean;
 }
 
 const profileQueryKey = (userId: string | null) => ['profile', userId];

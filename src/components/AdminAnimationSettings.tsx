@@ -11,6 +11,7 @@ export const AdminAnimationSettings = () => {
   
   const [enableFastingSlideshow, setEnableFastingSlideshow] = useState(true);
   const [enableWalkingSlideshow, setEnableWalkingSlideshow] = useState(true);
+  const [enableFoodSlideshow, setEnableFoodSlideshow] = useState(true);
   const [enableCeramicAnimations, setEnableCeramicAnimations] = useState(true);
   const [enableQuotesInAnimations, setEnableQuotesInAnimations] = useState(true);
   const [enableNotesInAnimations, setEnableNotesInAnimations] = useState(true);
@@ -19,6 +20,7 @@ export const AdminAnimationSettings = () => {
     if (profile) {
       setEnableFastingSlideshow(profile.enable_fasting_slideshow ?? true);
       setEnableWalkingSlideshow(profile.enable_walking_slideshow ?? true);
+      setEnableFoodSlideshow(profile.enable_food_slideshow ?? true);
       setEnableCeramicAnimations(profile.enable_ceramic_animations ?? true);
       setEnableQuotesInAnimations(profile.enable_quotes_in_animations ?? true);
       setEnableNotesInAnimations(profile.enable_notes_in_animations ?? true);
@@ -75,6 +77,20 @@ export const AdminAnimationSettings = () => {
               onCheckedChange={(checked) => {
                 setEnableWalkingSlideshow(checked);
                 handleAnimationToggle('enable_walking_slideshow', checked);
+              }}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="food-slideshow">
+              Food Tracking Slideshow
+            </Label>
+            <Switch
+              id="food-slideshow"
+              checked={enableFoodSlideshow}
+              onCheckedChange={(checked) => {
+                setEnableFoodSlideshow(checked);
+                handleAnimationToggle('enable_food_slideshow', checked);
               }}
             />
           </div>

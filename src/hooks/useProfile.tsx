@@ -22,6 +22,7 @@ interface UserProfile {
   manual_tdee_override?: number;
   enable_fasting_slideshow?: boolean;
   enable_walking_slideshow?: boolean;
+  enable_food_slideshow?: boolean;
   enable_daily_reset?: boolean;
   enable_ceramic_animations?: boolean;
   enable_quotes_in_animations?: boolean;
