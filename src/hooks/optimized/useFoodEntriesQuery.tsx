@@ -680,4 +680,5 @@ export const useFoodEntriesQuery = () => {
     isDeletingEntry: deleteFoodEntryMutation.isPending,
     isTogglingConsumption: toggleConsumptionMutation.isPending,
     isBulkMarking: bulkToggleConsumptionMutation.isPending,
+  };
 };
