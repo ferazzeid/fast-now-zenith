@@ -167,6 +167,22 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
                         carbs: {
                           type: "number",
                           description: "Total carbs in grams for this serving"
+                        },
+                        calories_per_100g: {
+                          type: "number",
+                          description: "Calories per 100g (for automatic recalculation)"
+                        },
+                        carbs_per_100g: {
+                          type: "number",
+                          description: "Carbs per 100g (for automatic recalculation)"
+                        },
+                        protein_per_100g: {
+                          type: "number",
+                          description: "Protein per 100g (optional, for completeness)"
+                        },
+                        fat_per_100g: {
+                          type: "number",
+                          description: "Fat per 100g (optional, for completeness)"
                         }
                       },
                       required: ["name", "serving_size", "calories", "carbs"]

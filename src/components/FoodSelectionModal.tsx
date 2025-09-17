@@ -4,15 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Edit, X } from 'lucide-react';
+import { Edit, X, Calculator, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  EnhancedFoodItem, 
+  updateFoodItemWithRecalculation, 
+  resetToCalculatedValues,
+  isNutritionCalculated 
+} from '@/utils/nutritionCalculations';
 
-interface FoodItem {
-  name: string;
-  serving_size: number;
-  calories: number;
-  carbs: number;
-}
+interface FoodItem extends EnhancedFoodItem {}
 
 interface FoodSuggestion {
   foods: FoodItem[];
@@ -78,14 +79,17 @@ export const FoodSelectionModal = ({
   const handleSaveInlineEdit = (index: number) => {
     const editData = inlineEditData[index];
     if (editData) {
-      const updates = {
-        name: editData.name || foodSuggestion.foods[index].name,
-        serving_size: parseFloat(editData.portion || '0') || foodSuggestion.foods[index].serving_size,
-        calories: parseFloat(editData.calories || '0') || foodSuggestion.foods[index].calories,
-        carbs: parseFloat(editData.carbs || '0') || foodSuggestion.foods[index].carbs
-      };
+      const currentFood = foodSuggestion.foods[index];
+      const updates: Partial<EnhancedFoodItem> = {};
       
-      onFoodUpdate(index, updates);
+      if (editData.name) updates.name = editData.name;
+      if (editData.portion) updates.serving_size = parseFloat(editData.portion);
+      if (editData.calories) updates.calories = parseFloat(editData.calories);
+      if (editData.carbs) updates.carbs = parseFloat(editData.carbs);
+      
+      // Use smart recalculation logic
+      const updatedFood = updateFoodItemWithRecalculation(currentFood, updates);
+      onFoodUpdate(index, updatedFood);
       
       setEditingFoodIndex(null);
       setInlineEditData(prev => {
@@ -93,6 +97,52 @@ export const FoodSelectionModal = ({
         delete updated[index];
         return updated;
       });
+    }
+  };
+
+  const handleResetToCalculated = (index: number) => {
+    const currentFood = foodSuggestion.foods[index];
+    const resetFood = resetToCalculatedValues(currentFood);
+    onFoodUpdate(index, resetFood);
+    
+    // Update inline edit data to reflect the reset values
+    setInlineEditData(prev => ({
+      ...prev,
+      [index]: {
+        ...prev[index],
+        calories: resetFood.calories.toString(),
+        carbs: resetFood.carbs.toString()
+      }
+    }));
+    
+    toast({
+      title: "Values Reset",
+      description: "Calories and carbs have been recalculated from weight.",
+    });
+  };
+
+  const handleWeightChange = (index: number, newWeight: string) => {
+    const weightValue = parseFloat(newWeight);
+    if (!isNaN(weightValue) && weightValue > 0) {
+      const currentFood = foodSuggestion.foods[index];
+      const updatedFood = updateFoodItemWithRecalculation(currentFood, { serving_size: weightValue });
+      
+      // Update inline edit data to show recalculated values
+      setInlineEditData(prev => ({
+        ...prev,
+        [index]: {
+          ...prev[index],
+          portion: newWeight,
+          calories: updatedFood.calories.toString(),
+          carbs: updatedFood.carbs.toString()
+        }
+      }));
+    } else {
+      // Just update the weight field without recalculation
+      setInlineEditData(prev => ({
+        ...prev,
+        [index]: { ...prev[index], portion: newWeight }
+      }));
     }
   };
 
@@ -187,19 +237,29 @@ export const FoodSelectionModal = ({
                   />
                   <div className="grid grid-cols-3 gap-1">
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Weight (g)</div>
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        Weight (g)
+                        <span title="Master field - changes will recalculate nutrition">
+                          <Calculator className="w-3 h-3 text-primary" />
+                        </span>
+                      </div>
                       <Input
                         type="number"
                         value={inlineEditData[index]?.portion || ''}
-                        onChange={(e) => setInlineEditData(prev => ({
-                          ...prev,
-                          [index]: { ...prev[index], portion: e.target.value }
-                        }))}
-                        className="h-8 text-sm"
+                        onChange={(e) => handleWeightChange(index, e.target.value)}
+                        className="h-8 text-sm border-primary/30"
+                        placeholder="Weight in grams"
                       />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Calories</div>
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        Calories
+                        {isNutritionCalculated(foodSuggestion.foods[index]).calories && (
+                          <span title="Auto-calculated from weight">
+                            <Calculator className="w-3 h-3 text-green-600" />
+                          </span>
+                        )}
+                      </div>
                       <Input
                         type="number"
                         value={inlineEditData[index]?.calories || ''}
@@ -208,10 +268,18 @@ export const FoodSelectionModal = ({
                           [index]: { ...prev[index], calories: e.target.value }
                         }))}
                         className="h-8 text-sm"
+                        placeholder="Calories"
                       />
                     </div>
                     <div>
-                      <div className="text-xs text-muted-foreground mb-1">Carbs (g)</div>
+                      <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                        Carbs (g)
+                        {isNutritionCalculated(foodSuggestion.foods[index]).carbs && (
+                          <span title="Auto-calculated from weight">
+                            <Calculator className="w-3 h-3 text-green-600" />
+                          </span>
+                        )}
+                      </div>
                       <Input
                         type="number"
                         value={inlineEditData[index]?.carbs || ''}
@@ -220,25 +288,43 @@ export const FoodSelectionModal = ({
                           [index]: { ...prev[index], carbs: e.target.value }
                         }))}
                         className="h-8 text-sm"
+                        placeholder="Carbs in grams"
                       />
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      onClick={() => handleSaveInlineEdit(index)}
-                      className="h-8 px-3 text-sm flex-1"
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleCancelInlineEdit(index)}
-                      className="h-8 px-3 text-sm flex-1"
-                    >
-                      Cancel
-                    </Button>
+                  <div className="space-y-2">
+                    {(foodSuggestion.foods[index].calories_manually_set || foodSuggestion.foods[index].carbs_manually_set) && (
+                      <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
+                        <Calculator className="w-3 h-3" />
+                        <span>Manual values - auto-calculation disabled</span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleResetToCalculated(index)}
+                          className="h-5 w-5 p-0 ml-auto"
+                          title="Reset to calculated values"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        onClick={() => handleSaveInlineEdit(index)}
+                        className="h-8 px-3 text-sm flex-1"
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCancelInlineEdit(index)}
+                        className="h-8 px-3 text-sm flex-1"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -260,9 +346,17 @@ export const FoodSelectionModal = ({
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">{food.name}</div>
+                    <div className="text-sm font-medium truncate flex items-center gap-1">
+                      {food.name}
+                      {(food.calories_manually_set || food.carbs_manually_set) && (
+                        <span className="text-xs text-amber-600" title="Manual nutritional values">✏️</span>
+                      )}
+                    </div>
                     <div className="text-xs text-muted-foreground">
                       {food.serving_size}g • {food.calories} cal • {Math.round(food.carbs)}g carbs
+                      {(food.calories_per_100g || food.carbs_per_100g) && (
+                        <span className="text-green-600 ml-1" title="Auto-calculated nutrition available">🔄</span>
+                      )}
                     </div>
                   </div>
                   {!foodSuggestion.added && (
