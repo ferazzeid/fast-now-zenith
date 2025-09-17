@@ -128,50 +128,101 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   return (
     <Card className="overflow-hidden relative">
       <CardContent className="p-0">
-        <div className="flex">
-          {/* Image */}
-          <div className="w-32 h-32 flex-shrink-0 relative">
-            <MotivatorImageWithFallback
-              src={currentImageUrl}
-              alt={motivator.title}
-              className="w-full h-full object-cover"
-              onAddImageClick={onEdit}
-              showAddImagePrompt={!currentImageUrl}
-            />
+        {/* Collapsed State: Title and actions only */}
+        {!isExpanded && (
+          <div className="p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-warm-text line-clamp-2 flex-1">
+                {motivator.title}
+              </h3>
+              
+              {/* Actions */}
+              <div className="flex gap-1 ml-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit();
+                      }}
+                      className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
+                    >
+                      <Edit className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit this motivator</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete this motivator</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {shouldShowExpandButton && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsExpanded(true)}
+                        className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
+                      >
+                        <ChevronDown className="w-3 h-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Show full description</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
           </div>
-         
-          {/* Content */}
-          <div 
-            className="flex-1 p-4 pr-2 cursor-pointer hover:bg-muted/5"
-            onClick={(e) => {
-              if (shouldShowExpandButton) {
-                e.stopPropagation();
-                setIsExpanded(!isExpanded);
-              }
-            }}
-          >
-            <div className="flex items-start justify-between h-full">
-                <div className="space-y-1">
-                  <div className="flex items-center">
-                    <h3 className={`font-semibold text-warm-text ${isExpanded ? '' : 'line-clamp-2'}`}>
-                      {motivator.title}
-                    </h3>
-                  </div>
-                  
-                  {/* User goals show full content, not excerpts */}
-                  {displayContent && (
-                    <p className={`text-sm text-muted-foreground ${
-                      isExpanded ? '' : shouldShowExpandButton ? 'line-clamp-2' : ''
-                    }`}>
-                      {displayContent}
-                    </p>
-                  )}
-                </div>
-               
-               {/* Actions */}
-               <div className="flex flex-col gap-1 ml-2">
-                 <Tooltip>
-                   <TooltipTrigger asChild>
+        )}
+
+        {/* Expanded State: Vertical layout with full-width image and content */}
+        {isExpanded && (
+          <div>
+            {/* Full-width image at top */}
+            <div className="w-full h-48 relative">
+              <MotivatorImageWithFallback
+                src={currentImageUrl}
+                alt={motivator.title}
+                className="w-full h-full object-cover"
+                onAddImageClick={onEdit}
+                showAddImagePrompt={!currentImageUrl}
+              />
+            </div>
+
+            {/* Content below image */}
+            <div className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="font-semibold text-warm-text flex-1">
+                  {motivator.title}
+                </h3>
+                
+                {/* Actions */}
+                <div className="flex gap-1 ml-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
                       <Button
                         size="sm"
                         variant="ghost"
@@ -181,60 +232,58 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                         }}
                         className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
                       >
-                       <Edit className="w-3 h-3" />
-                     </Button>
-                   </TooltipTrigger>
-                   <TooltipContent>
-                     <p>Edit this motivator</p>
-                   </TooltipContent>
-                 </Tooltip>
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Edit this motivator</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-                   
-                   <Tooltip>
-                     <TooltipTrigger asChild>
-                       <Button
-                         size="sm" 
-                         variant="ghost" 
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setIsDeleteModalOpen(true);
-                         }}
-                         className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                       >
-                         <Trash2 className="w-3 h-3" />
-                       </Button>
-                     </TooltipTrigger>
-                     <TooltipContent>
-                       <p>Delete this motivator</p>
-                     </TooltipContent>
-                   </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsDeleteModalOpen(true);
+                        }}
+                        className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delete this motivator</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsExpanded(false)}
+                        className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
+                      >
+                        <ChevronDown className="w-3 h-3 rotate-180" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Show less</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
               </div>
+
+              {/* Full-width content text */}
+              {displayContent && (
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {displayContent}
+                </p>
+              )}
             </div>
-          </div>
-        </div>
-        
-        {/* Expand button at bottom-right */}
-        {shouldShowExpandButton && (
-          <div className="absolute bottom-2 right-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="h-6 w-6 p-0 rounded-full hover:bg-muted/10"
-                >
-                  <ChevronDown 
-                    className={`w-3 h-3 transition-transform duration-200 ${
-                      isExpanded ? 'rotate-180' : ''
-                    }`} 
-                  />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{isExpanded ? 'Show less' : 'Show full description'}</p>
-              </TooltipContent>
-            </Tooltip>
           </div>
         )}
       </CardContent>
