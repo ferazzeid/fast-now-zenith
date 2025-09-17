@@ -481,7 +481,7 @@ const Settings = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setShowOnboarding(true)}
-                      className="w-8 h-8 p-0 rounded-full bg-ceramic-plate/80 backdrop-blur-sm hover:bg-ceramic-plate hover:scale-110 transition-all duration-200"
+                      className="w-6 h-6 p-0 rounded-full hover:scale-110 transition-all duration-200"
                       title="Setup Profile Walkthrough"
                     >
                       <Brain className="w-4 h-4 text-warm-text" />
@@ -509,15 +509,15 @@ const Settings = () => {
                         });
                       }}
                     >
-                      <SelectTrigger className="bg-ceramic-base">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-popover z-50">
+                      <SelectContent className="z-50">
                         <SelectItem value="imperial">Imperial</SelectItem>
                         <SelectItem value="metric">Metric</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Card className="text-xs text-muted-foreground bg-ceramic-plate/30 p-2">
+                    <Card className="text-ui-xs text-muted-foreground p-2">
                       <div className="space-y-1">
                         <div><strong>Imperial:</strong> miles, mph, lbs</div>
                         <div><strong>Metric:</strong> kilometers, km/h, kg</div>
@@ -527,7 +527,7 @@ const Settings = () => {
                   
                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
-                    <h4 className="text-sm font-medium text-warm-text">Physical Attributes</h4>
+                    <h4 className="text-label">Physical Attributes</h4>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
                         <Label htmlFor="weight" className="text-warm-text">
@@ -539,7 +539,7 @@ const Settings = () => {
                           placeholder={profile?.units === 'metric' ? '70' : '154'}
                           value={weight}
                           onChange={(e) => setWeight(e.target.value)}
-                          className="bg-ceramic-base"
+                          className=""
                           min={profile?.units === 'metric' ? '30' : '66'}
                           max={profile?.units === 'metric' ? '300' : '660'}
                           step="0.1"
@@ -555,7 +555,7 @@ const Settings = () => {
                           placeholder={profile?.units === 'metric' ? '175' : '69'}
                           value={height}
                           onChange={(e) => setHeight(e.target.value)}
-                          className="bg-ceramic-base"
+                          className=""
                           min={profile?.units === 'metric' ? '100' : '39'}
                           max={profile?.units === 'metric' ? '250' : '98'}
                           step="1"
@@ -569,7 +569,7 @@ const Settings = () => {
                           placeholder="30"
                           value={age}
                           onChange={(e) => setAge(e.target.value)}
-                          className="bg-ceramic-base"
+                          className=""
                         />
                       </div>
                     </div>
@@ -578,7 +578,7 @@ const Settings = () => {
                     <div className="space-y-2">
                       <Label htmlFor="sex" className="text-warm-text">Biological Sex</Label>
                       <Select value={sex} onValueChange={setSex}>
-                        <SelectTrigger className="bg-ceramic-base">
+                        <SelectTrigger>
                           <SelectValue placeholder="Select sex" />
                         </SelectTrigger>
                         <SelectContent>
@@ -598,7 +598,7 @@ const Settings = () => {
                       </ClickableTooltip>
                     </div>
                      <Select value={activityLevel} onValueChange={setActivityLevel}>
-                       <SelectTrigger className="bg-ceramic-base w-full">
+                       <SelectTrigger className="w-full">
                          <SelectValue placeholder="Select" />
                        </SelectTrigger>
                          <SelectContent>
@@ -628,7 +628,7 @@ const Settings = () => {
                         placeholder="1000"
                         value={targetDeficit}
                         onChange={(e) => setTargetDeficit(e.target.value)}
-                        className="bg-ceramic-base"
+                        className=""
                         min="0"
                         max="2000"
                         step="50"
@@ -636,26 +636,26 @@ const Settings = () => {
                     </div>
 
                       {/* Calculated Goals Display */}
-                      <Card className="bg-ceramic-plate/30 p-3 space-y-3">
-                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Calculated Goals</div>
+                      <Card className="p-3 space-y-3">
+                        <div className="text-ui-xs font-medium text-muted-foreground uppercase tracking-wide">Calculated Goals</div>
                         
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <div className="text-xs text-muted-foreground">Calorie Goal</div>
-                            <div className="text-lg font-semibold text-warm-text">
+                            <div className="text-ui-xs text-muted-foreground">Calorie Goal</div>
+                            <div className="text-heading">
                               {calculateDynamicCalorieGoal() > 0 ? `${calculateDynamicCalorieGoal()} cal` : '— cal'}
                             </div>
                             {calculateDynamicCalorieGoal() > 0 && calculateTDEE() > 0 && (
-                              <div className="text-xs text-muted-foreground">
+                              <div className="text-ui-xs text-muted-foreground">
                                 TDEE {calculateTDEE()} - {targetDeficit}
                               </div>
                             )}
                           </div>
                           
                           <div className="space-y-1">
-                            <div className="text-xs text-muted-foreground">Carb Goal</div>
-                            <div className="text-lg font-semibold text-warm-text">30g</div>
-                            <div className="text-xs text-muted-foreground">Fixed</div>
+                            <div className="text-ui-xs text-muted-foreground">Carb Goal</div>
+                            <div className="text-heading">30g</div>
+                            <div className="text-ui-xs text-muted-foreground">Fixed</div>
                           </div>
                         </div>
                         
@@ -672,10 +672,10 @@ const Settings = () => {
                    {/* Manual TDEE Override - Bottom with Separator */}
                    {calculateBMR() > 0 && (
                      <div className="space-y-4 pt-6">
-                       <Separator className="bg-ceramic-rim" />
+                       <Separator />
                        <div className="space-y-4">
                          <div className="flex items-center gap-2">
-                           <Label htmlFor="manual-tdee" className="text-warm-text">Manual Daily Burn Override</Label>
+                           <Label htmlFor="manual-tdee">Manual Daily Burn Override</Label>
                            <ClickableTooltip content="Override the calculated daily burn if you know your actual TDEE from metabolic testing.">
                              <Info className="w-4 h-4 text-muted-foreground" />
                            </ClickableTooltip>
@@ -687,14 +687,14 @@ const Settings = () => {
                              placeholder={`${Math.round(calculateBMR() * (1.2 + (getCalorieAddition(activityLevel) / calculateBMR())))} (calculated)`}
                              value={manualTdeeOverride}
                              onChange={(e) => setManualTdeeOverride(e.target.value)}
-                             className="bg-ceramic-base flex-1"
+                             className="flex-1"
                            />
                            {manualTdeeOverride && (
                              <Button
                                variant="outline"
                                size="sm"
                                onClick={() => setManualTdeeOverride('')}
-                               className="bg-ceramic-base"
+                                className=""
                              >
                                Clear
                              </Button>
@@ -759,24 +759,24 @@ const Settings = () => {
                   <span className="text-sm text-muted-foreground">Status</span>
                   <div className="flex gap-2">
                     {accessIsAdmin && (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full">
-                        Admin
-                      </span>
+                       <span className="inline-flex items-center px-2 py-1 font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full text-ui-xs">
+                         Admin
+                       </span>
                     )}
                     {!accessIsAdmin && access.hasPremiumFeatures && (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full">
-                        Premium
-                      </span>
+                       <span className="inline-flex items-center px-2 py-1 font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-ui-xs">
+                         Premium
+                       </span>
                     )}
                     {access.isTrial && (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-                        Trial ({access.daysRemaining}d)
-                      </span>
+                       <span className="inline-flex items-center px-2 py-1 font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-ui-xs">
+                         Trial ({access.daysRemaining}d)
+                       </span>
                     )}
                     {!accessIsAdmin && !access.hasPremiumFeatures && !access.isTrial && (
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded-full">
-                        Free
-                      </span>
+                       <span className="inline-flex items-center px-2 py-1 font-medium bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200 rounded-full text-ui-xs">
+                         Free
+                       </span>
                     )}
                   </div>
                 </div>
@@ -785,7 +785,7 @@ const Settings = () => {
                   <Button 
                     onClick={() => navigate('/account')}
                     variant="secondary" 
-                    className="w-full border border-subtle"
+                    className="w-full"
                   >
                     Manage Account
                   </Button>

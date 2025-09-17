@@ -121,14 +121,14 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <Button
             variant="outline"
             onClick={onClose}
-            className="w-full bg-ceramic-base border border-ceramic-shadow"
+            className="w-full"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSave}
             disabled={!title.trim()}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="w-full"
           >
             <Save className="w-4 h-4 mr-2" />
             {isEditing ? 'Save' : 'Create'}
@@ -142,26 +142,26 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb className="w-4 h-4 text-primary" />
-              <Label className="text-warm-text font-medium">Get inspired by examples</Label>
+              <Label>Get inspired by examples</Label>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto">
               {templates.map((template) => (
                 <Card 
                   key={template.id} 
-                  className="p-3 cursor-pointer hover:bg-ceramic-base border border-ceramic-shadow transition-colors"
+                  className="p-3 cursor-pointer hover:bg-muted transition-colors"
                   onClick={() => useTemplate(template)}
                 >
                   <div className="space-y-1">
-                    <p className="font-medium text-sm text-warm-text">{template.title}</p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">{template.description}</p>
-                    <Badge variant="secondary" className="text-xs">
+                    <p className="font-medium text-ui-sm">{template.title}</p>
+                    <p className="text-ui-xs text-muted-foreground line-clamp-2">{template.description}</p>
+                    <Badge variant="secondary">
                       {template.category}
                     </Badge>
                   </div>
                 </Card>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-ui-xs text-muted-foreground mt-2">
               💡 Click any example to use as a starting point (you can edit it afterwards)
             </p>
           </div>
@@ -171,7 +171,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         <div className="space-y-2">{/* Further reduced spacing to make content more compact */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="title" className="text-warm-text font-medium">
+              <Label htmlFor="title">
                 Title
               </Label>
               <CircularVoiceButton
@@ -188,7 +188,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="content" className="text-warm-text font-medium">
+              <Label htmlFor="content">
                 Description
               </Label>
               <CircularVoiceButton
@@ -206,7 +206,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
 
           <div className="space-y-2">
-            <Label className="text-warm-text font-medium">Image (Optional)</Label>
+            <Label>Image (Optional)</Label>
             <ImageUpload
               currentImageUrl={imageUrl}
               onImageUpload={setImageUrl}
