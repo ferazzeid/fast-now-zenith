@@ -249,8 +249,11 @@ export default function MotivatorIdeas() {
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDelete(goal.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    <AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      onClick={() => handleDelete(goal.id)} 
+                                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90 flex-1"
+                                    >
                                       Remove
                                     </AlertDialogAction>
                                   </AlertDialogFooter>

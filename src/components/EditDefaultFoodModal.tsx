@@ -174,9 +174,13 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
               }}
               className="flex-1"
             >
-              <X className="w-4 h-4" />
+              Cancel
             </Button>
-            <Button onClick={handleSave} className="flex-1">
+            <Button 
+              onClick={handleSave} 
+              variant="action-primary"
+              className="flex-1"
+            >
               Save
             </Button>
           </>

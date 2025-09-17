@@ -275,16 +275,14 @@ export const ConfirmationModal = ({
       footer={
         <>
           <Button
-            variant="ghost"
-            size="action-secondary"
+            variant="outline"
             onClick={onClose}
-            className="w-12 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
+            className="flex-1"
           >
-            <X className="w-4 h-4" />
+            {cancelText}
           </Button>
           <Button 
-            variant="default"
-            size="action-secondary"
+            variant={variant === 'destructive' ? 'destructive' : 'action-primary'}
             onClick={() => {
               onConfirm();
               onClose();
@@ -338,17 +336,15 @@ export const FormModal = ({
       footer={
         <>
           <Button 
-            variant="ghost"
-            size="action-secondary"
+            variant="outline"
             onClick={onClose} 
             disabled={isSaving}
-            className="flex-1 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
+            className="flex-1"
           >
-            <X className="w-4 h-4" />
+            {cancelText}
           </Button>
           <Button 
             variant="action-primary"
-            size="action-secondary"
             onClick={onSave}
             disabled={saveDisabled || isSaving}
             className="flex-1"
