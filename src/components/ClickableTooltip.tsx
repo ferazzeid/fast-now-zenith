@@ -123,13 +123,6 @@ export const ClickableTooltip: React.FC<ClickableTooltipProps> = ({
             )}
           >
             {content}
-            <div className={cn(
-              "absolute",
-              alignLeft ? "left-4" : "right-4",
-              showBelow 
-                ? "top-0 -mt-1 w-2 h-2 bg-popover border-l border-t border-subtle rotate-45"
-                : "bottom-0 -mb-1 w-2 h-2 bg-popover border-r border-b border-subtle rotate-45"
-            )} />
           </div>
         </>
       )}

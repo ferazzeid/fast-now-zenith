@@ -346,15 +346,6 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
                 )}
               </div>
             )}
-
-            {/* Speech bubble arrow */}
-            <div className={cn(
-              "absolute w-3 h-3 bg-popover border-subtle rotate-45",
-              alignLeft ? "right-6" : "left-6", // Position arrow based on alignment
-              position === 'bottom' 
-                ? "top-0 -mt-1.5 border-l border-t"
-                : "bottom-0 -mb-1.5 border-r border-b"
-            )} />
           </div>
         </>
       )}
