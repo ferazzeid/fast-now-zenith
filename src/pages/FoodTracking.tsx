@@ -426,7 +426,7 @@ const FoodTracking = () => {
             className={`h-5 w-5 p-1 rounded ${
               entry.consumed 
                 ? 'bg-muted/50 hover:bg-muted/70 text-muted-foreground' 
-                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                : 'bg-accent hover:bg-accent/90 text-accent-foreground'
             }`}
             title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
             aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
@@ -447,7 +447,7 @@ const FoodTracking = () => {
       {({ hasAccess, requestUpgrade }) => 
         hasAccess ? (
           <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
-        <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
+            <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
               {/* Header with Responsive Page Header */}
               <ResponsivePageHeader
                 title="Food Tracking"
@@ -472,37 +472,11 @@ const FoodTracking = () => {
                     <ImprovedUnifiedMotivatorRotation
                       isActive={true}
                       className="absolute inset-0 pointer-events-none rounded-lg overflow-hidden"
-                      quotesType="fasting"
+                      quotesType="walking"
                     />
                   )}
-                 </ComponentErrorBoundary>
-               </div>
-
-               {/* Manual Food List Controls */}
-               {todayEntries.length > 0 && (
-                 <div className="mb-6 flex justify-center gap-3">
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={handleMarkAllAsEaten}
-                     disabled={isBulkMarking || todayEntries.every(entry => entry.consumed)}
-                     className="flex items-center gap-2 h-8 px-3 text-xs font-medium"
-                   >
-                     <Check className="w-3 h-3" />
-                     Mark All Eaten
-                   </Button>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={() => setShowClearAllDialog(true)}
-                     disabled={isClearingAll}
-                     className="flex items-center gap-2 h-8 px-3 text-xs font-medium text-destructive hover:text-destructive"
-                   >
-                     <Trash2 className="w-3 h-3" />
-                     Clear All
-                   </Button>
-                 </div>
-               )}
+                </ComponentErrorBoundary>
+              </div>
 
               {/* Action Buttons - Two Column Layout */}
               <div className="mb-6 grid grid-cols-2 gap-6">
@@ -541,6 +515,30 @@ const FoodTracking = () => {
                   </div>
                 ) : (
                   <div className="space-y-1">
+                    {/* Manual Food List Controls - Above First Food Item */}
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-border">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleMarkAllAsEaten}
+                        disabled={isBulkMarking || todayEntries.every(entry => entry.consumed)}
+                        className="flex items-center gap-2 h-8 px-3 text-xs font-medium"
+                      >
+                        <Check className="w-3 h-3" />
+                        Mark All Eaten
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowClearAllDialog(true)}
+                        disabled={isClearingAll}
+                        className="flex items-center gap-2 h-8 px-3 text-xs font-medium text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Clear All
+                      </Button>
+                    </div>
+
                     {/* Sort entries so consumed items appear at the bottom */}
                     {[...todayEntries].sort((a, b) => {
                       if (a.consumed && !b.consumed) return 1;
@@ -550,52 +548,18 @@ const FoodTracking = () => {
                       renderFoodEntryCard(entry)
                     )}
                     
-                    {/* Action Buttons */}
-                    {todayEntries.length > 0 && (
-                       <div className="flex justify-between items-center mt-6 pt-2">
-                         <Button
-                           variant="ghost"
-                           size="sm"
-                           onClick={() => setShowSaveToTemplateDialog(true)}
-                           className="text-primary hover:bg-primary/10 text-xs px-3 py-2 h-auto flex items-center gap-1"
-                         >
-                           <Save className="w-3 h-3" />
-                           Save to Template
-                         </Button>
-                         <div className="flex items-center gap-2 mr-2">
-                           <Button
-                             size="sm"
-                             variant="default"
-                             onClick={() => setShowClearAllDialog(true)}
-                             className={`h-5 w-5 p-1 rounded text-destructive hover:text-destructive ${
-                               isClearingAll 
-                                 ? 'bg-muted/50 hover:bg-muted/70' 
-                                 : 'bg-transparent hover:bg-destructive/10'
-                             }`}
-                             disabled={isClearingAll}
-                             title="Delete all foods"
-                             aria-label="Delete all foods"
-                           >
-                             <Trash2 className="w-3 h-3" />
-                           </Button>
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={handleMarkAllAsEaten}
-                              disabled={isBulkMarking}
-                              className={`h-5 w-5 p-1 rounded ${
-                                todayEntries.some(entry => !entry.consumed)
-                                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
-                                  : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
-                              }`}
-                              title="Mark all foods as eaten"
-                              aria-label="Mark all foods as eaten"
-                            >
-                             <Check className="w-3 h-3" />
-                           </Button>
-                         </div>
-                       </div>
-                    )}
+                    {/* Save to Template Button */}
+                    <div className="flex justify-start items-center mt-6 pt-2 border-t border-border">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSaveToTemplateDialog(true)}
+                        className="text-foreground hover:bg-accent/10 text-xs px-3 py-2 h-auto flex items-center gap-1"
+                      >
+                        <Save className="w-3 h-3" />
+                        Save to Template
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -623,26 +587,23 @@ const FoodTracking = () => {
                       });
                     }
                   }}
-                  isOpen={true}
                   onClose={() => setEditingEntry(null)}
                 />
               )}
 
+              {/* Onboarding Modal - Temporarily disabled due to prop mismatch */}
+              {/* 
+              <PageOnboardingModal
+                isOpen={showOnboarding}
+                onClose={() => setShowOnboarding(false)}
+                title="Food Tracking"
+                subtitle="Track your nutrition"
+              >
+                <div>Food tracking onboarding content</div>
+              </PageOnboardingModal>
+              */}
 
-              {/* Page Onboarding Modal */}
-              {showOnboarding && onboardingContent.food_tracking && (
-                <PageOnboardingModal
-                  isOpen={showOnboarding}
-                  onClose={() => setShowOnboarding(false)}
-                  title={onboardingContent.food_tracking.title || "Food Tracking"}
-                  subtitle={onboardingContent.food_tracking.subtitle}
-                  heroQuote={onboardingContent.food_tracking.heroQuote}
-                  backgroundImage={onboardingContent.food_tracking.backgroundImage}
-                >
-                  <div></div>
-                </PageOnboardingModal>
-              )}
-
+              {/* Clear All Confirmation Modal */}
               <ConfirmationModal
                 isOpen={showClearAllDialog}
                 onClose={() => setShowClearAllDialog(false)}
@@ -655,16 +616,16 @@ const FoodTracking = () => {
                 isLoading={isClearingAll}
               />
 
-        {/* Save to Template Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showSaveToTemplateDialog}
-          onClose={() => setShowSaveToTemplateDialog(false)}
-          onConfirm={handleSaveToTemplateConfirm}
-          title="Save All Foods to Template"
-          description={`This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`}
-          confirmText="Save to Template"
-          cancelText="Cancel"
-        />
+              {/* Save to Template Confirmation Modal */}
+              <ConfirmationModal
+                isOpen={showSaveToTemplateDialog}
+                onClose={() => setShowSaveToTemplateDialog(false)}
+                onConfirm={handleSaveToTemplateConfirm}
+                title="Save All Foods to Template"
+                description={`This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`}
+                confirmText="Save to Template"
+                cancelText="Cancel"
+              />
             </TooltipProvider>
           </div>
         ) : (
@@ -674,69 +635,34 @@ const FoodTracking = () => {
               <ResponsivePageHeader
                 title="Food Tracking"
                 subtitle="Track your food intake"
-                onHistoryClick={() => {}}
-                historyTitle=""
-                onMyFoodsClick={() => {}}
-                myFoodsTitle=""
-                showAuthorTooltip={false}
+                onHistoryClick={() => navigate('/food-history')}
+                historyTitle="View food history"
+                onMyFoodsClick={() => navigate('/my-foods')}
+                myFoodsTitle="Browse food library"
+                onFoodAdded={handleTextInput}
+                showAuthorTooltip={true}
+                authorTooltipContentKey="food_tracking_insights"
+                authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
               />
 
-              {/* Locked State Card */}
-              <div className="mb-6">
-                <div className="p-4 text-center relative overflow-hidden min-h-[180px] bg-card/50 rounded-lg">
-                  <div className="flex flex-col justify-center items-center h-full space-y-4 opacity-50">
-                    <div className="grid grid-cols-2 gap-4 w-full mb-4">
-                      <div className="text-center">
-                        <div className="text-4xl font-mono font-bold text-muted-foreground mb-1">0</div>
-                        <div className="text-xs text-muted-foreground">calories</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="text-4xl font-mono font-bold text-muted-foreground mb-1">0</div>
-                        <div className="text-xs text-muted-foreground">g carbs</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                    <Lock className="w-8 h-8 text-muted-foreground" />
-                  </div>
+              <div className="bg-background/50 backdrop-blur-sm border border-border rounded-lg p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Lock className="w-8 h-8 text-primary" />
                 </div>
-              </div>
-
-              {/* Locked Action Buttons */}
-              <div className="mb-6 grid grid-cols-2 gap-6 opacity-50">
-                <div className="flex flex-col items-center gap-1">
-                  <Button size="start-button" disabled className="w-full">
-                    📷
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Food Tracking Available with Premium</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Track your nutrition, log meals with photos and voice input, and maintain a healthy relationship with food.
+                  </p>
+                  <Button onClick={requestUpgrade} className="w-full">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Upgrade to Premium
                   </Button>
-                  <span className="text-xs text-muted-foreground">Photo</span>
                 </div>
-                <div className="flex flex-col items-center gap-1">
-                  <Button size="start-button" disabled className="w-full">
-                    🎤
-                  </Button>
-                  <span className="text-xs text-muted-foreground">Voice</span>
-                </div>
-              </div>
-
-              {/* Premium Upgrade Prompt */}
-              <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6 text-center border border-primary/20">
-                <Crown className="w-12 h-12 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Unlock Food Tracking</h3>
-                <p className="text-muted-foreground mb-4">
-                  Track your nutrition, calories, and reach your health goals with premium food tracking features.
-                </p>
-                <Button 
-                  onClick={requestUpgrade}
-                  className="w-full"
-                  size="lg"
-                >
-                  <Crown className="w-4 h-4 mr-2" />
-                  Upgrade to Premium
-                </Button>
               </div>
             </div>
           </div>
-        ) 
+        )
       }
     </AccessGate>
   );
