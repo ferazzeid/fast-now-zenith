@@ -185,13 +185,13 @@ const SquareTimerComponent = ({
               <div className="flex gap-2 flex-1">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button 
-                      onClick={onCancel}
-                      variant="outline"
-                      size="action-secondary"
-                      className="flex-1 text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="w-6 h-6" />
+                  <Button 
+                    onClick={onCancel}
+                    variant="ghost"
+                    size="action-secondary"
+                    className="flex-1 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  >
+                    <X className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent collisionPadding={16}>
