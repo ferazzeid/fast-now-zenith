@@ -127,24 +127,14 @@ export const useTimerNavigation = () => {
   }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status, walkingElapsedTime]);
 
   const switchMode = (mode: TimerMode) => {
-    console.log('🔄 switchMode function called with:', mode);
-    console.log('🔄 Previous mode:', currentMode);
     setCurrentMode(mode);
-    console.log('🔄 setCurrentMode called with:', mode);
     setSheetOpen(false); // Auto-close the sheet
-    
-    // Only navigate if we're switching to a different page
+    // Navigate to the appropriate timer page using React Router
     if (mode === 'walking') {
-      console.log('🔄 Navigating to /walking');
       navigate('/walking');
-    } else if (window.location.pathname !== '/') {
-      // Only navigate to timer page if we're not already there
-      console.log('🔄 Navigating to /');
-      navigate('/');
     } else {
-      console.log('🔄 Already on timer page, just updating state');
+      navigate('/');
     }
-    // If we're switching between fasting/if modes on the same page, just update state
   };
 
   const getActiveTimerCount = () => {
