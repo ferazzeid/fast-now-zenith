@@ -8,6 +8,8 @@ import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminAnimationSettings } from "@/components/AdminAnimationSettings";
 import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
 import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSettings";
+import { EnhancedCelebrationSystem } from "@/components/EnhancedCelebrationSystem";
+import { useCelebrationMilestones } from "@/hooks/useCelebrationMilestones";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -15,6 +17,8 @@ export default function AdminOperations() {
     description: "Manage animation settings, SEO indexing, and operational thresholds.",
     canonicalPath: "/admin/operations",
   });
+
+  const { celebration } = useCelebrationMilestones();
 
   return (
     <AdminHealthCheck>
@@ -46,6 +50,14 @@ export default function AdminOperations() {
           <AdminGoogleLoginSettings />
         </section>
       </main>
+
+      {/* Celebration Display System */}
+      <EnhancedCelebrationSystem
+        isVisible={celebration.enhancedVisible}
+        type={celebration.currentEvent?.type || 'hourly'}
+        hours={celebration.currentEvent?.hours || 0}
+        message={celebration.currentEvent?.message || ''}
+      />
     </AdminHealthCheck>
   );
 }
