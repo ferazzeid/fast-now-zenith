@@ -12,11 +12,8 @@ export default function Functions() {
 
   return (
     <AdminHealthCheck>
-      <div className="container mx-auto p-6 space-y-8 bg-background min-h-[calc(100vh-80px)]">
+      <div className="container mx-auto p-6 space-y-6 bg-background min-h-[calc(100vh-160px)] mt-8">
         <AdminSubnav />
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">AI Functions</h1>
-        </div>
         
         <div className="grid gap-6 pb-24">
           <VoicePromptManager />

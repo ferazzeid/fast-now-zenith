@@ -3,6 +3,34 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 // Remove this import - we'll implement the resolution inline
 
+// Utility function to capitalize food names properly
+const capitalizeFoodName = (foodName: string): string => {
+  if (!foodName || typeof foodName !== 'string') return '';
+  
+  // Words that should remain lowercase unless at the beginning
+  const lowercaseWords = ['and', 'with', 'from', 'of', 'in', 'on', 'at', 'to', 'for', 'the', 'a', 'an'];
+  
+  return foodName
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      // Always capitalize the first word
+      if (index === 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      
+      // Keep certain words lowercase unless they're the first word
+      if (lowercaseWords.includes(word)) {
+        return word;
+      }
+      
+      // Capitalize other words
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
+
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'http://localhost:5173,https://fastnow.app,https://www.fastnow.app')
   .split(',')
   .map(o => o.trim());
@@ -447,6 +475,11 @@ serve(async (req) => {
     // Validate the required fields
     if (!nutritionData.name || typeof nutritionData.calories_per_100g !== 'number' || typeof nutritionData.carbs_per_100g !== 'number') {
       throw new Error('Invalid nutrition data format from OpenAI');
+    }
+
+    // Apply capitalization to food name for consistency
+    if (nutritionData && nutritionData.name) {
+      nutritionData.name = capitalizeFoodName(nutritionData.name);
     }
 
     console.log('Successfully analyzed food image:', nutritionData);

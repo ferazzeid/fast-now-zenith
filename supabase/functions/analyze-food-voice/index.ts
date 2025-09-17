@@ -7,6 +7,34 @@ import {
   resolveOpenAIApiKey
 } from '../_shared/protected-config.ts';
 
+// Utility function to capitalize food names properly
+const capitalizeFoodName = (foodName: string): string => {
+  if (!foodName || typeof foodName !== 'string') return '';
+  
+  // Words that should remain lowercase unless at the beginning
+  const lowercaseWords = ['and', 'with', 'from', 'of', 'in', 'on', 'at', 'to', 'for', 'the', 'a', 'an'];
+  
+  return foodName
+    .trim()
+    .toLowerCase()
+    .split(' ')
+    .map((word, index) => {
+      // Always capitalize the first word
+      if (index === 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      
+      // Keep certain words lowercase unless they're the first word
+      if (lowercaseWords.includes(word)) {
+        return word;
+      }
+      
+      // Capitalize other words
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
+
 const corsHeaders = PROTECTED_CORS_HEADERS;
 
 serve(async (req) => {
@@ -221,6 +249,15 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
       if (toolCall.type === 'function' && toolCall.function.name === 'add_multiple_foods') {
         try {
           const args = JSON.parse(toolCall.function.arguments);
+          
+          // Capitalize food names for consistent formatting
+          if (args.foods && Array.isArray(args.foods)) {
+            args.foods = args.foods.map((food: any) => ({
+              ...food,
+              name: capitalizeFoodName(food.name)
+            }));
+          }
+          
           functionCall = {
             name: 'add_multiple_foods',
             arguments: args

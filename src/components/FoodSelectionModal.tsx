@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { Edit, X, Calculator, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { capitalizeFoodName } from '@/utils/textUtils';
 import { 
   EnhancedFoodItem, 
   updateFoodItemWithRecalculation, 
@@ -82,7 +83,7 @@ export const FoodSelectionModal = ({
       const currentFood = foodSuggestion.foods[index];
       const updates: Partial<EnhancedFoodItem> = {};
       
-      if (editData.name) updates.name = editData.name;
+      if (editData.name) updates.name = capitalizeFoodName(editData.name);
       if (editData.portion) updates.serving_size = parseFloat(editData.portion);
       if (editData.calories) updates.calories = parseFloat(editData.calories);
       if (editData.carbs) updates.carbs = parseFloat(editData.carbs);

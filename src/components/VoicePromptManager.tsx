@@ -52,6 +52,21 @@ export const VoicePromptManager = () => {
       section: 'contextual_understanding',
       label: 'Contextual Understanding',
       tooltip: 'How to interpret words like "from", "and", "with" in food descriptions'
+    },
+    {
+      section: 'quantity_handling',
+      label: 'Quantity Handling',
+      tooltip: 'Rules for handling numbered items like "3 cucumbers" - create separate entries'
+    },
+    {
+      section: 'size_modifiers',
+      label: 'Size Modifiers',
+      tooltip: 'Weight estimates for different sizes: small, medium, large cucumbers, etc.'
+    },
+    {
+      section: 'text_input_specific',
+      label: 'Text Input Specific',
+      tooltip: 'Special handling for typed food descriptions vs voice input'
     }
   ];
 
@@ -136,7 +151,7 @@ export const VoicePromptManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Mic className="w-5 h-5" />
-            Voice Input Prompts
+            Voice & Text Input Prompts
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -151,7 +166,7 @@ export const VoicePromptManager = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Mic className="w-5 h-5" />
-          Voice Input Prompts
+          Voice & Text Input Prompts
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
