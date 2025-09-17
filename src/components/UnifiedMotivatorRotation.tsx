@@ -211,43 +211,33 @@ export const UnifiedMotivatorRotation = ({
           className="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-500"
           style={{ zIndex: 15 }}
         >
-          {(() => {
-            console.log('🎯 Rendering content:', { 
-              type: current.type, 
-              title: current.title.substring(0, 30),
-              isMotivator: current.type === 'motivator'
-            });
-            return current.type === 'motivator';
-          })() ? (
-            /* Goals: Direct white text on image, no background */
-            <div className="text-center text-white px-6 animate-fade-in">
-              <p className="text-xl font-bold leading-tight break-words uppercase transition-all duration-300" style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}>
-                {current.title}
-              </p>
-            </div>
-          ) : (
-            /* Quotes: Direct text on background, no box */
-            <div className="text-center text-white px-8 max-w-4xl w-full animate-fade-in">
-              <p 
-                className={`font-medium leading-relaxed break-words transition-all duration-300 ${
-                  current.title && current.title.length > 200 
-                    ? 'text-sm' 
-                    : current.title && current.title.length > 120 
-                    ? 'text-base' 
-                    : 'text-lg'
-                }`} 
-                style={{ textShadow: '0 4px 12px rgba(0,0,0,0.8)' }}
-              >
-                "{current.title}"
-              </p>
-              {/* Show author if available */}
-              {(current as any).author && (current as any).author !== 'Unknown Author' && (
-                <p className="text-sm text-white/80 mt-2 transition-all duration-300" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.6)' }}>
-                  — {(current as any).author}
+          <div className="text-center max-w-3xl w-full animate-fade-in">
+            {current.type === 'motivator' ? (
+              /* Goals: Bold text with strong background */
+              <div className="bg-black/50 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+                <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
+                  {current.title}
                 </p>
-              )}
-            </div>
-          )}
+              </div>
+            ) : (
+              /* Quotes: Elegant text with subtle background */
+              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
+                <p 
+                  className={`font-medium leading-snug text-white ${
+                    current.title.length > 150 ? 'text-xs' : 
+                    current.title.length > 100 ? 'text-sm' : 'text-sm'
+                  }`}
+                >
+                  "{current.title}"
+                </p>
+                {(current as any).author && (current as any).author !== 'Unknown Author' && (
+                  <p className="text-xs text-white/80 mt-2 font-medium">
+                    — {(current as any).author}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

@@ -185,27 +185,27 @@ export const ImprovedUnifiedMotivatorRotation = ({
                 className="absolute inset-0 flex items-center justify-center p-6 transition-all duration-500 ease-in-out"
                 style={{ zIndex: 15 }}
               >
-                <div className="text-center max-w-4xl w-full animate-fade-in">
+                <div className="text-center max-w-3xl w-full animate-fade-in">
                   {current.type === 'motivator' || current.type === 'note' ? (
                     /* Goals/Notes: Bold uppercase text with strong background */
-                    <div className="bg-black/40 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/20">
-                      <p className="text-2xl font-bold leading-tight text-white uppercase tracking-wide">
+                    <div className="bg-black/50 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+                      <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
                         {current.title}
                       </p>
                     </div>
                   ) : (
                     /* Quotes: Elegant text with subtle background */
-                    <div className="bg-black/30 backdrop-blur-sm rounded-2xl px-8 py-6 border border-white/10">
+                    <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
                       <p 
-                        className={`font-medium leading-relaxed text-white ${
-                          current.title.length > 200 ? 'text-lg' : 
-                          current.title.length > 120 ? 'text-xl' : 'text-2xl'
+                        className={`font-medium leading-snug text-white ${
+                          current.title.length > 150 ? 'text-xs' : 
+                          current.title.length > 100 ? 'text-sm' : 'text-sm'
                         }`}
                       >
                         "{current.title}"
                       </p>
                       {current.author && current.author !== 'Unknown Author' && (
-                        <p className="text-lg text-white/80 mt-3 font-medium">
+                        <p className="text-xs text-white/80 mt-2 font-medium">
                           — {current.author}
                         </p>
                       )}
