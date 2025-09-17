@@ -228,15 +228,6 @@ const SquareTimerComponent = ({
               variant="action-primary"
               size="start-button"
               className="w-full"
-              style={{ 
-                border: 'none',
-                borderStyle: 'none',
-                borderWidth: 0,
-                outline: 'none',
-                WebkitAppearance: 'none',
-                MozAppearance: 'none',
-                appearance: 'none'
-              }}
             >
               <Play className="w-8 h-8 mr-3" />
               Start Fast

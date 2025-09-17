@@ -37,25 +37,25 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 border-none",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 border-none",
         outline:
           "border border-normal bg-background hover:bg-muted hover:text-muted-foreground",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-muted hover:text-muted-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 border-none",
+        ghost: "hover:bg-muted hover:text-muted-foreground border-none",
+        link: "text-primary underline-offset-4 hover:underline border-none",
         neutral: "bg-muted text-muted-foreground hover:bg-muted/80 border-muted",
         // 🎨 STANDARDIZED ACTION BUTTON SYSTEM - USE THESE FOR CONSISTENCY
         // ✅ PRIMARY ACTIONS: Main user actions (Start, Add, Save, etc.)
-        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-0 outline-none focus:outline-none focus-visible:outline-none",
+        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
         // ✅ SECONDARY ACTIONS: Supporting actions (Pause, Cancel, etc.) - SAME STYLING AS PRIMARY
-        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-0 outline-none focus:outline-none focus-visible:outline-none",
+        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
         // ✅ COMPACT ACTIONS: Smaller buttons with same primary styling
-        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-0 outline-none focus:outline-none focus-visible:outline-none",
+        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
         // ✅ AI ACTIONS: Special AI-related buttons (Generate AI Image, Voice Input, etc.) - Now using primary
-        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-0 outline-none focus:outline-none focus-visible:outline-none",
+        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
       },
       size: {
         default: "h-10 px-4 py-2",

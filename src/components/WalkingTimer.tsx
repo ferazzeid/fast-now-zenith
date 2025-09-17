@@ -211,15 +211,6 @@ const WalkingTimerComponent = ({
                      variant="action-primary"
                      size="action-main"
                      className="w-full"
-                     style={{ 
-                       border: 'none',
-                       borderStyle: 'none', 
-                       borderWidth: 0,
-                       outline: 'none',
-                       WebkitAppearance: 'none',
-                       MozAppearance: 'none',
-                       appearance: 'none'
-                     }}
                    >
                     <CheckCircle className="w-5 h-5 mr-2" />
                     Finish
@@ -357,15 +348,6 @@ const WalkingTimerComponent = ({
              variant="action-primary"
              size="start-button"
              className="w-full touch-manipulation"
-             style={{ 
-               border: 'none',
-               borderStyle: 'none',
-               borderWidth: 0,
-               outline: 'none',
-               WebkitAppearance: 'none',
-               MozAppearance: 'none',
-               appearance: 'none'
-             }}
            >
             <Play className="w-8 h-8 mr-3" />
             Start Walking

@@ -459,22 +459,13 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
             </div>
             
              {/* Add Button */}
-             <SmartLoadingButton 
-               onClick={handleSave} 
-               isLoading={saving}
-               loadingText="Adding..."
-               disabled={!name || !calories || !servingAmount}
-               className="flex-1"
-               style={{ 
-                 border: 'none',
-                 borderStyle: 'none',
-                 borderWidth: 0,
-                 outline: 'none',
-                 WebkitAppearance: 'none',
-                 MozAppearance: 'none',
-                 appearance: 'none'
-               }}
-             >
+              <SmartLoadingButton 
+                onClick={handleSave} 
+                isLoading={saving}
+                loadingText="Adding..."
+                disabled={!name || !calories || !servingAmount}
+                className="flex-1"
+              >
                {quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"}
              </SmartLoadingButton>
           </div>
