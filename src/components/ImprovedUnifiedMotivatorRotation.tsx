@@ -29,7 +29,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
   onModeChange,
   className = "",
   contentDurationMs = 4500, // 4.5 seconds visible content
-  timerFocusDurationMs = 2500, // 2.5 seconds for timer focus
+  timerFocusDurationMs = 5000, // 5 seconds for timer focus (doubled)
   quotesType = 'fasting'
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
