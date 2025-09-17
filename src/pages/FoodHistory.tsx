@@ -175,8 +175,26 @@ const FoodHistory = () => {
     }
   };
 
+  const groupDailySummariesByDate = (summaries: DailySummary[]) => {
+    const groups: { [key: string]: DailySummary[] } = {};
+    
+    summaries.forEach(summary => {
+      const date = new Date(summary.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(summary);
+    });
+    
+    return groups;
+  };
+
   const deleteAllHistory = async () => {
-    if (!user) return;
     
     try {
       // Delete all food entries for this user
@@ -292,90 +310,95 @@ const FoodHistory = () => {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4 px-4">
-            {dailySummaries?.map((summary) => (
-              <Card key={summary.date} className="overflow-hidden">
-                <CardHeader 
-                  className="py-3 cursor-pointer hover:bg-muted/20 transition-colors"
-                  onClick={() => toggleDayExpansion(summary.date)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <h3 className="font-medium text-sm">
-                        {new Date(summary.date).toLocaleDateString('en-US', { 
-                          weekday: 'short', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
-                      </h3>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="text-xs text-muted-foreground">
-                        {summary.totalCalories} cal • {summary.entryCount} items
-                      </div>
-                      {expandedDays.has(summary.date) ? (
-                        <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
+          <div className="space-y-6 px-4">
+            {Object.entries(groupDailySummariesByDate(dailySummaries || [])).map(([date, daySummaries]) => (
+              <div key={date}>
+                <div className="flex items-center gap-2 mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <h2 className="font-semibold text-sm">{date}</h2>
+                  <div className="flex-1 border-t border-border/40" />
+                </div>
                 
-                {expandedDays.has(summary.date) && (
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 mb-4">
-                      {summary.entries.map((entry) => (
-                        <div key={entry.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
-                          <div className="flex-1">
-                            <div className="font-medium">{entry.name}</div>
-                            <div className="text-muted-foreground">
-                              {entry.calories} cal • {entry.carbs}g carbs • {entry.serving_size}g
+                <div className="space-y-3 ml-6">
+                  {daySummaries.map((summary) => (
+                    <Card key={summary.date} className="overflow-hidden">
+                      <CardHeader 
+                        className="py-3 cursor-pointer hover:bg-muted/20 transition-colors"
+                        onClick={() => toggleDayExpansion(summary.date)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Utensils className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="text-sm font-medium">
+                                {summary.totalCalories} cal • {summary.entryCount} items
+                              </div>
                             </div>
                           </div>
+                          
+                          {expandedDays.has(summary.date) ? (
+                            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                          )}
                         </div>
-                      ))}
-                    </div>
-                    
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-2 pt-2 border-t-subtle">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          const result = await copyDayToToday(summary.date);
-                          if (result?.success) {
-                            toast({
-                              title: "Day copied",
-                              description: `${result.count} food items copied to today's plan`
-                            });
-                          }
-                        }}
-                        disabled={copyLoading}
-                        className="h-7 px-2 text-xs"
-                      >
-                        Copy to Today
-                      </Button>
+                      </CardHeader>
                       
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeletingDayDate(summary.date);
-                        }}
-                        className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
-                        title="Delete entire day"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                )}
-              </Card>
+                      {expandedDays.has(summary.date) && (
+                        <CardContent className="pt-0">
+                          <div className="space-y-2 mb-4">
+                            {summary.entries.map((entry) => (
+                              <div key={entry.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
+                                <div className="flex-1">
+                                  <div className="font-medium">{entry.name}</div>
+                                  <div className="text-muted-foreground">
+                                    {entry.calories} cal • {entry.carbs}g carbs • {entry.serving_size}g
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          
+                          {/* Action buttons */}
+                          <div className="flex items-center gap-2 pt-2 border-t border-border/40">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                const result = await copyDayToToday(summary.date);
+                                if (result?.success) {
+                                  toast({
+                                    title: "Day copied",
+                                    description: `${result.count} food items copied to today's plan`
+                                  });
+                                }
+                              }}
+                              disabled={copyLoading}
+                              className="h-7 px-2 text-xs"
+                            >
+                              Copy to Today
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingDayDate(summary.date);
+                              }}
+                              className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                              title="Delete entire day"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+              </div>
             ))}
 
             {/* Load More - only show if we actually have more than displayed items */}

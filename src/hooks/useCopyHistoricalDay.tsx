@@ -20,11 +20,12 @@ export const useCopyHistoricalDay = () => {
       const dayStart = startOfDay(targetDate);
       const dayEnd = endOfDay(targetDate);
 
-      // Fetch food entries for the specified day
+      // Fetch food entries for the specified day (only consumed items like the UI shows)
       const { data: dayEntries, error: fetchError } = await supabase
         .from('food_entries')
         .select('*')
         .eq('user_id', user.id)
+        .eq('consumed', true) // Only copy consumed items like displayed in history
         .gte('created_at', dayStart.toISOString())
         .lte('created_at', dayEnd.toISOString())
         .order('created_at', { ascending: true });
