@@ -365,6 +365,24 @@ button[class*="bg-primary"],
   opacity: 1 !important;
 }
 
+/* Force remove ALL borders from action buttons - prevents browser defaults */
+button[class*="action-primary"],
+button[class*="action-secondary"], 
+button[class*="action-compact"],
+button[class*="ai"] {
+  border: none !important;
+  outline: none !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+button[class*="action-primary"]:focus,
+button[class*="action-secondary"]:focus,
+button[class*="action-compact"]:focus,
+button[class*="ai"]:focus {
+  outline: none !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1), 0 0 0 2px hsl(var(--ring)) !important;
+}
+
 /* Force hide duplicate close buttons in modals - aggressive fix */
 [data-radix-dialog-content] > button[data-radix-dialog-close] {
   display: none !important;
