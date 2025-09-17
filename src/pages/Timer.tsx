@@ -444,28 +444,25 @@ const Timer = () => {
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
-        {/* Header with Onboarding Button */}
-        <ResponsivePageHeader
-          title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
-          subtitle={currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
-          onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
-          historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
-          showAuthorTooltip={true}
-          authorTooltipContentKey="timer-general"
-          authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
-        />
-
-        {/* Fasting Mode Toggle */}
-        <FastingModeToggle
-          currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
-          onModeChange={(mode) => switchMode(mode)}
-          timerStatus={{
-            fasting: { isActive: timerStatus.fasting.isActive, elapsedTime: timerStatus.fasting.timeElapsed },
-            if: { isActive: timerStatus.if.isActive, elapsedTime: timerStatus.if.timeElapsed }
-          }}
-          formatTime={formatTime}
-          showIF={ifEnabled}
-        />
+        {/* Header with Toggle */}
+        <div className="relative">
+          <ResponsivePageHeader
+            title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
+            subtitle={currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
+            onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
+            historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
+            showAuthorTooltip={true}
+            authorTooltipContentKey="timer-general"
+            authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
+          />
+          
+          {/* Fasting Mode Toggle - positioned in top right */}
+          <FastingModeToggle
+            currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
+            onModeChange={(mode) => switchMode(mode)}
+            showIF={ifEnabled}
+          />
+        </div>
 
 
         {/* Timer Display */}
