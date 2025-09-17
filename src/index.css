@@ -246,6 +246,15 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
   
+  /* CRITICAL: Override browser button defaults at base layer */
+  button, input[type="button"], input[type="submit"], [role="button"] {
+    border: none !important;
+    border-style: none !important;
+    border-width: 0px !important;
+    border-color: transparent !important;
+    outline: none !important;
+  }
+  
   /* Border standardization utilities */
   .border-subtle {
     @apply border-border-subtle;
@@ -365,10 +374,26 @@ button[class*="bg-primary"],
   opacity: 1 !important;
 }
 
-/* Clean button reset for all buttons */
-button {
-  border: none;
-  outline: none;
+/* NUCLEAR BUTTON BORDER RESET - Maximum specificity to override browser defaults */
+button, 
+button[class*="bg-primary"], 
+.bg-primary button,
+[role="button"],
+button[type="button"],
+button[type="submit"],
+input[type="button"],
+input[type="submit"] {
+  border: none !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure all button variants get complete border reset */
+button * {
+  border: inherit;
 }
 
 /* Force hide duplicate close buttons in modals - aggressive fix */
