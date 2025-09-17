@@ -535,20 +535,19 @@ const FoodTracking = () => {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={handleMarkAllAsEaten}
-                          className="text-green-600 hover:bg-green-50 hover:text-green-700 text-xs px-3 py-2 h-auto flex items-center gap-1"
-                        >
-                          <Check className="w-3 h-3" />
-                          Mark All Eaten
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
                           onClick={() => setShowClearAllDialog(true)}
                           className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
                           disabled={isClearingAll}
                         >
                           <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleMarkAllAsEaten}
+                          className="text-green-600 hover:bg-green-50 hover:text-green-700 text-xs px-3 py-2 h-auto"
+                        >
+                          <Check className="w-3 h-3" />
                         </Button>
                       </div>
                     )}
