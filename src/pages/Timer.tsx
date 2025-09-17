@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Badge } from '@/components/ui/badge';
 import { SquareTimer } from '@/components/SquareTimer';
 import { WalkingTimer } from '@/components/WalkingTimer';
-import { useTimerDesign } from '@/hooks/useTimerDesign';
+
 import { FastSelector } from '@/components/FastSelector';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StopFastConfirmDialog } from '@/components/StopFastConfirmDialog';
@@ -66,7 +66,6 @@ const Timer = () => {
   
   const { saveQuoteAsGoal } = useMotivators();
   const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
-  const { timerDesign } = useTimerDesign();
 
 
   const isRunning = !!fastingSession;

@@ -1,17 +1,23 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, Square, Clock, Utensils, ChevronDown, ChevronUp } from "lucide-react";
-import { useIntermittentFasting, IF_PRESETS } from "@/hooks/useIntermittentFasting";
-import { CustomScheduleSlider } from "@/components/CustomScheduleSlider";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Clock, Play, Square, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
+import { CustomScheduleSlider } from './CustomScheduleSlider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IntermittentFastingTimerProps {
   isActive?: boolean;
   className?: string;
 }
+
+const IF_PRESETS = [
+  { name: '16:8', fastingHours: 16, eatingHours: 8, description: 'Most popular schedule' },
+  { name: 'OMAD', fastingHours: 23, eatingHours: 1, description: 'One meal a day' }
+];
 
 export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> = ({
   isActive = false,
@@ -19,182 +25,144 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
 }) => {
   const {
     todaySession,
-    loading,
     startIFSession,
     startFastingWindow,
     endFastingWindow,
     endEatingWindow,
-    isStartingSession,
-    isStartingFasting,
-    isEndingFasting,
-    isEndingEating
+    loading
   } = useIntermittentFasting();
 
-  const [selectedPreset, setSelectedPreset] = useState(IF_PRESETS[0]); // Default to 16:8
+  const [selectedTab, setSelectedTab] = useState<'quick' | 'custom'>('quick');
+  const [selectedPreset, setSelectedPreset] = useState(IF_PRESETS[0]);
+  const [countDirection, setCountDirection] = useState<'up' | 'down'>('down');
   const [fastingElapsed, setFastingElapsed] = useState(0);
   const [eatingElapsed, setEatingElapsed] = useState(0);
-  const [activeTab, setActiveTab] = useState("presets");
-  const [countDirection, setCountDirection] = useState<'up' | 'down'>('up');
 
-  // Update elapsed time based on session
+  // Update elapsed times every second
   useEffect(() => {
-    if (!todaySession) {
-      setFastingElapsed(0);
-      setEatingElapsed(0);
-      return;
-    }
+    if (!todaySession) return;
 
-    const updateElapsed = () => {
+    const interval = setInterval(() => {
       const now = new Date();
-
-      // Calculate fasting elapsed time
+      
       if (todaySession.fasting_start_time) {
         const fastingStart = new Date(todaySession.fasting_start_time);
-        const fastingEnd = todaySession.fasting_end_time ? new Date(todaySession.fasting_end_time) : now;
-        setFastingElapsed(Math.floor((fastingEnd.getTime() - fastingStart.getTime()) / 1000));
+        setFastingElapsed(Math.floor((now.getTime() - fastingStart.getTime()) / 1000));
       }
-
-      // Calculate eating elapsed time
-      if (todaySession.eating_start_time && todaySession.status === 'eating') {
+      
+      if (todaySession.eating_start_time) {
         const eatingStart = new Date(todaySession.eating_start_time);
         setEatingElapsed(Math.floor((now.getTime() - eatingStart.getTime()) / 1000));
       }
-    };
-
-    updateElapsed();
-    const interval = setInterval(updateElapsed, 1000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, [todaySession]);
 
-  const formatTime = useCallback((seconds: number) => {
+  const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  }, []);
-
-  const getTimeRemaining = (elapsedSeconds: number, totalHours: number) => {
-    const totalSeconds = totalHours * 3600;
-    const remaining = Math.max(0, totalSeconds - elapsedSeconds);
-    return remaining;
   };
 
-  const getProgress = (elapsedSeconds: number, totalHours: number) => {
-    return Math.min((elapsedSeconds / (totalHours * 3600)) * 100, 100);
-  };
-
-  const getDisplayTime = (elapsedSeconds: number, totalHours: number) => {
+  const getDisplayTime = (elapsed: number, goalSeconds: number) => {
     if (countDirection === 'up') {
-      return formatTime(elapsedSeconds);
+      return formatTime(elapsed);
     } else {
-      return formatTime(getTimeRemaining(elapsedSeconds, totalHours));
+      const remaining = Math.max(0, goalSeconds - elapsed);
+      return formatTime(remaining);
     }
+  };
+
+  const getProgress = (elapsed: number, goalSeconds: number) => {
+    return Math.min((elapsed / goalSeconds) * 100, 100);
   };
 
   const handleStartSession = async () => {
-    try {
-      await startIFSession({
-        fasting_window_hours: selectedPreset.fasting_hours,
-        eating_window_hours: selectedPreset.eating_hours
-      });
-    } catch (error) {
-      console.error('Failed to start IF session:', error);
-    }
+    await startIFSession({ 
+      fasting_window_hours: selectedPreset.fastingHours, 
+      eating_window_hours: selectedPreset.eatingHours 
+    });
   };
 
   const handleCustomScheduleSelect = async (fastingHours: number, eatingHours: number) => {
-    try {
-      await startIFSession({
-        fasting_window_hours: fastingHours,
-        eating_window_hours: eatingHours
-      });
-      setActiveTab("presets"); // Switch back to main view
-    } catch (error) {
-      console.error('Failed to start custom IF session:', error);
-    }
+    await startIFSession({ 
+      fasting_window_hours: fastingHours, 
+      eating_window_hours: eatingHours 
+    });
   };
 
   const handleStartFasting = async () => {
-    if (!todaySession) return;
-    try {
-      await startFastingWindow(todaySession.id);
-    } catch (error) {
-      console.error('Failed to start fasting window:', error);
-    }
+    await startFastingWindow({});
   };
 
   const handleEndFasting = async () => {
-    if (!todaySession) return;
-    try {
-      await endFastingWindow(todaySession.id);
-    } catch (error) {
-      console.error('Failed to end fasting window:', error);
-    }
+    await endFastingWindow({});
   };
 
   const handleEndEating = async () => {
-    if (!todaySession) return;
-    try {
-      await endEatingWindow(todaySession.id);
-    } catch (error) {
-      console.error('Failed to end eating window:', error);
-    }
+    await endEatingWindow({});
   };
 
-  // No session - show preset selection and custom slider
+  // If no active session, show selection interface
   if (!todaySession) {
     return (
       <div className={`max-w-md mx-auto space-y-6 ${className}`}>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'quick' | 'custom')}>
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="presets">Quick Start</TabsTrigger>
+            <TabsTrigger value="quick">Quick Start</TabsTrigger>
             <TabsTrigger value="custom">Custom</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="presets" className="mt-6">
+          <TabsContent value="quick" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-center">Start Intermittent Fasting</CardTitle>
+                <CardTitle>Choose Your Schedule</CardTitle>
+                <CardDescription>
+                  Select a preset intermittent fasting schedule
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-3">
                   {IF_PRESETS.map((preset) => (
-                    <Button
+                    <button
                       key={preset.name}
-                      variant={selectedPreset.name === preset.name ? "default" : "outline"}
-                      className="h-auto p-4 text-left justify-start"
                       onClick={() => setSelectedPreset(preset)}
+                      className={cn(
+                        "p-4 rounded-lg border-2 text-left transition-all duration-200",
+                        selectedPreset.name === preset.name
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                          <div className="font-semibold text-lg">{preset.name}</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-semibold">{preset.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {preset.description}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-medium">
+                            {preset.fastingHours}h fast
+                          </div>
                           <div className="text-sm text-muted-foreground">
-                            {preset.fasting_hours}h fast
+                            {preset.eatingHours}h eating
                           </div>
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {preset.description}
-                        </div>
                       </div>
-                    </Button>
+                    </button>
                   ))}
                 </div>
-
-                <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium">{selectedPreset.name} Schedule</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {selectedPreset.description}
-                  </p>
-                </div>
-
+                
                 <Button 
                   onClick={handleStartSession}
-                  disabled={isStartingSession}
                   className="w-full"
                   size="lg"
+                  disabled={loading}
                 >
-                  <Play className="w-4 h-4 mr-2" />
+                  <Play className="w-5 h-5 mr-2" />
                   Start {selectedPreset.name} Session
                 </Button>
               </CardContent>
@@ -209,7 +177,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     );
   }
 
-  // Active session - show ceramic-style dual timers
+  // Active session - show simple timer cards matching SquareTimer design
   return (
     <div className={`max-w-md mx-auto space-y-6 ${className}`}>
       {/* Session Info */}
@@ -220,287 +188,184 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               {todaySession.fasting_window_hours}:{todaySession.eating_window_hours} Schedule
             </CardTitle>
             <Badge variant={todaySession.status === 'fasting' ? 'default' : 'secondary'}>
-              {todaySession.status.charAt(0).toUpperCase() + todaySession.status.slice(1)}
+              {todaySession.status?.charAt(0).toUpperCase() + todaySession.status?.slice(1)}
             </Badge>
           </div>
         </CardHeader>
       </Card>
 
-      {/* Ceramic-style Fasting Timer */}
-      <div className="relative flex items-center justify-center">
-        <div 
-          className="relative w-80 h-80 rounded-full"
-          style={{
-            background: 'var(--gradient-ceramic)',
-            boxShadow: 'var(--shadow-plate)',
-          }}
-        >
-          {/* Outer rim */}
-          <div 
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'var(--gradient-rim)',
-              boxShadow: 'var(--shadow-rim)',
-            }}
-          />
-          
-          {/* Center well */}
-          <div 
-            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-52 h-52 rounded-full flex items-center justify-center"
-            style={{
-              background: 'var(--gradient-well)',
-              boxShadow: 'var(--shadow-well)',
-            }}
-          >
-            {/* Progress ring for fasting */}
-            <svg 
-              className="absolute inset-0 w-full h-full transform -rotate-90"
-              viewBox="0 0 100 100"
-              style={{ zIndex: 12 }}
-            >
-              {/* Background circle */}
-              <circle
-                cx="50"
-                cy="50"
-                r="45"
-                fill="none"
-                stroke="hsl(var(--ceramic-deep))"
-                strokeWidth="2"
-                opacity="0.3"
-              />
-              {/* Fasting progress circle */}
-              {todaySession.fasting_start_time && (
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="hsl(var(--accent))"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeDasharray={2 * Math.PI * 45}
-                  strokeDashoffset={2 * Math.PI * 45 - (getProgress(fastingElapsed, todaySession.fasting_window_hours) / 100) * 2 * Math.PI * 45}
-                  className="transition-all duration-1000 ease-out"
-                  style={{
-                    filter: todaySession.status === 'fasting' ? `drop-shadow(0 0 6px hsl(var(--accent) / 0.4))` : 'none'
-                  }}
-                />
-              )}
-            </svg>
-            
-            {/* Fasting Timer display */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <div className="text-center space-y-1">
-                {/* Window Type */}
-                <div className={cn(
-                  "text-sm font-medium transition-colors duration-300 flex items-center gap-1",
-                  todaySession.status === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
-                )}>
-                  <Clock className="w-4 h-4" />
-                  Fasting Window
-                </div>
-                
-                {/* Main Timer */}
-                <div 
-                  className={cn(
-                    "font-mono font-bold tracking-wide transition-colors duration-300 text-4xl",
-                    todaySession.status === 'fasting' ? "text-warm-text" : "text-foreground"
-                  )}
-                  style={{ 
-                    textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    fontFeatureSettings: '"tnum" 1',
-                    lineHeight: '1.1'
-                  }}
-                >
-                  {todaySession.fasting_start_time 
-                    ? getDisplayTime(fastingElapsed, todaySession.fasting_window_hours)
-                    : '00:00:00'
-                  }
-                </div>
-                
-                {/* Progress info */}
-                {todaySession.fasting_start_time && (
-                  <div className="text-xs text-muted-foreground font-medium">
-                    {Math.max(1, Math.round(getProgress(fastingElapsed, todaySession.fasting_window_hours)))}% • {todaySession.fasting_window_hours}h goal
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Count Direction Toggle */}
-          {todaySession.fasting_start_time && (
-            <button
-              onClick={() => setCountDirection(prev => prev === 'up' ? 'down' : 'up')}
-              className="absolute bottom-16 right-4 w-8 h-8 rounded-full bg-ceramic-base/80 hover:bg-ceramic-base border border-subtle flex items-center justify-center text-xs text-muted-foreground hover:text-warm-text transition-all duration-200 backdrop-blur-sm z-10"
-              title={countDirection === 'up' ? 'Switch to Countdown' : 'Switch to Count Up'}
-            >
-              {countDirection === 'up' ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-            </button>
-          )}
-
-          {/* Subtle highlight on rim edge */}
-          <div 
-            className="absolute inset-1 rounded-full pointer-events-none"
-            style={{
-              zIndex: 5,
-              background: 'conic-gradient(from 45deg, transparent 0deg, hsl(0 0% 100% / 0.1) 90deg, transparent 180deg, hsl(0 0% 100% / 0.05) 270deg, transparent 360deg)',
-            }}
-          />
+      {/* Fasting Window Timer */}
+      <div className="space-y-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-2">Fasting Window</h3>
+          <Badge variant={todaySession?.status === 'fasting' ? 'default' : 'secondary'}>
+            {todaySession?.status === 'fasting' ? 'Active' : 'Inactive'}
+          </Badge>
         </div>
-      </div>
-
-      {/* Fasting Controls */}
-      <div className="flex gap-2">
-        {!todaySession.fasting_start_time ? (
-          <Button 
-            onClick={handleStartFasting}
-            disabled={isStartingFasting}
-            className="flex-1"
-            size="lg"
-          >
-            <Play className="w-4 h-4 mr-2" />
-            Start Fasting
-          </Button>
-        ) : todaySession.status === 'fasting' ? (
-          <Button 
-            onClick={handleEndFasting}
-            disabled={isEndingFasting}
-            className="flex-1"
-            variant="outline"
-            size="lg"
-          >
-            <Square className="w-4 h-4 mr-2" />
-            End Fasting
-          </Button>
-        ) : (
-          <Button disabled className="flex-1" variant="outline" size="lg">
-            Fasting Complete
-          </Button>
+        
+        {/* Simple Timer Card - matches SquareTimer design */}
+        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+          {/* Count Direction Toggle Button */}
+          {todaySession?.status === 'fasting' && (
+            <div className="absolute bottom-4 right-4 z-20">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => setCountDirection(prev => prev === 'up' ? 'down' : 'up')}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
+                    >
+                      {countDirection === 'up' ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
+          
+          {/* Main time display */}
+          <div className="mb-2 flex flex-col justify-center items-center">
+            <div 
+              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
+              {getDisplayTime(fastingElapsed, selectedPreset?.fastingHours * 60 * 60 || 0)}
+            </div>
+            <div className={cn(
+              "text-lg font-medium transition-colors duration-300",
+              todaySession?.current_state === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
+            )}>
+              {todaySession?.current_state === 'fasting' ? 'Fasting' : 'Ready to Fast'}
+            </div>
+            
+            {/* Progress indicator */}
+            {todaySession?.current_state === 'fasting' && (
+              <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
+                <span>{Math.round(getProgress(fastingElapsed, selectedPreset?.fastingHours * 60 * 60 || 0))}% complete</span>
+              </div>
+            )}
+          </div>
+        </Card>
+        
+        {todaySession?.current_state === 'fasting' && (
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleEndFasting}
+              variant="action-primary"
+              size="action-main"
+              className="flex-1"
+            >
+              End Fasting
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Ceramic-style Eating Timer */}
-      {todaySession.eating_start_time && (
-        <>
-          <div className="relative flex items-center justify-center">
+      {/* Eating Window Timer */}
+      <div className="space-y-4">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-2">Eating Window</h3>
+          <Badge variant={todaySession?.current_state === 'eating' ? 'default' : 'secondary'}>
+            {todaySession?.current_state === 'eating' ? 'Active' : 'Inactive'}
+          </Badge>
+        </div>
+        
+        {/* Simple Timer Card - matches SquareTimer design */}
+        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+          {/* Count Direction Toggle Button */}
+          {todaySession?.current_state === 'eating' && (
+            <div className="absolute bottom-4 right-4 z-20">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => setCountDirection(prev => prev === 'up' ? 'down' : 'up')}
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
+                    >
+                      {countDirection === 'up' ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
+          
+          {/* Main time display */}
+          <div className="mb-2 flex flex-col justify-center items-center">
             <div 
-              className="relative w-64 h-64 rounded-full"
-              style={{
-                background: 'var(--gradient-ceramic)',
-                boxShadow: 'var(--shadow-plate)',
+              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
               }}
             >
-              {/* Outer rim */}
-              <div 
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: 'var(--gradient-rim)',
-                  boxShadow: 'var(--shadow-rim)',
-                }}
-              />
-              
-              {/* Center well */}
-              <div 
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full flex items-center justify-center"
-                style={{
-                  background: 'var(--gradient-well)',
-                  boxShadow: 'var(--shadow-well)',
-                }}
-              >
-                {/* Progress ring for eating */}
-                <svg 
-                  className="absolute inset-0 w-full h-full transform -rotate-90"
-                  viewBox="0 0 100 100"
-                >
-                  {/* Background circle */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="hsl(var(--ceramic-deep))"
-                    strokeWidth="2"
-                    opacity="0.3"
-                  />
-                  {/* Eating progress circle */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="rgb(34, 197, 94)" // green-500
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 45}
-                    strokeDashoffset={2 * Math.PI * 45 - (getProgress(eatingElapsed, todaySession.eating_window_hours) / 100) * 2 * Math.PI * 45}
-                    className="transition-all duration-1000 ease-out"
-                    style={{
-                      filter: todaySession.status === 'eating' ? `drop-shadow(0 0 6px rgb(34, 197, 94, 0.4))` : 'none'
-                    }}
-                  />
-                </svg>
-                
-                {/* Eating Timer display */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <div className="text-center space-y-1">
-                    {/* Window Type */}
-                    <div className={cn(
-                      "text-sm font-medium transition-colors duration-300 flex items-center gap-1",
-                      todaySession.status === 'eating' ? 'text-foreground' : 'text-muted-foreground'
-                    )}>
-                      <Utensils className="w-4 h-4" />
-                      Eating Window
-                    </div>
-                    
-                    {/* Main Timer */}
-                    <div 
-                      className={cn(
-                        "font-mono font-bold tracking-wide transition-colors duration-300 text-3xl",
-                        todaySession.status === 'eating' ? "text-warm-text" : "text-foreground"
-                      )}
-                      style={{ 
-                        textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                        fontFeatureSettings: '"tnum" 1',
-                        lineHeight: '1.1'
-                      }}
-                    >
-                      {getDisplayTime(eatingElapsed, todaySession.eating_window_hours)}
-                    </div>
-                    
-                    {/* Progress info */}
-                    <div className="text-xs text-muted-foreground font-medium">
-                      {Math.max(1, Math.round(getProgress(eatingElapsed, todaySession.eating_window_hours)))}% • {todaySession.eating_window_hours}h window
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Subtle highlight on rim edge */}
-              <div 
-                className="absolute inset-1 rounded-full pointer-events-none"
-                style={{
-                  zIndex: 5,
-                  background: 'conic-gradient(from 45deg, transparent 0deg, hsl(0 0% 100% / 0.1) 90deg, transparent 180deg, hsl(0 0% 100% / 0.05) 270deg, transparent 360deg)',
-                }}
-              />
+              {getDisplayTime(eatingElapsed, selectedPreset?.eatingHours * 60 * 60 || 0)}
             </div>
+            <div className={cn(
+              "text-lg font-medium transition-colors duration-300",
+              todaySession?.current_state === 'eating' ? 'text-foreground' : 'text-muted-foreground'
+            )}>
+              {todaySession?.current_state === 'eating' ? 'Eating' : 'Ready to Eat'}
+            </div>
+            
+            {/* Progress indicator */}
+            {todaySession?.current_state === 'eating' && (
+              <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
+                <span>{Math.round(getProgress(eatingElapsed, selectedPreset?.eatingHours * 60 * 60 || 0))}% complete</span>
+              </div>
+            )}
           </div>
-
-          {/* Eating Controls */}
-          {todaySession.status === 'eating' && !todaySession.completed && (
+        </Card>
+        
+        {todaySession?.current_state === 'eating' && (
+          <div className="flex gap-2">
             <Button 
               onClick={handleEndEating}
-              disabled={isEndingEating}
-              className="w-full"
-              variant="outline"
-              size="lg"
+              variant="action-primary"
+              size="action-main"
+              className="flex-1"
             >
-              <Square className="w-4 h-4 mr-2" />
-              End Eating Window
+              End Eating
             </Button>
-          )}
-        </>
+          </div>
+        )}
+      </div>
+
+      {/* Control buttons for session management */}
+      {todaySession?.current_state !== 'fasting' && todaySession?.current_state !== 'eating' && (
+        <div className="space-y-4">
+          <Button 
+            onClick={handleStartFasting}
+            variant="action-primary"
+            size="start-button"
+            className="w-full"
+            disabled={loading}
+          >
+            <Play className="w-8 h-8 mr-3" />
+            Start Fasting
+          </Button>
+        </div>
       )}
     </div>
   );

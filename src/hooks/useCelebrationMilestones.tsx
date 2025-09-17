@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { CeramicAnimationType } from '@/components/CeramicCelebrationEffects';
 
 export interface MilestoneEvent {
   type: 'hourly' | 'completion';
@@ -12,7 +11,7 @@ interface CelebrationState {
   lastMilestoneHour: number;
   isVisible: boolean;
   currentEvent: MilestoneEvent | null;
-  animationType: CeramicAnimationType;
+  animationType: string;
   enhancedVisible: boolean; // New enhanced celebration visibility
 }
 
@@ -42,7 +41,7 @@ const storeCelebratedMilestone = (sessionId: string, hour: number) => {
   }
 };
 
-const getAnimationTypeForMilestone = (type: 'hourly' | 'completion', hours: number): CeramicAnimationType => {
+const getAnimationTypeForMilestone = (type: 'hourly' | 'completion', hours: number): string => {
   // Simplified: always use color-wave for all milestones
   return 'color-wave';
 };
