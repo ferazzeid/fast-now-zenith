@@ -338,11 +338,11 @@ export const FormModal = ({
       footer={
         <>
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="action-secondary"
             onClick={onClose} 
             disabled={isSaving}
-            className="w-12"
+            className="flex-1"
           >
             <X className="w-4 h-4" />
           </Button>

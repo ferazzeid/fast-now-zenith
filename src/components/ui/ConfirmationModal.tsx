@@ -1,4 +1,5 @@
 import React from 'react';
+import { X } from 'lucide-react';
 import { UniversalModal } from './universal-modal';
 import { Button } from './button';
 
@@ -44,13 +45,15 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
+            className="flex-1"
           >
-            {cancelText}
+            <X className="w-4 h-4" />
           </Button>
           <Button
-            variant="action-primary"
+            variant="outline"
             onClick={onConfirm}
             disabled={isLoading}
+            className="flex-1"
           >
             {isLoading ? 'Processing...' : confirmText}
           </Button>

@@ -176,6 +176,7 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
               type="datetime-local"
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
+              className="bg-muted"
             />
           </div>
 
@@ -186,6 +187,7 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
               type="datetime-local"
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
+              className="bg-muted"
             />
           </div>
         </div>
@@ -204,6 +206,7 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
             value={editReason}
             onChange={(e) => setEditReason(e.target.value)}
             rows={2}
+            className="bg-muted"
           />
         </div>
       </div>

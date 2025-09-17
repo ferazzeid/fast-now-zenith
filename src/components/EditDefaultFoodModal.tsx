@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -172,11 +172,11 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
               onClick={() => {
                 if (onClose) onClose(); else setInternalOpen(false);
               }}
-              className="w-full"
+              className="flex-1"
             >
-              Cancel
+              <X className="w-4 h-4" />
             </Button>
-            <Button onClick={handleSave} className="w-full">
+            <Button onClick={handleSave} className="flex-1">
               Save
             </Button>
           </>
@@ -190,6 +190,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter food name"
+              className="bg-muted"
             />
           </div>
 
@@ -206,6 +207,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
                 placeholder="0"
                 min="0"
                 step="0.1"
+                className="bg-muted"
               />
             </div>
             
@@ -221,6 +223,7 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
                 placeholder="0"
                 min="0"
                 step="0.1"
+                className="bg-muted"
               />
             </div>
           </div>

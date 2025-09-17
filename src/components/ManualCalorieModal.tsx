@@ -99,10 +99,10 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
         footer={
           <>
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="action-secondary"
               onClick={() => setIsOpen(false)}
-              className="w-12"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -129,6 +129,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               maxLength={100}
               onClick={(e) => e.stopPropagation()}
               onFocus={(e) => e.stopPropagation()}
+              className="bg-muted"
             />
           </div>
 
@@ -144,6 +145,7 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
               max="2000"
               onClick={(e) => e.stopPropagation()}
               onFocus={(e) => e.stopPropagation()}
+              className="bg-muted"
             />
           </div>
         </div>
