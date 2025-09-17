@@ -219,24 +219,10 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     );
   }
 
-  // Active session - show unified dual timer card
+  // Active session - show unified dual timer card directly
   return (
     <div className={`max-w-md mx-auto space-y-6 ${className}`}>
-      {/* Session Info */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">
-              {todaySession.fasting_window_hours}:{todaySession.eating_window_hours} Schedule
-            </CardTitle>
-            <Badge variant={todaySession.status === 'fasting' ? 'default' : 'secondary'}>
-              {todaySession.status?.charAt(0).toUpperCase() + todaySession.status?.slice(1)}
-            </Badge>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Unified Dual Timer Card - matches screenshot layout */}
+      {/* Unified Dual Timer Card - first object, no session info card */}
       <Card className="p-4 text-center relative overflow-hidden min-h-[220px]">
         {/* Count Direction Toggle Button */}
         {(todaySession?.status === 'fasting' || todaySession?.status === 'eating') && (

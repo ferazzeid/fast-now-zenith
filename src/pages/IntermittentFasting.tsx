@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { IntermittentFastingTimer } from "@/components/IntermittentFastingTimer";
 import { ResponsivePageHeader } from "@/components/ResponsivePageHeader";
 import { FastingModeToggle } from "@/components/FastingModeToggle";
@@ -6,6 +7,7 @@ import { useTimerNavigation } from "@/hooks/useTimerNavigation";
 import { useIntermittentFasting } from "@/hooks/useIntermittentFasting";
 
 const IntermittentFasting: React.FC = () => {
+  const navigate = useNavigate();
   const { currentMode, switchMode } = useTimerNavigation();
   const { ifEnabled } = useIntermittentFasting();
 
@@ -17,6 +19,11 @@ const IntermittentFasting: React.FC = () => {
           <ResponsivePageHeader 
             title="Fasting Tracker"
             subtitle="Start Your Fast"
+            onHistoryClick={() => navigate('/intermittent-fasting-history')}
+            historyTitle="View IF history"
+            showAuthorTooltip={true}
+            authorTooltipContentKey="timer-if"
+            authorTooltipContent="Track your intermittent fasting sessions with precise timing and progress visualization."
           />
           
           <FastingModeToggle
