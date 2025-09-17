@@ -279,10 +279,10 @@ export const ConfirmationModal = ({
             onClick={onClose}
             className="flex-1"
           >
-            {cancelText}
+            <X className="w-4 h-4" />
           </Button>
           <Button 
-            variant={variant === 'destructive' ? 'destructive' : 'action-primary'}
+            variant="action-primary"
             onClick={() => {
               onConfirm();
               onClose();
