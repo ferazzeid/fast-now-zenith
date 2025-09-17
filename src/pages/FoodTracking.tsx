@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, BookOpen, Lock, Crown, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, CheckCircle, BookOpen, Lock, Crown, Save } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -362,11 +362,13 @@ const FoodTracking = () => {
         {/* Entry Content */}
         <div className="flex-1 min-w-0 relative">
           <div className="mb-0 flex items-center gap-2 min-w-0">
-            <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
-              entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
-            }`}>
-              {entry.name}
-            </h3>
+            <ClickableTooltip content={entry.name}>
+              <h3 className={`text-sm font-semibold truncate max-w-[180px] ${
+                entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
+              }`}>
+                {entry.name}
+              </h3>
+            </ClickableTooltip>
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className={`font-medium ${
@@ -403,7 +405,11 @@ const FoodTracking = () => {
             title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
             aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
           >
-            <Check className="w-3 h-3" />
+            {entry.consumed ? (
+              <CheckCircle className="w-3 h-3" />
+            ) : (
+              <Check className="w-3 h-3" />
+            )}
           </Button>
         </div>
       </div>

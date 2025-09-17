@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save, Database, Play } from 'lucide-react';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -871,7 +872,9 @@ export const FoodLibraryView = ({
           {/* Food Info - Compact typography */}
           <div className="flex-1 min-w-0">
             <div className="mb-0.5">
-              <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+              <ClickableTooltip content={food.name}>
+                <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+              </ClickableTooltip>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <span className="font-medium">{Math.round(food.calories_per_100g)} cal</span>
@@ -1174,7 +1177,9 @@ export const FoodLibraryView = ({
                          {/* Template Food Info */}
                          <div className="flex-1 min-w-0">
                            <div className="mb-0">
-                             <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+                              <ClickableTooltip content={food.name}>
+                                <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+                              </ClickableTooltip>
                            </div>
                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                              <span className="font-medium">{Math.round(food.serving_size)}g</span>

@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { AlertCircle, Edit, X, Calculator, RotateCcw } from 'lucide-react';
+import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
 import { capitalizeFoodName } from '@/utils/textUtils';
 import { 
@@ -359,7 +360,9 @@ export const FoodSelectionModal = ({
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate flex items-center gap-1">
-                      {food.name}
+                      <ClickableTooltip content={food.name}>
+                        <span className="truncate">{food.name}</span>
+                      </ClickableTooltip>
                       {(food.calories_manually_set || food.carbs_manually_set) && (
                         <span className="text-xs text-amber-600" title="Manual nutritional values">✏️</span>
                       )}
