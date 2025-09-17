@@ -283,7 +283,7 @@ export const ConfirmationModal = ({
             <X className="w-4 h-4" />
           </Button>
           <Button 
-            variant={variant}
+            variant="default"
             size="action-secondary"
             onClick={() => {
               onConfirm();
@@ -353,7 +353,6 @@ export const FormModal = ({
             disabled={saveDisabled || isSaving}
             className="flex-1"
           >
-            <Save className="w-4 h-4 mr-2" />
             {isSaving ? 'Saving...' : saveText}
           </Button>
         </>
