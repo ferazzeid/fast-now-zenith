@@ -12,6 +12,8 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
   onModeChange,
   showIF = false,
 }) => {
+  console.log('FastingModeToggle rendered with mode:', currentMode, 'showIF:', showIF);
+  
   if (!showIF) {
     return null; // Don't show toggle if IF is not enabled
   }
@@ -21,7 +23,12 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
       <ToggleGroup 
         type="single" 
         value={currentMode} 
-        onValueChange={(value) => value && onModeChange(value as 'fasting' | 'if')}
+        onValueChange={(value) => {
+          console.log('ToggleGroup onValueChange called with:', value);
+          if (value && (value === 'fasting' || value === 'if')) {
+            onModeChange(value);
+          }
+        }}
         className="bg-muted rounded-md p-0.5"
         size="sm"
       >

@@ -57,7 +57,7 @@ const Timer = () => {
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useOptimizedWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime, sheetOpen, setSheetOpen } = useTimerNavigation();
   const { ifEnabled } = useIntermittentFasting();
-  console.log('IF Enabled:', ifEnabled); // Debug log
+  console.log('Current mode:', currentMode, 'IF Enabled:', ifEnabled); // Debug log
   const { toast } = useToast();
   const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
   const { user } = useAuth();
@@ -460,7 +460,10 @@ const Timer = () => {
           {/* Fasting Mode Toggle - positioned in top right */}
           <FastingModeToggle
             currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
-            onModeChange={(mode) => switchMode(mode)}
+            onModeChange={(mode) => {
+              console.log('Toggle clicked, switching to:', mode);
+              switchMode(mode);
+            }}
             showIF={true}
           />
         </div>
