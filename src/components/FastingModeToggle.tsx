@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface FastingModeToggleProps {
   currentMode: 'fasting' | 'if';
@@ -18,25 +18,26 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
 
   return (
     <div className="absolute top-0 right-0">
-      <div className="bg-muted p-0.5 rounded-md flex text-xs">
-        <Button
-          variant={currentMode === 'fasting' ? "default" : "ghost"}
-          size="sm"
-          onClick={() => onModeChange('fasting')}
-          className="h-6 px-2 text-xs font-medium"
+      <ToggleGroup 
+        type="single" 
+        value={currentMode} 
+        onValueChange={(value) => value && onModeChange(value as 'fasting' | 'if')}
+        className="bg-muted rounded-md p-0.5"
+        size="sm"
+      >
+        <ToggleGroupItem 
+          value="fasting" 
+          className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
         >
           Extended
-        </Button>
-        
-        <Button
-          variant={currentMode === 'if' ? "default" : "ghost"}
-          size="sm"
-          onClick={() => onModeChange('if')}
-          className="h-6 px-2 text-xs font-medium"
+        </ToggleGroupItem>
+        <ToggleGroupItem 
+          value="if" 
+          className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
         >
           Intermittent
-        </Button>
-      </div>
+        </ToggleGroupItem>
+      </ToggleGroup>
     </div>
   );
 };
