@@ -49,13 +49,13 @@ const buttonVariants = cva(
         neutral: "bg-muted text-muted-foreground hover:bg-muted/80 border-none",
         // 🎨 STANDARDIZED ACTION BUTTON SYSTEM - USE THESE FOR CONSISTENCY
         // ✅ PRIMARY ACTIONS: Main user actions (Start, Add, Save, etc.)
-        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
+        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
         // ✅ SECONDARY ACTIONS: Supporting actions (Pause, Cancel, etc.) - SAME STYLING AS PRIMARY
-        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
+        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
         // ✅ COMPACT ACTIONS: Smaller buttons with same primary styling
-        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
+        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
         // ✅ AI ACTIONS: Special AI-related buttons (Generate AI Image, Voice Input, etc.) - Now using primary
-        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium shadow-sm border-none",
+        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
       },
       size: {
         default: "h-10 px-4 py-2",
