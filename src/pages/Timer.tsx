@@ -443,31 +443,63 @@ const Timer = () => {
 
 
   return (
-    <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
+    <div className={`relative min-h-[calc(100vh-80px)] p-4 overflow-x-hidden transition-all duration-500 ${
+      currentMode === 'if' 
+        ? 'bg-gradient-to-br from-blue-50 via-background to-cyan-50 dark:from-blue-950/20 dark:via-background dark:to-cyan-950/20' 
+        : 'bg-background'
+    }`}>
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
-        {/* Header with inline toggle */}
-        <div className="mb-4 mt-4 relative">
+        {/* Enhanced Header with Mode-Specific Styling */}
+        <div className={`mb-6 mt-4 relative p-4 rounded-2xl transition-all duration-500 ${
+          currentMode === 'if'
+            ? 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-2 border-blue-500/20 shadow-lg shadow-blue-500/10'
+            : 'bg-gradient-to-r from-primary/5 to-accent/5 border-2 border-primary/10'
+        }`}>
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground mb-1">
-                {currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`w-3 h-3 rounded-full transition-colors duration-300 ${
+                  currentMode === 'if' ? 'bg-blue-500' : 'bg-primary'
+                }`} />
+                <h1 className="text-2xl font-bold text-foreground">
+                  {currentMode === 'fasting' ? 'Extended Fasting' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
+                </h1>
+              </div>
+              <p className={`text-sm transition-colors duration-300 ${
+                currentMode === 'if' ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'
+              }`}>
+                {currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? '🕐 Track your daily IF windows' : 'Track your walking session'}
               </p>
             </div>
             
-            {/* Inline Toggle - guaranteed to be clickable */}
-            <FastingModeToggle
-              currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
-              onModeChange={(mode) => {
-                console.log('🚀 FastingModeToggle onModeChange called with:', mode);
-                console.log('🚀 Current mode before:', currentMode);
-                switchMode(mode);
-                console.log('🚀 switchMode called with:', mode);
-              }}
-              showIF={true}
-            />
+            {/* Enhanced Toggle with better visibility */}
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-xs text-muted-foreground font-medium">Mode</span>
+              <FastingModeToggle
+                currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
+                onModeChange={(mode) => {
+                  console.log('🚀 FastingModeToggle onModeChange called with:', mode);
+                  console.log('🚀 Current mode before:', currentMode);
+                  switchMode(mode);
+                  console.log('🚀 switchMode called with:', mode);
+                }}
+                showIF={true}
+              />
+            </div>
+          </div>
+          
+          {/* Mode Indicator Bar */}
+          <div className="mt-3 flex items-center gap-2">
+            <div className={`flex-1 h-1 rounded-full transition-colors duration-500 ${
+              currentMode === 'if' ? 'bg-blue-500' : 'bg-primary'
+            }`} />
+            <span className={`text-xs font-semibold px-2 py-1 rounded-full transition-colors duration-300 ${
+              currentMode === 'if' 
+                ? 'bg-blue-500/20 text-blue-700 dark:text-blue-300' 
+                : 'bg-primary/20 text-primary'
+            }`}>
+              {currentMode === 'if' ? 'IF MODE' : 'EXTENDED MODE'}
+            </span>
           </div>
         </div>
 

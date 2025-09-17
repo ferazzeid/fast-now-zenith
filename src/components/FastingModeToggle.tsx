@@ -19,7 +19,7 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
   }
 
   return (
-    <div className="bg-muted rounded-md p-0.5 flex">
+    <div className="bg-background border-2 border-border/50 rounded-lg p-0.5 flex shadow-sm">
       <Button
         variant={currentMode === 'fasting' ? "default" : "ghost"}
         size="sm"
@@ -30,7 +30,11 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
           console.log('Current mode before switch:', currentMode);
           onModeChange('fasting');
         }}
-        className="h-6 px-2 text-xs font-medium"
+        className={`h-8 px-3 text-xs font-semibold transition-all duration-300 ${
+          currentMode === 'fasting' 
+            ? 'bg-primary text-primary-foreground shadow-sm scale-105' 
+            : 'hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground'
+        }`}
       >
         Extended
       </Button>
@@ -45,7 +49,11 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
           console.log('Current mode before switch:', currentMode);
           onModeChange('if');
         }}
-        className="h-6 px-2 text-xs font-medium"
+        className={`h-8 px-3 text-xs font-semibold transition-all duration-300 ${
+          currentMode === 'if' 
+            ? 'bg-blue-500 text-white shadow-sm scale-105 hover:bg-blue-600' 
+            : 'hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground'
+        }`}
       >
         Intermittent
       </Button>
