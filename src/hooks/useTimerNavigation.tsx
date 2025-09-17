@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useFastingSessionQuery } from './optimized/useFastingSessionQuery';
 import { useOptimizedWalkingSession } from './optimized/useOptimizedWalkingSession';
 import { useIntermittentFasting } from './useIntermittentFasting';
@@ -23,7 +23,17 @@ interface TimerStatus {
 
 export const useTimerNavigation = () => {
   const navigate = useNavigate();
-  const [currentMode, setCurrentMode] = useState<TimerMode>('fasting');
+  const location = useLocation();
+  
+  // Detect current mode from URL instead of state
+  const getCurrentModeFromPath = (): TimerMode => {
+    const path = location.pathname;
+    if (path.includes('/walking')) return 'walking';
+    if (path.includes('/intermittent-fasting')) return 'if';
+    return 'fasting'; // Default for /timer or other paths
+  };
+  
+  const currentMode = getCurrentModeFromPath();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [timerStatus, setTimerStatus] = useState<TimerStatus>({
     fasting: { isActive: false, timeElapsed: 0 },
@@ -127,28 +137,25 @@ export const useTimerNavigation = () => {
   }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status, walkingElapsedTime]);
 
   const switchMode = (mode: TimerMode) => {
-    console.log('switchMode called with:', mode, 'current:', currentMode);
+    const currentPath = location.pathname;
     
-    // Prevent unnecessary navigation if already on the target mode
-    if (currentMode === mode) {
-      console.log('Already on target mode, skipping navigation');
+    // Prevent unnecessary navigation if already on the target page
+    if ((mode === 'walking' && currentPath.includes('/walking')) ||
+        (mode === 'if' && currentPath.includes('/intermittent-fasting')) ||
+        (mode === 'fasting' && (currentPath.includes('/timer') || currentPath === '/'))) {
       return;
     }
     
-    setCurrentMode(mode);
     setSheetOpen(false); // Auto-close the sheet
     
-    // Use a small delay to ensure state updates before navigation
-    setTimeout(() => {
-      // Navigate to the appropriate timer page using React Router
-      if (mode === 'walking') {
-        navigate('/walking');
-      } else if (mode === 'if') {
-        navigate('/intermittent-fasting');
-      } else {
-        navigate('/timer');
-      }
-    }, 50);
+    // Navigate to the appropriate timer page using React Router
+    if (mode === 'walking') {
+      navigate('/walking');
+    } else if (mode === 'if') {
+      navigate('/intermittent-fasting');
+    } else {
+      navigate('/timer');
+    }
   };
 
   const getActiveTimerCount = () => {

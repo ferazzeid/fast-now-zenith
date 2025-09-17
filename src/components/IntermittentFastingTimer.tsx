@@ -108,7 +108,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     await endEatingWindow(todaySession.id);
   };
 
-  // If no active session, show simple timer with Start Fasting button
+  // If no session exists, show setup interface
   if (!todaySession) {
     return (
       <div className={`max-w-md mx-auto space-y-6 ${className}`}>
@@ -149,7 +149,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         </Card>
 
-        {/* Start Fasting Button - matches extended fast design */}
+        {/* Setup Schedule Button */}
         <Button 
           onClick={handleStartFastingClick}
           variant="action-primary"
@@ -158,7 +158,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           disabled={loading}
         >
           <Play className="w-8 h-8 mr-3" />
-          Start Fasting
+          Setup Schedule
         </Button>
 
         {/* Schedule Selection Modal */}
@@ -168,6 +168,92 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             onClose={() => setShowScheduleSelector(false)}
           />
         )}
+      </div>
+    );
+  }
+
+  // If session is in setup state, show ready to start interface
+  if (todaySession?.status === 'setup') {
+    return (
+      <div className={`max-w-md mx-auto space-y-6 ${className}`}>
+        {/* Setup Complete Card */}
+        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+          <div className="mb-2 flex flex-col justify-center items-center">
+            <div 
+              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
+              {todaySession.fasting_window_hours}:{todaySession.eating_window_hours}
+            </div>
+            <div className="text-lg font-medium text-muted-foreground mb-4">
+              Schedule Ready
+            </div>
+            
+            <div className="w-full h-px bg-border/30 my-3"></div>
+            
+            <div className="text-sm text-muted-foreground">
+              {todaySession.fasting_window_hours} hour fast, {todaySession.eating_window_hours} hour eating window
+            </div>
+          </div>
+        </Card>
+
+        {/* Start Fasting Button */}
+        <Button 
+          onClick={handleStartFasting}
+          variant="action-primary"
+          size="start-button"
+          className="w-full"
+          disabled={loading}
+        >
+          <Play className="w-8 h-8 mr-3" />
+          Start Fasting
+        </Button>
+      </div>
+    );
+  }
+
+  // Active session - show unified dual timer card directly
+  if (todaySession?.status === 'setup') {
+    return (
+      <div className={`max-w-md mx-auto space-y-6 ${className}`}>
+        {/* Setup Complete Card */}
+        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+          <div className="mb-2 flex flex-col justify-center items-center">
+            <div 
+              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
+              {todaySession.fasting_window_hours}:{todaySession.eating_window_hours}
+            </div>
+            <div className="text-lg font-medium text-muted-foreground mb-4">
+              Schedule Ready
+            </div>
+            
+            <div className="w-full h-px bg-border/30 my-3"></div>
+            
+            <div className="text-sm text-muted-foreground">
+              {todaySession.fasting_window_hours} hour fast, {todaySession.eating_window_hours} hour eating window
+            </div>
+          </div>
+        </Card>
+
+        {/* Start Fasting Button */}
+        <Button 
+          onClick={handleStartFasting}
+          variant="action-primary"
+          size="start-button"
+          className="w-full"
+          disabled={loading}
+        >
+          <Play className="w-8 h-8 mr-3" />
+          Start Fasting
+        </Button>
       </div>
     );
   }

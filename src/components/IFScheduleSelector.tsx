@@ -174,7 +174,7 @@ export const IFScheduleSelector = ({
             disabled={!canConfirm}
             className="flex-1"
           >
-            Start IF Session
+            Setup Schedule
           </Button>
         </div>
       </div>

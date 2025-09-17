@@ -133,7 +133,7 @@ export const useIntermittentFasting = () => {
           session_date: dateString,
           fasting_window_hours: sessionData.fasting_window_hours,
           eating_window_hours: sessionData.eating_window_hours,
-          status: 'active'
+          status: 'setup'
         })
         .select()
         .single();
@@ -146,8 +146,8 @@ export const useIntermittentFasting = () => {
       queryClient.invalidateQueries({ queryKey: ifHistoryQueryKey(user?.id || null) });
       
       toast({
-        title: "IF Session Started!",
-        description: `Your ${data.fasting_window_hours}:${data.eating_window_hours} session has begun.`
+        title: "IF Session Setup!",
+        description: `Your ${data.fasting_window_hours}:${data.eating_window_hours} schedule is ready to start.`
       });
     },
     onError: (error) => {
