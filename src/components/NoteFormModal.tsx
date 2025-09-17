@@ -109,7 +109,7 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
       footer={
         <>
           <Button
-            variant="ghost"
+            variant="soft"
             onClick={onClose}
             disabled={isSubmitting}
             className="flex-1"

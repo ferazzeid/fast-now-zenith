@@ -42,10 +42,10 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         
         <div className="flex gap-3 justify-end">
           <Button
-            variant="ghost"
+            variant="soft"
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
+            className="flex-1"
           >
             <X className="w-4 h-4" />
           </Button>

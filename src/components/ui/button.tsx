@@ -47,6 +47,8 @@ const buttonVariants = cva(
         ghost: "hover:bg-muted hover:text-muted-foreground border-none",
         link: "text-primary underline-offset-4 hover:underline border-none",
         neutral: "bg-muted text-muted-foreground hover:bg-muted/80 border-none",
+        // ✅ SOFT VARIANT: Subtle background that's always visible in both light/dark modes
+        soft: "bg-muted/50 text-muted-foreground hover:bg-muted/70 border-none",
         // 🎨 STANDARDIZED ACTION BUTTON SYSTEM - USE THESE FOR CONSISTENCY
         // ✅ PRIMARY ACTIONS: Main user actions (Start, Add, Save, etc.)
         "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 border-none",
