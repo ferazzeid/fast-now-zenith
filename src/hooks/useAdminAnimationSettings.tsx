@@ -4,6 +4,7 @@ interface AdminAnimationSettings {
   enable_quotes_in_animations: boolean;
   enable_notes_in_animations: boolean;
   enable_goals_in_animations: boolean;
+  animation_duration_seconds: number;
 }
 
 export const useAdminAnimationSettings = (): AdminAnimationSettings => {
@@ -13,5 +14,6 @@ export const useAdminAnimationSettings = (): AdminAnimationSettings => {
     enable_quotes_in_animations: (profile as any)?.enable_quotes_in_animations ?? true,
     enable_notes_in_animations: (profile as any)?.enable_notes_in_animations ?? true,
     enable_goals_in_animations: (profile as any)?.enable_goals_in_animations ?? true,
+    animation_duration_seconds: (profile as any)?.animation_duration_seconds ?? 10,
   };
 };

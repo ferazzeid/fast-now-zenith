@@ -8,8 +8,6 @@ interface ImprovedUnifiedMotivatorRotationProps {
   isActive: boolean;
   onModeChange?: (mode: 'timer-focused' | 'motivator-focused') => void;
   className?: string;
-  contentDurationMs?: number; // Duration to show content
-  timerFocusDurationMs?: number; // Duration to focus on timer
   quotesType?: 'fasting' | 'walking'; // Which quotes to use
 }
 
@@ -28,13 +26,14 @@ export const ImprovedUnifiedMotivatorRotation = ({
   isActive, 
   onModeChange,
   className = "",
-  contentDurationMs = 5000, // 5 seconds for content (same as timer for reading time)
-  timerFocusDurationMs = 5000, // 5 seconds for timer focus
   quotesType = 'fasting'
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
   const { quotes } = useOptimizedQuoteSettings();
   const adminSettings = useAdminAnimationSettings();
+  
+  // Use admin setting for duration (convert seconds to milliseconds)
+  const durationMs = adminSettings.animation_duration_seconds * 1000;
   
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');
@@ -226,23 +225,23 @@ export const ImprovedUnifiedMotivatorRotation = ({
           setShowContent(true);
         }, 50);
 
-        timeoutRef.current = setTimeout(() => {
-          if (runIdRef.current !== thisRun) return;
-
-          // Phase 3: Start content fade out
-          setShowContent(false);
-
           timeoutRef.current = setTimeout(() => {
             if (runIdRef.current !== thisRun) return;
 
-            // Phase 4: Content fully hidden, advance index
-            setIndex(prev => (prev + 1) % items.length);
-            
-            // Continue to next cycle
-            loop();
-          }, FADE_DURATION);
-        }, contentDurationMs + FADE_DURATION);
-      }, timerFocusDurationMs);
+            // Phase 3: Start content fade out
+            setShowContent(false);
+
+            timeoutRef.current = setTimeout(() => {
+              if (runIdRef.current !== thisRun) return;
+
+              // Phase 4: Content fully hidden, advance index
+              setIndex(prev => (prev + 1) % items.length);
+              
+              // Continue to next cycle
+              loop();
+            }, FADE_DURATION);
+          }, durationMs + FADE_DURATION);
+        }, durationMs);
     };
 
     // Start the loop
@@ -252,7 +251,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       runIdRef.current += 1; // invalidate this run
     };
-  }, [isActive, items.length, contentDurationMs, timerFocusDurationMs, onModeChange, FADE_DURATION]);
+  }, [isActive, items.length, durationMs, onModeChange, FADE_DURATION]);
 
   if (!isActive || items.length === 0) return null;
 

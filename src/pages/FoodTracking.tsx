@@ -478,8 +478,6 @@ const FoodTracking = () => {
                     <ImprovedUnifiedMotivatorRotation
                       isActive={true}
                       className="absolute inset-0 pointer-events-none rounded-lg overflow-hidden"
-                      contentDurationMs={6000}
-                      timerFocusDurationMs={4000}
                       quotesType="fasting"
                     />
                   )}

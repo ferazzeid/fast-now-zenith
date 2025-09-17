@@ -89,8 +89,6 @@ const WalkingTimerComponent = ({
                 onModeChange={setMotivatorMode}
                 className="rounded-lg"
                 quotesType="walking"
-                contentDurationMs={6000}
-                timerFocusDurationMs={4000}
               />
             </div>
           )}
