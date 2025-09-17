@@ -36,6 +36,7 @@ import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSyste
 
 import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { IntermittentFastingTimer } from '@/components/IntermittentFastingTimer';
+import { TimerModeSelector } from '@/components/TimerModeSelector';
 
 const Timer = () => {
   const navigate = useNavigate();
@@ -48,12 +49,13 @@ const Timer = () => {
   const [stopAction, setStopAction] = useState<'finish' | 'cancel'>('finish');
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showFastingHistory, setShowFastingHistory] = useState(false);
+  const [timerModeSheetOpen, setTimerModeSheetOpen] = useState(false);
   
   const [walkingTime, setWalkingTime] = useState(0);
 
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useOptimizedWalkingSession();
-  const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
+  const { currentMode, timerStatus, switchMode, formatTime, sheetOpen, setSheetOpen } = useTimerNavigation();
   const { ifEnabled } = useIntermittentFasting();
   const { toast } = useToast();
   const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
@@ -449,9 +451,26 @@ const Timer = () => {
           onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
           historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
           showAuthorTooltip={true}
-          authorTooltipContentKey={currentMode === 'fasting' ? "fasting_timer_insights" : undefined}
-          authorTooltipContent={currentMode === 'fasting' ? "Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" : undefined}
+          authorTooltipContentKey="timer-general"
+          authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
         />
+
+        {/* Timer Mode Selector */}
+        <div className="flex justify-center mb-6">
+          <TimerModeSelector
+            currentMode={currentMode}
+            onModeSelect={switchMode}
+            timerStatus={{
+              fasting: { isActive: timerStatus.fasting.isActive, elapsedTime: timerStatus.fasting.timeElapsed },
+              walking: { isActive: timerStatus.walking.isActive, elapsedTime: timerStatus.walking.timeElapsed },
+              if: { isActive: timerStatus.if.isActive, elapsedTime: timerStatus.if.timeElapsed }
+            }}
+            formatTime={formatTime}
+            sheetOpen={sheetOpen}
+            onSheetOpenChange={setSheetOpen}
+            showIF={ifEnabled}
+          />
+        </div>
 
 
         {/* Timer Display */}
