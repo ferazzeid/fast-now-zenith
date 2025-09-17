@@ -42,18 +42,18 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         
         <div className="flex gap-3 justify-end">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
           >
             <X className="w-4 h-4" />
           </Button>
           <Button
-            variant="outline"
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 rounded-full hover:scale-110 transition-all duration-200"
           >
             {isLoading ? 'Processing...' : confirmText}
           </Button>

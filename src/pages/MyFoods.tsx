@@ -74,7 +74,7 @@ const MyFoods = () => {
             variant="ghost"
             size="sm"
             onClick={handleBack}
-            className="p-2"
+            className="w-8 h-8 p-0 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
           >
             <X className="w-4 h-4" />
           </Button>
