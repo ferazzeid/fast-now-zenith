@@ -45,6 +45,7 @@ const Settings = () => {
   const [activityLevel, setActivityLevel] = useState('sedentary');
   const [manualTdeeOverride, setManualTdeeOverride] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#3b82f6');
+  const [secondaryColor, setSecondaryColor] = useState('#78A670');
   
   const { toast } = useToast();
   const { user, signOut } = useAuth();
@@ -92,6 +93,7 @@ const Settings = () => {
           setActivityLevel(profileData.activity_level || 'lightly_active');
           setManualTdeeOverride(profileData.manual_tdee_override?.toString() || '');
           setPrimaryColor(profileData.primary_color || '#3b82f6');
+          setSecondaryColor(profileData.secondary_color || '#78A670');
 
           // Check if profile is incomplete and show onboarding
           const isIncomplete = !profileData.weight || !profileData.height || !profileData.age || 
@@ -273,7 +275,8 @@ const Settings = () => {
             activity_level: activityLevel,
             manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null,
             target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000,
-            primary_color: primaryColor
+            primary_color: primaryColor,
+            secondary_color: secondaryColor
           };
         
         console.log('Settings: User ID:', user?.id);
@@ -725,6 +728,16 @@ const Settings = () => {
                   value={primaryColor}
                   onChange={setPrimaryColor}
                   disabled={profileLoading}
+                />
+                
+                <UserColorPicker 
+                  value={secondaryColor}
+                  onChange={setSecondaryColor}
+                  disabled={profileLoading}
+                  label="Accent Color"
+                  description="Choose your app's accent color for timers and highlights"
+                  cssVariable="accent"
+                  resetColor="#78A670"
                 />
               </div>
             </Card>

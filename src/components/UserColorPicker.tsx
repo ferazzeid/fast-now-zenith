@@ -10,9 +10,21 @@ interface UserColorPickerProps {
   value: string;
   onChange: (color: string) => void;
   disabled?: boolean;
+  label?: string;
+  description?: string;
+  cssVariable?: string;
+  resetColor?: string;
 }
 
-export const UserColorPicker = ({ value, onChange, disabled = false }: UserColorPickerProps) => {
+export const UserColorPicker = ({ 
+  value, 
+  onChange, 
+  disabled = false, 
+  label = "Primary Color",
+  description = "Choose your app's primary color theme",
+  cssVariable = "primary", 
+  resetColor = "#3b82f6"
+}: UserColorPickerProps) => {
   const [localColor, setLocalColor] = useState(value);
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
@@ -26,19 +38,20 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
     setLocalColor(color);
     onChange(color);
     
-    // Apply color immediately to CSS variables for preview AND ring color
+    // Apply color immediately to CSS variables for preview
     const hslValue = hexToHsl(color);
-    document.documentElement.style.setProperty('--primary', hslValue);
-    document.documentElement.style.setProperty('--ring', hslValue);
+    document.documentElement.style.setProperty(`--${cssVariable}`, hslValue);
+    if (cssVariable === 'primary') {
+      document.documentElement.style.setProperty('--ring', hslValue);
+    }
   };
 
   const resetToDefault = () => {
-    const defaultColor = '#3b82f6';
-    handleColorChange(defaultColor);
+    handleColorChange(resetColor);
     setIsOpen(false);
     toast({
       title: "Color Reset",
-      description: "Primary color has been reset to default blue.",
+      description: `${label} has been reset to default.`,
     });
   };
 
@@ -71,7 +84,7 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
 
   return (
     <div className="flex items-center justify-between">
-      <div className="text-sm font-medium text-warm-text">Primary Color</div>
+      <div className="text-sm font-medium text-warm-text">{label}</div>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -92,9 +105,9 @@ export const UserColorPicker = ({ value, onChange, disabled = false }: UserColor
         <PopoverContent className="w-auto p-4 bg-ceramic-base" align="end">
           <div className="space-y-4">
             <div className="text-center">
-              <h5 className="font-medium text-warm-text">Choose Primary Color</h5>
+              <h5 className="font-medium text-warm-text">{label}</h5>
               <p className="text-xs text-muted-foreground mt-1">
-                This color will be used throughout the app
+                {description}
               </p>
             </div>
             
