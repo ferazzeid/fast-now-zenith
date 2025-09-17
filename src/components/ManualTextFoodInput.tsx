@@ -19,6 +19,8 @@ interface FoodItem {
   serving_size: number;
   calories: number;
   carbs: number;
+  calories_per_100g?: number;
+  carbs_per_100g?: number;
   image_url?: string;
 }
 
@@ -88,18 +90,29 @@ export const ManualTextFoodInput = ({ onFoodAdded }: ManualTextFoodInputProps) =
             variant: "destructive"
           });
         }
-      } else if (data?.completion) {
-        // Handle case where AI asks for clarification
-        toast({
-          title: "Need more details", 
-          description: data.completion,
-          variant: "default"
-        });
       } else {
+        // Create manual fallback option
+        const fallbackFood = {
+          name: textInput.trim(),
+          serving_size: 100,
+          calories: 0,
+          carbs: 0
+        };
+        
+        setFoodSuggestion({
+          foods: [fallbackFood],
+          destination: 'today',
+          added: false
+        });
+        setSelectedFoodIds(new Set([0]));
+        setShowTextModal(false);
+        setShowFoodModal(true);
+        
         toast({
-          title: "Processing failed",
-          description: "I couldn't process your text input. Please try again.",
-          variant: "destructive"
+          title: "✏️ Added for Manual Entry",
+          description: `"${textInput}" added with 0 values - please edit the nutritional information`,
+          className: "bg-amber-600 text-white border-0",
+          duration: 3000,
         });
       }
     } catch (error) {

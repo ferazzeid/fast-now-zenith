@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, CheckCircle, BookOpen, Lock, Crown, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, X, BookOpen, Lock, Crown, Save } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -399,14 +399,14 @@ const FoodTracking = () => {
             onClick={() => handleToggleConsumption(entry.id, !entry.consumed)}
             className={`h-5 w-5 p-1 rounded ${
               entry.consumed 
-                ? 'bg-muted hover:bg-muted/90 text-muted-foreground' 
+                ? 'bg-muted/50 hover:bg-muted/70 text-muted-foreground' 
                 : 'bg-primary hover:bg-primary/90 text-primary-foreground'
             }`}
             title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
             aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
           >
             {entry.consumed ? (
-              <CheckCircle className="w-3 h-3" />
+              <X className="w-3 h-3" />
             ) : (
               <Check className="w-3 h-3" />
             )}

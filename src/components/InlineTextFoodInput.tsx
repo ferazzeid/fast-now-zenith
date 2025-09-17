@@ -16,6 +16,8 @@ interface FoodItem {
   serving_size: number;
   calories: number;
   carbs: number;
+  calories_per_100g?: number;
+  carbs_per_100g?: number;
   image_url?: string;
 }
 
@@ -78,11 +80,26 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         return;
       }
 
-      // If AI couldn't parse it, show helpful message
+      // If AI couldn't parse it, create manual fallback option
+      const suggestion: FoodSuggestion = {
+        foods: [{
+          name: inputText.trim(),
+          serving_size: 100,
+          calories: 0,
+          carbs: 0
+        }],
+        destination: 'today'
+      };
+      
+      setFoodSuggestion(suggestion);
+      setSelectedFoodIds(new Set([0]));
+      setShowFoodModal(true);
+      
       toast({
-        title: "Need More Details", 
-        description: data.completion || "Please be more specific (e.g., '2 apples' or '100g chicken')",
-        variant: "default",
+        title: "✏️ Added for Manual Entry",
+        description: `"${inputText}" added with 0 values - please edit the nutritional information`,
+        className: "bg-amber-600 text-white border-0",
+        duration: 3000,
       });
     } catch (error) {
       console.error('Error processing food input:', error);
