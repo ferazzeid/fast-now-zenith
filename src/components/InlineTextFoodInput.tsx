@@ -223,8 +223,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
             onClick={handleCancel}
           />
           
-          {/* Dropdown positioned below the button and centered */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-[calc(100vw-2rem)] max-w-sm p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-subtle shadow-lg">
+          {/* Dropdown positioned below the button with proper width and centering */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-80 max-w-[calc(100vw-1rem)] p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-subtle shadow-lg">
             <div className="flex items-center gap-3">
               <Input
                 value={inputText}
