@@ -329,7 +329,7 @@ export const DailyStatsPanel = memo(() => {
                      className="flex items-center justify-center p-2 rounded-full bg-card hover:bg-card/80 transition-colors"
                      aria-label="Close expanded view"
                    >
-                     <ChevronDown className="w-5 h-5 text-muted-foreground rotate-180" />
+                     <ChevronDown className="w-5 h-5 text-accent rotate-180" />
                    </button>
                  </div>
               </div>

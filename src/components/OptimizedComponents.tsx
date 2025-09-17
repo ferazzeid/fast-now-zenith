@@ -61,7 +61,7 @@ interface DeficitDisplayProps {
 export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayProjection, userUnits = 'metric' }: DeficitDisplayProps) => {
   const { color, icon: DeficitIcon } = useMemo(() => {
     const color = deficit > 0 ? 'text-accent' : 
-                  deficit < 0 ? 'text-red-600 dark:text-red-400' : 
+                  deficit < 0 ? 'text-destructive' : 
                   'text-muted-foreground';
     const icon = deficit > 0 ? TrendingDown : TrendingUp;
     return { color, icon };
@@ -79,7 +79,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
           <DeficitIcon className={`w-6 h-6 ${color}`} />
           <h3 className="text-lg font-semibold text-warm-text">Today's Deficit</h3>
         </div>
-        <div className="text-3xl font-bold text-primary">
+        <div className={`text-3xl font-bold ${color}`}>
           {formattedValue}
         </div>
         <p className="text-xs text-muted-foreground">
