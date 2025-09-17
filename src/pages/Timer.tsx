@@ -444,10 +444,10 @@ const Timer = () => {
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
         {/* Header with Onboarding Button */}
         <ResponsivePageHeader
-          title={currentMode === 'fasting' ? 'Fasting Timer' : 'Walking Timer'}
-          subtitle={currentMode === 'fasting' ? getCurrentMode() : 'Track your walking session'}
-          onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : undefined}
-          historyTitle="View fasting history"
+          title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
+          subtitle={currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
+          onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
+          historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
           showAuthorTooltip={true}
           authorTooltipContentKey={currentMode === 'fasting' ? "fasting_timer_insights" : undefined}
           authorTooltipContent={currentMode === 'fasting' ? "Extended fasting triggers autophagy, improves insulin sensitivity, and can enhance mental clarity. Listen to your body and break your fast if you feel unwell. Stay hydrated!" : undefined}
@@ -484,6 +484,8 @@ const Timer = () => {
                 startTime={fastingSession?.start_time}
               />
             </>
+          ) : currentMode === 'if' ? (
+            <IntermittentFastingTimer />
           ) : (
             <WalkingTimer
               displayTime={formatTime(timerStatus.walking.timeElapsed)}

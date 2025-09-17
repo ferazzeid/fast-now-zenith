@@ -35,6 +35,7 @@ import MyFoods from "./pages/MyFoods";
 import WalkingHistory from "./pages/WalkingHistory";
 import FoodHistory from "./pages/FoodHistory";
 import FastingHistory from "./pages/FastingHistory";
+import IntermittentFastingHistory from "./pages/IntermittentFastingHistory";
 import { HealthCheck } from "./pages/HealthCheck";
 import { SmartHomeRedirect } from "./components/SmartHomeRedirect";
 import { NavigationGuard } from "./components/NavigationGuard";
@@ -284,13 +285,20 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/fasting-history" element={
-              <ProtectedRoute>
-                <PageErrorBoundary>
-                  <FastingHistory />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            } />
+             <Route path="/fasting-history" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <FastingHistory />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/intermittent-fasting-history" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <IntermittentFastingHistory />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
             <Route path="/admin" element={<Navigate to="/admin/data" replace />} />
             <Route path="/admin/data" element={
               <ProtectedRoute>
