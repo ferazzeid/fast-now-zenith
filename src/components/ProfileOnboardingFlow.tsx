@@ -240,7 +240,7 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                 <SelectTrigger>
                   <SelectValue placeholder="Select sex" />
                 </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
+                <SelectContent className="bg-background border border-subtle shadow-lg z-50">
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
                 </SelectContent>
@@ -442,10 +442,10 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         footer={
           <>
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="action-secondary"
               onClick={() => setActiveModal(null)}
-              className="w-12"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>
