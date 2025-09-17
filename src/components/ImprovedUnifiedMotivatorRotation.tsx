@@ -23,14 +23,13 @@ type UnifiedItem = {
 };
 
 type Phase = 'timer' | 'content';
-type TransitionState = 'hidden' | 'fading-in' | 'visible' | 'fading-out';
 
 export const ImprovedUnifiedMotivatorRotation = ({ 
   isActive, 
   onModeChange,
   className = "",
   contentDurationMs = 4500, // 4.5 seconds visible content
-  timerFocusDurationMs = 2500, // 2.5 seconds for timer focus (plus transitions)
+  timerFocusDurationMs = 2500, // 2.5 seconds for timer focus
   quotesType = 'fasting'
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
@@ -39,7 +38,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
   
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');
-  const [transitionState, setTransitionState] = useState<TransitionState>('hidden');
+  const [showContent, setShowContent] = useState(false); // Controls CSS opacity transition
   
   // Internal refs to ensure single, deterministic loop
   const runIdRef = useRef(0);
@@ -139,7 +138,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
     const handleVisibilityChange = () => {
       if (!document.hidden && isActive) {
         setPhase('timer');
-        setTransitionState('hidden');
+        setShowContent(false);
         if (modeRef.current !== 'timer-focused') {
           onModeChange?.('timer-focused');
           modeRef.current = 'timer-focused';
@@ -151,11 +150,11 @@ export const ImprovedUnifiedMotivatorRotation = ({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isActive, onModeChange]);
 
-  // Main rotation loop with proper sequenced transitions
+  // Main rotation loop with proper smooth transitions
   useEffect(() => {
     if (!isActive || items.length === 0) {
       setPhase('timer');
-      setTransitionState('hidden');
+      setShowContent(false);
       if (modeRef.current !== 'timer-focused') {
         onModeChange?.('timer-focused');
         modeRef.current = 'timer-focused';
@@ -177,43 +176,40 @@ export const ImprovedUnifiedMotivatorRotation = ({
     const loop = () => {
       if (runIdRef.current !== thisRun) return;
 
-      // Phase 1: Timer focus - content stays hidden 
+      // Phase 1: Timer focus - content hidden
       setPhase('timer');
-      setTransitionState('hidden');
+      setShowContent(false);
       setModeIfChanged('timer-focused');
 
       timeoutRef.current = setTimeout(() => {
         if (runIdRef.current !== thisRun) return;
 
-        // Phase 2: Start content fade in (500ms)
+        // Phase 2: Start content fade in - change to content phase and show
         setPhase('content');
-        setTransitionState('fading-in');
         setModeIfChanged('motivator-focused');
+        
+        // Small delay to ensure DOM is ready, then trigger fade in
+        setTimeout(() => {
+          if (runIdRef.current !== thisRun) return;
+          setShowContent(true);
+        }, 50);
 
         timeoutRef.current = setTimeout(() => {
           if (runIdRef.current !== thisRun) return;
 
-          // Phase 3: Content fully visible (4.5 seconds)
-          setTransitionState('visible');
+          // Phase 3: Start content fade out
+          setShowContent(false);
 
           timeoutRef.current = setTimeout(() => {
             if (runIdRef.current !== thisRun) return;
 
-            // Phase 4: Start content fade out (500ms)
-            setTransitionState('fading-out');
-
-            timeoutRef.current = setTimeout(() => {
-              if (runIdRef.current !== thisRun) return;
-
-              // Phase 5: Content fully hidden, advance index
-              setTransitionState('hidden');
-              setIndex(prev => (prev + 1) % items.length);
-              
-              // Continue to next cycle immediately
-              loop();
-            }, FADE_DURATION);
-          }, contentDurationMs);
-        }, FADE_DURATION);
+            // Phase 4: Content fully hidden, advance index
+            setIndex(prev => (prev + 1) % items.length);
+            
+            // Continue to next cycle
+            loop();
+          }, FADE_DURATION);
+        }, contentDurationMs + FADE_DURATION);
       }, timerFocusDurationMs);
     };
 
@@ -229,24 +225,16 @@ export const ImprovedUnifiedMotivatorRotation = ({
   if (!isActive || items.length === 0) return null;
 
   const current = items[index];
-  
-  // Calculate opacity and scale based on transition state
-  const contentOpacity = transitionState === 'visible' ? 1 : 
-                        transitionState === 'fading-in' ? 1 : 
-                        transitionState === 'fading-out' ? 0 : 0;
-  
-  const contentScale = transitionState === 'visible' || transitionState === 'fading-in' ? 1 : 0.95;
-  const isVisible = transitionState !== 'hidden';
 
   return (
     <div className={`absolute inset-0 ${className}`}>
       {/* Content overlay - fades smoothly over timer */}
-      {current && isVisible && (
+      {current && phase === 'content' && (
         <div 
           className="absolute inset-0 transition-all duration-500 ease-in-out"
           style={{ 
-            opacity: contentOpacity,
-            transform: `scale(${contentScale})`,
+            opacity: showContent ? 1 : 0,
+            transform: `scale(${showContent ? 1 : 0.95})`,
             zIndex: 20 // Always above timer
           }}
         >
@@ -259,7 +247,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
                 className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out"
                 style={{ 
                   filter: "brightness(0.7) saturate(1.1) contrast(1.05)",
-                  transform: `scale(${contentOpacity === 1 ? 1.05 : 1})` 
+                  transform: `scale(${showContent ? 1.05 : 1})` 
                 }}
               />
             </div>
@@ -268,7 +256,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
           {/* Dark overlay for text readability */}
           <div 
             className="absolute inset-0 bg-black/40 transition-all duration-500 ease-in-out"
-            style={{ opacity: contentOpacity }}
+            style={{ opacity: showContent ? 1 : 0 }}
           />
 
           {/* Text content */}
@@ -276,8 +264,8 @@ export const ImprovedUnifiedMotivatorRotation = ({
             <div 
               className="text-center max-w-3xl w-full transition-all duration-500 ease-in-out"
               style={{ 
-                opacity: contentOpacity,
-                transform: `translateY(${contentOpacity === 1 ? 0 : 20}px)` 
+                opacity: showContent ? 1 : 0,
+                transform: `translateY(${showContent ? 0 : 20}px)` 
               }}
             >
               {current.type === 'motivator' || current.type === 'note' ? (
