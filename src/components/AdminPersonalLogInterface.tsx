@@ -151,29 +151,29 @@ export const AdminPersonalLogInterface: React.FC<AdminPersonalLogInterfaceProps>
             disabled={isSaving}
           />
           
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex gap-3">
             <Button
               variant="ghost"
-              size="sm"
-               onClick={() => {
-                 setLogText(originalText); // Restore to original text, not existingLog
-                 setIsEditing(false);
-                 setShowVoiceRecorder(false);
-               }}
+              size="action-secondary"
+              onClick={() => {
+                setLogText(originalText); // Restore to original text, not existingLog
+                setIsEditing(false);
+                setShowVoiceRecorder(false);
+              }}
               disabled={isSaving}
-              className="h-7 px-3"
+              className="w-12"
             >
-              <X className="h-3 w-3 mr-1" />
-              Cancel
+              <X className="w-4 h-4" />
             </Button>
             
             <Button
-              size="sm"
+              variant="action-primary"
+              size="action-secondary"
               onClick={handleSaveLog}
               disabled={isSaving}
-              className="h-7 px-3"
+              className="flex-1"
             >
-              <Save className="h-3 w-3 mr-1" />
+              <Save className="w-4 h-4 mr-2" />
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </div>

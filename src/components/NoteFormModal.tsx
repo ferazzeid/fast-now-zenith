@@ -5,6 +5,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { X, Save } from 'lucide-react';
 
 interface Note {
   id?: string;
@@ -133,18 +134,24 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 mt-6">
+      <div className="flex gap-3 mt-6">
         <Button
-          variant="outline"
+          variant="ghost"
+          size="action-secondary"
           onClick={onClose}
           disabled={isSubmitting}
+          className="w-12"
         >
-          Cancel
+          <X className="w-4 h-4" />
         </Button>
         <Button
+          variant="action-primary"
+          size="action-secondary"
           onClick={handleSave}
           disabled={isSubmitting || !content.trim()}
+          className="flex-1"
         >
+          <Save className="w-4 h-4 mr-2" />
           {isSubmitting ? 'Saving...' : (note?.id ? 'Save Changes' : 'Add Note')}
         </Button>
       </div>

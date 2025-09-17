@@ -19,7 +19,7 @@
  */
 
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -274,15 +274,22 @@ export const ConfirmationModal = ({
       size="sm"
       footer={
         <>
-          <Button variant="outline" onClick={onClose}>
-            {cancelText}
+          <Button
+            variant="ghost"
+            size="action-secondary"
+            onClick={onClose}
+            className="w-12"
+          >
+            <X className="w-4 h-4" />
           </Button>
           <Button 
             variant={variant}
+            size="action-secondary"
             onClick={() => {
               onConfirm();
               onClose();
             }}
+            className="flex-1"
           >
             {confirmText}
           </Button>
@@ -330,13 +337,23 @@ export const FormModal = ({
       closeOnOverlay={!isSaving}
       footer={
         <>
-          <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            {cancelText}
+          <Button 
+            variant="ghost" 
+            size="action-secondary"
+            onClick={onClose} 
+            disabled={isSaving}
+            className="w-12"
+          >
+            <X className="w-4 h-4" />
           </Button>
           <Button 
+            variant="action-primary"
+            size="action-secondary"
             onClick={onSave}
             disabled={saveDisabled || isSaving}
+            className="flex-1"
           >
+            <Save className="w-4 h-4 mr-2" />
             {isSaving ? 'Saving...' : saveText}
           </Button>
         </>

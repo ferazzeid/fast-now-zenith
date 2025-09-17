@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowRight, Camera, Save } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Camera, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -186,12 +186,21 @@ export const MotivatorCreationWizard = ({ templates, onComplete, onCancel }: Mot
 
           {/* Navigation */}
           <div className="flex gap-3">
-            <Button variant="outline" onClick={onCancel}>
-              Cancel
+            <Button 
+              variant="ghost" 
+              size="action-secondary"
+              onClick={onCancel}
+              className="w-12"
+            >
+              <X className="w-4 h-4" />
             </Button>
             
             {currentTemplateIndex > 0 && (
-              <Button variant="outline" onClick={handlePrevious}>
+              <Button 
+                variant="outline" 
+                size="action-secondary"
+                onClick={handlePrevious}
+              >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous
               </Button>
