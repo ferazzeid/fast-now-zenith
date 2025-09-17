@@ -106,6 +106,26 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
       onClose={onClose}
       title={note?.id ? "Edit Note" : "Add Note"}
       size="md"
+      footer={
+        <>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="flex-1"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="action-primary"
+            onClick={handleSave}
+            disabled={isSubmitting || !content.trim()}
+            className="flex-1"
+          >
+            {isSubmitting ? 'Saving...' : (note?.id ? 'Update' : 'Create')}
+          </Button>
+        </>
+      }
     >
       <div className="space-y-4">
         <div className="space-y-2">
@@ -134,26 +154,6 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
         </div>
       </div>
 
-      <div className="flex gap-3 mt-6">
-        <Button
-          variant="ghost"
-          size="action-secondary"
-          onClick={onClose}
-          disabled={isSubmitting}
-          className="w-12"
-        >
-          <X className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="action-primary"
-          size="action-secondary"
-          onClick={handleSave}
-          disabled={isSubmitting || !content.trim()}
-          className="flex-1"
-        >
-          {isSubmitting ? 'Saving...' : (note?.id ? 'Update' : 'Create')}
-        </Button>
-      </div>
     </UniversalModal>
   );
 }

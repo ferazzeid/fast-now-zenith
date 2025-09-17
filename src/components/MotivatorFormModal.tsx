@@ -118,8 +118,14 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       footer={
         <>
           <Button 
+            variant="ghost"
+            onClick={onClose}
+            className="flex-1"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+          <Button 
             variant="action-primary"
-            size="action-secondary"
             onClick={handleSave}
             disabled={!title.trim()}
             className="flex-1"
