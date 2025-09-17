@@ -162,7 +162,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter food name"
-            className="bg-muted"
+            className=""
           />
         </div>
 
@@ -177,7 +177,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               placeholder="0"
               min="0"
               step="0.1"
-              className="bg-muted"
+              className=""
             />
           </div>
           
@@ -191,7 +191,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               placeholder="0"
               min="0"
               step="0.1"
-              className="bg-muted"
+              className=""
             />
           </div>
 
@@ -205,7 +205,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               placeholder="0"
               min="0.1"
               step="0.1"
-              className="bg-muted"
+              className=""
             />
           </div>
         </div>
