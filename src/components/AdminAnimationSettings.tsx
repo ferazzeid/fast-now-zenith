@@ -25,7 +25,7 @@ export const AdminAnimationSettings = () => {
       setEnableCeramicAnimations(profile.enable_ceramic_animations ?? true);
       setEnableQuotesInAnimations(profile.enable_quotes_in_animations ?? true);
       setEnableNotesInAnimations(profile.enable_notes_in_animations ?? true);
-      setEnableGoalsInAnimations(profile.enable_goals_in_animations ?? true);
+      setEnableGoalsInAnimations((profile as any).enable_goals_in_animations ?? true);
     }
   }, [profile]);
 

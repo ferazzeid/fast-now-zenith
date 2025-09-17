@@ -158,8 +158,12 @@ export const UnifiedMotivatorRotation = ({
 
             timeoutRef.current = setTimeout(() => {
               if (runIdRef.current !== thisRun) return;
+              // Advance to next item with transition delay
               setIndex(prev => (prev + 1) % items.length);
-              loop();
+              setTimeout(() => {
+                if (runIdRef.current !== thisRun) return;
+                loop();
+              }, 800); // 800ms delay for clean transition
             }, textDurationMs);
           }, imageLeadMs);
         } else {
@@ -167,8 +171,12 @@ export const UnifiedMotivatorRotation = ({
           setPhaseAndMode('text');
           timeoutRef.current = setTimeout(() => {
             if (runIdRef.current !== thisRun) return;
+            // Advance to next item with transition delay
             setIndex(prev => (prev + 1) % items.length);
-            loop();
+            setTimeout(() => {
+              if (runIdRef.current !== thisRun) return;
+              loop();
+            }, 800); // 800ms delay for clean transition
           }, textDurationMs);
         }
       }, timerDurationMs);
@@ -207,38 +215,41 @@ export const UnifiedMotivatorRotation = ({
 
       {/* Content-specific text display */}
       {showText && current && (
-        <div
-          className="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-500"
-          style={{ zIndex: 15 }}
-        >
-          <div className="text-center max-w-3xl w-full animate-fade-in">
-            {current.type === 'motivator' ? (
-              /* Goals: Bold text with strong background */
-              <div className="bg-black/50 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
+        <>
+          {/* Dark overlay for text readability - always present during text phase */}
+          <div className="absolute inset-0 bg-black/40 transition-opacity duration-1000" style={{ zIndex: 9 }} />
+          
+          <div
+            className="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-1000"
+            style={{ zIndex: 15 }}
+          >
+            <div className="text-center max-w-3xl w-full animate-fade-in">
+              {current.type === 'motivator' ? (
+                /* Goals: Direct text on overlay */
                 <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
                   {current.title}
                 </p>
-              </div>
-            ) : (
-              /* Quotes: Elegant text with subtle background */
-              <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
-                <p 
-                  className={`font-medium leading-snug text-white ${
-                    current.title.length > 150 ? 'text-xs' : 
-                    current.title.length > 100 ? 'text-sm' : 'text-sm'
-                  }`}
-                >
-                  "{current.title}"
-                </p>
-                {(current as any).author && (current as any).author !== 'Unknown Author' && (
-                  <p className="text-xs text-white/80 mt-2 font-medium">
-                    — {(current as any).author}
+              ) : (
+                /* Quotes: Direct text on overlay */
+                <div className="text-center">
+                  <p 
+                    className={`font-medium leading-snug text-white ${
+                      current.title.length > 150 ? 'text-xs' : 
+                      current.title.length > 100 ? 'text-sm' : 'text-sm'
+                    }`}
+                  >
+                    "{current.title}"
                   </p>
-                )}
-              </div>
-            )}
+                  {(current as any).author && (current as any).author !== 'Unknown Author' && (
+                    <p className="text-xs text-white/80 mt-2 font-medium">
+                      — {(current as any).author}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
     </div>

@@ -128,20 +128,23 @@ export const ImprovedUnifiedMotivatorRotation = ({
       // Show timer focus
       setPhaseAndMode('timer');
 
-      timeoutRef.current = setTimeout(() => {
-        if (runIdRef.current !== thisRun) return;
-
-        // Show content
-        setPhaseAndMode('content');
-
         timeoutRef.current = setTimeout(() => {
           if (runIdRef.current !== thisRun) return;
 
-          // Advance to next content and repeat
-          setIndex(prev => (prev + 1) % items.length);
-          loop();
-        }, contentDurationMs);
-      }, timerFocusDurationMs);
+          // Show content
+          setPhaseAndMode('content');
+
+          timeoutRef.current = setTimeout(() => {
+            if (runIdRef.current !== thisRun) return;
+
+            // Advance to next content and repeat - with longer transition time
+            setIndex(prev => (prev + 1) % items.length);
+            setTimeout(() => {
+              if (runIdRef.current !== thisRun) return;
+              loop();
+            }, 800); // 800ms delay to ensure clean transition
+          }, contentDurationMs);
+        }, timerFocusDurationMs);
     };
 
     // Start the loop
@@ -160,61 +163,60 @@ export const ImprovedUnifiedMotivatorRotation = ({
 
   return (
         <div className={`absolute inset-0 ${className}`}>
-          {/* Content display */}
-          {showContent && (
-            <>
-              {/* Background image layer */}
-              {current.imageUrl && (
-                <div
-                  className="absolute inset-0 overflow-hidden transition-opacity duration-500 ease-in-out"
-                  style={{ zIndex: 8 }}
-                >
-                  <MotivatorImageWithFallback
-                    src={current.imageUrl}
-                    alt={current.title || 'Content image'}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    style={{ filter: 'brightness(0.7) saturate(1.1) contrast(1.05)' }}
-                  />
-                  {/* Improved overlay for better text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/30" />
-                </div>
-              )}
+      {/* Content display */}
+      {showContent && (
+        <>
+          {/* Background image layer */}
+          {current.imageUrl && (
+            <div
+              className="absolute inset-0 overflow-hidden transition-opacity duration-500 ease-in-out"
+              style={{ zIndex: 8 }}
+            >
+              <MotivatorImageWithFallback
+                src={current.imageUrl}
+                alt={current.title || 'Content image'}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: 'brightness(0.7) saturate(1.1) contrast(1.05)' }}
+              />
+            </div>
+          )}
 
-              {/* Text content with improved contrast */}
-              <div
-                className="absolute inset-0 flex items-center justify-center p-6 transition-all duration-500 ease-in-out"
-                style={{ zIndex: 15 }}
-              >
-                <div className="text-center max-w-3xl w-full animate-fade-in">
-                  {current.type === 'motivator' || current.type === 'note' ? (
-                    /* Goals/Notes: Bold uppercase text with strong background */
-                    <div className="bg-black/50 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/20">
-                      <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
-                        {current.title}
-                      </p>
-                    </div>
-                  ) : (
-                    /* Quotes: Elegant text with subtle background */
-                    <div className="bg-black/40 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/10">
-                      <p 
-                        className={`font-medium leading-snug text-white ${
-                          current.title.length > 150 ? 'text-xs' : 
-                          current.title.length > 100 ? 'text-sm' : 'text-sm'
-                        }`}
-                      >
-                        "{current.title}"
-                      </p>
-                      {current.author && current.author !== 'Unknown Author' && (
-                        <p className="text-xs text-white/80 mt-2 font-medium">
-                          — {current.author}
-                        </p>
-                      )}
-                    </div>
+          {/* Dark overlay for text readability - always present during content phase */}
+          <div className="absolute inset-0 bg-black/40 transition-opacity duration-500 ease-in-out" style={{ zIndex: 9 }} />
+
+          {/* Text content - no background container */}
+          <div
+            className="absolute inset-0 flex items-center justify-center p-6 transition-all duration-500 ease-in-out"
+            style={{ zIndex: 15 }}
+          >
+            <div className="text-center max-w-3xl w-full animate-fade-in">
+              {current.type === 'motivator' || current.type === 'note' ? (
+                /* Goals/Notes: Direct text on overlay */
+                <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
+                  {current.title}
+                </p>
+              ) : (
+                /* Quotes: Direct text on overlay */
+                <div className="text-center">
+                  <p 
+                    className={`font-medium leading-snug text-white ${
+                      current.title.length > 150 ? 'text-xs' : 
+                      current.title.length > 100 ? 'text-sm' : 'text-sm'
+                    }`}
+                  >
+                    "{current.title}"
+                  </p>
+                  {current.author && current.author !== 'Unknown Author' && (
+                    <p className="text-xs text-white/80 mt-2 font-medium">
+                      — {current.author}
+                    </p>
                   )}
                 </div>
-              </div>
-            </>
-          )}
+              )}
+            </div>
+          </div>
+        </>
+      )}
         </div>
   );
 };
