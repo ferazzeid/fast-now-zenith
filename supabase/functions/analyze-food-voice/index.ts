@@ -185,7 +185,7 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
                           description: "Fat per 100g (optional, for completeness)"
                         }
                       },
-                      required: ["name", "serving_size", "calories", "carbs"]
+                      required: ["name", "serving_size", "calories", "carbs", "calories_per_100g", "carbs_per_100g"]
                     }
                   },
                   destination: {
