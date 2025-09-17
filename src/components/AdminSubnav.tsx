@@ -7,6 +7,7 @@ const items = [
   { label: "OPS", to: "/admin/operations" },
   { label: "Content", to: "/admin/content" },
   { label: "AI", to: "/admin/ai" },
+  { label: "Func", to: "/admin/functions" },
   { label: "Brand", to: "/admin/branding" },
   { label: "Pay", to: "/admin/payments" },
 ];
