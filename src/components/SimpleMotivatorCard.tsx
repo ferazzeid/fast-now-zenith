@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Eye, EyeOff } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { useAdminAnimationSettings } from '@/hooks/useAdminAnimationSettings';
 
 interface SimpleMotivatorCardProps {
   motivator: {
@@ -23,6 +24,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
   onDelete,
   onToggleAnimation
 }) => {
+  const adminSettings = useAdminAnimationSettings();
   const [localShowInAnimations, setLocalShowInAnimations] = useState(motivator.show_in_animations);
   const [isToggling, setIsToggling] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -58,6 +60,9 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
           {/* Actions - animation toggle and delete */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {onToggleAnimation && (
+              (motivator.category === 'saved_quote' && adminSettings.enable_quotes_in_animations) ||
+              (motivator.category !== 'saved_quote' && adminSettings.enable_goals_in_animations)
+            ) && (
               <Tooltip>
                 <TooltipTrigger asChild>
                     <Button

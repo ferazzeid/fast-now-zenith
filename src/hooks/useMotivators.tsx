@@ -68,7 +68,7 @@ export const useMotivators = () => {
         ...item,
         imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
         linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
-        show_in_animations: item.show_in_animations ?? true // Default to true if not set
+        show_in_animations: item.show_in_animations ?? false // Default to false if not set
       }));
       
       console.log('🎯 TRANSFORMED MOTIVATORS:', transformedData.map(m => ({ 
@@ -120,7 +120,7 @@ export const useMotivators = () => {
           category: motivatorData.category,
           image_url: motivatorData.imageUrl,
           link_url: motivatorData.linkUrl,
-          show_in_animations: motivatorData.show_in_animations ?? true,
+          show_in_animations: motivatorData.show_in_animations ?? false,
           slug: generateUniqueSlug(motivatorData.title),
           is_active: true,
           author: motivatorData.author
@@ -213,7 +213,7 @@ export const useMotivators = () => {
         category: motivator.category || 'general',
         image_url: motivator.imageUrl,
         link_url: motivator.linkUrl,
-        show_in_animations: motivator.show_in_animations ?? true,
+        show_in_animations: motivator.show_in_animations ?? false,
         slug: generateUniqueSlug(motivator.title),
         is_active: true
       }));
@@ -262,7 +262,7 @@ export const useMotivators = () => {
           content,
           category: 'saved_quote',
           slug: generateUniqueSlug(title),
-          show_in_animations: true, // Default to showing saved quotes in animations
+          show_in_animations: false, // Default to NOT showing saved quotes in animations
           is_active: true
         })
         .select()

@@ -9,6 +9,7 @@ import { ConfirmationModal } from "@/components/ui/universal-modal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
+import { useAdminAnimationSettings } from "@/hooks/useAdminAnimationSettings";
 
 interface Note {
   id: string;
@@ -25,6 +26,7 @@ interface NotesCardProps {
 
 export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
   const { toast } = useToast();
+  const adminSettings = useAdminAnimationSettings();
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(note.title);
   const [editContent, setEditContent] = useState(note.content);
@@ -182,59 +184,61 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                   </Tooltip>
                 </TooltipProvider>
 
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={async () => {
-                          if (isToggling) return; // Prevent double clicks
-                          
-                          const newValue = !localShowInAnimations;
-                          
-                          // Optimistic update - update UI immediately
-                          setLocalShowInAnimations(newValue);
-                          
-                          await executeToggle(async () => {
-                            await onUpdate(note.id, { 
-                              title: note.title, 
-                              content: note.content,
-                              show_in_animations: newValue
-                            });
+                {adminSettings.enable_notes_in_animations && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={async () => {
+                            if (isToggling) return; // Prevent double clicks
                             
-                            toast({
-                              description: `Note ${newValue ? 'will show' : 'hidden from'} in timer animations`,
-                            });
-                          }, {
-                            onError: (error) => {
-                              // Rollback on error - restore original state
-                              setLocalShowInAnimations(!newValue);
-                              console.error('Failed to update animation setting:', error);
-                              toast({
-                                description: "Failed to update animation setting",
-                                variant: "destructive",
+                            const newValue = !localShowInAnimations;
+                            
+                            // Optimistic update - update UI immediately
+                            setLocalShowInAnimations(newValue);
+                            
+                            await executeToggle(async () => {
+                              await onUpdate(note.id, { 
+                                title: note.title, 
+                                content: note.content,
+                                show_in_animations: newValue
                               });
-                            }
-                          });
-                        }}
-                        disabled={isToggling}
-                        className="p-2 h-8 w-8 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
-                      >
-                        {isToggling ? (
-                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                        ) : localShowInAnimations ? (
-                          <Eye className="h-4 w-4" />
-                        ) : (
-                          <EyeOff className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{localShowInAnimations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                              
+                              toast({
+                                description: `Note ${newValue ? 'will show' : 'hidden from'} in timer animations`,
+                              });
+                            }, {
+                              onError: (error) => {
+                                // Rollback on error - restore original state
+                                setLocalShowInAnimations(!newValue);
+                                console.error('Failed to update animation setting:', error);
+                                toast({
+                                  description: "Failed to update animation setting",
+                                  variant: "destructive",
+                                });
+                              }
+                            });
+                          }}
+                          disabled={isToggling}
+                          className="p-2 h-8 w-8 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
+                        >
+                          {isToggling ? (
+                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                          ) : localShowInAnimations ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{localShowInAnimations !== false ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
 
                 <TooltipProvider>
                   <Tooltip>
