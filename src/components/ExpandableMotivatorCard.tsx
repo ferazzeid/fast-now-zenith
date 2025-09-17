@@ -255,7 +255,6 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
         title="Delete Motivator"
         description={`Are you sure you want to delete "${motivator.title}"? This action cannot be undone.`}
         confirmText="Delete"
-        variant="destructive"
       />
     </Card>
   );
