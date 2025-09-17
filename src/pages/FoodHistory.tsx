@@ -284,7 +284,7 @@ const FoodHistory = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDeleteAllDialog(true)}
-                className="hover:bg-muted w-8 h-8 p-0"
+                className="hover:bg-muted w-8 h-8 p-0 rounded-full hover:scale-110 transition-all duration-200"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -293,7 +293,7 @@ const FoodHistory = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/food-tracking')}
-              className="w-8 h-8 p-0 hover:bg-muted"
+              className="w-8 h-8 p-0 hover:bg-muted rounded-full hover:scale-110 transition-all duration-200"
             >
               <X className="w-5 h-5" />
             </Button>

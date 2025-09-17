@@ -278,7 +278,7 @@ export const ConfirmationModal = ({
             variant="ghost"
             size="action-secondary"
             onClick={onClose}
-            className="w-12"
+            className="w-12 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
           >
             <X className="w-4 h-4" />
           </Button>
@@ -338,11 +338,11 @@ export const FormModal = ({
       footer={
         <>
           <Button 
-            variant="outline" 
+            variant="ghost"
             size="action-secondary"
             onClick={onClose} 
             disabled={isSaving}
-            className="flex-1"
+            className="flex-1 rounded-full hover:bg-muted/50 hover:scale-110 transition-all duration-200"
           >
             <X className="w-4 h-4" />
           </Button>
