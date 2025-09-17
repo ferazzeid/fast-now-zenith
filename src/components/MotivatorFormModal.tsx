@@ -90,10 +90,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     onSave(motivatorData);
   };
 
-  const handleVoiceTranscription = (transcription: string) => {
-    // If short (likely a title), put in title field
-    // If longer, put in content field
-    if (transcription.length < 50) {
+  const handleVoiceTranscription = (transcription: string, context: 'title' | 'content' = 'content') => {
+    // If context is explicitly title or short transcription, put in title field
+    // If longer content, put in content field
+    if (context === 'title' || transcription.length < 50) {
       setTitle(transcription);
     } else {
       setContent(transcription);
@@ -177,8 +177,9 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 Title
               </Label>
               <CircularVoiceButton
-                onTranscription={handleVoiceTranscription}
+                onTranscription={(text) => handleVoiceTranscription(text, 'title')}
                 size="sm"
+                context="title"
               />
             </div>
             <Input
@@ -194,8 +195,9 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                 Description
               </Label>
               <CircularVoiceButton
-                onTranscription={handleVoiceTranscription}
+                onTranscription={(text) => handleVoiceTranscription(text, 'content')}
                 size="sm"
+                context="content"
               />
             </div>
             <Textarea

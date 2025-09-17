@@ -85,10 +85,11 @@ serve(async (req) => {
       );
     }
     
-    const { audio } = requestData;
+    const { audio, context } = requestData;
     console.log('Audio data present:', !!audio);
     console.log('Audio data type:', typeof audio);
     console.log('Audio data length:', audio?.length || 0);
+    console.log('Context:', context);
     
     if (audio && typeof audio === 'string') {
       console.log('Audio data sample (first 50 chars):', audio.substring(0, 50));
@@ -480,8 +481,20 @@ serve(async (req) => {
       console.warn('Non-blocking: failed to log detailed AI usage', e);
     }
 
+    // Post-process the result based on context
+    let processedText = result.text;
+    
+    if (context === 'title') {
+      // Remove trailing punctuation from titles and capitalize properly
+      processedText = processedText
+        .replace(/[.!?]+\s*$/, '') // Remove trailing punctuation
+        .trim()
+        .replace(/^\w/, c => c.toUpperCase()); // Capitalize first letter
+      console.log('Title post-processed:', processedText);
+    }
+
     return new Response(
-      JSON.stringify({ text: result.text }),
+      JSON.stringify({ text: processedText }),
       { 
         headers: { 
           ...corsHeaders, 

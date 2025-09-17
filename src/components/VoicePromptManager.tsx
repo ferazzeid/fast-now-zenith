@@ -67,6 +67,11 @@ export const VoicePromptManager = () => {
       section: 'text_input_specific',
       label: 'Text Input Specific',
       tooltip: 'Special handling for typed food descriptions vs voice input'
+    },
+    {
+      section: 'motivator_title_prompt',
+      label: 'Motivator Title Processing',
+      tooltip: 'Special handling for motivator titles - removes ending punctuation and formats as titles'
     }
   ];
 

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Mic, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ProcessingDots } from '@/components/ProcessingDots';
 
 interface CircularVoiceButtonProps {
   onTranscription: (text: string) => void;
@@ -11,6 +12,7 @@ interface CircularVoiceButtonProps {
   autoStart?: boolean;
   onRecordingStateChange?: (isRecording: boolean) => void;
   onError?: (error: string) => void;
+  context?: 'title' | 'content' | 'food';
 }
 
 export const CircularVoiceButton = React.forwardRef<
@@ -22,7 +24,8 @@ export const CircularVoiceButton = React.forwardRef<
   size = 'md',
   autoStart = false,
   onRecordingStateChange,
-  onError
+  onError,
+  context = 'content'
 }, ref) => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -361,8 +364,10 @@ export const CircularVoiceButton = React.forwardRef<
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
       
-      const requestPayload = { audio: base64Audio };
+      // Send to transcribe function with context
+      const requestPayload = { audio: base64Audio, context };
       console.log('🎤 Request payload size:', JSON.stringify(requestPayload).length);
+      console.log('🎤 Request context:', context);
       
       // Get current session for authorization
       const { data: { session } } = await supabase.auth.getSession();
@@ -463,10 +468,19 @@ export const CircularVoiceButton = React.forwardRef<
   };
 
   const getStatusText = () => {
-    if (isProcessing) return 'Listening...';
+    if (isProcessing) return null; // No text during processing, show dots instead
     if (isRecording) return `Recording ${recordingTime}s`;
     if (hasPermission === false) return 'Mic needed';
     return 'Tap to speak';
+  };
+
+  const renderButtonContent = () => {
+    if (isProcessing) {
+      return <ProcessingDots className="text-white" />;
+    }
+    
+    const iconClass = iconSizes[size];
+    return <Mic className={iconClass} />;
   };
 
   return (
@@ -484,11 +498,7 @@ export const CircularVoiceButton = React.forwardRef<
           relative
         `}
       >
-        {isProcessing ? (
-          <div className={`${iconSizes[size]} animate-spin rounded-full border-2 border-white border-t-transparent`} />
-        ) : (
-          <Mic className={iconSizes[size]} />
-        )}
+        {renderButtonContent()}
         
         {/* Recording time indicator */}
         {isRecording && size !== 'sm' && (
@@ -498,13 +508,11 @@ export const CircularVoiceButton = React.forwardRef<
         )}
       </Button>
       
-      {/* Animated dots when processing or recording */}
-      {size !== 'sm' && (isProcessing || isRecording) && (
-        <div className="flex gap-1 mt-1">
-          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-          <div className="w-1 h-1 bg-muted-foreground rounded-full animate-bounce"></div>
-        </div>
+      {/* Status text */}
+      {getStatusText() && size !== 'sm' && (
+        <span className="text-xs text-muted-foreground text-center min-w-0">
+          {getStatusText()}
+        </span>
       )}
     </div>
   );
