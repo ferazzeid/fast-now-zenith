@@ -27,7 +27,7 @@ export function AdminSubnav() {
               to={item.to}
             className={cn(
               buttonVariants({ variant: isActive ? "default" : "ghost", size: "sm" }),
-              "whitespace-nowrap h-5 px-1 text-[8px] font-medium flex-shrink-0",
+              "whitespace-nowrap h-6 px-1.5 text-[11px] font-medium flex-shrink-0",
               isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
             >
