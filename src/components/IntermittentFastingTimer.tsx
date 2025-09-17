@@ -94,15 +94,18 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   };
 
   const handleStartFasting = async () => {
-    await startFastingWindow({});
+    if (!todaySession?.id) return;
+    await startFastingWindow(todaySession.id);
   };
 
   const handleEndFasting = async () => {
-    await endFastingWindow({});
+    if (!todaySession?.id) return;
+    await endFastingWindow(todaySession.id);
   };
 
   const handleEndEating = async () => {
-    await endEatingWindow({});
+    if (!todaySession?.id) return;
+    await endEatingWindow(todaySession.id);
   };
 
   // If no active session, show selection interface
@@ -243,15 +246,15 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             >
               {getDisplayTime(fastingElapsed, selectedPreset?.fastingHours * 60 * 60 || 0)}
             </div>
-            <div className={cn(
-              "text-lg font-medium transition-colors duration-300",
-              todaySession?.current_state === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
-            )}>
-              {todaySession?.current_state === 'fasting' ? 'Fasting' : 'Ready to Fast'}
-            </div>
+             <div className={cn(
+               "text-lg font-medium transition-colors duration-300",
+               todaySession?.status === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
+             )}>
+               {todaySession?.status === 'fasting' ? 'Fasting' : 'Ready to Fast'}
+             </div>
             
             {/* Progress indicator */}
-            {todaySession?.current_state === 'fasting' && (
+            {todaySession?.status === 'fasting' && (
               <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
                 <span>{Math.round(getProgress(fastingElapsed, selectedPreset?.fastingHours * 60 * 60 || 0))}% complete</span>
               </div>
@@ -259,7 +262,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         </Card>
         
-        {todaySession?.current_state === 'fasting' && (
+        {todaySession?.status === 'fasting' && (
           <div className="flex gap-2">
             <Button 
               onClick={handleEndFasting}
@@ -277,15 +280,15 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
       <div className="space-y-4">
         <div className="text-center">
           <h3 className="text-lg font-semibold mb-2">Eating Window</h3>
-          <Badge variant={todaySession?.current_state === 'eating' ? 'default' : 'secondary'}>
-            {todaySession?.current_state === 'eating' ? 'Active' : 'Inactive'}
+          <Badge variant={todaySession?.status === 'eating' ? 'default' : 'secondary'}>
+            {todaySession?.status === 'eating' ? 'Active' : 'Inactive'}
           </Badge>
         </div>
         
         {/* Simple Timer Card - matches SquareTimer design */}
         <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
           {/* Count Direction Toggle Button */}
-          {todaySession?.current_state === 'eating' && (
+          {todaySession?.status === 'eating' && (
             <div className="absolute bottom-4 right-4 z-20">
               <TooltipProvider>
                 <Tooltip>
@@ -324,13 +327,13 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             </div>
             <div className={cn(
               "text-lg font-medium transition-colors duration-300",
-              todaySession?.current_state === 'eating' ? 'text-foreground' : 'text-muted-foreground'
+              todaySession?.status === 'eating' ? 'text-foreground' : 'text-muted-foreground'
             )}>
-              {todaySession?.current_state === 'eating' ? 'Eating' : 'Ready to Eat'}
+              {todaySession?.status === 'eating' ? 'Eating' : 'Ready to Eat'}
             </div>
             
             {/* Progress indicator */}
-            {todaySession?.current_state === 'eating' && (
+            {todaySession?.status === 'eating' && (
               <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
                 <span>{Math.round(getProgress(eatingElapsed, selectedPreset?.eatingHours * 60 * 60 || 0))}% complete</span>
               </div>
@@ -338,7 +341,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         </Card>
         
-        {todaySession?.current_state === 'eating' && (
+        {todaySession?.status === 'eating' && (
           <div className="flex gap-2">
             <Button 
               onClick={handleEndEating}
@@ -353,7 +356,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
       </div>
 
       {/* Control buttons for session management */}
-      {todaySession?.current_state !== 'fasting' && todaySession?.current_state !== 'eating' && (
+      {todaySession?.status !== 'fasting' && todaySession?.status !== 'eating' && (
         <div className="space-y-4">
           <Button 
             onClick={handleStartFasting}

@@ -15,8 +15,8 @@ const IntermittentFasting: React.FC = () => {
         {/* Header with Toggle */}
         <div className="relative">
           <ResponsivePageHeader 
-            title="Intermittent Fasting"
-            subtitle="Track your eating and fasting windows"
+            title="Fasting Tracker"
+            subtitle="Start Your Fast"
           />
           
           <FastingModeToggle

@@ -17,7 +17,7 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
   }
 
   return (
-    <div className="absolute top-0 right-0">
+    <div className="absolute top-0 right-0 z-10">{/* Added z-10 to prevent overlap issues */}
       <ToggleGroup 
         type="single" 
         value={currentMode} 
@@ -25,18 +25,18 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
         className="bg-muted rounded-md p-0.5"
         size="sm"
       >
-        <ToggleGroupItem 
-          value="fasting" 
-          className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
-        >
-          Extended
-        </ToggleGroupItem>
-        <ToggleGroupItem 
-          value="if" 
-          className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
-        >
-          Intermittent
-        </ToggleGroupItem>
+          <ToggleGroupItem 
+            value="fasting" 
+            className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
+          >
+            E
+          </ToggleGroupItem>
+          <ToggleGroupItem 
+            value="if" 
+            className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
+          >
+            I
+          </ToggleGroupItem>
       </ToggleGroup>
     </div>
   );
