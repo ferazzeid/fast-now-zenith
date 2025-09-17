@@ -7,6 +7,7 @@ import { AdminTrialSettings } from "@/components/AdminTrialSettings";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
 import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSettings";
+import { AdminIntermittentFastingSettings } from "@/components/AdminIntermittentFastingSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -35,6 +36,10 @@ export default function AdminOperations() {
 
         <section aria-label="Photo analysis workflow settings">
           <AdminPhotoWorkflowSettings />
+        </section>
+
+        <section aria-label="Intermittent fasting settings">
+          <AdminIntermittentFastingSettings />
         </section>
 
         <section aria-label="Google authentication settings" className="pb-24">

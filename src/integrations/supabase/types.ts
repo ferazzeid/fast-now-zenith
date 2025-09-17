@@ -904,6 +904,54 @@ export type Database = {
         }
         Relationships: []
       }
+      intermittent_fasting_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          eating_end_time: string | null
+          eating_start_time: string | null
+          eating_window_hours: number
+          fasting_end_time: string | null
+          fasting_start_time: string | null
+          fasting_window_hours: number
+          id: string
+          session_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          eating_end_time?: string | null
+          eating_start_time?: string | null
+          eating_window_hours?: number
+          fasting_end_time?: string | null
+          fasting_start_time?: string | null
+          fasting_window_hours?: number
+          id?: string
+          session_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          eating_end_time?: string | null
+          eating_start_time?: string | null
+          eating_window_hours?: number
+          fasting_end_time?: string | null
+          fasting_start_time?: string | null
+          fasting_window_hours?: number
+          id?: string
+          session_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       manual_calorie_burns: {
         Row: {
           activity_name: string

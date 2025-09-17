@@ -34,8 +34,8 @@ import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSystem';
 
-import { useAccess } from '@/hooks/useAccess';
-import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
+import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
+import { IntermittentFastingTimer } from '@/components/IntermittentFastingTimer';
 
 const Timer = () => {
   const navigate = useNavigate();
@@ -54,6 +54,7 @@ const Timer = () => {
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useOptimizedWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime } = useTimerNavigation();
+  const { ifEnabled } = useIntermittentFasting();
   const { toast } = useToast();
   const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
   const { user } = useAuth();

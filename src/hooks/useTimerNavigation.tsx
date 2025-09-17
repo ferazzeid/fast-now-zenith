@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFastingSessionQuery } from './optimized/useFastingSessionQuery';
 import { useOptimizedWalkingSession } from './optimized/useOptimizedWalkingSession';
+import { useIntermittentFasting } from './useIntermittentFasting';
 
-export type TimerMode = 'fasting' | 'walking';
+export type TimerMode = 'fasting' | 'walking' | 'if';
 
 interface TimerStatus {
   fasting: {
@@ -11,6 +12,10 @@ interface TimerStatus {
     timeElapsed: number;
   };
   walking: {
+    isActive: boolean;
+    timeElapsed: number;
+  };
+  if: {
     isActive: boolean;
     timeElapsed: number;
   };
@@ -22,20 +27,24 @@ export const useTimerNavigation = () => {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [timerStatus, setTimerStatus] = useState<TimerStatus>({
     fasting: { isActive: false, timeElapsed: 0 },
-    walking: { isActive: false, timeElapsed: 0 }
+    walking: { isActive: false, timeElapsed: 0 },
+    if: { isActive: false, timeElapsed: 0 }
   });
 
   const { currentSession: fastingSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, elapsedTime: walkingElapsedTime } = useOptimizedWalkingSession();
+  const { todaySession: ifSession } = useIntermittentFasting();
 
   // Optimized timer status - only update when sessions are active
   useEffect(() => {
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
       const walkingActive = !!walkingSession && ['active', 'paused'].includes(walkingSession.session_state || '');
+      const ifActive = !!ifSession && ['fasting', 'eating'].includes(ifSession.status || '');
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
+      let ifElapsed = 0;
 
       if (fastingSession && fastingActive) {
         const startTime = new Date(fastingSession.start_time);
@@ -48,9 +57,22 @@ export const useTimerNavigation = () => {
         walkingElapsed = walkingElapsedTime || 0;
       }
 
+      // Calculate IF elapsed time based on current window
+      if (ifSession && ifActive) {
+        const now = new Date();
+        if (ifSession.status === 'fasting' && ifSession.fasting_start_time) {
+          const startTime = new Date(ifSession.fasting_start_time);
+          ifElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        } else if (ifSession.status === 'eating' && ifSession.eating_start_time) {
+          const startTime = new Date(ifSession.eating_start_time);
+          ifElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        }
+      }
+
       setTimerStatus({
         fasting: { isActive: fastingActive, timeElapsed: fastingElapsed },
-        walking: { isActive: walkingActive, timeElapsed: walkingElapsed }
+        walking: { isActive: walkingActive, timeElapsed: walkingElapsed },
+        if: { isActive: ifActive, timeElapsed: ifElapsed }
       });
     };
 
@@ -58,7 +80,8 @@ export const useTimerNavigation = () => {
     
     // Only set up interval if there are active sessions
     if ((fastingSession && fastingSession.status === 'active') || 
-        (walkingSession && ['active', 'paused'].includes(walkingSession.session_state || ''))) {
+        (walkingSession && ['active', 'paused'].includes(walkingSession.session_state || '')) ||
+        (ifSession && ['fasting', 'eating'].includes(ifSession.status || ''))) {
       updateTimerStatus();
       interval = setInterval(updateTimerStatus, 1000);
     } else {
@@ -69,16 +92,18 @@ export const useTimerNavigation = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [fastingSession?.status, walkingSession?.session_state, fastingSession?.start_time, walkingSession?.start_time, walkingElapsedTime]);
+  }, [fastingSession?.status, walkingSession?.session_state, fastingSession?.start_time, walkingSession?.start_time, walkingElapsedTime, ifSession?.status, ifSession?.fasting_start_time, ifSession?.eating_start_time]);
 
   // Additional effect to monitor session state changes for immediate sync
   useEffect(() => {
     const updateTimerStatus = () => {
       const fastingActive = !!fastingSession && fastingSession.status === 'active';
       const walkingActive = !!walkingSession && ['active', 'paused'].includes(walkingSession.session_state || '');
+      const ifActive = !!ifSession && ['fasting', 'eating'].includes(ifSession.status || '');
 
       let fastingElapsed = 0;
       let walkingElapsed = 0;
+      let ifElapsed = 0;
 
       if (fastingSession && fastingActive) {
         const startTime = new Date(fastingSession.start_time);
@@ -93,7 +118,8 @@ export const useTimerNavigation = () => {
 
       setTimerStatus({
         fasting: { isActive: fastingActive, timeElapsed: fastingElapsed },
-        walking: { isActive: walkingActive, timeElapsed: walkingElapsed }
+        walking: { isActive: walkingActive, timeElapsed: walkingElapsed },
+        if: { isActive: ifActive, timeElapsed: ifElapsed }
       });
     };
 
@@ -112,7 +138,9 @@ export const useTimerNavigation = () => {
   };
 
   const getActiveTimerCount = () => {
-    return (timerStatus.fasting.isActive ? 1 : 0) + (timerStatus.walking.isActive ? 1 : 0);
+    return (timerStatus.fasting.isActive ? 1 : 0) + 
+           (timerStatus.walking.isActive ? 1 : 0) + 
+           (timerStatus.if.isActive ? 1 : 0);
   };
 
   const formatTime = (seconds: number) => {

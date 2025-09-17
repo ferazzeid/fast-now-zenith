@@ -1,109 +1,131 @@
-import { Clock, FootprintsIcon, ChevronUp } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { TimerMode } from '@/hooks/useTimerNavigation';
+import React from "react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Clock, Zap, Timer } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface TimerModeSelectorProps {
-  currentMode: TimerMode;
-  onModeSelect: (mode: TimerMode) => void;
+  currentMode: 'fasting' | 'walking' | 'if';
+  onModeSelect: (mode: 'fasting' | 'walking' | 'if') => void;
   timerStatus: {
-    fasting: { isActive: boolean; timeElapsed: number };
-    walking: { isActive: boolean; timeElapsed: number };
+    fasting: { isActive: boolean; elapsedTime: number };
+    walking: { isActive: boolean; elapsedTime: number };
+    if: { isActive: boolean; elapsedTime: number };
   };
   formatTime: (seconds: number) => string;
   sheetOpen: boolean;
   onSheetOpenChange: (open: boolean) => void;
+  showIF?: boolean;
 }
 
-export const TimerModeSelector = ({ 
-  currentMode, 
-  onModeSelect, 
-  timerStatus, 
+export const TimerModeSelector: React.FC<TimerModeSelectorProps> = ({
+  currentMode,
+  onModeSelect,
+  timerStatus,
   formatTime,
   sheetOpen,
-  onSheetOpenChange
-}: TimerModeSelectorProps) => {
-  const timerModes = [
-    {
-      id: 'fasting' as const,
-      title: 'Fasting Timer',
-      description: 'Track your fasting session',
-      icon: Clock,
-      color: 'text-primary',
-      status: timerStatus.fasting
-    },
-    {
-      id: 'walking' as const,
-      title: 'Walking Timer',
-      description: 'Track your walking session',
-      icon: FootprintsIcon,
-      color: 'text-accent',
-      status: timerStatus.walking
-    }
-  ];
+  onSheetOpenChange,
+  showIF = false,
+}) => {
+  const getActiveTimerCount = () => {
+    let count = 0;
+    if (timerStatus.fasting.isActive) count++;
+    if (timerStatus.walking.isActive) count++;
+    if (showIF && timerStatus.if.isActive) count++;
+    return count;
+  };
 
-  const activeCount = (timerStatus.fasting.isActive ? 1 : 0) + (timerStatus.walking.isActive ? 1 : 0);
+  const activeCount = getActiveTimerCount();
 
   return (
     <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
       <SheetTrigger asChild>
-        <button className="flex flex-col items-center py-2 px-3 rounded-xl transition-all duration-200 text-muted-foreground hover:text-warm-text hover:bg-ceramic-rim cursor-pointer">
-          <div className="relative">
-            <Clock className="w-5 h-5 mb-1" />
-            {activeCount > 0 && (
-              <Badge 
-                variant="destructive" 
-                className="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center text-xs p-0"
-              >
-                {activeCount}
-              </Badge>
-            )}
-          </div>
-          <span className="text-xs font-medium">Timer</span>
-        </button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="relative h-9 px-3"
+        >
+          <Clock className="w-4 h-4 mr-2" />
+          Timer Mode
+          {activeCount > 0 && (
+            <Badge variant="secondary" className="ml-2 h-5 px-2 text-xs">
+              {activeCount}
+            </Badge>
+          )}
+        </Button>
       </SheetTrigger>
-      <SheetContent side="bottom" className="h-auto max-w-sm mx-auto rounded-t-xl border-x border-t bg-background/95 backdrop-blur-sm">
-        <div className="w-full max-w-xs mx-auto">
-          <SheetHeader className="pb-4">
-            <SheetTitle className="text-center text-sm">Select Timer Mode</SheetTitle>
-          </SheetHeader>
-          <div className="grid gap-2 pb-4">
-            {timerModes.map(({ id, title, description, icon: Icon, color, status }) => (
-              <Button
-                key={id}
-                variant={currentMode === id ? "default" : "outline"}
-                className="h-auto p-3 flex items-center gap-3 text-left relative justify-start"
-                onClick={() => onModeSelect(id)}
-              >
-                <Icon className={`w-5 h-5 ${color}`} />
+      <SheetContent side="bottom" className="max-w-md mx-auto">
+        <div className="space-y-4 py-4">
+          <h3 className="text-lg font-semibold text-center">Select Timer Mode</h3>
+          
+          <div className="space-y-3">
+            {/* Extended Fasting Mode */}
+            <Button
+              variant={currentMode === 'fasting' ? "default" : "outline"}
+              className="w-full h-auto p-4 text-left justify-start"
+              onClick={() => onModeSelect('fasting')}
+            >
+              <div className="flex items-center w-full">
+                <Timer className="w-6 h-6 mr-3" />
                 <div className="flex-1">
-                  <div className={`font-medium text-sm ${currentMode === id ? 'text-primary-foreground' : 'text-foreground'}`}>
-                    {title}
+                  <div className="font-medium">Extended Fast</div>
+                  <div className="text-sm text-muted-foreground">
+                    Long-term fasting sessions
                   </div>
-                  <div className={`text-xs ${currentMode === id ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
-                    {description}
+                  {timerStatus.fasting.isActive && (
+                    <div className="text-sm text-primary font-medium">
+                      Active: {formatTime(timerStatus.fasting.elapsedTime)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Button>
+
+            {/* Intermittent Fasting Mode */}
+            {showIF && (
+              <Button
+                variant={currentMode === 'if' ? "default" : "outline"}
+                className="w-full h-auto p-4 text-left justify-start"
+                onClick={() => onModeSelect('if')}
+              >
+                <div className="flex items-center w-full">
+                  <Zap className="w-6 h-6 mr-3" />
+                  <div className="flex-1">
+                    <div className="font-medium">Intermittent Fast</div>
+                    <div className="text-sm text-muted-foreground">
+                      Daily fasting windows (16:8, OMAD)
+                    </div>
+                    {timerStatus.if.isActive && (
+                      <div className="text-sm text-primary font-medium">
+                        Active: {formatTime(timerStatus.if.elapsedTime)}
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                {status.isActive && (
-                  <div className="flex flex-col items-end">
-                    <Badge variant="secondary" className="mb-1 text-xs">
-                      Active
-                    </Badge>
-                    <div className="text-xs font-mono">
-                      {formatTime(status.timeElapsed)}
-                    </div>
-                  </div>
-                )}
               </Button>
-            ))}
+            )}
+
+            {/* Walking Mode */}
+            <Button
+              variant={currentMode === 'walking' ? "default" : "outline"}
+              className="w-full h-auto p-4 text-left justify-start"
+              onClick={() => onModeSelect('walking')}
+            >
+              <div className="flex items-center w-full">
+                <Clock className="w-6 h-6 mr-3" />
+                <div className="flex-1">
+                  <div className="font-medium">Walking</div>
+                  <div className="text-sm text-muted-foreground">
+                    Track walking sessions
+                  </div>
+                  {timerStatus.walking.isActive && (
+                    <div className="text-sm text-primary font-medium">
+                      Active: {formatTime(timerStatus.walking.elapsedTime)}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Button>
           </div>
         </div>
       </SheetContent>
