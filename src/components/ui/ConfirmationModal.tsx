@@ -53,7 +53,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             variant={variant === 'destructive' ? 'destructive' : 'default'}
             onClick={onConfirm}
             disabled={isLoading}
-            className="flex-1 rounded-full hover:scale-110 transition-all duration-200"
+            className="flex-1"
           >
             {isLoading ? 'Processing...' : confirmText}
           </Button>

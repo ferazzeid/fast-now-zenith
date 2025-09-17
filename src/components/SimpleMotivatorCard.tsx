@@ -134,7 +134,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
           title="Delete Quote"
           description="Are you sure you want to delete this saved quote? This action cannot be undone."
           confirmText="Delete"
-          variant="destructive"
+          variant="default"
         />
       </CardContent>
     </Card>

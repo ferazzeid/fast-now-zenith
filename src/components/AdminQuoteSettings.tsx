@@ -215,7 +215,7 @@ export const AdminQuoteSettings: React.FC = () => {
                       <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'fasting_timer_quotes')}>
                         <Edit2 className="w-3 h-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'fasting_timer_quotes')}>
+                      <Button size="sm" variant="soft" onClick={() => handleDeleteQuote(index, 'fasting_timer_quotes')}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
@@ -277,7 +277,7 @@ export const AdminQuoteSettings: React.FC = () => {
                       <Button size="sm" variant="ghost" onClick={() => handleEditQuote(quote, index, 'walking_timer_quotes')}>
                         <Edit2 className="w-3 h-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDeleteQuote(index, 'walking_timer_quotes')}>
+                      <Button size="sm" variant="soft" onClick={() => handleDeleteQuote(index, 'walking_timer_quotes')}>
                         <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>

@@ -308,18 +308,19 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
         content={selectedContent}
       />
 
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={() => {
-          onDelete();
-          setIsDeleteModalOpen(false);
-        }}
-        title="Delete Motivator"
-        description={`Are you sure you want to delete "${motivator.title}"? This action cannot be undone.`}
-        confirmText="Delete"
-      />
-    </Card>
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={() => {
+            onDelete();
+            setIsDeleteModalOpen(false);
+          }}
+          title="Delete Motivator"
+          description={`Are you sure you want to delete "${motivator.title}"? This action cannot be undone.`}
+          confirmText="Delete"
+          variant="default"
+        />
+      </Card>
   );
 });
 
