@@ -461,8 +461,10 @@ const Timer = () => {
           <FastingModeToggle
             currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
             onModeChange={(mode) => {
-              console.log('Toggle clicked, switching to:', mode);
+              console.log('🚀 FastingModeToggle onModeChange called with:', mode);
+              console.log('🚀 Current mode before:', currentMode);
               switchMode(mode);
+              console.log('🚀 switchMode called with:', mode);
             }}
             showIF={true}
           />
