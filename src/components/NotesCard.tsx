@@ -124,22 +124,23 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex gap-3">
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="action-secondary"
                 onClick={handleCancel}
                 disabled={isUpdating}
+                className="w-12 border border-subtle hover:bg-muted"
               >
-                <X className="h-4 w-4 mr-1" />
-                Cancel
+                <X className="h-4 w-4" />
               </Button>
               <Button
-                size="sm"
+                variant="action-primary"
+                size="action-secondary"
                 onClick={handleSave}
                 disabled={isUpdating}
+                className="flex-1"
               >
-                <Save className="h-4 w-4 mr-1" />
                 Save
               </Button>
             </div>

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 import { useState } from "react";
 import { formatDistance } from '@/utils/unitConversions';
 
@@ -70,19 +70,19 @@ export const StopWalkingConfirmDialog = ({
         showManualInput ? (
           <>
             <Button 
-              variant="outline" 
+              variant="ghost" 
+              size="action-secondary"
               onClick={() => setShowManualInput(false)}
-              className="w-full h-10"
-              size="default"
+              className="w-12"
             >
-              Back
+              <X className="w-4 h-4" />
             </Button>
             <Button 
               variant="action-primary"
+              size="action-secondary"
               onClick={handleManualConfirm}
               disabled={!manualDuration || parseInt(manualDuration) <= 0}
-              className="w-full h-10"
-              size="default"
+              className="flex-1"
             >
               Save
             </Button>
@@ -90,28 +90,28 @@ export const StopWalkingConfirmDialog = ({
         ) : (
           <>
             <Button 
-              variant="outline" 
+              variant="ghost" 
+              size="action-secondary"
               onClick={handleClose}
-              className="w-full h-10"
-              size="default"
+              className="w-12"
             >
-              Close
+              <X className="w-4 h-4" />
             </Button>
             {showLongSessionWarning && (
               <Button 
-                variant="outline"
+                variant="action-primary"
+                size="action-secondary"
                 onClick={() => setShowManualInput(true)}
-                className="w-full h-10"
-                size="default"
+                className="flex-1"
               >
                 Edit
               </Button>
             )}
             <Button 
               variant="action-primary"
+              size="action-secondary"
               onClick={onConfirm}
-              className="w-full h-10"
-              size="default"
+              className="flex-1"
             >
               {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
             </Button>

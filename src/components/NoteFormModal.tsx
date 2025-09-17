@@ -151,8 +151,7 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
           disabled={isSubmitting || !content.trim()}
           className="flex-1"
         >
-          <Save className="w-4 h-4 mr-2" />
-          {isSubmitting ? 'Saving...' : (note?.id ? 'Save Changes' : 'Add Note')}
+          {isSubmitting ? 'Saving...' : (note?.id ? 'Update' : 'Create')}
         </Button>
       </div>
     </UniversalModal>

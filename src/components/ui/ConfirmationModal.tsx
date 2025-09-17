@@ -48,7 +48,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             {cancelText}
           </Button>
           <Button
-            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            variant="action-primary"
             onClick={onConfirm}
             disabled={isLoading}
           >
