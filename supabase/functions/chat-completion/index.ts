@@ -1082,7 +1082,7 @@ Always use function calls for food operations. Be decisive and act immediately. 
       model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
       messages: [
         { role: 'system', content: contextAwareSystemMessage },
-        ...processedMessages.slice(1)
+        ...processedMessages.filter(m => m.role !== 'system') // Fix: Don't slice, just filter out duplicate system messages
       ],
       stream: stream,
       tools: functionsToUse,
