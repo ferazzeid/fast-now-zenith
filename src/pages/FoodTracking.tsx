@@ -475,8 +475,34 @@ const FoodTracking = () => {
                       quotesType="fasting"
                     />
                   )}
-                </ComponentErrorBoundary>
-              </div>
+                 </ComponentErrorBoundary>
+               </div>
+
+               {/* Manual Food List Controls */}
+               {todayEntries.length > 0 && (
+                 <div className="mb-6 flex justify-center gap-3">
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={handleMarkAllAsEaten}
+                     disabled={isBulkMarking || todayEntries.every(entry => entry.consumed)}
+                     className="flex items-center gap-2 h-8 px-3 text-xs font-medium"
+                   >
+                     <Check className="w-3 h-3" />
+                     Mark All Eaten
+                   </Button>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => setShowClearAllDialog(true)}
+                     disabled={isClearingAll}
+                     className="flex items-center gap-2 h-8 px-3 text-xs font-medium text-destructive hover:text-destructive"
+                   >
+                     <Trash2 className="w-3 h-3" />
+                     Clear All
+                   </Button>
+                 </div>
+               )}
 
               {/* Action Buttons - Two Column Layout */}
               <div className="mb-6 grid grid-cols-2 gap-6">

@@ -1175,7 +1175,7 @@ export const FoodLibraryView = ({
                           </div>
 
                           {/* Template Food Info */}
-                          <div className="flex-1 min-w-0 max-w-[140px]">
+                          <div className="flex-1 min-w-0 max-w-[160px]">
                             <div className="mb-0">
                                <ClickableTooltip content={food.name}>
                                  <h3 className="text-sm font-semibold text-foreground truncate overflow-hidden text-ellipsis whitespace-nowrap">{food.name}</h3>
