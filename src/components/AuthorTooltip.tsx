@@ -29,7 +29,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
   const [displayContent, setDisplayContent] = useState(content);
   const [isSaving, setIsSaving] = useState(false);
   const [authorData, setAuthorData] = useState({
-    image: '/src/assets/motivator-placeholder.jpg',
+    image: '/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png', // Use existing placeholder from project
     name: 'Admin',
     title: 'Personal Insight'
   });
@@ -57,7 +57,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           }, {} as Record<string, string>);
 
           setAuthorData({
-            image: settingsMap.author_tooltip_image || '/src/assets/motivator-placeholder.jpg',
+            image: settingsMap.author_tooltip_image || '/lovable-uploads/35e63514-5dab-4550-b7be-aecaa8dc8535.png',
             name: settingsMap.author_tooltip_name || 'Admin',
             title: settingsMap.author_tooltip_title || 'Personal Insight'
           });
@@ -247,7 +247,7 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           }}
         />
         
-        {/* Author Image */}
+        {/* Author Image with loading fallback */}
         <img
           src={authorData.image}
           alt={authorData.name}
@@ -257,6 +257,11 @@ export const AuthorTooltip: React.FC<AuthorTooltipProps> = ({
           )}
           style={{
             borderRadius: '50% 50% 50% 10%'
+          }}
+          onError={(e) => {
+            // Fallback to a solid color background if image fails to load
+            e.currentTarget.style.display = 'none';
+            e.currentTarget.parentElement!.style.background = 'linear-gradient(135deg, #dac471 0%, #b8a355 100%)';
           }}
         />
       </div>

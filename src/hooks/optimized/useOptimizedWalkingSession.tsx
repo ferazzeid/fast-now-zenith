@@ -289,8 +289,23 @@ export const useOptimizedWalkingSession = () => {
     mutationFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      const activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id)) as WalkingSession;
-      if (!activeSession) throw new Error('No active session found');
+      // First try to get from cache, then refetch if needed
+      let activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id)) as WalkingSession;
+      
+      if (!activeSession) {
+        console.log('🚶 No active session in cache, fetching from database...');
+        const { data: freshSession } = await supabase
+          .from('walking_sessions')
+          .select('*')
+          .eq('user_id', user.id)
+          .in('status', ['active', 'paused'])
+          .order('start_time', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (!freshSession) throw new Error('No active session found');
+        activeSession = freshSession;
+      }
 
       console.log('🚶 Ending walking session:', activeSession.id);
 
