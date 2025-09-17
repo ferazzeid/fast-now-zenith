@@ -86,11 +86,16 @@ export const ImprovedUnifiedMotivatorRotation = ({
       );
       
       savedQuotes.forEach(quote => {
+        // Extract author from content if it exists (format: "quote text" — Author)
+        const contentWithAttribution = quote.content || '';
+        const authorMatch = contentWithAttribution.match(/—\s*(.+)$/);
+        const extractedAuthor = authorMatch ? authorMatch[1].trim() : null;
+        
         quotesArray.push({
           id: quote.id,
-          title: quote.content, // Use content as the quote text
+          title: quote.title, // Use title as the quote text (this is the clean quote)
           type: 'quote',
-          author: quote.title || 'Unknown Author', // Use title as author
+          author: extractedAuthor || 'Unknown Author',
         });
       });
 
