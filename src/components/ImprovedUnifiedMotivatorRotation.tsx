@@ -290,9 +290,21 @@ export const ImprovedUnifiedMotivatorRotation = ({
                 transform: `translateY(${showContent ? 0 : 20}px)` 
               }}
             >
-              {current.type === 'motivator' || current.type === 'note' ? (
+              {current.type === 'motivator' ? (
                 <p className="text-lg font-bold leading-tight text-white uppercase tracking-wide drop-shadow-lg">
                   {current.title}
+                </p>
+              ) : current.type === 'note' ? (
+                <p 
+                  className={`font-medium leading-snug text-white drop-shadow-lg ${
+                    (current.content?.length || 0) > 200 ? 'text-sm' :
+                    (current.content?.length || 0) > 120 ? 'text-base' : 'text-lg'
+                  }`}
+                >
+                  {current.content && current.content.length > 300 
+                    ? `${current.content.substring(0, 300)}...` 
+                    : current.content
+                  }
                 </p>
               ) : (
                 <div className="text-center">
