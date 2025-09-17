@@ -230,6 +230,60 @@ export const useOptimizedWalkingSession = () => {
     },
   });
 
+  // End walking session mutation with manual duration
+  const endSessionWithManualDurationMutation = useMutation({
+    mutationFn: async (manualDurationMinutes: number) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id)) as WalkingSession;
+      if (!activeSession) throw new Error('No active session found');
+
+      console.log('🚶 Ending walking session with manual duration:', activeSession.id, 'Duration:', manualDurationMinutes);
+
+      const now = new Date();
+      
+      // Calculate what the end time should be based on manual duration
+      const startTime = new Date(activeSession.start_time);
+      const manualEndTime = new Date(startTime.getTime() + (manualDurationMinutes * 60 * 1000));
+
+      const { data, error } = await supabase
+        .from('walking_sessions')
+        .update({
+          end_time: now.toISOString(),
+          session_state: 'completed',
+          status: 'completed',
+          is_edited: true,
+          original_duration_minutes: manualDurationMinutes,
+          edit_reason: 'Manual duration correction',
+        })
+        .eq('id', activeSession.id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('🚶 Database error ending session with manual duration:', error);
+        throw error;
+      }
+
+      console.log('🚶 Successfully ended session with manual duration:', data);
+      return data;
+    },
+    onMutate: async () => {
+      console.log('🚶 Starting end session with manual duration mutation');
+      queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
+    },
+    onSuccess: (data) => {
+      console.log('🚶 End session with manual duration mutation success:', data);
+      queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
+      queryClient.invalidateQueries({ queryKey: walkingSessionsQueryKey(user?.id || null) });
+    },
+    onError: (err, variables, context) => {
+      console.error('🚶 End session with manual duration mutation error:', err);
+      queryClient.invalidateQueries({ queryKey: activeSessionQueryKey(user?.id || null) });
+    },
+  });
+
   // End walking session mutation
   const endSessionMutation = useMutation({
     mutationFn: async () => {
@@ -422,12 +476,14 @@ export const useOptimizedWalkingSession = () => {
     pauseWalkingSession: pauseSessionMutation.mutateAsync,
     resumeWalkingSession: resumeSessionMutation.mutateAsync,
     endWalkingSession: endSessionMutation.mutateAsync,
+    endWalkingSessionWithManualDuration: endSessionWithManualDurationMutation.mutateAsync,
     cancelWalkingSession: cancelSessionMutation.mutateAsync,
     updateSessionSpeed: updateSessionSpeedMutation.mutateAsync,
     
     // Action states
     isStarting: startSessionMutation.isPending,
     isEnding: endSessionMutation.isPending,
+    isEndingWithManualDuration: endSessionWithManualDurationMutation.isPending,
     isPausing: pauseSessionMutation.isPending,
     isResuming: resumeSessionMutation.isPending,
     isCancelling: cancelSessionMutation.isPending,

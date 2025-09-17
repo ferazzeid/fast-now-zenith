@@ -46,6 +46,7 @@ const Walking = () => {
     pauseWalkingSession,
     resumeWalkingSession,
     endWalkingSession,
+    endWalkingSessionWithManualDuration,
     cancelWalkingSession,
     updateSessionSpeed
   } = useOptimizedWalkingSession();
@@ -165,17 +166,21 @@ const Walking = () => {
     });
     
     try {
-      await endWalkingSession();
+      await endWalkingSessionWithManualDuration(durationMinutes);
       trackWalkingEvent('stop', selectedSpeed, durationMinutes * 60);
       toast({
         title: "Walking completed!",
         description: `Session corrected to ${durationMinutes} minutes.`
       });
     } catch (error) {
+      console.error('❌ Failed to complete walking session with manual duration:', error);
+      
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to complete walking session",
+        description: `Failed to complete walking session: ${errorMessage}`,
       });
     }
   };
