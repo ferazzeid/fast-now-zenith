@@ -465,6 +465,15 @@ export const UnifiedFoodEntry = ({ isOpen, onClose, onSave }: UnifiedFoodEntryPr
                loadingText="Adding..."
                disabled={!name || !calories || !servingAmount}
                className="flex-1"
+               style={{ 
+                 border: 'none',
+                 borderStyle: 'none',
+                 borderWidth: 0,
+                 outline: 'none',
+                 WebkitAppearance: 'none',
+                 MozAppearance: 'none',
+                 appearance: 'none'
+               }}
              >
                {quantity > 1 ? `Add ${quantity} Items` : "Add to Food Plan"}
              </SmartLoadingButton>

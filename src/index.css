@@ -365,26 +365,102 @@ button[class*="bg-primary"],
   opacity: 1 !important;
 }
 
-/* Force remove ALL borders from action buttons - prevents browser defaults */
+/* NUCLEAR BUTTON BORDER FIX - Override ALL possible button borders */
+
+/* Target the specific Start Fast button and all similar action buttons */
+button.inline-flex.items-center.justify-center,
 button[class*="action-primary"],
 button[class*="action-secondary"], 
 button[class*="action-compact"],
-button[class*="ai"] {
-  border: none !important;
+button[class*="ai"],
+button.w-full[class*="bg-primary"],
+button.h-16[class*="bg-primary"],
+.btn-action-primary,
+.btn-action-secondary,
+.btn-action-compact {
+  border: 0 !important;
   border-style: none !important;
   border-width: 0 !important;
-  outline: none !important;
+  border-color: transparent !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  outline: 0 !important;
+  outline-style: none !important;
+  outline-width: 0 !important;
+  outline-color: transparent !important;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
 }
 
+/* Focus and active states */
+button.inline-flex.items-center.justify-center:focus,
 button[class*="action-primary"]:focus,
 button[class*="action-secondary"]:focus,
 button[class*="action-compact"]:focus,
-button[class*="ai"]:focus {
-  outline: none !important;
+button[class*="ai"]:focus,
+button.w-full[class*="bg-primary"]:focus,
+button.h-16[class*="bg-primary"]:focus,
+.btn-action-primary:focus,
+.btn-action-secondary:focus,
+.btn-action-compact:focus {
+  border: 0 !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  outline-style: none !important;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1), 0 0 0 2px hsl(var(--ring)) !important;
+}
+
+/* Force button appearance reset at the highest level */
+button {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
   border: none !important;
   border-style: none !important;
+  border-width: 0 !important;
+}
+
+/* Target ALL buttons to remove default styling */
+button,
+input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  border: 0 !important;
+  border-style: none !important;
+  outline: none !important;
+}
+button[class*="action-secondary"]:focus,
+button[class*="action-compact"]:focus,
+button[class*="ai"]:focus,
+.btn-action-primary:focus,
+.btn-action-secondary:focus,
+.btn-action-compact:focus {
+  border: 0 !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  outline-style: none !important;
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1), 0 0 0 2px hsl(var(--ring)) !important;
+}
+
+/* Nuclear option - target ANY button with bg-primary class */
+button.inline-flex[class*="bg-primary"],
+button.h-16[class*="bg-primary"],
+button[class*="start-button"],
+button[class*="w-full"][class*="bg-primary"] {
+  border: 0 !important;
+  border-style: none !important;
+  border-width: 0 !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  outline-style: none !important;
 }
 
 /* Force hide duplicate close buttons in modals - aggressive fix */

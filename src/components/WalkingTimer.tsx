@@ -206,21 +206,21 @@ const WalkingTimerComponent = ({
             <div className="flex-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                     onClick={async (e) => {
-                       e.preventDefault();
-                       e.stopPropagation();
-                       try {
-                        await onStop();
-                      } catch (error) {
-                        console.error('Failed to stop walking session:', error);
-                        // Error handling is done in parent component
-                      }
-                    }}
-                    variant="action-primary"
-                    size="action-main"
-                    className="w-full"
-                  >
+                   <Button 
+                     onClick={onStop}
+                     variant="action-primary"
+                     size="action-main"
+                     className="w-full"
+                     style={{ 
+                       border: 'none',
+                       borderStyle: 'none', 
+                       borderWidth: 0,
+                       outline: 'none',
+                       WebkitAppearance: 'none',
+                       MozAppearance: 'none',
+                       appearance: 'none'
+                     }}
+                   >
                     <CheckCircle className="w-5 h-5 mr-2" />
                     Finish
                   </Button>
@@ -342,22 +342,31 @@ const WalkingTimerComponent = ({
       {/* Start Button - only shown when not active */}
       {!isActive && (
         <div className="mt-8">
-          <Button 
-            onClick={(e) => {
-              console.log('🚶 Walking start button clicked');
-              e.preventDefault();
-              e.stopPropagation();
-              onStart();
-            }}
-            onTouchStart={(e) => {
-              console.log('🚶 Walking start button touch start');
-              // Prevent double-tap zoom on iOS
-              e.preventDefault();
-            }}
-            variant="action-primary"
-            size="start-button"
-            className="w-full touch-manipulation"
-          >
+           <Button 
+             onClick={(e) => {
+               console.log('🚶 Walking start button clicked');
+               e.preventDefault();
+               e.stopPropagation();
+               onStart();
+             }}
+             onTouchStart={(e) => {
+               console.log('🚶 Walking start button touch start');
+               // Prevent double-tap zoom on iOS
+               e.preventDefault();
+             }}
+             variant="action-primary"
+             size="start-button"
+             className="w-full touch-manipulation"
+             style={{ 
+               border: 'none',
+               borderStyle: 'none',
+               borderWidth: 0,
+               outline: 'none',
+               WebkitAppearance: 'none',
+               MozAppearance: 'none',
+               appearance: 'none'
+             }}
+           >
             <Play className="w-8 h-8 mr-3" />
             Start Walking
           </Button>
