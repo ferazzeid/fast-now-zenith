@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
-import { UnifiedFoodEntry } from '@/components/UnifiedFoodEntry';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -38,7 +37,6 @@ const FoodTracking = () => {
   const [consumedNow, setConsumedNow] = useState(true);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showUnifiedEntry, setShowUnifiedEntry] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState(false);
 
@@ -58,7 +56,6 @@ const FoodTracking = () => {
   useEffect(() => {
     if (location.pathname === '/auth' || location.pathname === '/auth-callback') {
       setShowOnboarding(false);
-      setShowUnifiedEntry(false);
       setEditingEntry(null);
       setShowClearAllDialog(false);
       setShowSaveToTemplateDialog(null);
@@ -150,19 +147,6 @@ const FoodTracking = () => {
     }
   };
 
-  const handleSaveUnifiedEntry = async (entry: any) => {
-    try {
-      await addFoodEntry(entry);
-      setShowUnifiedEntry(false);
-    } catch (error) {
-      console.error('Error saving unified entry:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to add food entry"
-      });
-    }
-  };
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
     try {
@@ -554,14 +538,6 @@ const FoodTracking = () => {
                 />
               )}
 
-              {/* Unified Food Entry Modal */}
-              {showUnifiedEntry && (
-                <UnifiedFoodEntry
-                  isOpen={showUnifiedEntry}
-                  onSave={handleSaveUnifiedEntry}
-                  onClose={() => setShowUnifiedEntry(false)}
-                />
-              )}
 
               {/* Page Onboarding Modal */}
               {showOnboarding && onboardingContent.food_tracking && (

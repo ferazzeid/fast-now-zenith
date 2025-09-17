@@ -30,7 +30,7 @@ import UpdatePassword from "./pages/UpdatePassword";
 import NotFound from "./pages/NotFound";
 import Walking from "./pages/Walking";
 import FoodTracking from "./pages/FoodTracking";
-import AddFood from "./pages/AddFood";
+
 import MyFoods from "./pages/MyFoods";
 import WalkingHistory from "./pages/WalkingHistory";
 import FoodHistory from "./pages/FoodHistory";
@@ -258,13 +258,6 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <FoodTracking />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            } />
-            <Route path="/add-food" element={
-              <ProtectedRoute>
-                <PageErrorBoundary>
-                  <AddFood />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />

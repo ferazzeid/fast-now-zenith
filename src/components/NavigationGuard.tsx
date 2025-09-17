@@ -7,7 +7,7 @@ const ROUTE_TO_PREFERENCE_MAP: Record<string, keyof ReturnType<typeof useNavigat
   '/timer': 'fast',
   '/walking': 'walk', 
   '/food-tracking': 'food',
-  '/add-food': 'food',
+  
   '/my-foods': 'food',
   '/food-history': 'food',
   '/motivator-ideas': 'goals',

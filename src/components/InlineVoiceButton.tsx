@@ -3,7 +3,7 @@ import { Mic, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
-import { extractNumber } from '@/utils/voiceParsing';
+import { extractNumber } from '@/utils/numberExtraction';
 
 interface InlineVoiceButtonProps {
   onTranscription: (text: string) => void;

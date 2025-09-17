@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mic, Loader2, Check } from 'lucide-react';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { PremiumGate } from '@/components/PremiumGate';
-import { extractNumber } from '@/utils/voiceParsing';
+import { extractNumber } from '@/utils/numberExtraction';
 
 interface DirectInlineVoiceButtonProps {
   onTranscription: (text: string) => void;
