@@ -738,12 +738,12 @@ export const FoodLibraryView = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
+                  className="h-8 w-8 p-0 hover:bg-muted/50 rounded flex-shrink-0"
                   title="More options"
                   aria-label="More options"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical className="w-5 h-5 text-muted-foreground" />
+                  <MoreVertical className="w-4 h-4 text-muted-foreground/60" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent 
@@ -869,11 +869,11 @@ export const FoodLibraryView = ({
             )}
           </div>
           
-          {/* Food Info - Compact typography */}
-          <div className="flex-1 min-w-0">
+          {/* Food Info - Compact typography with proper truncation */}
+          <div className="flex-1 min-w-0 pr-2">
             <div className="mb-0.5">
               <ClickableTooltip content={food.name}>
-                <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+                <h3 className="text-sm font-semibold text-foreground truncate max-w-[200px]">{food.name}</h3>
               </ClickableTooltip>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
