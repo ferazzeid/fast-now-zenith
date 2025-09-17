@@ -69,12 +69,8 @@ export const WalkingHistory = () => {
       if (error) throw error;
       console.log('Walking sessions fetched:', data?.length || 0);
 
-      // Filter out sessions with duration less than 1 minute
-      const filteredData = data?.filter(session => {
-        if (!session.start_time || !session.end_time) return false;
-        const duration = calculateDuration(session.start_time, session.end_time);
-        return duration >= 1;
-      }) || [];
+      // Show all sessions, including those under 1 minute (will be marked as canceled)
+      const filteredData = data || [];
 
       // Check if there are more sessions available
       if (!showAll) {
@@ -148,6 +144,12 @@ export const WalkingHistory = () => {
     return `${mins}m`;
   };
 
+  const isSessionCanceled = (session: WalkingSession) => {
+    if (!session.end_time) return false;
+    const duration = calculateDuration(session.start_time, session.end_time);
+    return duration < 1;
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -207,22 +209,24 @@ export const WalkingHistory = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-xs">
-                    Completed
+                    {isSessionCanceled(session) ? 'Canceled' : 'Completed'}
                   </Badge>
-                  {session.is_edited && (
+                  {session.is_edited && !isSessionCanceled(session) && (
                     <Badge variant="secondary" className="text-xs">
                       <Clock className="w-2.5 h-2.5 mr-1" />
                       Edited
-                    </Badge>
+                    </Badge>  
                   )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 w-6 p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                    onClick={() => setEditingSession(session)}
-                  >
-                    <Edit3 className="w-3 h-3" />
-                  </Button>
+                  {!isSessionCanceled(session) && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-6 w-6 p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                      onClick={() => setEditingSession(session)}
+                    >
+                      <Edit3 className="w-3 h-3" />
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -235,51 +239,57 @@ export const WalkingHistory = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{formatDuration(duration)}</p>
-                    <p className="text-xs text-muted-foreground">Duration</p>
-                  </div>
+              {isSessionCanceled(session) ? (
+                <div className="text-sm text-muted-foreground py-2">
+                  Session was canceled after less than 1 minute
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-green-500" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {session.is_edited ? 'Data removed' : formatDistance(session.distance || 0, profile?.units || 'imperial')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Distance</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm font-medium">{formatDuration(duration)}</p>
+                      <p className="text-xs text-muted-foreground">Duration</p>
+                    </div>
                   </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-green-500" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {session.is_edited ? 'Data removed' : formatDistance(session.distance || 0, profile?.units || 'imperial')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Distance</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-orange-500" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {session.is_edited ? 'Data removed' : `${Math.round(session.calories_burned || 0)} cal`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Burned</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-purple-500" />
+                    <div>
+                      <p className="text-sm font-medium">
+                        {session.is_edited ? 'Data removed' : (session.estimated_steps?.toLocaleString() || '0')}
+                      </p>
+                      <p className="text-xs text-muted-foreground">Steps (est.)</p>
+                    </div>
+                  </div>
+                  
+                  {session.is_edited && session.edit_reason && (
+                    <div className="col-span-2 mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
+                      <span className="font-medium">Edit reason:</span> {session.edit_reason}
+                    </div>
+                  )}
                 </div>
-                
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-orange-500" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {session.is_edited ? 'Data removed' : `${Math.round(session.calories_burned || 0)} cal`}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Burned</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-purple-500" />
-                  <div>
-                    <p className="text-sm font-medium">
-                      {session.is_edited ? 'Data removed' : (session.estimated_steps?.toLocaleString() || '0')}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Steps (est.)</p>
-                  </div>
-                </div>
-                
-                {session.is_edited && session.edit_reason && (
-                  <div className="col-span-2 mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-800">
-                    <span className="font-medium">Edit reason:</span> {session.edit_reason}
-                  </div>
-                )}
-              </div>
+              )}
               
 
             </Card>

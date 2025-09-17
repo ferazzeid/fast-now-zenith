@@ -61,12 +61,8 @@ const WalkingHistory = () => {
 
       if (error) throw error;
 
-      // Filter out sessions with duration less than 1 minute
-      const filteredData = data?.filter(session => {
-        if (!session.start_time || !session.end_time) return false;
-        const duration = calculateDuration(session.start_time, session.end_time);
-        return duration >= 1;
-      }) || [];
+      // Keep all sessions, including those under 1 minute (will be marked as canceled)
+      const filteredData = data || [];
 
       // Check if there are more sessions available
       if (!showAll && filteredData.length >= 10) {
@@ -141,6 +137,12 @@ const WalkingHistory = () => {
       return `${hours}h ${remainingMinutes}m`;
     }
     return `${remainingMinutes}m`;
+  };
+
+  const isSessionCanceled = (session: WalkingSession): boolean => {
+    if (!session.end_time) return false;
+    const duration = calculateDuration(session.start_time, session.end_time);
+    return duration < 1;
   };
 
   const groupSessionsByDate = (sessions: WalkingSession[]) => {
@@ -260,87 +262,102 @@ const WalkingHistory = () => {
                           <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-2">
                               <div>
-                                <p className="text-xs text-muted-foreground">
-                                  {new Date(session.start_time).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
-                                  {session.end_time && ` - ${new Date(session.end_time).toLocaleTimeString('en-US', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}`}
-                                </p>
+                                 <p className="text-xs text-muted-foreground">
+                                   {new Date(session.start_time).toLocaleTimeString('en-US', {
+                                     hour: '2-digit',
+                                     minute: '2-digit'
+                                   })}
+                                   {session.end_time && !isSessionCanceled(session) && ` - ${new Date(session.end_time).toLocaleTimeString('en-US', {
+                                     hour: '2-digit',
+                                     minute: '2-digit'
+                                   })}`}
+                                 </p>
                               </div>
-                              {isActiveSession && (
-                                <Badge variant="secondary" className="text-xs flex items-center gap-1">
-                                  <Play className="w-3 h-3" />
-                                  In Progress
-                                </Badge>
-                              )}
+                               {isSessionCanceled(session) && (
+                                 <Badge variant="secondary" className="text-xs">
+                                   <X className="w-3 h-3 mr-1" />
+                                   Canceled
+                                 </Badge>
+                               )}
+                               {isActiveSession && (
+                                 <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                                   <Play className="w-3 h-3" />
+                                   In Progress
+                                 </Badge>
+                               )}
                             </div>
-                            {!isActiveSession && (
-                              <div className="flex gap-1">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="w-8 h-8"
-                                  onClick={() => setEditingSession(session)}
-                                >
-                                  <Edit className="w-3 h-3" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="w-8 h-8 text-destructive hover:text-destructive"
-                                  onClick={() => setDeletingId(session.id)}
-                                >
-                                  <Trash2 className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            )}
+                             {!isActiveSession && (
+                               <div className="flex gap-1">
+                                 {!isSessionCanceled(session) && (
+                                   <Button
+                                     variant="ghost"
+                                     size="icon"
+                                     className="w-8 h-8"
+                                     onClick={() => setEditingSession(session)}
+                                   >
+                                     <Edit className="w-3 h-3" />
+                                   </Button>
+                                 )}
+                                 <Button
+                                   variant="ghost"
+                                   size="icon"
+                                   className="w-8 h-8 text-destructive hover:text-destructive"
+                                   onClick={() => setDeletingId(session.id)}
+                                 >
+                                   <Trash2 className="w-3 h-3" />
+                                 </Button>
+                               </div>
+                             )}
                           </div>
 
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">Duration</p>
-                                <p className="font-medium">
-                                  {session.end_time 
-                                    ? formatDuration(calculateDuration(session.start_time, session.end_time))
-                                    : 'In Progress'
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">Distance</p>
-                                <p className="font-medium">
-                                  {session.distance && session.distance > 0 ? session.distance.toFixed(2) : '0.00'} km
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Zap className="w-4 h-4 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">Calories</p>
-                                <p className="font-medium">
-                                  {session.calories_burned && session.calories_burned > 0 ? Math.round(session.calories_burned) : '0'}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Footprints className="w-4 h-4 text-muted-foreground" />
-                              <div>
-                                <p className="text-xs text-muted-foreground">Steps</p>
-                                <p className="font-medium">
-                                  {session.estimated_steps && session.estimated_steps > 0 ? session.estimated_steps.toLocaleString() : '0'}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
+                           {isSessionCanceled(session) ? (
+                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                               <X className="w-4 h-4" />
+                               <p>Session was canceled after less than 1 minute</p>
+                             </div>
+                           ) : (
+                             <div className="grid grid-cols-2 gap-4 text-sm">
+                               <div className="flex items-center gap-2">
+                                 <Clock className="w-4 h-4 text-muted-foreground" />
+                                 <div>
+                                   <p className="text-xs text-muted-foreground">Duration</p>
+                                   <p className="font-medium">
+                                     {session.end_time 
+                                       ? formatDuration(calculateDuration(session.start_time, session.end_time))
+                                       : 'In Progress'
+                                     }
+                                   </p>
+                                 </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <MapPin className="w-4 h-4 text-muted-foreground" />
+                                 <div>
+                                   <p className="text-xs text-muted-foreground">Distance</p>
+                                   <p className="font-medium">
+                                     {session.distance && session.distance > 0 ? session.distance.toFixed(2) : '0.00'} km
+                                   </p>
+                                 </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <Zap className="w-4 h-4 text-muted-foreground" />
+                                 <div>
+                                   <p className="text-xs text-muted-foreground">Calories</p>
+                                   <p className="font-medium">
+                                     {session.calories_burned && session.calories_burned > 0 ? Math.round(session.calories_burned) : '0'}
+                                   </p>
+                                 </div>
+                               </div>
+                               <div className="flex items-center gap-2">
+                                 <Footprints className="w-4 h-4 text-muted-foreground" />
+                                 <div>
+                                   <p className="text-xs text-muted-foreground">Steps</p>
+                                   <p className="font-medium">
+                                     {session.estimated_steps && session.estimated_steps > 0 ? session.estimated_steps.toLocaleString() : '0'}
+                                   </p>
+                                 </div>
+                               </div>
+                             </div>
+                           )}
                         </CardContent>
                       </Card>
                     );
