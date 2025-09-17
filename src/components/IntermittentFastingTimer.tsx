@@ -112,6 +112,44 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   if (!todaySession) {
     return (
       <div className={`max-w-md mx-auto space-y-6 ${className}`}>
+        {/* Main Timer Card - matches screenshot exactly */}
+        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
+          {/* Dual Counter Display */}
+          <div className="mb-2 flex flex-col justify-center items-center">
+            {/* Main Fasting Counter */}
+            <div 
+              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+              }}
+            >
+              00:00:00
+            </div>
+            <div className="text-lg font-medium text-muted-foreground mb-4">
+              Ready to Fast
+            </div>
+            
+            {/* Gentle Dividing Line */}
+            <div className="w-full h-px bg-border/30 my-3"></div>
+            
+            {/* Smaller Eating Counter */}
+            <div 
+              className="text-2xl font-mono font-medium text-muted-foreground/70 mb-1 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              }}
+            >
+              00:00:00
+            </div>
+            <div className="text-sm font-medium text-muted-foreground/60">
+              Ready to Eat
+            </div>
+          </div>
+        </Card>
+
+        {/* Selection Interface */}
         <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'quick' | 'custom')}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="quick">Quick Start</TabsTrigger>
@@ -161,11 +199,12 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
                 
                 <Button 
                   onClick={handleStartSession}
+                  variant="action-primary"
+                  size="start-button"
                   className="w-full"
-                  size="lg"
                   disabled={loading}
                 >
-                  <Play className="w-5 h-5 mr-2" />
+                  <Play className="w-8 h-8 mr-3" />
                   Start {selectedPreset.name} Session
                 </Button>
               </CardContent>
@@ -180,7 +219,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     );
   }
 
-  // Active session - show simple timer cards matching SquareTimer design
+  // Active session - show unified dual timer card
   return (
     <div className={`max-w-md mx-auto space-y-6 ${className}`}>
       {/* Session Info */}
@@ -197,46 +236,39 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         </CardHeader>
       </Card>
 
-      {/* Fasting Window Timer */}
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold mb-2">Fasting Window</h3>
-          <Badge variant={todaySession?.status === 'fasting' ? 'default' : 'secondary'}>
-            {todaySession?.status === 'fasting' ? 'Active' : 'Inactive'}
-          </Badge>
-        </div>
-        
-        {/* Simple Timer Card - matches SquareTimer design */}
-        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
-          {/* Count Direction Toggle Button */}
-          {todaySession?.status === 'fasting' && (
-            <div className="absolute bottom-4 right-4 z-20">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => setCountDirection(prev => prev === 'up' ? 'down' : 'up')}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
-                    >
-                      {countDirection === 'up' ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          )}
-          
-          {/* Main time display */}
-          <div className="mb-2 flex flex-col justify-center items-center">
+      {/* Unified Dual Timer Card - matches screenshot layout */}
+      <Card className="p-4 text-center relative overflow-hidden min-h-[220px]">
+        {/* Count Direction Toggle Button */}
+        {(todaySession?.status === 'fasting' || todaySession?.status === 'eating') && (
+          <div className="absolute bottom-4 right-4 z-20">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setCountDirection(prev => prev === 'up' ? 'down' : 'up')}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
+                  >
+                    {countDirection === 'up' ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+
+        {/* Dual Counter Display */}
+        <div className="mb-2 flex flex-col justify-center items-center">
+          {/* Main Fasting Counter */}
+          <div className="mb-4">
             <div 
               className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
               style={{ 
@@ -246,118 +278,77 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             >
               {getDisplayTime(fastingElapsed, selectedPreset?.fastingHours * 60 * 60 || 0)}
             </div>
-             <div className={cn(
-               "text-lg font-medium transition-colors duration-300",
-               todaySession?.status === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
-             )}>
-               {todaySession?.status === 'fasting' ? 'Fasting' : 'Ready to Fast'}
-             </div>
+            <div className={cn(
+              "text-lg font-medium transition-colors duration-300",
+              todaySession?.status === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
+            )}>
+              {todaySession?.status === 'fasting' ? 'Fasting' : 'Ready to Fast'}
+            </div>
             
-            {/* Progress indicator */}
+            {/* Progress indicator for fasting */}
             {todaySession?.status === 'fasting' && (
               <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
                 <span>{Math.round(getProgress(fastingElapsed, selectedPreset?.fastingHours * 60 * 60 || 0))}% complete</span>
               </div>
             )}
           </div>
-        </Card>
-        
-        {todaySession?.status === 'fasting' && (
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleEndFasting}
-              variant="action-primary"
-              size="action-main"
-              className="flex-1"
-            >
-              End Fasting
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Eating Window Timer */}
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold mb-2">Eating Window</h3>
-          <Badge variant={todaySession?.status === 'eating' ? 'default' : 'secondary'}>
-            {todaySession?.status === 'eating' ? 'Active' : 'Inactive'}
-          </Badge>
-        </div>
-        
-        {/* Simple Timer Card - matches SquareTimer design */}
-        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
-          {/* Count Direction Toggle Button */}
-          {todaySession?.status === 'eating' && (
-            <div className="absolute bottom-4 right-4 z-20">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => setCountDirection(prev => prev === 'up' ? 'down' : 'up')}
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
-                    >
-                      {countDirection === 'up' ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{countDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          )}
           
-          {/* Main time display */}
-          <div className="mb-2 flex flex-col justify-center items-center">
+          {/* Gentle Dividing Line */}
+          <div className="w-full h-px bg-border/30 my-3"></div>
+          
+          {/* Smaller Eating Counter */}
+          <div>
             <div 
-              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
+              className="text-2xl font-mono font-medium text-muted-foreground/70 mb-1 tracking-wide"
               style={{ 
                 fontFeatureSettings: '"tnum" 1',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                textShadow: '0 1px 2px rgba(0,0,0,0.05)'
               }}
             >
               {getDisplayTime(eatingElapsed, selectedPreset?.eatingHours * 60 * 60 || 0)}
             </div>
             <div className={cn(
-              "text-lg font-medium transition-colors duration-300",
-              todaySession?.status === 'eating' ? 'text-foreground' : 'text-muted-foreground'
+              "text-sm font-medium transition-colors duration-300",
+              todaySession?.status === 'eating' ? 'text-foreground' : 'text-muted-foreground/60'
             )}>
               {todaySession?.status === 'eating' ? 'Eating' : 'Ready to Eat'}
             </div>
             
-            {/* Progress indicator */}
+            {/* Progress indicator for eating */}
             {todaySession?.status === 'eating' && (
-              <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 mt-2 text-xs text-muted-foreground">
                 <span>{Math.round(getProgress(eatingElapsed, selectedPreset?.eatingHours * 60 * 60 || 0))}% complete</span>
               </div>
             )}
           </div>
-        </Card>
+        </div>
+      </Card>
+
+      {/* Control buttons */}
+      <div className="space-y-4">
+        {todaySession?.status === 'fasting' && (
+          <Button 
+            onClick={handleEndFasting}
+            variant="action-primary"
+            size="action-main"
+            className="w-full"
+          >
+            End Fasting
+          </Button>
+        )}
         
         {todaySession?.status === 'eating' && (
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleEndEating}
-              variant="action-primary"
-              size="action-main"
-              className="flex-1"
-            >
-              End Eating
-            </Button>
-          </div>
+          <Button 
+            onClick={handleEndEating}
+            variant="action-primary"
+            size="action-main"
+            className="w-full"
+          >
+            End Eating
+          </Button>
         )}
-      </div>
-
-      {/* Control buttons for session management */}
-      {todaySession?.status !== 'fasting' && todaySession?.status !== 'eating' && (
-        <div className="space-y-4">
+        
+        {todaySession?.status !== 'fasting' && todaySession?.status !== 'eating' && (
           <Button 
             onClick={handleStartFasting}
             variant="action-primary"
@@ -368,8 +359,8 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             <Play className="w-8 h-8 mr-3" />
             Start Fasting
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

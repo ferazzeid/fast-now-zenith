@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { IntermittentFastingTimer } from "@/components/IntermittentFastingTimer";
 import { ResponsivePageHeader } from "@/components/ResponsivePageHeader";
 import { FastingModeToggle } from "@/components/FastingModeToggle";
@@ -12,7 +12,7 @@ const IntermittentFasting: React.FC = () => {
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
-        {/* Header with Toggle */}
+        {/* Header with Toggle - matching Timer.tsx exactly */}
         <div className="relative">
           <ResponsivePageHeader 
             title="Fasting Tracker"
