@@ -36,7 +36,7 @@ import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSyste
 
 import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { IntermittentFastingTimer } from '@/components/IntermittentFastingTimer';
-import { TimerModeSelector } from '@/components/TimerModeSelector';
+import { FastingModeToggle } from '@/components/FastingModeToggle';
 
 const Timer = () => {
   const navigate = useNavigate();
@@ -455,22 +455,17 @@ const Timer = () => {
           authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
         />
 
-        {/* Timer Mode Selector */}
-        <div className="flex justify-center mb-6">
-          <TimerModeSelector
-            currentMode={currentMode}
-            onModeSelect={switchMode}
-            timerStatus={{
-              fasting: { isActive: timerStatus.fasting.isActive, elapsedTime: timerStatus.fasting.timeElapsed },
-              walking: { isActive: timerStatus.walking.isActive, elapsedTime: timerStatus.walking.timeElapsed },
-              if: { isActive: timerStatus.if.isActive, elapsedTime: timerStatus.if.timeElapsed }
-            }}
-            formatTime={formatTime}
-            sheetOpen={sheetOpen}
-            onSheetOpenChange={setSheetOpen}
-            showIF={ifEnabled}
-          />
-        </div>
+        {/* Fasting Mode Toggle */}
+        <FastingModeToggle
+          currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
+          onModeChange={(mode) => switchMode(mode)}
+          timerStatus={{
+            fasting: { isActive: timerStatus.fasting.isActive, elapsedTime: timerStatus.fasting.timeElapsed },
+            if: { isActive: timerStatus.if.isActive, elapsedTime: timerStatus.if.timeElapsed }
+          }}
+          formatTime={formatTime}
+          showIF={ifEnabled}
+        />
 
 
         {/* Timer Display */}
