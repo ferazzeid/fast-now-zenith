@@ -114,7 +114,7 @@ export const UniversalModal = ({
             {/* Sticky header - only show if title exists */}
             {title && (
               <div className={cn(
-                'universal-modal-header sticky top-0 z-10 bg-muted/50 border-b border-border px-4 py-3 flex items-center justify-between',
+                'universal-modal-header sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center justify-between',
                 headerClassName
               )}>
                 <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
@@ -149,7 +149,7 @@ export const UniversalModal = ({
             {/* Sticky footer */}
             {footer && (
               <div className={cn(
-                'sticky bottom-0 z-10 bg-muted/50 border-t border-border px-4 py-3 shadow-lg grid grid-cols-2 gap-3'
+                'sticky bottom-0 z-10 bg-card border-t border-border px-4 py-3 shadow-lg grid grid-cols-2 gap-3'
               )}>
                 {footer}
               </div>
@@ -166,7 +166,7 @@ export const UniversalModal = ({
       <DialogContent 
         className={cn(
           // STANDARD: Centered with proper margins
-          'bg-background',
+          'bg-card',
           'border border-border',
           'rounded-lg shadow-xl',
           'p-0 overflow-hidden',
@@ -187,7 +187,7 @@ export const UniversalModal = ({
         {title && (
           <div className={cn(
             'universal-modal-header px-6 py-3 border-b border-border flex items-center justify-between',
-            'bg-muted/50',
+            'bg-card',
             headerClassName
           )}>
             <DialogTitle className="text-lg font-semibold text-foreground flex-1 pr-4">
@@ -230,7 +230,7 @@ export const UniversalModal = ({
         {footer && (
           <div className={cn(
             'px-6 py-4 border-t border-border',
-            'bg-muted/50',
+            'bg-card',
             'grid grid-cols-2 gap-3'
           )}>
             {footer}

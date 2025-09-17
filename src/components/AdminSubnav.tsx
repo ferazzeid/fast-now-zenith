@@ -16,7 +16,7 @@ export function AdminSubnav() {
 
   return (
     <nav className="sticky top-0 z-10 bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-b-subtle">
-      <div className="container mx-auto px-4 py-2 flex gap-2">
+      <div className="container mx-auto px-4 py-2 flex justify-start gap-1">
         {items.map((item) => {
           const isActive = location.pathname === item.to;
           return (
@@ -25,7 +25,7 @@ export function AdminSubnav() {
               to={item.to}
             className={cn(
               buttonVariants({ variant: isActive ? "default" : "ghost", size: "sm" }),
-              "whitespace-nowrap h-8 px-3 text-ui-sm flex-shrink-0",
+              "whitespace-nowrap h-7 px-2 text-xs font-medium flex-shrink-0",
               isActive ? "bg-primary text-primary-foreground" : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
             )}
             >
