@@ -127,16 +127,28 @@ export const useTimerNavigation = () => {
   }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status, walkingElapsedTime]);
 
   const switchMode = (mode: TimerMode) => {
+    console.log('switchMode called with:', mode, 'current:', currentMode);
+    
+    // Prevent unnecessary navigation if already on the target mode
+    if (currentMode === mode) {
+      console.log('Already on target mode, skipping navigation');
+      return;
+    }
+    
     setCurrentMode(mode);
     setSheetOpen(false); // Auto-close the sheet
-    // Navigate to the appropriate timer page using React Router
-    if (mode === 'walking') {
-      navigate('/walking');
-    } else if (mode === 'if') {
-      navigate('/intermittent-fasting');
-    } else {
-      navigate('/');
-    }
+    
+    // Use a small delay to ensure state updates before navigation
+    setTimeout(() => {
+      // Navigate to the appropriate timer page using React Router
+      if (mode === 'walking') {
+        navigate('/walking');
+      } else if (mode === 'if') {
+        navigate('/intermittent-fasting');
+      } else {
+        navigate('/timer');
+      }
+    }, 50);
   };
 
   const getActiveTimerCount = () => {

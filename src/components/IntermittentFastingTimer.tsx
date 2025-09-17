@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { CustomScheduleSlider } from './CustomScheduleSlider';
+import { IFScheduleSelector } from './IFScheduleSelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IntermittentFastingTimerProps {
@@ -37,6 +38,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   const [countDirection, setCountDirection] = useState<'up' | 'down'>('down');
   const [fastingElapsed, setFastingElapsed] = useState(0);
   const [eatingElapsed, setEatingElapsed] = useState(0);
+  const [showScheduleSelector, setShowScheduleSelector] = useState(false);
 
   // Update elapsed times every second
   useEffect(() => {
@@ -79,18 +81,16 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     return Math.min((elapsed / goalSeconds) * 100, 100);
   };
 
-  const handleStartSession = async () => {
-    await startIFSession({ 
-      fasting_window_hours: selectedPreset.fastingHours, 
-      eating_window_hours: selectedPreset.eatingHours 
-    });
-  };
-
-  const handleCustomScheduleSelect = async (fastingHours: number, eatingHours: number) => {
+  const handleScheduleSelect = async (fastingHours: number, eatingHours: number) => {
+    setShowScheduleSelector(false);
     await startIFSession({ 
       fasting_window_hours: fastingHours, 
       eating_window_hours: eatingHours 
     });
+  };
+
+  const handleStartFastingClick = () => {
+    setShowScheduleSelector(true);
   };
 
   const handleStartFasting = async () => {
@@ -108,7 +108,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     await endEatingWindow(todaySession.id);
   };
 
-  // If no active session, show selection interface
+  // If no active session, show simple timer with Start Fasting button
   if (!todaySession) {
     return (
       <div className={`max-w-md mx-auto space-y-6 ${className}`}>
@@ -149,72 +149,25 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         </Card>
 
-        {/* Selection Interface */}
-        <Tabs value={selectedTab} onValueChange={(value) => setSelectedTab(value as 'quick' | 'custom')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="quick">Quick Start</TabsTrigger>
-            <TabsTrigger value="custom">Custom</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="quick" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Choose Your Schedule</CardTitle>
-                <CardDescription>
-                  Select a preset intermittent fasting schedule
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-3">
-                  {IF_PRESETS.map((preset) => (
-                    <button
-                      key={preset.name}
-                      onClick={() => setSelectedPreset(preset)}
-                      className={cn(
-                        "p-4 rounded-lg border-2 text-left transition-all duration-200",
-                        selectedPreset.name === preset.name
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold">{preset.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {preset.description}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium">
-                            {preset.fastingHours}h fast
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {preset.eatingHours}h eating
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                
-                <Button 
-                  onClick={handleStartSession}
-                  variant="action-primary"
-                  size="start-button"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  <Play className="w-8 h-8 mr-3" />
-                  Start {selectedPreset.name} Session
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="custom" className="mt-6">
-            <CustomScheduleSlider onScheduleSelect={handleCustomScheduleSelect} />
-          </TabsContent>
-        </Tabs>
+        {/* Start Fasting Button - matches extended fast design */}
+        <Button 
+          onClick={handleStartFastingClick}
+          variant="action-primary"
+          size="start-button"
+          className="w-full"
+          disabled={loading}
+        >
+          <Play className="w-8 h-8 mr-3" />
+          Start Fasting
+        </Button>
+
+        {/* Schedule Selection Modal */}
+        {showScheduleSelector && (
+          <IFScheduleSelector
+            onSelect={handleScheduleSelect}
+            onClose={() => setShowScheduleSelector(false)}
+          />
+        )}
       </div>
     );
   }
