@@ -15,8 +15,7 @@ export default function Functions() {
       <div className="container mx-auto p-6 space-y-8 bg-background min-h-[calc(100vh-80px)]">
         <AdminSubnav />
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Function Management</h1>
-          <p className="text-muted-foreground">Configure AI prompts for food recognition functions</p>
+          <h1 className="text-3xl font-bold text-foreground">AI Functions</h1>
         </div>
         
         <div className="grid gap-6 pb-24">
