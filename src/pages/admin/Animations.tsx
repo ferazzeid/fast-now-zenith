@@ -117,7 +117,7 @@ export default function AdminAnimations() {
       <div className="min-h-screen bg-background">
         <AdminSubnav />
         
-        <div className="container mx-auto p-6 mt-6 space-y-6">
+        <div className="container mx-auto p-6 mt-6 pb-24 space-y-6">
           {/* Slideshow Settings */}
           <Card>
             <CardHeader>
