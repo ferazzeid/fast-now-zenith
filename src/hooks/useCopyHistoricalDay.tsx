@@ -3,10 +3,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { startOfDay, endOfDay } from 'date-fns';
 import { useStandardizedLoading } from './useStandardizedLoading';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useCopyHistoricalDay = () => {
   const { execute, isLoading } = useStandardizedLoading();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   const copyDayToToday = async (date: string) => {
     if (!user) {
@@ -61,6 +63,11 @@ export const useCopyHistoricalDay = () => {
       if (insertError) {
         throw insertError;
       }
+
+      // Immediately refresh the food entries cache for today
+      const today = new Date().toISOString().split('T')[0];
+      const foodEntriesQueryKey = ['food-entries', user.id, today];
+      await queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey });
 
       const formattedDate = new Date(date).toLocaleDateString('en-US', { 
         month: 'short', 

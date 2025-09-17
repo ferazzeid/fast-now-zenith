@@ -284,7 +284,7 @@ const FoodHistory = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDeleteAllDialog(true)}
-                className="text-destructive hover:bg-destructive/10 w-8 h-8 p-0"
+                className="hover:bg-muted w-8 h-8 p-0"
               >
                 <Trash2 className="w-4 h-4" />
               </Button>
@@ -293,9 +293,9 @@ const FoodHistory = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/food-tracking')}
-              className="p-2"
+              className="w-8 h-8 p-0 hover:bg-muted"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </Button>
           </div>
         </div>
@@ -392,7 +392,7 @@ const FoodHistory = () => {
                                 e.stopPropagation();
                                 setDeletingDayDate(summary.date);
                               }}
-                              className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                              className="h-7 w-7 p-0 hover:bg-muted"
                               title="Delete entire day"
                             >
                               <Trash2 className="w-3 h-3" />
