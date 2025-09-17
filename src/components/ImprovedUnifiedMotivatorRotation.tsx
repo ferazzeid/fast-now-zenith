@@ -99,22 +99,26 @@ export const ImprovedUnifiedMotivatorRotation = ({
         });
       });
 
-      // Add system quotes based on type
-      const quotesToUse = quotesType === 'walking' 
-        ? quotes.walking_timer_quotes 
-        : quotes.fasting_timer_quotes;
-        
-      if (quotesToUse && Array.isArray(quotesToUse)) {
-        quotesToUse.forEach((quote, idx) => {
-          if (quote.text && quote.text.trim() !== '') {
-            quotesArray.push({
-              id: `system-quote-${idx}`,
-              title: quote.text,
-              type: 'quote',
-              author: quote.author || 'Unknown Author',
-            });
-          }
-        });
+      // Only add system quotes if enabled and user has no saved quotes selected
+      const hasSavedQuotes = quotesArray.length > 0;
+      
+      if (!hasSavedQuotes) {
+        const quotesToUse = quotesType === 'walking' 
+          ? quotes.walking_timer_quotes 
+          : quotes.fasting_timer_quotes;
+          
+        if (quotesToUse && Array.isArray(quotesToUse)) {
+          quotesToUse.forEach((quote, idx) => {
+            if (quote.text && quote.text.trim() !== '') {
+              quotesArray.push({
+                id: `system-quote-${idx}`,
+                title: quote.text,
+                type: 'quote',
+                author: quote.author || 'Unknown Author',
+              });
+            }
+          });
+        }
       }
     }
 
