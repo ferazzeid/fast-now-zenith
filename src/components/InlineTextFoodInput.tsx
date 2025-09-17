@@ -204,7 +204,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
   if (!isOpen) {
     return (
-      <>
+      <div className="relative">
         <Button
           variant="ghost"
           size="sm"
@@ -228,7 +228,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
           onAddFoods={handleAddFoods}
           isProcessing={false}
         />
-      </>
+      </div>
     );
   }
 
@@ -240,8 +240,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         onClick={handleCancel}
       />
       
-      {/* Dropdown overlay - perfectly centered on mobile */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[calc(100vw-2rem)] max-w-sm mx-auto p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-subtle shadow-lg">
+      {/* Dropdown positioned below the button */}
+      <div className="absolute top-full right-0 mt-2 z-50 w-[calc(100vw-2rem)] max-w-sm p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-subtle shadow-lg">
         <div className="w-full max-w-xs mx-auto">{/* Container to center content within the modal */}
           <div className="flex items-center gap-3">
             <Input

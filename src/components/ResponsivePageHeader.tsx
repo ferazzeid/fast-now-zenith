@@ -62,7 +62,7 @@ export const ResponsivePageHeader = ({
             {title}
           </h1>
           {/* Right side navigation - positioned relative for dropdown */}
-          <div className="flex items-center gap-2 relative">
+          <div className="flex items-center gap-3 sm:gap-2 relative">
             {onHistoryClick && (
               <HistoryButton onClick={onHistoryClick} title={historyTitle} />
             )}
