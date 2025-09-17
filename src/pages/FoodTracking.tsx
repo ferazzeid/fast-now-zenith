@@ -534,6 +534,15 @@ const FoodTracking = () => {
                         </Button>
                         <div className="flex items-center gap-2">
                           <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowClearAllDialog(true)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
+                            disabled={isClearingAll}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                          <Button
                             size="sm"
                             variant="default"
                             onClick={handleMarkAllAsEaten}
@@ -546,15 +555,6 @@ const FoodTracking = () => {
                             aria-label="Mark all foods as eaten"
                           >
                             <Check className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setShowClearAllDialog(true)}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
-                            disabled={isClearingAll}
-                          >
-                            <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>

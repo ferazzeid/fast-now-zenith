@@ -91,9 +91,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   };
 
   const handleVoiceTranscription = (transcription: string, context: 'title' | 'content' = 'content') => {
-    // If context is explicitly title or short transcription, put in title field
-    // If longer content, put in content field
-    if (context === 'title' || transcription.length < 50) {
+    // Always respect the explicit context from the voice button
+    if (context === 'title') {
       setTitle(transcription);
     } else {
       setContent(transcription);
