@@ -48,11 +48,14 @@ export const ImprovedUnifiedMotivatorRotation = ({
   // Transition timing constants
   const FADE_DURATION = 500; // 500ms for fade in/out
 
-  // Combine all content into unified items
+  // Equal weight round-robin mixing of goals, quotes, and notes
   const items = useMemo(() => {
-    const unifiedItems: UnifiedItem[] = [];
+    // Create separate arrays for each content type
+    const goals: UnifiedItem[] = [];
+    const quotesArray: UnifiedItem[] = [];
+    const notes: UnifiedItem[] = [];
 
-    // Add motivators that are set to show in animations - but only if admin allows the category
+    // Collect goals - but only if admin allows the category
     if (adminSettings.enable_goals_in_animations) {
       const activeGoals = motivators.filter(m => 
         m.show_in_animations && 
@@ -63,7 +66,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       );
       
       activeGoals.forEach(motivator => {
-        unifiedItems.push({
+        goals.push({
           id: motivator.id,
           title: motivator.title,
           content: motivator.content,
@@ -73,7 +76,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       });
     }
 
-    // Add saved quotes - but only if admin allows quotes
+    // Collect quotes - but only if admin allows quotes
     if (adminSettings.enable_quotes_in_animations) {
       const savedQuotes = motivators.filter(m => 
         m.show_in_animations && 
@@ -83,7 +86,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       );
       
       savedQuotes.forEach(quote => {
-        unifiedItems.push({
+        quotesArray.push({
           id: quote.id,
           title: quote.content, // Use content as the quote text
           type: 'quote',
@@ -99,7 +102,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       if (quotesToUse && Array.isArray(quotesToUse)) {
         quotesToUse.forEach((quote, idx) => {
           if (quote.text && quote.text.trim() !== '') {
-            unifiedItems.push({
+            quotesArray.push({
               id: `system-quote-${idx}`,
               title: quote.text,
               type: 'quote',
@@ -110,7 +113,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       }
     }
 
-    // Add notes - but only if admin allows notes
+    // Collect notes - but only if admin allows notes
     if (adminSettings.enable_notes_in_animations) {
       const activeNotes = motivators.filter(m => 
         m.show_in_animations && 
@@ -120,7 +123,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       );
       
       activeNotes.forEach(note => {
-        unifiedItems.push({
+        notes.push({
           id: note.id,
           title: note.title,
           content: note.content,
@@ -130,7 +133,17 @@ export const ImprovedUnifiedMotivatorRotation = ({
       });
     }
 
-    return unifiedItems;
+    // Round-robin mixing algorithm for equal weight (1:1:1)
+    const mixedItems: UnifiedItem[] = [];
+    const maxLength = Math.max(goals.length, quotesArray.length, notes.length);
+    
+    for (let i = 0; i < maxLength; i++) {
+      if (goals[i]) mixedItems.push(goals[i]);
+      if (quotesArray[i]) mixedItems.push(quotesArray[i]); 
+      if (notes[i]) mixedItems.push(notes[i]);
+    }
+
+    return mixedItems;
   }, [motivators, quotes, quotesType, adminSettings]);
 
   // Handle visibility changes - reset to timer when document becomes visible
