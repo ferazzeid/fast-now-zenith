@@ -128,11 +128,11 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   return (
     <Card className="overflow-hidden relative">
       <CardContent className="p-0">
-        {/* Collapsed State: Image, title and actions */}
+        {/* Collapsed State: Image on top, title and actions below */}
         {!isExpanded && (
-          <div className="flex">
-            {/* Image */}
-            <div className="w-32 h-32 flex-shrink-0 relative">
+          <div>
+            {/* Full-width image at top */}
+            <div className="w-full h-32 relative">
               <MotivatorImageWithFallback
                 src={currentImageUrl}
                 alt={motivator.title}
@@ -142,15 +142,15 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               />
             </div>
 
-            {/* Content */}
-            <div className="flex-1 p-4">
-              <div className="flex items-center justify-between h-full">
-                <h3 className="font-semibold text-warm-text line-clamp-2 flex-1">
+            {/* Title and actions */}
+            <div className="p-4">
+              <div className="flex items-start justify-between">
+                <h3 className="font-semibold text-warm-text flex-1 pr-2">
                   {motivator.title}
                 </h3>
                 
                 {/* Actions */}
-                <div className="flex gap-1 ml-2">
+                <div className="flex gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
