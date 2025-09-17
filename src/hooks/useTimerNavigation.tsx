@@ -129,12 +129,15 @@ export const useTimerNavigation = () => {
   const switchMode = (mode: TimerMode) => {
     setCurrentMode(mode);
     setSheetOpen(false); // Auto-close the sheet
-    // Navigate to the appropriate timer page using React Router
+    
+    // Only navigate if we're switching to a different page
     if (mode === 'walking') {
       navigate('/walking');
-    } else {
+    } else if (window.location.pathname !== '/') {
+      // Only navigate to timer page if we're not already there
       navigate('/');
     }
+    // If we're switching between fasting/if modes on the same page, just update state
   };
 
   const getActiveTimerCount = () => {
