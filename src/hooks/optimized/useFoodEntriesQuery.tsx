@@ -22,6 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCallback } from 'react';
+import { capitalizeFoodName } from '@/utils/textUtils';
 
 interface FoodEntry {
   id: string;
@@ -129,7 +130,7 @@ export const useFoodEntriesQuery = () => {
 
       const entriesToInsert = newEntries.map(entry => ({
         user_id: user.id,
-        name: entry.name,
+        name: capitalizeFoodName(entry.name),
         calories: entry.calories,
         carbs: entry.carbs,
         serving_size: entry.serving_size,
@@ -221,7 +222,7 @@ export const useFoodEntriesQuery = () => {
         .from('food_entries')
         .insert({
           user_id: user.id,
-          name: newEntry.name,
+          name: capitalizeFoodName(newEntry.name),
           calories: newEntry.calories,
           carbs: newEntry.carbs,
           serving_size: newEntry.serving_size,
@@ -246,7 +247,7 @@ export const useFoodEntriesQuery = () => {
       const optimisticEntry: FoodEntry = {
         id: tempId,
         user_id: user?.id || '',
-        name: newEntry.name,
+        name: capitalizeFoodName(newEntry.name),
         calories: newEntry.calories,
         carbs: newEntry.carbs,
         serving_size: newEntry.serving_size,
