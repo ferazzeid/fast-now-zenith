@@ -91,8 +91,13 @@ const Walking = () => {
   const handlePause = async () => {
     try {
       await pauseWalkingSession();
+      toast({
+        title: "Walking paused",
+        description: "Your session has been paused",
+      });
       trackWalkingEvent('pause', selectedSpeed, elapsedTime);
     } catch (error) {
+      console.error('Failed to pause walking session:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -104,8 +109,13 @@ const Walking = () => {
   const handleResume = async () => {
     try {
       await resumeWalkingSession();
+      toast({
+        title: "Walking resumed",
+        description: "Your session has been resumed",
+      });
       trackWalkingEvent('resume', selectedSpeed);
     } catch (error) {
+      console.error('Failed to resume walking session:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -124,13 +134,14 @@ const Walking = () => {
     });
     
     try {
-      const result = await endWalkingSession();
+      await endWalkingSession();
       trackWalkingEvent('stop', selectedSpeed, elapsedTime);
       toast({
         title: "Walking completed!",
         description: `Great job! You walked for ${formatTime(elapsedTime)}.`
       });
     } catch (error) {
+      console.error('Failed to stop walking session:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -174,9 +185,10 @@ const Walking = () => {
       await cancelWalkingSession();
       toast({
         title: "Session cancelled",
-        description: "Walking session was cancelled and removed from history."
+        description: "Walking session was cancelled"
       });
     } catch (error) {
+      console.error('Failed to cancel walking session:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -229,8 +241,8 @@ const Walking = () => {
             onStart={handleStart}
             onPause={handlePause}
             onResume={handleResume}
-            onStop={async () => { setShowStopConfirm(true); }}
-            onCancel={async () => { handleCancel(); }}
+            onStop={() => setShowStopConfirm(true)}
+            onCancel={() => handleCancel()}
             showSlideshow={profile?.enable_walking_slideshow ?? false}
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}

@@ -18,10 +18,10 @@ interface WalkingTimerProps {
   isActive: boolean;
   isPaused?: boolean;
   onStart: () => void;
-  onPause?: () => Promise<{ error?: { message: string } } | void>;
-  onResume?: () => Promise<{ error?: { message: string } } | void>;
-  onStop: () => Promise<{ error?: { message: string } } | void>;
-  onCancel?: () => Promise<{ error?: { message: string } } | void>;
+  onPause?: () => Promise<void>;
+  onResume?: () => Promise<void>;
+  onStop: () => void;
+  onCancel?: () => void;
   className?: string;
   showSlideshow?: boolean;
   realTimeStats?: {
@@ -145,21 +145,14 @@ const WalkingTimerComponent = ({
                        e.preventDefault();
                        e.stopPropagation();
                        try {
-                        const result = isPaused ? await onResume?.() : await onPause?.();
-                        if (result && 'error' in result && result.error) {
-                          toast({
-                            title: "Error",
-                            description: result.error.message || `Failed to ${isPaused ? 'resume' : 'pause'} session`,
-                            variant: "destructive"
-                          });
+                        if (isPaused && onResume) {
+                          await onResume();
+                        } else if (!isPaused && onPause) {
+                          await onPause();
                         }
                       } catch (error) {
                         console.error('Failed to pause/resume walking session:', error);
-                        toast({
-                          title: "Error",
-                          description: "Network error. Please try again.",
-                          variant: "destructive"
-                        });
+                        // Error handling is done in parent component
                       }
                     }}
                      variant="secondary"
@@ -187,21 +180,12 @@ const WalkingTimerComponent = ({
                        e.preventDefault();
                        e.stopPropagation();
                        try {
-                          const result = await onCancel?.();
-                          if (result && 'error' in result && result.error) {
-                            toast({
-                              title: "Error",
-                              description: result.error.message || "Failed to cancel session",
-                              variant: "destructive"
-                            });
+                          if (onCancel) {
+                            await onCancel();
                           }
                         } catch (error) {
                           console.error('Failed to cancel walking session:', error);
-                          toast({
-                            title: "Error",
-                            description: "Network error. Please try again.",
-                            variant: "destructive"
-                          });
+                          // Error handling is done in parent component
                         }
                       }}
                       variant="secondary"
@@ -227,21 +211,10 @@ const WalkingTimerComponent = ({
                        e.preventDefault();
                        e.stopPropagation();
                        try {
-                        const result = await onStop();
-                        if (result && 'error' in result && result.error) {
-                          toast({
-                            title: "Error",
-                            description: result.error.message || "Failed to stop session",
-                            variant: "destructive"
-                          });
-                        }
+                        await onStop();
                       } catch (error) {
                         console.error('Failed to stop walking session:', error);
-                        toast({
-                          title: "Error",
-                          description: "Network error. Please try again.",
-                          variant: "destructive"
-                        });
+                        // Error handling is done in parent component
                       }
                     }}
                     variant="action-primary"

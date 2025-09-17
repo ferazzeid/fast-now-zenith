@@ -30,6 +30,7 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
   const walkingSession = useOptimizedWalkingSession();
   const currentSession = walkingSession?.currentSession || null;
   const selectedSpeed = walkingSession?.selectedSpeed || 3;
+  const isPaused = walkingSession?.isPaused || false;
   const { profile, calculateWalkingCalories } = useOptimizedProfile();
 
   // Stabilize calculateWalkingCalories to prevent infinite loops
@@ -45,13 +46,14 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
 
   // Memoize session-related values to prevent infinite re-renders
   const sessionId = currentSession?.id;
-  const sessionStatus = currentSession?.status;
+  const sessionState = currentSession?.session_state;
   const sessionStartTime = currentSession?.start_time;
   const totalPauseDuration = currentSession?.total_pause_duration;
+  const pauseStartTime = currentSession?.pause_start_time;
 
   // Update stats every 30 seconds when active - fixed dependencies to prevent infinite loops
   useEffect(() => {
-    if (!sessionId || sessionStatus !== 'active') {
+    if (!sessionId || !['active', 'paused'].includes(sessionState || '')) {
       // Only update if stats are not already reset
       setWalkingStats(prev => {
         if (prev.calories === 0 && prev.distance === 0) return prev;
@@ -71,9 +73,18 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
       const startTime = new Date(sessionStartTime);
       
       // Calculate elapsed time in seconds first, then convert
-      const totalElapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
-      const pauseDurationSeconds = totalPauseDuration || 0;
-      const activeElapsedSeconds = Math.max(0, totalElapsedSeconds - pauseDurationSeconds);
+      let totalElapsedSeconds = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      
+      // Calculate pause durations
+      let totalPauseTime = totalPauseDuration || 0;
+      
+      // If currently paused, add current pause duration
+      if (sessionState === 'paused' && pauseStartTime) {
+        const currentPauseDuration = Math.floor((now.getTime() - new Date(pauseStartTime).getTime()) / 1000);
+        totalPauseTime += currentPauseDuration;
+      }
+      
+      const activeElapsedSeconds = Math.max(0, totalElapsedSeconds - totalPauseTime);
       const activeDurationMinutes = activeElapsedSeconds / 60;
 
       if (activeDurationMinutes <= 0) return;
@@ -134,7 +145,7 @@ export const SimpleWalkingStatsProvider: React.FC<{ children: React.ReactNode }>
     return () => {
       clearInterval(interval);
     };
-  }, [sessionId, sessionStatus, sessionStartTime, totalPauseDuration, selectedSpeed, profile?.weight]);
+  }, [sessionId, sessionState, sessionStartTime, totalPauseDuration, pauseStartTime, selectedSpeed, profile?.weight, stableCalculateWalkingCalories]);
 
   const contextValue = useMemo(() => ({ walkingStats }), [walkingStats]);
 
