@@ -18,7 +18,7 @@ export default function AdminOperations() {
     canonicalPath: "/admin/operations",
   });
 
-  const { celebration } = useCelebrationMilestones();
+  const { celebration, triggerCelebration } = useCelebrationMilestones();
 
   return (
     <AdminHealthCheck>
@@ -35,7 +35,7 @@ export default function AdminOperations() {
         </section>
 
         <section aria-label="Animation settings">
-          <AdminAnimationSettings />
+          <AdminAnimationSettings onTestCelebration={triggerCelebration} />
         </section>
 
         <section aria-label="Static SEO code generator">

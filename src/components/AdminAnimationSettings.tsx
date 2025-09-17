@@ -6,12 +6,15 @@ import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
-import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
+import { MilestoneEvent } from '@/hooks/useCelebrationMilestones';
 
-export const AdminAnimationSettings = () => {
+interface AdminAnimationSettingsProps {
+  onTestCelebration?: (event: MilestoneEvent) => void;
+}
+
+export const AdminAnimationSettings = ({ onTestCelebration }: AdminAnimationSettingsProps) => {
   const { profile, updateProfile } = useProfile();
   const { toast } = useToast();
-  const { triggerCelebration } = useCelebrationMilestones();
   
   const [enableFastingSlideshow, setEnableFastingSlideshow] = useState(true);
   const [enableWalkingSlideshow, setEnableWalkingSlideshow] = useState(true);
@@ -76,11 +79,13 @@ export const AdminAnimationSettings = () => {
   };
 
   const testCelebration = (type: 'hourly' | 'completion', hours: number, message: string) => {
-    triggerCelebration({
-      type,
-      hours,
-      message
-    });
+    if (onTestCelebration) {
+      onTestCelebration({
+        type,
+        hours,
+        message
+      });
+    }
     toast({
       title: "Celebration Triggered",
       description: `Testing ${message} celebration`,
