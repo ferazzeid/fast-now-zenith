@@ -70,10 +70,10 @@ export const StopWalkingConfirmDialog = ({
         showManualInput ? (
           <>
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="action-secondary"
               onClick={() => setShowManualInput(false)}
-              className="w-12"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -90,10 +90,10 @@ export const StopWalkingConfirmDialog = ({
         ) : (
           <>
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="action-secondary"
               onClick={handleClose}
-              className="w-12"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>
