@@ -24,6 +24,11 @@ export const VoicePromptManager = () => {
 
   const promptSections = [
     {
+      section: 'base_prompt',
+      label: 'Base Prompt',
+      tooltip: 'Core instructions that lead the system message with fundamental food analysis rules'
+    },
+    {
       section: 'composite_rules',
       label: 'Composite Food Rules',
       tooltip: 'How to handle compound dishes like omelettes, sandwiches, etc.'

@@ -80,41 +80,7 @@ serve(async (req) => {
     // Get OpenAI API key
     const openAIApiKey = await resolveOpenAIApiKey(supabase);
 
-    // Build food context for better recognition
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Get user's food library
-    const { data: userFoods } = await supabase
-      .from('user_foods')
-      .select('name, calories_per_100g, carbs_per_100g')
-      .eq('user_id', userId);
-
-    // Get recent foods (last 30 days)
-    const { data: recentEntries } = await supabase
-      .from('food_entries')
-      .select('name, calories, carbs, created_at')
-      .eq('user_id', userId)
-      .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
-      .order('created_at', { ascending: false });
-
-    // Process recent foods (group by name, get most recent)
-    const recentFoodsMap = new Map();
-    recentEntries?.forEach(entry => {
-      const key = entry.name.toLowerCase();
-      if (!recentFoodsMap.has(key) || new Date(entry.created_at) > new Date(recentFoodsMap.get(key).created_at)) {
-        recentFoodsMap.set(key, entry);
-      }
-    });
-    const recentFoodsArray = Array.from(recentFoodsMap.values()).slice(0, 20);
-
-    // Build food context for better recognition
-    const foodLibraryContext = userFoods && userFoods.length > 0 
-      ? `\n\nUser's Personal Food Library: ${userFoods.map(f => `${f.name}: ${f.calories_per_100g} cal/100g, ${f.carbs_per_100g}g carbs/100g`).join('; ')}`
-      : '';
-
-    const recentFoodsContext = recentFoodsArray.length > 0
-      ? `\n\nRecent Foods (last 30 days): ${recentFoodsArray.map(f => `${f.name}: ${f.calories} cal, ${f.carbs}g carbs`).join('; ')}`
-      : '';
+    // No food context - keep it simple
 
     // Load prompts from database with fallbacks
     const { data: promptsData } = await supabase
@@ -124,6 +90,9 @@ serve(async (req) => {
 
     // Build system message from database prompts with fallbacks
     const prompts = {
+      base_prompt: promptsData?.find(p => p.prompt_section === 'base_prompt')?.prompt_content || 
+        'You are a food nutrition analyzer. Your job is to analyze user food input and create appropriate food entries with accurate nutritional information.',
+      
       composite_rules: promptsData?.find(p => p.prompt_section === 'composite_rules')?.prompt_content || 
         'COMPOSITE FOOD INTELLIGENCE:\n- "Omelette from X, Y, Z" = ONE omelette entry (combine all ingredients nutritionally)\n- "Sandwich with X" = ONE sandwich entry (bread + filling combined)\n- "Salad with X, Y" = ONE salad entry (all components combined)\n- "Pancakes with syrup" = ONE pancake entry (including syrup)',
       
@@ -140,30 +109,21 @@ serve(async (req) => {
         'CONTEXTUAL UNDERSTANDING:\n- "from" indicates ingredients of a dish → combine into one entry\n- "and" between separate foods → create separate entries\n- "with" usually indicates accompaniments → combine or separate based on context'
     };
 
-    const systemMessage = `You are an expert food nutritionist and recipe analyst helping users track their meals. You excel at understanding cooking context and composite dishes.
+    const systemMessage = `${prompts.base_prompt}
 
-CRITICAL PARSING RULES:
+${prompts.composite_rules}
 
-1. ${prompts.composite_rules}
+${prompts.portion_estimation}
 
-2. ${prompts.portion_estimation}
+${prompts.nutrition_calculation}
 
-3. ${prompts.nutrition_calculation}
+${prompts.deduplication_logic}
 
-4. ${prompts.deduplication_logic}
-
-5. ${prompts.contextual_understanding}
-
-USER PROFILE:
-- Weight: ${profile.weight || 'not set'} ${profile.units === 'metric' ? 'kg' : 'lbs'}
-- Goal: ${profile.goal_weight ? `${profile.goal_weight} ${profile.units === 'metric' ? 'kg' : 'lbs'}` : 'not set'}
-- Activity: ${profile.activity_level || 'moderate'}
-
-FOOD CONTEXT:${foodLibraryContext}${recentFoodsContext}
+${prompts.contextual_understanding}
 
 USER INPUT: "${message}"
 
-ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES. Think about what the user actually ate or plans to eat, not individual ingredients.`;
+ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
 
     // OpenAI API call with function calling
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
