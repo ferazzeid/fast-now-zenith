@@ -64,6 +64,7 @@ const AdminData = lazy(() => import("./pages/admin/Data"));
 const AdminOperations = lazy(() => import("./pages/admin/Operations"));
 const AdminContent = lazy(() => import("./pages/admin/Content"));
 const AdminAI = lazy(() => import("./pages/admin/AI"));
+const AdminFunctions = lazy(() => import("./pages/admin/Functions"));
 const AdminBranding = lazy(() => import("./pages/admin/Branding"));
 const AdminPayments = lazy(() => import("./pages/admin/Payments"));
 // Initialize React Query cache persistence immediately - data loading is critical
@@ -355,6 +356,22 @@ const AppContent = () => {
                       </div>
                     }>
                       <AdminAI />
+                    </Suspense>
+                  </PageErrorBoundary>
+                </AdminProtectedRoute>
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/functions" element={
+              <ProtectedRoute>
+                <AdminProtectedRoute>
+                  <PageErrorBoundary>
+                    <Suspense fallback={
+                      <div className="container mx-auto p-6 space-y-4">
+                        <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+                        <div className="h-64 rounded-lg bg-muted animate-pulse" />
+                      </div>
+                    }>
+                      <AdminFunctions />
                     </Suspense>
                   </PageErrorBoundary>
                 </AdminProtectedRoute>

@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_function_prompts: {
+        Row: {
+          created_at: string
+          function_name: string
+          id: string
+          prompt_content: string
+          prompt_section: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          function_name: string
+          id?: string
+          prompt_content: string
+          prompt_section: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          function_name?: string
+          id?: string
+          prompt_content?: string
+          prompt_section?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_model_costs: {
         Row: {
           audio_cost_per_minute: number | null

@@ -116,41 +116,43 @@ serve(async (req) => {
       ? `\n\nRecent Foods (last 30 days): ${recentFoodsArray.map(f => `${f.name}: ${f.calories} cal, ${f.carbs}g carbs`).join('; ')}`
       : '';
 
-    // Enhanced system message with sophisticated composite food parsing
+    // Load prompts from database with fallbacks
+    const { data: promptsData } = await supabase
+      .from('ai_function_prompts')
+      .select('prompt_section, prompt_content')
+      .eq('function_name', 'analyze-food-voice');
+
+    // Build system message from database prompts with fallbacks
+    const prompts = {
+      composite_rules: promptsData?.find(p => p.prompt_section === 'composite_rules')?.prompt_content || 
+        'COMPOSITE FOOD INTELLIGENCE:\n- "Omelette from X, Y, Z" = ONE omelette entry (combine all ingredients nutritionally)\n- "Sandwich with X" = ONE sandwich entry (bread + filling combined)\n- "Salad with X, Y" = ONE salad entry (all components combined)\n- "Pancakes with syrup" = ONE pancake entry (including syrup)',
+      
+      portion_estimation: promptsData?.find(p => p.prompt_section === 'portion_estimation')?.prompt_content ||
+        'PORTION ESTIMATION (convert to grams):\n- "handful of cheese/nuts" = 30g\n- "handful of mushrooms/vegetables" = 40g\n- "handful of berries" = 80g\n- "slice of bread" = 25g\n- "slice of cheese" = 20g\n- "piece of chicken breast" = 120g\n- "egg" = 50g each\n- When amount unclear, use realistic portion sizes',
+      
+      nutrition_calculation: promptsData?.find(p => p.prompt_section === 'nutrition_calculation')?.prompt_content ||
+        'NUTRITION CALCULATION:\n- For composite dishes, calculate combined nutrition of all ingredients\n- Account for cooking methods (oil absorption, water loss, etc.)\n- Use realistic calorie densities per 100g',
+      
+      deduplication_logic: promptsData?.find(p => p.prompt_section === 'deduplication_logic')?.prompt_content ||
+        'SMART DEDUPLICATION:\n- NEVER create separate entries for ingredients of a composite dish\n- If user mentions multiple similar items, create appropriate separate entries\n- Combine obviously related ingredients into finished dishes',
+      
+      contextual_understanding: promptsData?.find(p => p.prompt_section === 'contextual_understanding')?.prompt_content ||
+        'CONTEXTUAL UNDERSTANDING:\n- "from" indicates ingredients of a dish → combine into one entry\n- "and" between separate foods → create separate entries\n- "with" usually indicates accompaniments → combine or separate based on context'
+    };
+
     const systemMessage = `You are an expert food nutritionist and recipe analyst helping users track their meals. You excel at understanding cooking context and composite dishes.
 
 CRITICAL PARSING RULES:
 
-1. COMPOSITE FOOD INTELLIGENCE:
-   - "Omelette from X, Y, Z" = ONE omelette entry (combine all ingredients nutritionally)
-   - "Sandwich with X" = ONE sandwich entry (bread + filling combined)
-   - "Salad with X, Y" = ONE salad entry (all components combined)
-   - "Pancakes with syrup" = ONE pancake entry (including syrup)
+1. ${prompts.composite_rules}
 
-2. PORTION ESTIMATION (convert to grams):
-   - "handful of cheese/nuts" = 30g
-   - "handful of mushrooms/vegetables" = 40g
-   - "handful of berries" = 80g
-   - "slice of bread" = 25g
-   - "slice of cheese" = 20g
-   - "piece of chicken breast" = 120g
-   - "egg" = 50g each
-   - When amount unclear, use realistic portion sizes
+2. ${prompts.portion_estimation}
 
-3. NUTRITION CALCULATION:
-   - For composite dishes, calculate combined nutrition of all ingredients
-   - Account for cooking methods (oil absorption, water loss, etc.)
-   - Use realistic calorie densities per 100g
+3. ${prompts.nutrition_calculation}
 
-4. SMART DEDUPLICATION:
-   - NEVER create separate entries for ingredients of a composite dish
-   - If user mentions multiple similar items, create appropriate separate entries
-   - Combine obviously related ingredients into finished dishes
+4. ${prompts.deduplication_logic}
 
-5. CONTEXTUAL UNDERSTANDING:
-   - "from" indicates ingredients of a dish → combine into one entry
-   - "and" between separate foods → create separate entries
-   - "with" usually indicates accompaniments → combine or separate based on context
+5. ${prompts.contextual_understanding}
 
 USER PROFILE:
 - Weight: ${profile.weight || 'not set'} ${profile.units === 'metric' ? 'kg' : 'lbs'}

@@ -14,6 +14,54 @@ function buildCorsHeaders(origin: string | null) {
   } as const;
 }
 
+async function buildImageAnalysisPrompt(supabase: any): Promise<string> {
+  try {
+    const { data: promptsData } = await supabase
+      .from('ai_function_prompts')
+      .select('prompt_section, prompt_content')
+      .eq('function_name', 'analyze-food-image');
+
+    const prompts = {
+      food_identification: promptsData?.find(p => p.prompt_section === 'food_identification')?.prompt_content || 
+        'Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues.',
+      
+      nutrition_reading: promptsData?.find(p => p.prompt_section === 'nutrition_reading')?.prompt_content ||
+        'Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.',
+      
+      fallback_estimation: promptsData?.find(p => p.prompt_section === 'fallback_estimation')?.prompt_content ||
+        'If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.',
+      
+      output_format: promptsData?.find(p => p.prompt_section === 'output_format')?.prompt_content ||
+        `Return ONLY JSON with this shape:
+{
+  "name": "Food name (include brand/type if visible)",
+  "calories_per_100g": number,
+  "carbs_per_100g": number,
+  "estimated_serving_size": number, // grams
+  "confidence": number, // 0-1
+  "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
+}`
+    };
+
+    return `You are a nutrition expert analyzing food images. ${prompts.food_identification} ${prompts.nutrition_reading}
+            ${prompts.output_format}
+            ${prompts.fallback_estimation}`;
+  } catch (error) {
+    console.error('Error loading image analysis prompts, using fallback:', error);
+    return `You are a nutrition expert analyzing food images. Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues. Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.
+            Return ONLY JSON with this shape:
+            {
+              "name": "Food name (include brand/type if visible)",
+              "calories_per_100g": number,
+              "carbs_per_100g": number,
+              "estimated_serving_size": number, // grams
+              "confidence": number, // 0-1
+              "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
+            }
+            If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.`;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
@@ -278,17 +326,7 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a nutrition expert analyzing food images. Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues. Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.
-            Return ONLY JSON with this shape:
-            {
-              "name": "Food name (include brand/type if visible)",
-              "calories_per_100g": number,
-              "carbs_per_100g": number,
-              "estimated_serving_size": number, // grams
-              "confidence": number, // 0-1
-              "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
-            }
-            If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.`
+            content: await buildImageAnalysisPrompt(dataClient)
           },
           {
             role: 'user',
