@@ -50,7 +50,7 @@ export const SimpleSubscriptionStatus: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Current Status */}
-      <div className="flex items-center justify-between p-3 border rounded-lg">
+      <div className="flex items-center justify-between p-3 border-subtle rounded-lg">
         <div>
           <p className="font-medium text-sm">{statusInfo.status}</p>
           <p className="text-xs text-muted-foreground">{statusInfo.description}</p>

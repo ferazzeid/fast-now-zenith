@@ -508,7 +508,7 @@ const BrandAssetsManager = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {currentAppIcon && (
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+            <div className="flex items-center gap-3 p-3 border-subtle rounded-lg bg-background">
               <img 
                 src={currentAppIcon} 
                 alt="Current app icon" 
@@ -570,7 +570,7 @@ const BrandAssetsManager = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {currentFavicon && (
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+            <div className="flex items-center gap-3 p-3 border-subtle rounded-lg bg-background">
               <img 
                 src={currentFavicon} 
                 alt="Current favicon" 
@@ -632,7 +632,7 @@ const BrandAssetsManager = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {currentLogo && (
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+            <div className="flex items-center gap-3 p-3 border-subtle rounded-lg bg-background">
               <img 
                 src={currentLogo} 
                 alt="Current logo" 
@@ -694,7 +694,7 @@ const BrandAssetsManager = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {currentHomeScreenIcon && (
-            <div className="flex items-center gap-3 p-3 border rounded-lg bg-background">
+            <div className="flex items-center gap-3 p-3 border-subtle rounded-lg bg-background">
               <img 
                 src={currentHomeScreenIcon} 
                 alt="Current home screen icon" 

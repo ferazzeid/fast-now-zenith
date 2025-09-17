@@ -65,7 +65,7 @@ export const FoodAnalysisResults = ({
 
       <CardContent className="space-y-4">
         {/* Image thumbnail */}
-        <div className="w-full h-32 rounded-lg overflow-hidden border bg-muted">
+        <div className="w-full h-32 rounded-lg overflow-hidden border-subtle bg-muted">
           <img 
             src={imageUrl} 
             alt="Analyzed food" 

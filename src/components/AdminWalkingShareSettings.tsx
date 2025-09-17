@@ -160,7 +160,7 @@ export const AdminWalkingShareSettings = () => {
           </Button>
         </div>
 
-        <div className="p-4 bg-muted/50 rounded-lg border">
+        <div className="p-4 bg-muted/50 rounded-lg border-subtle">
           <h4 className="font-medium mb-2">Preview</h4>
           <div className="text-sm text-muted-foreground space-y-1">
             <p>🚶‍♂️ Walking Update!</p>
