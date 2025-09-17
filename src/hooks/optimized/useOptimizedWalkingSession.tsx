@@ -238,6 +238,8 @@ export const useOptimizedWalkingSession = () => {
       const activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id)) as WalkingSession;
       if (!activeSession) throw new Error('No active session found');
 
+      console.log('🚶 Ending walking session:', activeSession.id);
+
       const now = new Date();
       const startTime = new Date(activeSession.start_time);
       let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
@@ -252,30 +254,40 @@ export const useOptimizedWalkingSession = () => {
       const activeDurationSeconds = Math.max(0, totalElapsed - totalPauseTime);
       const durationMinutes = Math.floor(activeDurationSeconds / 60);
 
+      console.log('🚶 Session duration calc:', { totalElapsed, totalPauseTime, activeDurationSeconds, durationMinutes });
+
       const { data, error } = await supabase
         .from('walking_sessions')
         .update({
           end_time: now.toISOString(),
           session_state: 'completed',
-          duration_minutes: durationMinutes,
+          status: 'completed',
         })
         .eq('id', activeSession.id)
         .eq('user_id', user.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('🚶 Database error ending session:', error);
+        throw error;
+      }
+
+      console.log('🚶 Successfully ended session:', data);
       return data;
     },
     onMutate: async () => {
+      console.log('🚶 Starting end session mutation');
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
     },
     onSuccess: (data) => {
+      console.log('🚶 End session mutation success:', data);
       // Clear active session and update sessions list
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
       queryClient.invalidateQueries({ queryKey: walkingSessionsQueryKey(user?.id || null) });
     },
     onError: (err, variables, context) => {
+      console.error('🚶 End session mutation error:', err);
       // Refetch active session on error
       queryClient.invalidateQueries({ queryKey: activeSessionQueryKey(user?.id || null) });
     },
@@ -289,10 +301,13 @@ export const useOptimizedWalkingSession = () => {
       const activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id)) as WalkingSession;
       if (!activeSession) throw new Error('No active session found');
 
+      console.log('🚶 Cancelling walking session:', activeSession.id);
+
       const { data, error } = await supabase
         .from('walking_sessions')
         .update({
           session_state: 'cancelled',
+          status: 'cancelled',
           end_time: new Date().toISOString(),
         })
         .eq('id', activeSession.id)
@@ -300,17 +315,25 @@ export const useOptimizedWalkingSession = () => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('🚶 Database error cancelling session:', error);
+        throw error;
+      }
+
+      console.log('🚶 Successfully cancelled session:', data);
       return data;
     },
     onMutate: async () => {
+      console.log('🚶 Starting cancel session mutation');
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
     },
     onSuccess: () => {
+      console.log('🚶 Cancel session mutation success');
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
       queryClient.invalidateQueries({ queryKey: walkingSessionsQueryKey(user?.id || null) });
     },
-    onError: () => {
+    onError: (err) => {
+      console.error('🚶 Cancel session mutation error:', err);
       queryClient.invalidateQueries({ queryKey: activeSessionQueryKey(user?.id || null) });
     },
   });

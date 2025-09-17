@@ -134,18 +134,23 @@ const Walking = () => {
     });
     
     try {
-      await endWalkingSession();
+      const result = await endWalkingSession();
+      console.log('✅ Walking session ended successfully:', result);
       trackWalkingEvent('stop', selectedSpeed, elapsedTime);
       toast({
         title: "Walking completed!",
         description: `Great job! You walked for ${formatTime(elapsedTime)}.`
       });
     } catch (error) {
-      console.error('Failed to stop walking session:', error);
+      console.error('❌ Failed to stop walking session:', error);
+      
+      // Show specific error message if available
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to stop walking session",
+        description: `Failed to stop walking session: ${errorMessage}`,
       });
     }
   };
@@ -180,19 +185,26 @@ const Walking = () => {
   };
 
   const handleCancelConfirm = async () => {
+    console.log('Cancel walking confirmed');
     setShowCancelConfirm(false);
+    
     try {
-      await cancelWalkingSession();
+      const result = await cancelWalkingSession();
+      console.log('✅ Walking session cancelled successfully:', result);
       toast({
         title: "Session cancelled",
         description: "Walking session was cancelled"
       });
     } catch (error) {
-      console.error('Failed to cancel walking session:', error);
+      console.error('❌ Failed to cancel walking session:', error);
+      
+      // Show specific error message if available
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to cancel walking session",
+        description: `Failed to cancel walking session: ${errorMessage}`,
       });
     }
   };
