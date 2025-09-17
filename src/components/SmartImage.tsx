@@ -37,8 +37,8 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   
   if (isRemoteUrl) {
     // Handle remote URLs with regular img tag
-    if (imageError) {
-      return <div className={className}>{fallback}</div>;
+    if (imageError || !imageUrl) {
+      return <div className={`${className} flex items-center justify-center`}>{fallback}</div>;
     }
 
     return (
@@ -56,7 +56,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
         imageId={imageUrl} 
         alt={alt} 
         className={className}
-        fallback={fallback}
+        fallback={<div className="flex items-center justify-center h-full w-full">{fallback}</div>}
       />
     );
   }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { Edit, X, Calculator, RotateCcw } from 'lucide-react';
+import { AlertCircle, Edit, X, Calculator, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { capitalizeFoodName } from '@/utils/textUtils';
 import { 
@@ -209,6 +209,17 @@ export const FoodSelectionModal = ({
             )}
           </div>
         </Card>
+
+        {/* Manual Entry Indicator */}
+        {foodSuggestion.foods.some(food => (food as any).needsManualInput) && (
+          <Card className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800">
+            <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              <span className="font-medium">Manual review required</span>
+              <span>- Please verify and adjust the nutritional information</span>
+            </div>
+          </Card>
+        )}
 
         {/* Original Voice Input Display */}
         {foodSuggestion.originalTranscription && (

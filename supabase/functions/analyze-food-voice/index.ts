@@ -299,10 +299,36 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
       }
     }
 
+    // If no function call and no foods found, provide fallback
+    if (!functionCall && completion && !completion.includes('validation_error')) {
+      return new Response(
+        JSON.stringify({
+          completion: completion,
+          functionCall: null,
+          errorType: 'no_foods_found',
+          originalTranscription: message,
+          fallbackSuggestion: {
+            name: capitalizeFoodName(message.trim()),
+            serving_size: 100, // Default serving size
+            calories: 0, // User will need to estimate
+            carbs: 0, // User will need to estimate
+            needsManualInput: true
+          }
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
+    }
+
     return new Response(
       JSON.stringify({
         completion: completion,
-        functionCall: functionCall
+        functionCall: functionCall,
+        originalTranscription: message
       }),
       { 
         headers: { 
@@ -318,7 +344,9 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
     return new Response(
       JSON.stringify({ 
         error: (error as Error).message,
-        completion: "I'm having trouble processing your food request. Please try again."
+        errorType: 'analysis_failed',
+        completion: "I'm having trouble processing your food request. Please try again.",
+        originalTranscription: message // Include original text for fallback
       }),
       {
         status: 500,

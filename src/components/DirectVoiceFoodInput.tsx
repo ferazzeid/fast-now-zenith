@@ -174,9 +174,59 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle different error types
+        if (error.message?.includes('transcription')) {
+          toast({
+            title: "Audio Processing Failed",
+            description: "I couldn't understand your voice input clearly. Please speak closer to the microphone and try again.",
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Processing Failed",
+            description: "I couldn't process your voice input. Please try again.",
+            variant: "destructive"
+          });
+        }
+        return;
+      }
 
-      // AI response processing
+      // Handle enhanced error responses
+      if (data?.errorType) {
+        switch (data.errorType) {
+          case 'no_foods_found':
+            // Offer fallback suggestion
+            if (data.fallbackSuggestion && data.originalTranscription) {
+              console.log('🍎 Creating fallback suggestion for:', data.originalTranscription);
+              setFoodSuggestion({
+                foods: [data.fallbackSuggestion],
+                destination: 'today',
+                added: false,
+                originalTranscription: data.originalTranscription
+              });
+              setSelectedFoodIds(new Set([0]));
+              setShowFoodModal(true);
+              
+              toast({
+                title: "Manual Entry Required",
+                description: `I heard: "${data.originalTranscription}" but need help identifying the food. Please review and adjust the details.`,
+                variant: "default"
+              });
+              return;
+            }
+            break;
+          case 'analysis_failed':
+            toast({
+              title: "Analysis Failed",
+              description: data.originalTranscription 
+                ? `I heard: "${data.originalTranscription}" but couldn't analyze the foods. Please try again or add manually.`
+                : "I couldn't analyze your voice input. Please try again.",
+              variant: "destructive"
+            });
+            return;
+        }
+      }
 
       // Handle function call response (add_multiple_foods)
       if (data?.functionCall?.name === 'add_multiple_foods') {
@@ -190,7 +240,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
             foods,
             destination: 'today',
             added: false,
-            originalTranscription: transcription // Add this for user feedback
+            originalTranscription: data.originalTranscription || transcription
           });
           setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
           setShowFoodModal(true);
@@ -201,12 +251,39 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
             variant: "destructive"
           });
         }
-      } else {
-        toast({
-          title: "Processing failed",
-          description: "I couldn't process your voice input. Please try again.",
-          variant: "destructive"
-        });
+      } else if (!data?.errorType) {
+        // Create fallback suggestion if we have transcription but no foods
+        if (transcription && transcription.trim().length > 0) {
+          console.log('🍎 Creating fallback suggestion for unprocessed transcription:', transcription);
+          const fallbackFood = {
+            name: transcription.trim(),
+            serving_size: 100,
+            calories: 0,
+            carbs: 0,
+            needsManualInput: true
+          };
+          
+          setFoodSuggestion({
+            foods: [fallbackFood],
+            destination: 'today',
+            added: false,
+            originalTranscription: transcription
+          });
+          setSelectedFoodIds(new Set([0]));
+          setShowFoodModal(true);
+          
+          toast({
+            title: "Manual Entry Required",
+            description: `I heard: "${transcription}" but need help with nutritional details. Please review and adjust.`,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "Processing failed",
+            description: "I couldn't process your voice input. Please try again.",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('❌ DirectVoiceFoodInput: Voice food processing error:', error);

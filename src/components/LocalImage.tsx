@@ -63,7 +63,7 @@ export const LocalImage: React.FC<LocalImageProps> = ({
   }
 
   if (error || !imageUrl) {
-    return <div className={className}>{fallback}</div>;
+    return <div className={`${className} flex items-center justify-center`}>{fallback}</div>;
   }
 
   return (
