@@ -198,7 +198,7 @@ export const LocalImageUpload = ({
             <div
               className={`
                 border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                ${isDragOver ? 'border-primary bg-primary/5' : 'border-muted-foreground/25'}
+                ${isDragOver ? 'border-primary bg-primary/5' : 'border-subtle'}
                 ${isUploading ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-primary/5'}
               `}
               onDragOver={handleDragOver}

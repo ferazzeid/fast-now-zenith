@@ -13,7 +13,7 @@
  * DESIGN_CONSISTENCY: 
  * - Standardized rounded-lg corners (8px)
  * - Consistent close button (24px, top-right, 16px margin)
- * - Standard header with separator line (1px, border-gray-200)
+ * - Standard header with separator line (1px, border-subtle)
  * - Uniform padding (24px) and spacing
  * - Mobile-responsive sizing with proper touch targets
  */

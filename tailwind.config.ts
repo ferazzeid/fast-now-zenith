@@ -30,6 +30,9 @@ export default {
 			},
 			colors: {
 				border: 'hsl(var(--border))',
+				'border-subtle': 'hsl(var(--border-subtle))',
+				'border-normal': 'hsl(var(--border-normal))',
+				'border-emphasis': 'hsl(var(--border-emphasis))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',

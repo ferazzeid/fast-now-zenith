@@ -458,7 +458,7 @@ const Motivators = () => {
                     {goalMotivators.length < 3 && [...Array(3 - goalMotivators.length)].map((_, index) => (
                       <Card 
                         key={`placeholder-${index}`} 
-                        className="overflow-hidden border-dashed border-2 border-muted-foreground/20 hover:border-primary/30 cursor-pointer transition-all duration-200 hover:bg-muted/10 bg-muted/5"
+                        className="overflow-hidden border-dashed border-2 border-subtle hover:border-primary/30 cursor-pointer transition-all duration-200 hover:bg-muted/10 bg-muted/5"
                         onClick={() => setShowFormModal(true)}
                       >
                         <CardContent className="p-6">

@@ -102,7 +102,7 @@ export const PWAIconUploader = () => {
             {uploadStatus.favicon ? (
               <CheckCircle className="w-4 h-4 text-green-500" />
             ) : (
-              <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+              <div className="w-4 h-4 rounded-full border-2 border-subtle" />
             )}
             <span>Favicon</span>
           </div>
@@ -110,7 +110,7 @@ export const PWAIconUploader = () => {
             {uploadStatus.apple ? (
               <CheckCircle className="w-4 h-4 text-green-500" />
             ) : (
-              <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+              <div className="w-4 h-4 rounded-full border-2 border-subtle" />
             )}
             <span>Apple Touch Icon</span>
           </div>
@@ -118,7 +118,7 @@ export const PWAIconUploader = () => {
             {uploadStatus.pwa ? (
               <CheckCircle className="w-4 h-4 text-green-500" />
             ) : (
-              <div className="w-4 h-4 rounded-full border-2 border-gray-300" />
+              <div className="w-4 h-4 rounded-full border-2 border-subtle" />
             )}
             <span>PWA Icon</span>
           </div>

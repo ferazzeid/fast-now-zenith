@@ -56,7 +56,7 @@ export const AdminInsightDisplay: React.FC<AdminInsightDisplayProps> = ({
       <div
         className={cn(
           "relative flex-shrink-0 w-12 h-12",
-          "border-2 border-[#dac471] bg-gradient-to-br from-[#dac471]/20 to-[#dac471]/10",
+          "border-2 border-primary bg-gradient-to-br from-primary/20 to-primary/10",
           "author-tooltip-bubble shadow-lg"
         )}
         style={{

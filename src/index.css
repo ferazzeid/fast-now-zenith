@@ -127,6 +127,9 @@ All colors MUST be HSL.
     --info-foreground: 0 0% 98%;
 
     --border: 0 0% 85%;
+    --border-subtle: 0 0% 90%;
+    --border-normal: 0 0% 85%;
+    --border-emphasis: 0 0% 75%;
     --input: 0 0% 96%;
     --ring: 0 0% 85%;
 
@@ -194,6 +197,9 @@ All colors MUST be HSL.
     --destructive-foreground: 0 0% 88%;
 
     --border: 0 0% 20%;
+    --border-subtle: 0 0% 15%;
+    --border-normal: 0 0% 20%;
+    --border-emphasis: 0 0% 30%;
     --input: 0 0% 8%;
     --ring: 0 0% 20%;
 
@@ -238,6 +244,17 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Border standardization utilities */
+  .border-subtle {
+    @apply border-border-subtle;
+  }
+  .border-normal {
+    @apply border-border-normal;
+  }
+  .border-emphasis {
+    @apply border-border-emphasis;
   }
 }
 
