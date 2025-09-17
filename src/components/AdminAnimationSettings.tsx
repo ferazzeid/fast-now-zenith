@@ -15,6 +15,7 @@ export const AdminAnimationSettings = () => {
   const [enableCeramicAnimations, setEnableCeramicAnimations] = useState(true);
   const [enableQuotesInAnimations, setEnableQuotesInAnimations] = useState(true);
   const [enableNotesInAnimations, setEnableNotesInAnimations] = useState(true);
+  const [enableGoalsInAnimations, setEnableGoalsInAnimations] = useState(true);
 
   useEffect(() => {
     if (profile) {
@@ -24,6 +25,7 @@ export const AdminAnimationSettings = () => {
       setEnableCeramicAnimations(profile.enable_ceramic_animations ?? true);
       setEnableQuotesInAnimations(profile.enable_quotes_in_animations ?? true);
       setEnableNotesInAnimations(profile.enable_notes_in_animations ?? true);
+      setEnableGoalsInAnimations(profile.enable_goals_in_animations ?? true);
     }
   }, [profile]);
 
@@ -133,6 +135,20 @@ export const AdminAnimationSettings = () => {
               onCheckedChange={(checked) => {
                 setEnableNotesInAnimations(checked);
                 handleAnimationToggle('enable_notes_in_animations', checked);
+              }}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <Label htmlFor="goals-in-animations">
+              Show Goals/Motivators in Timer Animations
+            </Label>
+            <Switch
+              id="goals-in-animations"
+              checked={enableGoalsInAnimations}
+              onCheckedChange={(checked) => {
+                setEnableGoalsInAnimations(checked);
+                handleAnimationToggle('enable_goals_in_animations', checked);
               }}
             />
           </div>
