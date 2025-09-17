@@ -168,13 +168,13 @@ export const EditDefaultFoodModal = ({ food, onUpdate, isOpen, onClose, mode = '
         footer={
           <>
             <Button
-              variant="outline"
+              variant="soft"
               onClick={() => {
                 if (onClose) onClose(); else setInternalOpen(false);
               }}
               className="flex-1"
             >
-              Cancel
+              <X className="w-4 h-4" />
             </Button>
             <Button 
               onClick={handleSave} 

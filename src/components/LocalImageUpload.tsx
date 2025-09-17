@@ -150,15 +150,15 @@ export const LocalImageUpload = ({
                 }
               />
             </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleRemoveImage}
-              className="absolute top-2 right-2 h-8 w-8 p-0"
-              disabled={isUploading}
-            >
-              <X className="w-4 h-4" />
-            </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveImage}
+                  className="absolute top-2 right-2 h-8 w-8 p-0"
+                  disabled={isUploading}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
           </div>
           
           {showUploadOptionsWhenImageExists && (
