@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
+import { X } from 'lucide-react';
 
 interface ProfileCompletionPromptProps {
   isOpen: boolean;
@@ -112,12 +113,24 @@ export const ProfileCompletionPrompt = ({
           />
         </div>
         
-        <div className="flex gap-2 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">
-            Skip for Now
+        <div className="flex gap-3 pt-4">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="action-secondary"
+            onClick={onClose} 
+            className="w-12"
+          >
+            <X className="w-4 h-4" />
           </Button>
-          <Button type="submit" disabled={loading} className="flex-1">
-            {loading ? "Saving..." : "Save & Continue"}
+          <Button 
+            type="submit" 
+            variant="action-primary"
+            size="action-secondary"
+            disabled={loading} 
+            className="flex-1"
+          >
+            {loading ? "Saving..." : "Save"}
           </Button>
         </div>
       </form>

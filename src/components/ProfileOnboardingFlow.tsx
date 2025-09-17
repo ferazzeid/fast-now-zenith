@@ -8,6 +8,7 @@ import { EnhancedHeightSelector } from '@/components/EnhancedHeightSelector';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { X } from 'lucide-react';
 
 interface ProfileOnboardingFlowProps {
   onComplete: () => void;
@@ -440,15 +441,23 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         size="md"
         footer={
           <>
-            <Button variant="outline" onClick={() => setActiveModal(null)}>
-              Cancel
+            <Button 
+              variant="ghost" 
+              size="action-secondary"
+              onClick={() => setActiveModal(null)}
+              className="w-12"
+            >
+              <X className="w-4 h-4" />
             </Button>
             <Button 
+              variant="action-primary"
+              size="action-secondary"
               onClick={saveModal}
               disabled={
                 (typeof tempValue === 'object' && !tempValue?.weight && !tempValue?.height) ||
                 (typeof tempValue === 'string' && !tempValue)
               }
+              className="flex-1"
             >
               Save
             </Button>

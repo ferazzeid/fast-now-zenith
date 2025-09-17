@@ -3,7 +3,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -99,20 +99,21 @@ export const ManualCalorieModal = ({ onCalorieAdded }: ManualCalorieModalProps) 
         footer={
           <>
             <Button 
-              variant="outline" 
+              variant="ghost" 
+              size="action-secondary"
               onClick={() => setIsOpen(false)}
-              className="w-full h-10"
-              size="default"
+              className="w-12"
             >
-              Cancel
+              <X className="w-4 h-4" />
             </Button>
             <Button 
+              variant="action-primary"
+              size="action-secondary"
               onClick={handleSave}
               disabled={saving || !activityName.trim() || !caloriesBurned}
-              className="w-full h-10"
-              size="default"
+              className="flex-1"
             >
-              {saving ? 'Saving...' : 'Add Activity'}
+              {saving ? 'Saving...' : 'Create'}
             </Button>
           </>
         }
