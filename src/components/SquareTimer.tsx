@@ -109,8 +109,8 @@ const SquareTimerComponent = ({
               </div>
             )}
             
-            {/* Count Direction Toggle Button - only show when active */}
-            {isActive && (
+            {/* Count Direction Toggle Button - only show when timer-focused */}
+            {isActive && motivatorMode === 'timer-focused' && (
               <div className="absolute bottom-4 right-4 z-20">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -158,8 +158,8 @@ const SquareTimerComponent = ({
                 {isActive ? 'Fasting' : 'Ready to Fast'}
               </div>
               
-              {/* Start Time - only show when active */}
-              {isActive && startTime && (
+              {/* Start Time - only show when timer-focused */}
+              {isActive && startTime && motivatorMode === 'timer-focused' && (
                 <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
                   <span>Started {new Date(startTime).toLocaleTimeString([], { 

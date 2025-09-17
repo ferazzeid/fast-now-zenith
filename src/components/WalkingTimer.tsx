@@ -121,8 +121,8 @@ const WalkingTimerComponent = ({
               {isPaused ? 'Paused' : isActive ? 'Walking' : 'Ready to Walk'}
             </div>
             
-            {/* Start Time - only show when active */}
-            {isActive && realTimeStats && (
+            {/* Start Time - only show when timer-focused */}
+            {isActive && realTimeStats && motivatorMode === 'timer-focused' && (
               <div className="flex items-center justify-center gap-2 mt-3 text-sm text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span>Started {new Date(realTimeStats.startTime).toLocaleTimeString([], { 
@@ -136,8 +136,8 @@ const WalkingTimerComponent = ({
 
         </Card>
 
-        {/* Control Buttons - all on same line when active */}
-        {isActive && (
+        {/* Control Buttons - all on same line when timer-focused */}
+        {isActive && motivatorMode === 'timer-focused' && (
           <div className="flex gap-3 w-full">
             {/* Left half: Pause and Cancel buttons */}
             <div className="flex gap-2 flex-1">

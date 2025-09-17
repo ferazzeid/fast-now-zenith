@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useMotivators } from '@/hooks/useMotivators';
 import { useOptimizedQuoteSettings } from '@/hooks/optimized/useOptimizedQuoteSettings';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { useAdminAnimationSettings } from '@/hooks/useAdminAnimationSettings';
 
 interface ImprovedUnifiedMotivatorRotationProps {
   isActive: boolean;
@@ -33,6 +34,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
   const { quotes } = useOptimizedQuoteSettings();
+  const adminSettings = useAdminAnimationSettings();
   
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');
@@ -46,41 +48,86 @@ export const ImprovedUnifiedMotivatorRotation = ({
   const items = useMemo(() => {
     const unifiedItems: UnifiedItem[] = [];
 
-    // Add motivators that are set to show in animations
-    const activeMotivators = motivators.filter(m => 
-      m.show_in_animations && m.title && m.title.trim() !== ''
-    );
-    
-    activeMotivators.forEach(motivator => {
-      unifiedItems.push({
-        id: motivator.id,
-        title: motivator.title,
-        content: motivator.content,
-        imageUrl: motivator.imageUrl,
-        type: motivator.category === 'personal_note' ? 'note' : 'motivator',
-      });
-    });
-
-    // Add quotes based on type
-    const quotesToUse = quotesType === 'walking' 
-      ? quotes.walking_timer_quotes 
-      : quotes.fasting_timer_quotes;
+    // Add motivators that are set to show in animations - but only if admin allows the category
+    if (adminSettings.enable_goals_in_animations) {
+      const activeGoals = motivators.filter(m => 
+        m.show_in_animations && 
+        m.title && 
+        m.title.trim() !== '' &&
+        m.category !== 'saved_quote' &&
+        m.category !== 'personal_note'
+      );
       
-    if (quotesToUse && Array.isArray(quotesToUse)) {
-      quotesToUse.forEach((quote, idx) => {
-        if (quote.text && quote.text.trim() !== '') {
-          unifiedItems.push({
-            id: `quote-${idx}`,
-            title: quote.text,
-            type: 'quote',
-            author: quote.author || 'Unknown Author',
-          });
-        }
+      activeGoals.forEach(motivator => {
+        unifiedItems.push({
+          id: motivator.id,
+          title: motivator.title,
+          content: motivator.content,
+          imageUrl: motivator.imageUrl,
+          type: 'motivator',
+        });
+      });
+    }
+
+    // Add saved quotes - but only if admin allows quotes
+    if (adminSettings.enable_quotes_in_animations) {
+      const savedQuotes = motivators.filter(m => 
+        m.show_in_animations && 
+        m.category === 'saved_quote' &&
+        m.content &&
+        m.content.trim() !== ''
+      );
+      
+      savedQuotes.forEach(quote => {
+        unifiedItems.push({
+          id: quote.id,
+          title: quote.content, // Use content as the quote text
+          type: 'quote',
+          author: quote.title || 'Unknown Author', // Use title as author
+        });
+      });
+
+      // Add system quotes based on type
+      const quotesToUse = quotesType === 'walking' 
+        ? quotes.walking_timer_quotes 
+        : quotes.fasting_timer_quotes;
+        
+      if (quotesToUse && Array.isArray(quotesToUse)) {
+        quotesToUse.forEach((quote, idx) => {
+          if (quote.text && quote.text.trim() !== '') {
+            unifiedItems.push({
+              id: `system-quote-${idx}`,
+              title: quote.text,
+              type: 'quote',
+              author: quote.author || 'Unknown Author',
+            });
+          }
+        });
+      }
+    }
+
+    // Add notes - but only if admin allows notes
+    if (adminSettings.enable_notes_in_animations) {
+      const activeNotes = motivators.filter(m => 
+        m.show_in_animations && 
+        m.category === 'personal_note' &&
+        m.title && 
+        m.title.trim() !== ''
+      );
+      
+      activeNotes.forEach(note => {
+        unifiedItems.push({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          imageUrl: note.imageUrl,
+          type: 'note',
+        });
       });
     }
 
     return unifiedItems;
-  }, [motivators, quotes, quotesType]);
+  }, [motivators, quotes, quotesType, adminSettings]);
 
   // Handle visibility changes - reset to timer when document becomes visible
   useEffect(() => {
@@ -206,7 +253,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
                   >
                     "{current.title}"
                   </p>
-                  {current.author && current.author !== 'Unknown Author' && (
+                  {current.author && current.author !== 'Unknown Author' && current.author.trim() !== '' && (
                     <p className="text-xs text-white/80 mt-2 font-medium">
                       — {current.author}
                     </p>

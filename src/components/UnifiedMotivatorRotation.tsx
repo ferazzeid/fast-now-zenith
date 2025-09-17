@@ -3,6 +3,7 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useProfile } from '@/hooks/useProfile';
 import { useQuoteSettings } from '@/hooks/useQuoteSettings';
+import { useAdminAnimationSettings } from '@/hooks/useAdminAnimationSettings';
 
 interface UnifiedMotivatorRotationProps {
   isActive: boolean;
@@ -36,6 +37,7 @@ export const UnifiedMotivatorRotation = ({
   const { motivators } = useMotivators();
   const { profile } = useProfile();
   const { quotes: quoteSettings } = useQuoteSettings();
+  const adminSettings = useAdminAnimationSettings();
   
   // Combine all content types into unified items
   const items: UnifiedItem[] = useMemo(() => {
@@ -48,43 +50,50 @@ export const UnifiedMotivatorRotation = ({
         return showInAnimations !== false; // Show if true or undefined/null
       });
 
-    const goalMotivators = allMotivators
-      .filter(item => item.category !== 'saved_quote') // Only actual goals
-      .map(item => ({
-        id: `motivator-${item.id}`,
-        title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
-        content: item.content,
-        imageUrl: item.imageUrl,
-        type: 'motivator' as const
-      }));
+    const goalMotivators = adminSettings.enable_goals_in_animations 
+      ? allMotivators
+          .filter(item => item.category !== 'saved_quote' && item.category !== 'personal_note') // Only actual goals
+          .map(item => ({
+            id: `motivator-${item.id}`,
+            title: item.title || item.content?.substring(0, 50) + '...' || 'Untitled',
+            content: item.content,
+            imageUrl: item.imageUrl,
+            type: 'motivator' as const
+          }))
+      : [];
 
-    const savedQuotes = allMotivators
-      .filter(item => item.category === 'saved_quote') // Saved quotes from motivators table
-      .map(item => ({
-        id: `saved-quote-${item.id}`,
-        title: item.content || item.title || 'Untitled', // Use content (quote) as title for display
-        content: item.content || item.title, // Keep content same
-        author: item.title, // Store author separately
-        imageUrl: item.imageUrl,
-        type: 'quote' as const
-      }));
+    const savedQuotes = adminSettings.enable_quotes_in_animations 
+      ? allMotivators
+          .filter(item => item.category === 'saved_quote' && item.content && item.content.trim() !== '') // Saved quotes from motivators table
+          .map(item => ({
+            id: `saved-quote-${item.id}`,
+            title: item.content, // Use content (quote) as title for display
+            content: item.content, // Keep content same
+            author: item.title, // Store author separately
+            imageUrl: item.imageUrl,
+            type: 'quote' as const
+          }))
+      : [];
 
     // Add walking timer quotes only if enabled
     const walkingQuotes = quoteSettings?.walking_timer_quotes || [];
-    const filteredQuotes = (quoteSettings?.walking_timer_quotes_enabled !== false) 
-      ? walkingQuotes.map((quote, index) => ({
-          id: `quote-${index}`,
-          title: quote.text,
-          content: quote.text,
-          imageUrl: null,
-          type: 'quote' as const
-        }))
+    const filteredQuotes = (adminSettings.enable_quotes_in_animations && quoteSettings?.walking_timer_quotes_enabled !== false) 
+      ? walkingQuotes
+          .filter(quote => quote.text && quote.text.trim() !== '') // Filter out empty quotes
+          .map((quote, index) => ({
+            id: `quote-${index}`,
+            title: quote.text,
+            content: quote.text,
+            imageUrl: null,
+            type: 'quote' as const,
+            author: quote.author && quote.author.trim() !== '' ? quote.author : undefined
+          }))
       : [];
 
     const allItems = [...goalMotivators, ...savedQuotes, ...filteredQuotes];
       
     return allItems;
-  }, [motivators, quoteSettings]);
+  }, [motivators, quoteSettings, adminSettings]);
 
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('timer');
@@ -240,7 +249,9 @@ export const UnifiedMotivatorRotation = ({
                   >
                     "{current.title}"
                   </p>
-                  {(current as any).author && (current as any).author !== 'Unknown Author' && (
+                  {(current as any).author && 
+                   (current as any).author !== 'Unknown Author' && 
+                   (current as any).author.trim() !== '' && (
                     <p className="text-xs text-white/80 mt-2 font-medium">
                       — {(current as any).author}
                     </p>
