@@ -61,7 +61,7 @@ export function NavigationPreferences() {
         return (
           <div key={key} className="flex items-center justify-between p-3 rounded-lg border bg-card">
             <div className="flex items-center space-x-3">
-              <Icon className="w-4 h-4 text-muted-foreground" />
+              <Icon className="w-5 h-5 text-muted-foreground" />
               <div className="flex flex-col">
                 <Label htmlFor={`nav-${key}`} className="font-medium text-sm">
                   {label}

@@ -16,14 +16,14 @@ export const ThemeToggle = () => {
       {themeOptions.map(({ value, icon: Icon, label }) => (
         <Button
           key={value}
-          variant={theme === value ? 'default' : 'ghost'}
+          variant="ghost"
           size="sm"
           onClick={() => setTheme(value)}
           className={`
             flex-1 h-8 px-2 transition-all duration-200
             ${theme === value 
-              ? 'bg-background shadow-sm text-foreground' 
-              : 'hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground'
+              ? 'bg-background shadow-sm text-foreground border border-subtle' 
+              : 'hover:bg-muted hover:text-foreground text-muted-foreground'
             }
           `}
         >

@@ -730,7 +730,12 @@ const Settings = () => {
             </Card>
 
             {/* Save Settings Button - under Profile */}
-            <Button onClick={handleSaveSettings} variant="action-primary" size="action-main" className="w-full">
+            <Button 
+              onClick={handleSaveSettings} 
+              variant="action-primary" 
+              size="action-main" 
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            >
               Save Settings
             </Button>
 
