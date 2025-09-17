@@ -9,17 +9,23 @@ import { Copy, Palette } from 'lucide-react';
 const EnhancedColorManagement: React.FC = () => {
   const { toast } = useToast();
   
-  // Current hard-coded color values
+  // Current color values from design system
   const currentColors = {
     light: {
-      primary: '0 0% 90%', // Changed to match secondary
-      secondary: '0 0% 90%',
-      accent: '140 25% 85%'
+      primary: '0 0% 15%',
+      primaryHover: '0 0% 25%', 
+      accent: '140 15% 65%',
+      background: '0 0% 96%',
+      foreground: '0 0% 15%',
+      muted: '0 0% 88%'
     },
     dark: {
-      primary: '0 0% 15%', // Changed to match secondary in dark mode  
-      secondary: '0 0% 15%',
-      accent: '0 0% 15%'
+      primary: '0 0% 15%',
+      primaryHover: '0 0% 25%',
+      accent: '140 20% 40%', 
+      background: '0 0% 11%',
+      foreground: '0 0% 88%',
+      muted: '0 0% 15%'
     }
   };
 
@@ -31,20 +37,6 @@ const EnhancedColorManagement: React.FC = () => {
     });
   };
 
-  const generateCSSCode = () => {
-    return `/* Current hard-coded CSS variables in src/index.css */
-:root {
-  --primary: ${currentColors.light.primary};
-  --secondary: ${currentColors.light.secondary};
-  --accent: ${currentColors.light.accent};
-}
-
-.dark {
-  --primary: ${currentColors.dark.primary};
-  --secondary: ${currentColors.dark.secondary};
-  --accent: ${currentColors.dark.accent};
-}`;
-  };
 
   return (
     <Card className="w-full">
@@ -68,10 +60,13 @@ const EnhancedColorManagement: React.FC = () => {
                   <Label className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}:</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <div 
-                      className="w-6 h-6 rounded border"
+                      className="w-8 h-8 rounded-lg border-2 border-border shadow-sm"
                       style={{ backgroundColor: `hsl(${value})` }}
                     />
-                    <p className="text-sm text-muted-foreground font-mono">{value}</p>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-foreground">hsl({value})</p>
+                      <p className="text-xs text-muted-foreground capitalize">Used for {key.replace(/([A-Z])/g, ' $1').toLowerCase()}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -85,10 +80,13 @@ const EnhancedColorManagement: React.FC = () => {
                   <Label className="text-sm font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}:</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <div 
-                      className="w-6 h-6 rounded border"
+                      className="w-8 h-8 rounded-lg border-2 border-border shadow-sm"
                       style={{ backgroundColor: `hsl(${value})` }}
                     />
-                    <p className="text-sm text-muted-foreground font-mono">{value}</p>
+                    <div className="flex flex-col">
+                      <p className="text-sm font-medium text-foreground">hsl({value})</p>
+                      <p className="text-xs text-muted-foreground capitalize">Used for {key.replace(/([A-Z])/g, ' $1').toLowerCase()}</p>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -96,25 +94,14 @@ const EnhancedColorManagement: React.FC = () => {
           </TabsContent>
         </Tabs>
 
-        <div className="space-y-4 mt-6">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium">CSS Variables</h4>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyToClipboard(generateCSSCode(), "CSS")}
-                className="flex items-center gap-2"
-              >
-                <Copy className="h-4 w-4" />
-                Copy CSS
-              </Button>
-            </div>
-            <div className="max-h-40 overflow-y-auto bg-muted rounded-md">
-              <pre className="text-xs p-3 whitespace-pre-wrap">
-                {generateCSSCode()}
-              </pre>
-            </div>
+        <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+          <h4 className="font-medium text-foreground mb-2">Color Usage Guide</h4>
+          <div className="text-sm text-muted-foreground space-y-1">
+            <p><strong>Primary:</strong> Main brand color, buttons, links</p>
+            <p><strong>Accent:</strong> Highlights, success states, timers</p>
+            <p><strong>Background:</strong> Page backgrounds</p>
+            <p><strong>Foreground:</strong> Main text content</p>
+            <p><strong>Muted:</strong> Secondary backgrounds, borders</p>
           </div>
         </div>
       </CardContent>
