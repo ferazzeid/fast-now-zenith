@@ -27,7 +27,7 @@ export interface IntermittentFastingPreset {
   description: string;
 }
 
-// Common IF presets
+// Common IF presets - simplified to core options
 export const IF_PRESETS: IntermittentFastingPreset[] = [
   {
     name: '16:8',
@@ -40,18 +40,6 @@ export const IF_PRESETS: IntermittentFastingPreset[] = [
     fasting_hours: 23,
     eating_hours: 1,
     description: 'One Meal A Day - 23 hour fast'
-  },
-  {
-    name: '18:6',
-    fasting_hours: 18,
-    eating_hours: 6,
-    description: 'Fast for 18 hours, eat within 6 hours'
-  },
-  {
-    name: '20:4',
-    fasting_hours: 20,
-    eating_hours: 4,
-    description: 'Fast for 20 hours, eat within 4 hours'
   }
 ];
 
