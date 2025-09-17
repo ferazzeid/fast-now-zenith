@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -124,15 +124,21 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
         <>
           <Button
             variant="outline"
+            size="action-secondary"
             onClick={() => {
               if (onClose) onClose(); else setInternalOpen(false);
             }}
-            className="w-full"
+            className="flex-1"
           >
-            Cancel
+            <X className="w-4 h-4" />
           </Button>
-          <Button onClick={handleSave} disabled={isLoading} className="w-full">
-            <Save className="w-4 h-4 mr-2" />
+          <Button 
+            onClick={handleSave} 
+            disabled={isLoading} 
+            variant="action-primary"
+            size="action-secondary"
+            className="flex-1"
+          >
             {isLoading ? 'Saving...' : 'Save'}
           </Button>
         </>

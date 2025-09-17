@@ -238,8 +238,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Enter food (e.g., pasta, apple, chicken)..."
-              className="flex-1 h-10 text-sm text-center border border-subtle bg-background/80 placeholder:text-muted-foreground/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:border-ring"
+              placeholder="Enter food"
+              className="flex-1 h-10 text-sm text-center border-0 bg-muted/50 placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:border-0 focus-visible:bg-muted/80 rounded-md"
               autoFocus
               disabled={isProcessing}
             />
@@ -248,7 +248,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
               disabled={!inputText.trim() || isProcessing}
               size="sm"
               variant="default"
-              className="shrink-0 h-10 px-4 rounded-full"
+              className="shrink-0 h-10 px-4 rounded-md"
               title="Add food"
             >
               {isProcessing ? (
