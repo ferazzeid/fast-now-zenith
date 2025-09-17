@@ -1,5 +1,5 @@
 import React from "react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 
 interface FastingModeToggleProps {
   currentMode: 'fasting' | 'if';
@@ -20,31 +20,31 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
 
   return (
     <div className="absolute top-0 right-0">
-      <ToggleGroup 
-        type="single" 
-        value={currentMode} 
-        onValueChange={(value) => {
-          console.log('ToggleGroup onValueChange called with:', value);
-          if (value && (value === 'fasting' || value === 'if')) {
-            onModeChange(value);
-          }
-        }}
-        className="bg-muted rounded-md p-0.5"
-        size="sm"
-      >
-        <ToggleGroupItem 
-          value="fasting" 
-          className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
+      <div className="bg-muted rounded-md p-0.5 flex">
+        <Button
+          variant={currentMode === 'fasting' ? "default" : "ghost"}
+          size="sm"
+          onClick={() => {
+            console.log('Extended button clicked, switching to fasting');
+            onModeChange('fasting');
+          }}
+          className="h-6 px-2 text-xs font-medium"
         >
           Extended
-        </ToggleGroupItem>
-        <ToggleGroupItem 
-          value="if" 
-          className="h-6 px-2 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm"
+        </Button>
+        
+        <Button
+          variant={currentMode === 'if' ? "default" : "ghost"}
+          size="sm"
+          onClick={() => {
+            console.log('Intermittent button clicked, switching to if');
+            onModeChange('if');
+          }}
+          className="h-6 px-2 text-xs font-medium"
         >
           Intermittent
-        </ToggleGroupItem>
-      </ToggleGroup>
+        </Button>
+      </div>
     </div>
   );
 };
