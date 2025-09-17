@@ -93,15 +93,15 @@ export const FastSelector = ({
           <Button 
             variant="outline" 
             onClick={onClose} 
-            className="w-full h-10"
+            className="flex-1 h-10"
             size="default"
           >
-            Cancel
+            <X className="w-4 h-4" />
           </Button>
           <Button 
             onClick={handleConfirm} 
             disabled={!isValidDateTime()}
-            className="w-full h-10"
+            className="flex-1 h-10"
             size="default"
           >
             {startInPast ? 'Start Past Fasting' : 'Start Fasting'}

@@ -763,11 +763,11 @@ const Settings = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Status</span>
                   <div className="flex gap-2">
-                    {accessIsAdmin && (
-                       <span className="inline-flex items-center px-2 py-1 font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 rounded-full text-ui-xs">
-                         Admin
-                       </span>
-                    )}
+                     {accessIsAdmin && (
+                        <span className="inline-flex items-center px-2 py-1 font-medium bg-muted text-muted-foreground rounded-full text-ui-xs">
+                          Admin
+                        </span>
+                     )}
                     {!accessIsAdmin && access.hasPremiumFeatures && (
                        <span className="inline-flex items-center px-2 py-1 font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-ui-xs">
                          Premium
