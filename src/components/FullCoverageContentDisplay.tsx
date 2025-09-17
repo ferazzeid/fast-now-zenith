@@ -49,9 +49,14 @@ export const FullCoverageContentDisplay: React.FC<FullCoverageContentDisplayProp
           "absolute inset-0 transition-all duration-500",
           hasImage 
             ? "bg-black/60 backdrop-blur-[0.5px]" // Semi-transparent dark overlay for images
-            : "bg-background border border-border" // Clean background for text-only
+            : "bg-background" // Clean background for text-only, no border here
         )}
       />
+
+      {/* Border for text-only version - separate from background to fix corner issue */}
+      {!hasImage && (
+        <div className="absolute inset-0 border border-border rounded-lg pointer-events-none" />
+      )}
 
       {/* Content Container */}
       <div className="relative z-10 p-6 h-full flex flex-col justify-center">
