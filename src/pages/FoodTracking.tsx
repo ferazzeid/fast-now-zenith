@@ -515,28 +515,40 @@ const FoodTracking = () => {
                   </div>
                 ) : (
                   <div className="space-y-1">
-                    {/* Manual Food List Controls - Above First Food Item */}
-                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-border">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleMarkAllAsEaten}
-                        disabled={isBulkMarking || todayEntries.every(entry => entry.consumed)}
-                        className="flex items-center gap-2 h-8 px-3 text-xs font-medium"
-                      >
-                        <Check className="w-3 h-3" />
-                        Mark All Eaten
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowClearAllDialog(true)}
-                        disabled={isClearingAll}
-                        className="flex items-center gap-2 h-8 px-3 text-xs font-medium text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        Clear All
-                      </Button>
+                    {/* Small icon buttons positioned above food list */}
+                    <div className="flex justify-end items-center gap-2 pb-4 border-b border-border">
+                      <div className="flex items-center gap-2 mr-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => setShowClearAllDialog(true)}
+                          className={`h-5 w-5 p-1 rounded text-destructive hover:text-destructive ${
+                            isClearingAll 
+                              ? 'bg-muted/50 hover:bg-muted/70' 
+                              : 'bg-transparent hover:bg-destructive/10'
+                          }`}
+                          disabled={isClearingAll}
+                          title="Delete all foods"
+                          aria-label="Delete all foods"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={handleMarkAllAsEaten}
+                          disabled={isBulkMarking}
+                          className={`h-5 w-5 p-1 rounded ${
+                            todayEntries.some(entry => !entry.consumed)
+                              ? 'bg-accent hover:bg-accent/90 text-accent-foreground' 
+                              : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
+                          }`}
+                          title="Mark all foods as eaten"
+                          aria-label="Mark all foods as eaten"
+                        >
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Sort entries so consumed items appear at the bottom */}
