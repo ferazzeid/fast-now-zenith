@@ -103,8 +103,8 @@ const SquareTimerComponent = ({
                   onModeChange={setMotivatorMode}
                   className="rounded-lg"
                   quotesType="fasting"
-                  contentDurationMs={6000}
-                  timerFocusDurationMs={4000}
+                  contentDurationMs={5000}
+                  timerFocusDurationMs={3000}
                 />
               </div>
             )}

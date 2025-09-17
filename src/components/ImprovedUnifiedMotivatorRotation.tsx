@@ -189,7 +189,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
             setTimeout(() => {
               if (runIdRef.current !== thisRun) return;
               loop();
-            }, 800); // 800ms delay to ensure clean transition
+            }, 500); // Reduced transition delay for smoother flow
           }, contentDurationMs);
         }, timerFocusDurationMs);
     };
@@ -209,52 +209,65 @@ export const ImprovedUnifiedMotivatorRotation = ({
   const showContent = phase === 'content' && current;
 
   return (
-        <div className={`absolute inset-0 ${className}`}>
-      {/* Content display */}
+    <div className={`absolute inset-0 ${className}`}>
+      {/* Content display - image and title appear together */}
       {showContent && (
-        <>
+        <div 
+          className="absolute inset-0 transition-all duration-1000 ease-in-out"
+          style={{ 
+            opacity: showContent ? 1 : 0,
+            transform: `scale(${showContent ? 1 : 0.95})`,
+            zIndex: 10 
+          }}
+        >
           {/* Background image layer */}
           {current.imageUrl && (
-            <div
-              className="absolute inset-0 overflow-hidden transition-opacity duration-500 ease-in-out"
-              style={{ zIndex: 8 }}
-            >
+            <div className="absolute inset-0 overflow-hidden">
               <MotivatorImageWithFallback
                 src={current.imageUrl}
-                alt={current.title || 'Content image'}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ filter: 'brightness(0.7) saturate(1.1) contrast(1.05)' }}
+                alt={current.title || "Content image"}
+                className="absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out"
+                style={{ 
+                  filter: "brightness(0.7) saturate(1.1) contrast(1.05)",
+                  transform: `scale(${showContent ? 1.05 : 1})` 
+                }}
               />
             </div>
           )}
 
-          {/* Dark overlay for text readability - always present during content phase */}
-          <div className="absolute inset-0 bg-black/40 transition-opacity duration-500 ease-in-out" style={{ zIndex: 9 }} />
+          {/* Dark overlay for text readability */}
+          <div 
+            className="absolute inset-0 bg-black/40 transition-all duration-1000 ease-in-out"
+            style={{ opacity: showContent ? 1 : 0 }}
+          />
 
-          {/* Text content - no background container */}
-          <div
-            className="absolute inset-0 flex items-center justify-center p-6 transition-all duration-500 ease-in-out"
-            style={{ zIndex: 15 }}
-          >
-            <div className="text-center max-w-3xl w-full animate-fade-in">
+          {/* Text content - unified with image */}
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div 
+              className="text-center max-w-3xl w-full transition-all duration-1000 ease-in-out"
+              style={{ 
+                opacity: showContent ? 1 : 0,
+                transform: `translateY(${showContent ? 0 : 20}px)` 
+              }}
+            >
               {current.type === 'motivator' || current.type === 'note' ? (
-                /* Goals/Notes: Direct text on overlay */
-                <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
+                /* Goals: Clean, bold text */
+                <p className="text-lg font-bold leading-tight text-white uppercase tracking-wide drop-shadow-lg">
                   {current.title}
                 </p>
               ) : (
-                /* Quotes: Direct text on overlay */
+                /* Quotes: With author attribution */
                 <div className="text-center">
                   <p 
-                    className={`font-medium leading-snug text-white ${
-                      current.title.length > 150 ? 'text-xs' : 
-                      current.title.length > 100 ? 'text-sm' : 'text-sm'
+                    className={`font-medium leading-snug text-white drop-shadow-lg ${
+                      current.title.length > 150 ? 'text-sm' : 
+                      current.title.length > 100 ? 'text-base' : 'text-lg'
                     }`}
                   >
                     "{current.title}"
                   </p>
                   {current.author && current.author !== 'Unknown Author' && current.author.trim() !== '' && (
-                    <p className="text-xs text-white/80 mt-2 font-medium">
+                    <p className="text-sm text-white/90 mt-3 font-medium drop-shadow-lg">
                       — {current.author}
                     </p>
                   )}
@@ -262,8 +275,8 @@ export const ImprovedUnifiedMotivatorRotation = ({
               )}
             </div>
           </div>
-        </>
-      )}
         </div>
+      )}
+    </div>
   );
 };
