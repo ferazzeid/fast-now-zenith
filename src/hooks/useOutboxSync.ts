@@ -234,54 +234,7 @@ export const useOutboxSync = () => {
     }
   }, []);
 
-  const processAIChatOp = useCallback(async (op: any) => {
-    const { action, payload } = op;
-    
-    if (action === 'process_message') {
-      const { message, fromVoice, currentPath } = payload;
-      const pageContext = getPageContext(currentPath);
-      const contextMode = currentPath === '/food-tracking' ? 'food_only' : undefined;
-      const systemPrompt = `You are a helpful assistant for a fasting and health tracking app. Help users with app features, calculations, unit conversions, and guidance. Current page: ${pageContext}`;
-
-      const { data, error } = await supabase.functions.invoke('chat-completion', {
-        body: {
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: message }
-          ],
-          context: contextMode
-        }
-      });
-
-      if (error) throw error;
-
-      // Dispatch a custom event with the AI response so the component can handle it
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('ai-chat-response', { 
-          detail: { data, fromVoice, originalMessage: message } 
-        }));
-      }
-      return;
-    }
-  }, []);
-
-  // Helper function to get page context
-  const getPageContext = (path: string): string => {
-    switch (path) {
-      case '/walking':
-        return 'Walking page - user can start/stop walking sessions, view walking history, and track calories burned';
-      case '/timer':
-        return 'Fasting timer page - user can start/stop fasting sessions and see fasting progress';
-      case '/food-tracking':
-        return 'Food tracking page - user can add food entries, track calories and carbs';
-      case '/motivators':
-        return 'Motivators page - user can view and manage personal motivation cards';
-      case '/settings':
-        return 'Settings page - user can configure their profile, goals, and app preferences';
-      default:
-        return 'Main app interface for fasting and health tracking';
-    }
-  };
+  // Removed processAIChatOp - no longer needed as chat functionality was removed
 
   const processOutbox = useCallback(async () => {
     if (isSyncing) return;
@@ -299,9 +252,8 @@ export const useOutboxSync = () => {
             await processFastingOp(op);
           } else if (op.entity === 'food_entry') {
             await processFoodOp(op);
-          } else if (op.entity === 'ai_chat') {
-            await processAIChatOp(op);
           }
+          // Removed ai_chat processing - no longer needed
           await removeOperation(op.id);
         } catch (err: any) {
           // Update attempts and lastError, then break to retry later
@@ -316,7 +268,7 @@ export const useOutboxSync = () => {
       dispatchOutboxEvent('sync-complete');
       refreshCount();
     }
-  }, [isSyncing, processWalkingOp, processFastingOp, processFoodOp, processAIChatOp, refreshCount]);
+  }, [isSyncing, processWalkingOp, processFastingOp, processFoodOp, refreshCount]);
 
   useEffect(() => {
     const onlineHandler = () => processOutbox();

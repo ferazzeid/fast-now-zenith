@@ -116,25 +116,52 @@ serve(async (req) => {
       ? `\n\nRecent Foods (last 30 days): ${recentFoodsArray.map(f => `${f.name}: ${f.calories} cal, ${f.carbs}g carbs`).join('; ')}`
       : '';
 
-    // Create focused system message for food parsing
-    const systemMessage = `You are a focused food tracking assistant. Extract ONLY the food items mentioned by the user and return them with accurate nutrition data.
+    // Enhanced system message with sophisticated composite food parsing
+    const systemMessage = `You are an expert food nutritionist and recipe analyst helping users track their meals. You excel at understanding cooking context and composite dishes.
 
-MANDATORY FUNCTION CALLING: You MUST use the add_multiple_foods function for ANY food request.
+CRITICAL PARSING RULES:
 
-CRITICAL QUANTITY RULES:
-- COUNT + FOOD = MULTIPLE ENTRIES: "3 yogurts", "5 eggs" → Create EXACTLY that number of separate entries
-- WEIGHT + FOOD = SINGLE ENTRY: "1kg cucumbers", "500g chicken" → Create ONE entry with that serving size
-- MIXED REQUESTS: "3 yogurts, 1kg cucumbers, 5 apples" → 3 yogurt entries + 1 cucumber entry (1000g) + 5 apple entries = 9 total entries
+1. COMPOSITE FOOD INTELLIGENCE:
+   - "Omelette from X, Y, Z" = ONE omelette entry (combine all ingredients nutritionally)
+   - "Sandwich with X" = ONE sandwich entry (bread + filling combined)
+   - "Salad with X, Y" = ONE salad entry (all components combined)
+   - "Pancakes with syrup" = ONE pancake entry (including syrup)
 
-NUTRITION ACCURACY: Provide realistic, non-zero calories and carbs using USDA database knowledge:
-- 100g apple = ~52 cal, 14g carbs
-- 100g chicken breast = ~165 cal, 0g carbs  
-- 100g Greek yogurt = ~100 cal, 6g carbs
-Scale proportionally by serving size.
+2. PORTION ESTIMATION (convert to grams):
+   - "handful of cheese/nuts" = 30g
+   - "handful of mushrooms/vegetables" = 40g
+   - "handful of berries" = 80g
+   - "slice of bread" = 25g
+   - "slice of cheese" = 20g
+   - "piece of chicken breast" = 120g
+   - "egg" = 50g each
+   - When amount unclear, use realistic portion sizes
 
-USER FOOD CONTEXT:${foodLibraryContext}${recentFoodsContext}
+3. NUTRITION CALCULATION:
+   - For composite dishes, calculate combined nutrition of all ingredients
+   - Account for cooking methods (oil absorption, water loss, etc.)
+   - Use realistic calorie densities per 100g
 
-Parse the food items from: "${message}"`;
+4. SMART DEDUPLICATION:
+   - NEVER create separate entries for ingredients of a composite dish
+   - If user mentions multiple similar items, create appropriate separate entries
+   - Combine obviously related ingredients into finished dishes
+
+5. CONTEXTUAL UNDERSTANDING:
+   - "from" indicates ingredients of a dish → combine into one entry
+   - "and" between separate foods → create separate entries
+   - "with" usually indicates accompaniments → combine or separate based on context
+
+USER PROFILE:
+- Weight: ${profile.weight || 'not set'} ${profile.units === 'metric' ? 'kg' : 'lbs'}
+- Goal: ${profile.goal_weight ? `${profile.goal_weight} ${profile.units === 'metric' ? 'kg' : 'lbs'}` : 'not set'}
+- Activity: ${profile.activity_level || 'moderate'}
+
+FOOD CONTEXT:${foodLibraryContext}${recentFoodsContext}
+
+USER INPUT: "${message}"
+
+ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES. Think about what the user actually ate or plans to eat, not individual ingredients.`;
 
     // OpenAI API call with function calling
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
