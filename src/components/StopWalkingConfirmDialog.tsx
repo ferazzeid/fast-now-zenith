@@ -68,12 +68,12 @@ export const StopWalkingConfirmDialog = ({
       showCloseButton={true}
       footer={
         showManualInput ? (
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full">
             <Button 
               variant="outline" 
               size="action-secondary"
               onClick={() => setShowManualInput(false)}
-              className="flex-1 min-w-0"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -82,18 +82,18 @@ export const StopWalkingConfirmDialog = ({
               size="action-secondary"
               onClick={handleManualConfirm}
               disabled={!manualDuration || parseInt(manualDuration) <= 0}
-              className="flex-1 min-w-0"
+              className="flex-1"
             >
               Save
             </Button>
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full">
             <Button 
               variant="outline" 
               size="action-secondary"
               onClick={handleClose}
-              className="flex-1 min-w-0"
+              className="flex-1"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -102,7 +102,7 @@ export const StopWalkingConfirmDialog = ({
                 variant="action-primary"
                 size="action-secondary"
                 onClick={() => setShowManualInput(true)}
-                className="flex-1 min-w-0"
+                className="flex-1"
               >
                 Edit
               </Button>
@@ -111,7 +111,7 @@ export const StopWalkingConfirmDialog = ({
               variant="action-primary"
               size="action-secondary"
               onClick={onConfirm}
-              className="flex-1 min-w-0"
+              className="flex-1"
             >
               {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
             </Button>

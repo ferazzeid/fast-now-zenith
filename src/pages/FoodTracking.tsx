@@ -208,6 +208,37 @@ const FoodTracking = () => {
     }
   };
 
+  const handleMarkAllAsEaten = async () => {
+    const uneatenEntries = todayEntries.filter(entry => !entry.consumed);
+    
+    if (uneatenEntries.length === 0) {
+      toast({
+        title: "No uneaten foods",
+        description: "All foods are already marked as eaten"
+      });
+      return;
+    }
+
+    try {
+      // Mark all uneaten entries as consumed
+      for (const entry of uneatenEntries) {
+        await toggleConsumption(entry.id);
+      }
+      
+      toast({
+        title: "All foods marked as eaten",
+        description: `Marked ${uneatenEntries.length} food${uneatenEntries.length === 1 ? '' : 's'} as eaten`
+      });
+    } catch (error) {
+      console.error('Error marking all as eaten:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to mark all foods as eaten"
+      });
+    }
+  };
+
   const handleClearAll = async () => {
     return executeClearAll(async () => {
       const todayDate = new Date();
@@ -491,7 +522,7 @@ const FoodTracking = () => {
                     
                     {/* Action Buttons */}
                     {todayEntries.length > 0 && (
-                      <div className="flex justify-between items-center mt-6 pt-2">
+                      <div className="flex justify-between items-center mt-6 pt-2 gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -500,6 +531,15 @@ const FoodTracking = () => {
                         >
                           <Save className="w-3 h-3" />
                           Save to Template
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleMarkAllAsEaten}
+                          className="text-green-600 hover:bg-green-50 hover:text-green-700 text-xs px-3 py-2 h-auto flex items-center gap-1"
+                        >
+                          <Check className="w-3 h-3" />
+                          Mark All Eaten
                         </Button>
                         <Button
                           variant="ghost"
