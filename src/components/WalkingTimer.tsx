@@ -159,9 +159,9 @@ const WalkingTimerComponent = ({
                         // Error handling is done in parent component
                       }
                     }}
-                     variant="ghost"
+                     variant="soft"
                      size="action-secondary"
-                   className="flex-1 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    className="flex-1"
                   >
                     {isPaused ? (
                       <Play className="w-6 h-6" />
@@ -192,9 +192,9 @@ const WalkingTimerComponent = ({
                           // Error handling is done in parent component
                         }
                       }}
-                      variant="ghost"
+                      variant="soft"
                       size="action-secondary"
-                      className="flex-1 text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      className="flex-1"
                     >
                       <X className="w-6 h-6" />
                     </Button>

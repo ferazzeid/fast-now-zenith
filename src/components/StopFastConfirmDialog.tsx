@@ -1,5 +1,6 @@
 import { UniversalModal } from "@/components/ui/universal-modal";
 import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 
 interface StopFastConfirmDialogProps {
   open: boolean;
@@ -28,12 +29,12 @@ export const StopFastConfirmDialog = ({
       footer={
         <>
           <Button 
-            variant="secondary" 
+            variant="soft" 
             size="action-main"
             onClick={handleClose}
-            className="text-sm w-full border border-subtle"
+            className="flex-1"
           >
-            Close
+            <X className="w-4 h-4" />
           </Button>
           <Button 
             variant="action-primary"
