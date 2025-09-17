@@ -445,19 +445,19 @@ const Timer = () => {
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
-        {/* Header with Toggle */}
-        <div className="relative">
-          <ResponsivePageHeader
-            title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
-            subtitle={currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
-            onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
-            historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
-            showAuthorTooltip={true}
-            authorTooltipContentKey="timer-general"
-            authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
-          />
-          
-          {/* Fasting Mode Toggle - positioned in top right */}
+        {/* Header */}
+        <ResponsivePageHeader
+          title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
+          subtitle={currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
+          onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
+          historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
+          showAuthorTooltip={true}
+          authorTooltipContentKey="timer-general"
+          authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
+        />
+        
+        {/* Fasting Mode Toggle - positioned as independent element */}
+        <div className="absolute top-4 right-4 z-[100]">
           <FastingModeToggle
             currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
             onModeChange={(mode) => {
