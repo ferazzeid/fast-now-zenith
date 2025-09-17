@@ -1,4 +1,4 @@
-import { Trash2, RotateCcw, ArrowLeft } from 'lucide-react';
+import { Trash2, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -103,23 +103,23 @@ const Account = () => {
         <div className="space-y-6">
           {/* Header */}
           <div className="space-y-2">
-            <div className="mb-2 mt-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/settings')}
-                    className="p-2"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                  </Button>
-                  <h1 className="text-2xl font-bold text-foreground mb-1">
-                    Account Management
-                  </h1>
-                </div>
+            <div className="mb-2 mt-4 relative">
+              <div className="absolute right-0 top-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate('/settings')}
+                  className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-subtle hover:bg-muted/80"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </div>
-              <p className="text-sm text-muted-foreground text-left">Manage your subscription and account</p>
+              <div className="pr-12">
+                <h1 className="text-2xl font-bold text-foreground mb-1">
+                  Account Management
+                </h1>
+                <p className="text-sm text-muted-foreground text-left">Manage your subscription and account</p>
+              </div>
             </div>
           </div>
 

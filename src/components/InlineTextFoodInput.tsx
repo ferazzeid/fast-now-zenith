@@ -240,19 +240,16 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                 disabled={!inputText.trim() || isProcessing}
                 size="sm"
                 variant="default"
-                className="shrink-0 h-10 px-4 rounded-md"
+                className="shrink-0 h-10 px-3 rounded-md"
                 title="Add food"
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
                     Processing...
                   </>
                 ) : (
-                  <>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
-                  </>
+                  "Go"
                 )}
               </Button>
             </div>

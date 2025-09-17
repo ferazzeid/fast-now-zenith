@@ -63,15 +63,14 @@ export const ProfileCompletionBanner = () => {
             <div className="flex space-x-2">
               <Button 
                 size="sm" 
-                variant="outline"
-                className="border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300 dark:hover:bg-amber-800/20"
+                variant="action-secondary"
                 onClick={() => navigate('/settings')}
               >
                 Go to Settings
               </Button>
               <Button 
                 size="sm"
-                className="bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-500 dark:hover:bg-amber-600"
+                variant="action-primary"
                 onClick={() => {
                   // Scroll to bottom to show input area
                   const messagesEnd = document.querySelector('[data-messages-end]');
