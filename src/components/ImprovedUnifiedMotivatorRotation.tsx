@@ -30,7 +30,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
   onModeChange,
   className = "",
   contentDurationMs = 4500, // 4.5 seconds visible content
-  timerFocusDurationMs = 3000, // 3 seconds for timer focus
+  timerFocusDurationMs = 2500, // 2.5 seconds for timer focus (plus transitions)
   quotesType = 'fasting'
 }: ImprovedUnifiedMotivatorRotationProps) => {
   const { motivators } = useMotivators();
@@ -48,7 +48,6 @@ export const ImprovedUnifiedMotivatorRotation = ({
 
   // Transition timing constants
   const FADE_DURATION = 500; // 500ms for fade in/out
-  const GAP_DURATION = 200; // 200ms gap between transitions
 
   // Combine all content into unified items
   const items = useMemo(() => {
@@ -152,7 +151,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isActive, onModeChange]);
 
-  // Main rotation loop with smooth transitions
+  // Main rotation loop with proper sequenced transitions
   useEffect(() => {
     if (!isActive || items.length === 0) {
       setPhase('timer');
@@ -178,7 +177,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
     const loop = () => {
       if (runIdRef.current !== thisRun) return;
 
-      // Phase 1: Timer focus (3 seconds)
+      // Phase 1: Timer focus - content stays hidden 
       setPhase('timer');
       setTransitionState('hidden');
       setModeIfChanged('timer-focused');
@@ -186,7 +185,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
       timeoutRef.current = setTimeout(() => {
         if (runIdRef.current !== thisRun) return;
 
-        // Phase 2: Start fade in (500ms)
+        // Phase 2: Start content fade in (500ms)
         setPhase('content');
         setTransitionState('fading-in');
         setModeIfChanged('motivator-focused');
@@ -200,20 +199,18 @@ export const ImprovedUnifiedMotivatorRotation = ({
           timeoutRef.current = setTimeout(() => {
             if (runIdRef.current !== thisRun) return;
 
-            // Phase 4: Start fade out (500ms)
+            // Phase 4: Start content fade out (500ms)
             setTransitionState('fading-out');
 
             timeoutRef.current = setTimeout(() => {
               if (runIdRef.current !== thisRun) return;
 
-              // Phase 5: Content hidden, advance index, brief gap (200ms)
+              // Phase 5: Content fully hidden, advance index
               setTransitionState('hidden');
               setIndex(prev => (prev + 1) % items.length);
-
-              timeoutRef.current = setTimeout(() => {
-                if (runIdRef.current !== thisRun) return;
-                loop();
-              }, GAP_DURATION);
+              
+              // Continue to next cycle immediately
+              loop();
             }, FADE_DURATION);
           }, contentDurationMs);
         }, FADE_DURATION);
@@ -227,32 +224,30 @@ export const ImprovedUnifiedMotivatorRotation = ({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       runIdRef.current += 1; // invalidate this run
     };
-  }, [isActive, items.length, contentDurationMs, timerFocusDurationMs, onModeChange, FADE_DURATION, GAP_DURATION]);
+  }, [isActive, items.length, contentDurationMs, timerFocusDurationMs, onModeChange, FADE_DURATION]);
 
   if (!isActive || items.length === 0) return null;
 
   const current = items[index];
   
-  // Calculate visibility based on transition state
-  const isContentVisible = transitionState === 'fading-in' || transitionState === 'visible';
+  // Calculate opacity and scale based on transition state
   const contentOpacity = transitionState === 'visible' ? 1 : 
                         transitionState === 'fading-in' ? 1 : 
                         transitionState === 'fading-out' ? 0 : 0;
   
-  const contentScale = transitionState === 'visible' ? 1 : 
-                      transitionState === 'fading-in' ? 1 : 0.95;
+  const contentScale = transitionState === 'visible' || transitionState === 'fading-in' ? 1 : 0.95;
+  const isVisible = transitionState !== 'hidden';
 
   return (
     <div className={`absolute inset-0 ${className}`}>
-      {/* Content display - always rendered but controlled by opacity */}
-      {current && (
+      {/* Content overlay - fades smoothly over timer */}
+      {current && isVisible && (
         <div 
           className="absolute inset-0 transition-all duration-500 ease-in-out"
           style={{ 
             opacity: contentOpacity,
             transform: `scale(${contentScale})`,
-            zIndex: 10,
-            pointerEvents: isContentVisible ? 'auto' : 'none'
+            zIndex: 20 // Always above timer
           }}
         >
           {/* Background image layer */}
@@ -264,7 +259,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
                 className="absolute inset-0 w-full h-full object-cover transition-all duration-500 ease-in-out"
                 style={{ 
                   filter: "brightness(0.7) saturate(1.1) contrast(1.05)",
-                  transform: `scale(${isContentVisible ? 1.05 : 1})` 
+                  transform: `scale(${contentOpacity === 1 ? 1.05 : 1})` 
                 }}
               />
             </div>
@@ -276,22 +271,20 @@ export const ImprovedUnifiedMotivatorRotation = ({
             style={{ opacity: contentOpacity }}
           />
 
-          {/* Text content - unified with image */}
+          {/* Text content */}
           <div className="absolute inset-0 flex items-center justify-center p-6">
             <div 
               className="text-center max-w-3xl w-full transition-all duration-500 ease-in-out"
               style={{ 
                 opacity: contentOpacity,
-                transform: `translateY(${isContentVisible ? 0 : 20}px)` 
+                transform: `translateY(${contentOpacity === 1 ? 0 : 20}px)` 
               }}
             >
               {current.type === 'motivator' || current.type === 'note' ? (
-                /* Goals: Clean, bold text */
                 <p className="text-lg font-bold leading-tight text-white uppercase tracking-wide drop-shadow-lg">
                   {current.title}
                 </p>
               ) : (
-                /* Quotes: With author attribution */
                 <div className="text-center">
                   <p 
                     className={`font-medium leading-snug text-white drop-shadow-lg ${
