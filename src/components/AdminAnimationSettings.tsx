@@ -3,12 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
+import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 
 export const AdminAnimationSettings = () => {
   const { profile, updateProfile } = useProfile();
   const { toast } = useToast();
+  const { triggerCelebration } = useCelebrationMilestones();
   
   const [enableFastingSlideshow, setEnableFastingSlideshow] = useState(true);
   const [enableWalkingSlideshow, setEnableWalkingSlideshow] = useState(true);
@@ -70,6 +73,18 @@ export const AdminAnimationSettings = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const testCelebration = (type: 'hourly' | 'completion', hours: number, message: string) => {
+    triggerCelebration({
+      type,
+      hours,
+      message
+    });
+    toast({
+      title: "Celebration Triggered",
+      description: `Testing ${message} celebration`,
+    });
   };
 
   return (
@@ -193,6 +208,56 @@ export const AdminAnimationSettings = () => {
             <p className="text-sm text-muted-foreground">
               Controls how long each timer phase and content display lasts
             </p>
+          </div>
+
+          {/* Celebration Test Buttons */}
+          <div className="space-y-3 pt-4 border-t border-border">
+            <Label className="text-base font-medium">Test Celebrations</Label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Test different milestone celebrations without waiting for actual milestones
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => testCelebration('hourly', 1, '1 Hour Strong!')}
+                className="text-xs"
+              >
+                Test 1 Hour
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => testCelebration('hourly', 4, '4 Hours of Power!')}
+                className="text-xs"
+              >
+                Test 4 Hours
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => testCelebration('hourly', 12, '12 Hours of Strength!')}
+                className="text-xs"
+              >
+                Test 12 Hours
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => testCelebration('hourly', 24, '24 Hours of Mastery!')}
+                className="text-xs"
+              >
+                Test 24 Hours
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => testCelebration('completion', 48, 'Fasting Goal Complete!')}
+                className="text-xs col-span-2"
+              >
+                Test Completion
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

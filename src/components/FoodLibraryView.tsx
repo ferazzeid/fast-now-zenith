@@ -1174,13 +1174,13 @@ export const FoodLibraryView = ({
                             )}
                           </div>
 
-                         {/* Template Food Info */}
-                         <div className="flex-1 min-w-0">
-                           <div className="mb-0">
-                              <ClickableTooltip content={food.name}>
-                                <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
-                              </ClickableTooltip>
-                           </div>
+                          {/* Template Food Info */}
+                          <div className="flex-1 min-w-0 max-w-[140px]">
+                            <div className="mb-0">
+                               <ClickableTooltip content={food.name}>
+                                 <h3 className="text-sm font-semibold text-foreground truncate overflow-hidden text-ellipsis whitespace-nowrap">{food.name}</h3>
+                               </ClickableTooltip>
+                            </div>
                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                              <span className="font-medium">{Math.round(food.serving_size)}g</span>
                              <span className="text-muted-foreground/60">•</span>

@@ -47,7 +47,7 @@ const FoodTracking = () => {
   const { profile, updateProfile } = useProfile();
   const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
-  const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, clearAllEntries, refreshFoodEntries } = useFoodEntriesQuery();
+  const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, bulkMarkAsEaten, clearAllEntries, refreshFoodEntries, isBulkMarking } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   
   // Daily template functionality
@@ -221,15 +221,9 @@ const FoodTracking = () => {
     }
 
     try {
-      // Mark all uneaten entries as consumed
-      for (const entry of uneatenEntries) {
-        await toggleConsumption(entry.id);
-      }
-      
-      toast({
-        title: "All foods marked as eaten",
-        description: `Marked ${uneatenEntries.length} food${uneatenEntries.length === 1 ? '' : 's'} as eaten`
-      });
+      // Use bulk operation for immediate UI update and single database call
+      const entryIds = uneatenEntries.map(entry => entry.id);
+      bulkMarkAsEaten(entryIds);
     } catch (error) {
       console.error('Error marking all as eaten:', error);
       toast({
@@ -369,7 +363,7 @@ const FoodTracking = () => {
                   });
                 }
               }}
-              className="py-2.5 px-3 text-destructive focus:text-destructive"
+              className="py-2.5 px-3 focus:text-foreground"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               Delete
@@ -558,18 +552,19 @@ const FoodTracking = () => {
                            >
                              <Trash2 className="w-3 h-3" />
                            </Button>
-                           <Button
-                             size="sm"
-                             variant="default"
-                             onClick={handleMarkAllAsEaten}
-                             className={`h-5 w-5 p-1 rounded ${
-                               todayEntries.some(entry => !entry.consumed)
-                                 ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
-                                 : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
-                             }`}
-                             title="Mark all foods as eaten"
-                             aria-label="Mark all foods as eaten"
-                           >
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={handleMarkAllAsEaten}
+                              disabled={isBulkMarking}
+                              className={`h-5 w-5 p-1 rounded ${
+                                todayEntries.some(entry => !entry.consumed)
+                                  ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                                  : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
+                              }`}
+                              title="Mark all foods as eaten"
+                              aria-label="Mark all foods as eaten"
+                            >
                              <Check className="w-3 h-3" />
                            </Button>
                          </div>

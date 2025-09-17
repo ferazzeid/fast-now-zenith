@@ -576,6 +576,66 @@ export const useFoodEntriesQuery = () => {
     },
   });
 
+  // PERFORMANCE: Bulk toggle consumption mutation for "Mark All as Eaten"
+  const bulkToggleConsumptionMutation = useMutation({
+    mutationFn: async (entryIds: string[]) => {
+      if (!user) throw new Error('User not authenticated');
+      if (entryIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('food_entries')
+        .update({ consumed: true })
+        .in('id', entryIds)
+        .eq('user_id', user.id)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onMutate: async (entryIds) => {
+      // PERFORMANCE: Optimistic update
+      await queryClient.cancelQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
+
+      const previousEntries = queryClient.getQueryData(foodEntriesQueryKey(user?.id || null, today));
+
+      queryClient.setQueryData(
+        foodEntriesQueryKey(user?.id || null, today),
+        (old: FoodEntry[] = []) => 
+          old.map(entry => 
+            entryIds.includes(entry.id) 
+              ? { ...entry, consumed: true }
+              : entry
+          )
+      );
+
+      return { previousEntries };
+    },
+    onSuccess: (data) => {
+      const count = data.length;
+      toast({
+        title: "All foods marked as eaten",
+        description: `Marked ${count} food${count === 1 ? '' : 's'} as eaten`,
+      });
+      
+      // Invalidate daily totals to recalculate
+      queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+    },
+    onError: (err, entryIds, context) => {
+      // Rollback on error
+      if (context?.previousEntries) {
+        queryClient.setQueryData(
+          foodEntriesQueryKey(user?.id || null, today),
+          context.previousEntries
+        );
+      }
+      toast({
+        title: "Error marking foods as eaten",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // PERFORMANCE: Clear all entries function for immediate UI update
   const clearAllEntries = useCallback(() => {
     // Immediately clear the cache to update UI instantly (like setTemplateFoods([]))
@@ -601,8 +661,6 @@ export const useFoodEntriesQuery = () => {
     // Data
     todayEntries: foodEntriesQuery.data || [],
     todayTotals: dailyTotalsQuery.data || { calories: 0, carbs: 0 },
-    
-    // Loading states
     loading: foodEntriesQuery.isLoading,
     
     // Actions
@@ -611,6 +669,7 @@ export const useFoodEntriesQuery = () => {
     updateFoodEntry: updateFoodEntryMutation.mutateAsync,
     deleteFoodEntry: deleteFoodEntryMutation.mutateAsync,
     toggleConsumption: toggleConsumptionMutation.mutateAsync,
+    bulkMarkAsEaten: bulkToggleConsumptionMutation.mutate,
     clearAllEntries,
     refreshFoodEntries,
     
@@ -620,5 +679,5 @@ export const useFoodEntriesQuery = () => {
     isUpdatingEntry: updateFoodEntryMutation.isPending,
     isDeletingEntry: deleteFoodEntryMutation.isPending,
     isTogglingConsumption: toggleConsumptionMutation.isPending,
-  };
+    isBulkMarking: bulkToggleConsumptionMutation.isPending,
 };
