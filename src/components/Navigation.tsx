@@ -30,10 +30,7 @@ export const Navigation = () => {
   const { preferences, loading: preferencesLoading } = useNavigationPreferences();
   const { toast } = useToast();
   
-  // Debug logging to trace preference changes
-  useEffect(() => {
-    console.log('🧭 Navigation preferences changed:', preferences, 'loading:', preferencesLoading);
-  }, [preferences, preferencesLoading]);
+  // Removed debug logging to prevent console spam
   
   // Calculate trial end date from days remaining
   const trialEndsAt = daysRemaining ? new Date(Date.now() + daysRemaining * 24 * 60 * 60 * 1000).toISOString() : null;
@@ -164,10 +161,8 @@ export const Navigation = () => {
     { icon: User, label: 'Settings', path: '/settings', isEating: false },
   ], [getFastingBadge, walkingSession, formatTime, todayTotals.calories, currentTime]);
 
-  // Filter navigation items based on user preferences - force re-render when preferences change
+  // Filter navigation items based on user preferences
   const visibleItems = useMemo(() => {
-    console.log('🔄 Recalculating visible items with preferences:', preferences, 'loading:', preferencesLoading);
-    
     if (preferencesLoading) return navItems; // Show all items while loading
     
     return navItems.filter(item => {

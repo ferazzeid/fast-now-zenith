@@ -144,7 +144,7 @@ Parse the food items from: "${message}"`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: PROTECTED_OPENAI_CONFIG.MODEL,
+        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
         messages: [
           { role: 'system', content: systemMessage },
           { role: 'user', content: message }
