@@ -196,10 +196,10 @@ All colors MUST be HSL.
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 88%;
 
-    --border: 0 0% 20%;
-    --border-subtle: 0 0% 15%;
-    --border-normal: 0 0% 20%;
-    --border-emphasis: 0 0% 30%;
+    --border: 0 0% 30%;
+    --border-subtle: 0 0% 25%;
+    --border-normal: 0 0% 30%;
+    --border-emphasis: 0 0% 40%;
     --input: 0 0% 8%;
     --ring: 0 0% 20%;
 
