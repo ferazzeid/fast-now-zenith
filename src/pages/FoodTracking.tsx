@@ -522,7 +522,7 @@ const FoodTracking = () => {
                     
                     {/* Action Buttons */}
                     {todayEntries.length > 0 && (
-                      <div className="flex justify-between items-center mt-6 pt-2 gap-2">
+                      <div className="flex justify-between items-center mt-6 pt-2">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -532,23 +532,31 @@ const FoodTracking = () => {
                           <Save className="w-3 h-3" />
                           Save to Template
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowClearAllDialog(true)}
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
-                          disabled={isClearingAll}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleMarkAllAsEaten}
-                          className="text-green-600 hover:bg-green-50 hover:text-green-700 text-xs px-3 py-2 h-auto"
-                        >
-                          <Check className="w-3 h-3" />
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={handleMarkAllAsEaten}
+                            className={`h-5 w-5 p-1 rounded ${
+                              todayEntries.some(entry => !entry.consumed)
+                                ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                                : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
+                            }`}
+                            title="Mark all foods as eaten"
+                            aria-label="Mark all foods as eaten"
+                          >
+                            <Check className="w-3 h-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowClearAllDialog(true)}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs px-3 py-2 h-auto"
+                            disabled={isClearingAll}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
                       </div>
                     )}
                   </div>

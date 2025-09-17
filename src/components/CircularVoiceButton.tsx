@@ -403,12 +403,6 @@ export const CircularVoiceButton = React.forwardRef<
       if (data?.text) {
         console.log('🎤 Transcription successful:', data.text);
         onTranscription(data.text);
-        // Tiny green checkmark toast at bottom
-        toast({
-          title: "✓",
-          description: "",
-          duration: 1500,
-        });
         audioChunksRef.current = [];
       } else {
         throw new Error('No transcription received');
