@@ -132,6 +132,8 @@ export const useTimerNavigation = () => {
     // Navigate to the appropriate timer page using React Router
     if (mode === 'walking') {
       navigate('/walking');
+    } else if (mode === 'if') {
+      navigate('/intermittent-fasting');
     } else {
       navigate('/');
     }

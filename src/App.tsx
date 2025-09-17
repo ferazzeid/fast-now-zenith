@@ -36,6 +36,7 @@ import WalkingHistory from "./pages/WalkingHistory";
 import FoodHistory from "./pages/FoodHistory";
 import FastingHistory from "./pages/FastingHistory";
 import IntermittentFastingHistory from "./pages/IntermittentFastingHistory";
+import IntermittentFasting from "./pages/IntermittentFasting";
 import { HealthCheck } from "./pages/HealthCheck";
 import { SmartHomeRedirect } from "./components/SmartHomeRedirect";
 import { NavigationGuard } from "./components/NavigationGuard";
@@ -250,14 +251,21 @@ const AppContent = () => {
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />
-            <Route path="/walking" element={
-              <ProtectedRoute>
-                <PageErrorBoundary>
-                  <Walking />
-                </PageErrorBoundary>
-              </ProtectedRoute>
-            } />
-            <Route path="/food-tracking" element={
+             <Route path="/walking" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <Walking />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/intermittent-fasting" element={
+               <ProtectedRoute>
+                 <PageErrorBoundary>
+                   <IntermittentFasting />
+                 </PageErrorBoundary>
+               </ProtectedRoute>
+             } />
+             <Route path="/food-tracking" element={
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <FoodTracking />
