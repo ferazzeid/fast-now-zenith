@@ -23,12 +23,12 @@ export const ThemeToggle = () => {
             flex-1 h-8 px-2 transition-all duration-200
             ${theme === value 
               ? 'bg-background shadow-sm text-foreground' 
-              : 'hover:bg-muted-foreground/10 text-muted-foreground'
+              : 'hover:bg-muted-foreground/10 text-muted-foreground hover:text-foreground'
             }
           `}
         >
-          <Icon className="w-3.5 h-3.5 mr-1.5" />
-          <span className="text-xs font-medium">{label}</span>
+          <Icon className="w-4 h-4 mr-1.5" />
+          <span className="text-ui-sm">{label}</span>
         </Button>
       ))}
     </div>

@@ -455,16 +455,16 @@ const Settings = () => {
             {/* Header */}
             <div className="mb-2 mt-4">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold text-foreground mb-1">
+                <h1 className="text-page-title text-foreground mb-1">
                   Settings
                 </h1>
                 {(accessIsAdmin) && (
-                  <Button size="sm" variant="secondary" onClick={() => navigate('/admin')} className="border border-subtle">
+                  <Button size="sm" variant="secondary" onClick={() => navigate('/admin')} className="border border-subtle text-ui-sm">
                     Admin Dashboard
                   </Button>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground text-left">Customize your fasting experience</p>
+              <p className="text-ui-sm text-muted-foreground text-left">Customize your fasting experience</p>
             </div>
           </div>
 
@@ -494,7 +494,7 @@ const Settings = () => {
                   {/* Measurement System Selection - Top */}
                   <div className="space-y-4 mt-6">
                     <div className="flex items-center gap-2">
-                      <Label className="text-warm-text">Measurement System</Label>
+                      <Label className="text-label">Measurement System</Label>
                       <ClickableTooltip content="Choose how distances, speeds, and weights are displayed throughout the app">
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>

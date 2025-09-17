@@ -112,11 +112,11 @@ export const SettingsSubscription = () => {
       
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="text-heading flex items-center gap-2">
             <Crown className="w-5 h-5" />
             Account
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-ui-sm text-muted-foreground">
             Your account and subscription information
           </CardDescription>
         </CardHeader>
@@ -125,8 +125,8 @@ export const SettingsSubscription = () => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Account Type</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-label">Account Type</p>
+                <p className="text-ui-sm text-muted-foreground">
                   {hasPremiumFeatures ? 'Premium User' : isTrial ? 'Free Trial' : 'Free User'}
                 </p>
               </div>
@@ -143,14 +143,14 @@ export const SettingsSubscription = () => {
               return (
                 <div className="flex items-center justify-between py-2 px-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                   <div>
-                    <p className="font-medium text-blue-800 dark:text-blue-200">Trial Status</p>
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                    <p className="text-label text-blue-800 dark:text-blue-200">Trial Status</p>
+                    <p className="text-ui-sm text-blue-600 dark:text-blue-400">
                       {timeRemaining.expired ? 'Trial expired' : timeRemaining.text}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-blue-600 dark:text-blue-400">Days Left</p>
-                    <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    <p className="text-ui-xs text-blue-600 dark:text-blue-400">Days Left</p>
+                    <p className="text-ui-sm text-blue-800 dark:text-blue-200">
                       {daysRemaining}
                     </p>
                   </div>
@@ -163,22 +163,22 @@ export const SettingsSubscription = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Member Since</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-label">Member Since</p>
+                    <p className="text-ui-sm text-muted-foreground">
                       {getMemberSinceDate()}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center justify-between py-2 px-3 bg-green-50 dark:bg-green-950 rounded-lg">
                   <div>
-                    <p className="font-medium text-green-800 dark:text-green-200">Active Subscription</p>
-                    <p className="text-sm text-green-600 dark:text-green-400">
+                    <p className="text-label text-green-800 dark:text-green-200">Active Subscription</p>
+                    <p className="text-ui-sm text-green-600 dark:text-green-400">
                       You have full access to premium features
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-green-600 dark:text-green-400">Status</p>
-                    <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                    <p className="text-ui-xs text-green-600 dark:text-green-400">Status</p>
+                    <p className="text-ui-sm text-green-800 dark:text-green-200">
                       Active
                     </p>
                   </div>
@@ -190,12 +190,12 @@ export const SettingsSubscription = () => {
           {/* Platform and Login Info */}
           <div className="grid grid-cols-2 gap-4 p-3 bg-muted/30 rounded-lg">
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Platform</p>
-              <Badge variant="outline" className="mt-1">web</Badge>
+              <p className="text-ui-xs text-muted-foreground">Platform</p>
+              <Badge variant="outline" className="mt-1 text-ui-xs">web</Badge>
             </div>
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Login Method</p>
-              <Badge variant="outline" className="mt-1">email</Badge>
+              <p className="text-ui-xs text-muted-foreground">Login Method</p>
+              <Badge variant="outline" className="mt-1 text-ui-xs">email</Badge>
             </div>
           </div>
 
@@ -277,8 +277,8 @@ export const SettingsSubscription = () => {
 
           {/* Feature List */}
           <div className="pt-4 border-t">
-            <p className="font-medium mb-3">Premium Features</p>
-            <div className="space-y-2 text-sm">
+            <p className="text-label mb-3">Premium Features</p>
+            <div className="space-y-2 text-ui-sm">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 Food tracking with AI assistance

@@ -22,6 +22,14 @@ export default {
 				sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
 				mono: ['Inter', 'ui-monospace', 'SFMono-Regular', 'monospace'],
 			},
+			fontSize: {
+				'ui-sm': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '500' }], // 14px - Navigation, UI elements
+				'ui-xs': ['0.75rem', { lineHeight: '1rem', fontWeight: '500' }],     // 12px - Small UI elements
+				'label': ['0.875rem', { lineHeight: '1.25rem', fontWeight: '600' }], // 14px - Form labels
+				'body': ['1rem', { lineHeight: '1.5rem', fontWeight: '400' }],       // 16px - Regular text
+				'heading': ['1.125rem', { lineHeight: '1.75rem', fontWeight: '600' }], // 18px - Card titles
+				'page-title': ['1.5rem', { lineHeight: '2rem', fontWeight: '700' }], // 24px - Page headers
+			},
 			spacing: {
 				'safe': 'env(safe-area-inset-bottom)',
 				'safe-top': 'env(safe-area-inset-top)',

@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils"
  */
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-ui-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
@@ -49,13 +49,13 @@ const buttonVariants = cva(
         neutral: "bg-muted text-muted-foreground hover:bg-muted/80 border-none",
         // 🎨 STANDARDIZED ACTION BUTTON SYSTEM - USE THESE FOR CONSISTENCY
         // ✅ PRIMARY ACTIONS: Main user actions (Start, Add, Save, etc.)
-        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
+        "action-primary": "bg-primary text-primary-foreground hover:bg-primary/90 border-none",
         // ✅ SECONDARY ACTIONS: Supporting actions (Pause, Cancel, etc.) - SAME STYLING AS PRIMARY
-        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
+        "action-secondary": "bg-primary text-primary-foreground hover:bg-primary/90 border-none",
         // ✅ COMPACT ACTIONS: Smaller buttons with same primary styling
-        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
+        "action-compact": "bg-primary text-primary-foreground hover:bg-primary/90 border-none",
         // ✅ AI ACTIONS: Special AI-related buttons (Generate AI Image, Voice Input, etc.) - Now using primary
-        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-medium border-none",
+        "ai": "bg-primary text-primary-foreground hover:bg-primary/90 border-none",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -72,7 +72,7 @@ const buttonVariants = cva(
         // ✅ TALL ACTIONS: Full-height buttons for grid layouts (h-12)
         "action-tall": "h-12 px-4 py-3",
         // ✅ START BUTTONS: Extra large buttons for Start Fast/Walking (h-16)
-        "start-button": "h-16 px-8 py-4 text-lg",
+        "start-button": "h-16 px-8 py-4",
       },
     },
     defaultVariants: {

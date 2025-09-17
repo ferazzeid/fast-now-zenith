@@ -27,7 +27,7 @@ export const ThemeSelector = () => {
               <SelectItem key={option.value} value={option.value}>
                 <div className="flex items-center space-x-2">
                   <Icon className="w-4 h-4" />
-                  <span>{option.label}</span>
+                  <span className="text-ui-sm">{option.label}</span>
                 </div>
               </SelectItem>
             );
