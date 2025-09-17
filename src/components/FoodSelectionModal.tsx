@@ -18,6 +18,7 @@ interface FoodSuggestion {
   foods: FoodItem[];
   destination?: 'today' | 'template' | 'library';
   added?: boolean;
+  originalTranscription?: string; // Store original voice input for user reference
 }
 
 interface FoodSelectionModalProps {
@@ -146,6 +147,16 @@ export const FoodSelectionModal = ({
             )}
           </div>
         </Card>
+
+        {/* Original Voice Input Display */}
+        {foodSuggestion.originalTranscription && (
+          <Card className="p-3 bg-blue-50 border-blue-200">
+            <div className="text-xs text-muted-foreground mb-1">What I heard:</div>
+            <div className="text-sm text-blue-800 italic">
+              "{foodSuggestion.originalTranscription}"
+            </div>
+          </Card>
+        )}
 
         {/* Food Items */}
         <div className="space-y-2 max-h-[400px] overflow-y-auto">

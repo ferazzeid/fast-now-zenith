@@ -25,6 +25,7 @@ interface FoodSuggestion {
   foods: FoodItem[];
   destination?: 'today' | 'template' | 'library';
   added?: boolean;
+  originalTranscription?: string; // Store original voice input for user reference
 }
 
 export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps) => {
@@ -164,14 +165,12 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
 
   const handleVoiceTranscription = async (transcription: string) => {
     try {
-      // Call AI to process the voice input for foods
+      console.log('🎤 Voice transcription:', transcription);
+      
+      // Call AI to process the voice input for foods - let edge function handle the system prompt
       const { data, error } = await supabase.functions.invoke('chat-completion', {
         body: {
           messages: [
-            { 
-              role: 'system', 
-              content: 'You are a focused food tracking assistant. Extract food items from user input and return them with proper nutrition data.' 
-            },
             { role: 'user', content: transcription }
           ],
           context: 'food_only'
@@ -187,10 +186,14 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
         const foods = data.functionCall.arguments.foods || [];
         
         if (foods.length > 0) {
+          console.log('🍎 AI extracted foods:', foods);
+          
+          // Store original transcription for user reference
           setFoodSuggestion({
             foods,
-            destination: 'today', // Auto-set to today
-            added: false
+            destination: 'today',
+            added: false,
+            originalTranscription: transcription // Add this for user feedback
           });
           setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
           setShowFoodModal(true);
