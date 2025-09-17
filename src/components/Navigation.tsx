@@ -218,8 +218,8 @@ export const Navigation = () => {
                   to={path}
                   className={`relative flex flex-col items-center py-2 px-2 rounded-xl transition-all duration-200 flex-1 min-w-0 border ${
                     isActive 
-                       ? 'bg-primary text-primary-foreground shadow-lg border-primary/30' 
-                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 bg-muted/10 border-border hover:border-border-emphasis'
+                       ? 'bg-primary text-primary-foreground shadow-lg border-primary/50' 
+                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 bg-muted/10 border-border-normal hover:border-border-emphasis'
                   } ${isLocked ? 'opacity-50' : ''}`}
                   onClick={label === 'Food' ? handleFoodClick : undefined}
                 >
