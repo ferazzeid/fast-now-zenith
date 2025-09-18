@@ -474,7 +474,7 @@ const Settings = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-primary" />
+                    <User className="w-5 h-5 text-foreground" />
                     <h3 className="text-lg font-semibold text-warm-text">Profile</h3>
                   </div>
                   {accessIsAdmin && (
@@ -713,7 +713,7 @@ const Settings = () => {
             <Card className="p-6 bg-card">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Brain className="w-5 h-5 text-primary" />
+                  <Brain className="w-5 h-5 text-foreground" />
                   <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
                 </div>
                 
@@ -751,7 +751,7 @@ const Settings = () => {
           <Card className="p-6 bg-card">
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
-                <Key className="w-5 h-5 text-primary" />
+                <Key className="w-5 h-5 text-foreground" />
                 <h3 className="text-lg font-semibold text-warm-text">Account</h3>
               </div>
               
@@ -820,7 +820,7 @@ const Settings = () => {
             <Card className="p-6 bg-card">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Navigation2 className="w-5 h-5 text-primary" />
+                  <Navigation2 className="w-5 h-5 text-foreground" />
                   <h3 className="text-lg font-semibold text-warm-text">Navigation</h3>
                 </div>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -835,7 +835,7 @@ const Settings = () => {
             <Card className="p-6 bg-card">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Info className="w-5 h-5 text-primary" />
+                  <Info className="w-5 h-5 text-foreground" />
                   <h3 className="text-lg font-semibold text-warm-text">About</h3>
                 </div>
                 
@@ -856,7 +856,7 @@ const Settings = () => {
             <Card className="p-6 bg-card">
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
-                  <Key className="w-5 h-5 text-primary" />
+                  <Key className="w-5 h-5 text-foreground" />
                   <h3 className="text-lg font-semibold text-warm-text">Disclaimer</h3>
                 </div>
                 
