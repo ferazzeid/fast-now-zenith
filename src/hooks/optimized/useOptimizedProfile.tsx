@@ -76,7 +76,7 @@ export const useOptimizedProfile = () => {
           user_id: user.id,
           ...updates,
           updated_at: new Date().toISOString()
-        })
+        }, { onConflict: 'user_id' })
         .select()
         .single();
 
@@ -104,9 +104,13 @@ export const useOptimizedProfile = () => {
         queryClient.setQueryData(profileQueryKey(user?.id || null), context.previousProfile);
       }
       
+      console.error('Profile update error:', err);
+      
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
       toast({
         title: "Profile Update Failed",
-        description: "There was an error updating your profile. Please try again.",
+        description: `Error: ${errorMessage}. Please try again.`,
         variant: "destructive",
       });
     },
