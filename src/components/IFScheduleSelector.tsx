@@ -12,8 +12,9 @@ interface IFScheduleSelectorProps {
 }
 
 const IF_PRESETS = [
+  { name: '18:6', fastingHours: 18, eatingHours: 6, description: 'Extended fasting' },
   { name: '16:8', fastingHours: 16, eatingHours: 8, description: 'Most popular schedule' },
-  { name: 'OMAD', fastingHours: 23, eatingHours: 1, description: 'One meal a day' }
+  { name: '23:1', fastingHours: 23, eatingHours: 1, description: 'One meal a day' }
 ];
 
 export const IFScheduleSelector = ({
@@ -174,7 +175,7 @@ export const IFScheduleSelector = ({
             disabled={!canConfirm}
             className="flex-1"
           >
-            Setup Schedule
+            Start Fast
           </Button>
         </div>
       </div>

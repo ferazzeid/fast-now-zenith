@@ -16,8 +16,9 @@ interface IntermittentFastingTimerProps {
 }
 
 const IF_PRESETS = [
+  { name: '18:6', fastingHours: 18, eatingHours: 6, description: 'Extended fasting' },
   { name: '16:8', fastingHours: 16, eatingHours: 8, description: 'Most popular schedule' },
-  { name: 'OMAD', fastingHours: 23, eatingHours: 1, description: 'One meal a day' }
+  { name: '23:1', fastingHours: 23, eatingHours: 1, description: 'One meal a day' }
 ];
 
 export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> = ({
@@ -146,7 +147,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               00:00:00
             </div>
             <div className="text-lg font-medium text-muted-foreground mb-4">
-              Ready to Fast
+              Fasting Window
             </div>
             
             {/* Gentle Dividing Line */}
@@ -163,7 +164,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               00:00:00
             </div>
             <div className="text-sm font-medium text-muted-foreground/60">
-              Ready to Eat
+              Eating Window
             </div>
           </div>
         </Card>
@@ -177,7 +178,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           disabled={loading}
         >
           <Play className="w-8 h-8 mr-3" />
-          Setup Schedule
+          Start Fast
         </Button>
 
         {/* Schedule Selection Modal */}
@@ -356,7 +357,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               "text-lg font-medium transition-colors duration-300",
               todaySession?.status === 'fasting' ? 'text-foreground' : 'text-muted-foreground'
             )}>
-              Fasting Time
+              Fasting Window
             </div>
             
             {/* Progress indicator for fasting */}
