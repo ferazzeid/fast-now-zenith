@@ -175,15 +175,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
           description: "Please try again",
           variant: "destructive",
         });
-      } catch (uploadError) {
-        console.error('Upload error:', uploadError);
-        reset();
-        
-        toast({
-          title: "Upload failed",
-          description: "Please try again",
-          variant: "destructive",
-        });
       }
     });
   };
@@ -241,7 +232,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     });
   };
 
-  const handleDestinationChange = (destination: 'today' | 'template' | 'library') => {
+  const handleDestinationChange = (destination: 'today' | 'template') => {
     if (!foodSuggestion) return;
     setFoodSuggestion({
       ...foodSuggestion,
