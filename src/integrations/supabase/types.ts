@@ -1286,6 +1286,7 @@ export type Database = {
           enable_notes_in_animations: boolean | null
           enable_quotes_in_animations: boolean | null
           enable_walking_slideshow: boolean | null
+          fasting_mode: string | null
           goal_weight: number | null
           google_play_purchase_token: string | null
           height: number | null
@@ -1334,6 +1335,7 @@ export type Database = {
           enable_notes_in_animations?: boolean | null
           enable_quotes_in_animations?: boolean | null
           enable_walking_slideshow?: boolean | null
+          fasting_mode?: string | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
           height?: number | null
@@ -1382,6 +1384,7 @@ export type Database = {
           enable_notes_in_animations?: boolean | null
           enable_quotes_in_animations?: boolean | null
           enable_walking_slideshow?: boolean | null
+          fasting_mode?: string | null
           goal_weight?: number | null
           google_play_purchase_token?: string | null
           height?: number | null

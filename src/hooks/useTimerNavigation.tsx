@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useFastingSessionQuery } from './optimized/useFastingSessionQuery';
 import { useOptimizedWalkingSession } from './optimized/useOptimizedWalkingSession';
 import { useIntermittentFasting } from './useIntermittentFasting';
+import { useOptimizedProfile } from './optimized/useOptimizedProfile';
 
 export type TimerMode = 'fasting' | 'walking' | 'if';
 
@@ -136,6 +137,8 @@ export const useTimerNavigation = () => {
     updateTimerStatus();
   }, [walkingSession?.id, walkingSession?.session_state, fastingSession?.id, fastingSession?.status, walkingElapsedTime]);
 
+  const { profile, updateProfile } = useOptimizedProfile();
+
   const switchMode = (mode: TimerMode) => {
     const currentPath = location.pathname;
     
@@ -144,6 +147,14 @@ export const useTimerNavigation = () => {
         (mode === 'if' && currentPath.includes('/intermittent-fasting')) ||
         (mode === 'fasting' && (currentPath.includes('/timer') || currentPath === '/'))) {
       return;
+    }
+    
+    // Save the fasting mode preference to profile
+    if (mode === 'if' || mode === 'fasting') {
+      const fastingMode = mode === 'if' ? 'intermittent' : 'extended';
+      if (profile?.fasting_mode !== fastingMode) {
+        updateProfile({ fasting_mode: fastingMode });
+      }
     }
     
     setSheetOpen(false); // Auto-close the sheet

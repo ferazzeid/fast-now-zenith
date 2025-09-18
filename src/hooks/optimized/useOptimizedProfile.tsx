@@ -22,6 +22,7 @@ export interface UserProfile {
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
   updated_at?: string;
+  fasting_mode?: 'extended' | 'intermittent';
   
   // Slideshow settings
   enable_fasting_slideshow?: boolean;
