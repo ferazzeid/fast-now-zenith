@@ -839,16 +839,17 @@ export const FoodLibraryView = ({
                               <Save className="w-4 h-4 mr-3" />
                               Add to Template
                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                await deleteDefaultFood(food.id);
-                              }}
-                               className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                             >
-                               <Trash2 className="w-4 h-4 mr-3" />
-                               Delete Food
-                            </DropdownMenuItem>
+                             <DropdownMenuItem
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 setDefaultFoodToDelete(food as DefaultFood);
+                                 setShowDeleteDefaultFoodConfirm(true);
+                               }}
+                                className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4 mr-3" />
+                                Delete Food
+                             </DropdownMenuItem>
                        </>
                     )}
                 </DropdownMenuContent>
@@ -1174,42 +1175,42 @@ export const FoodLibraryView = ({
                             )}
                           </div>
 
-                          {/* Template Food Info */}
-                          <div className="flex-1 min-w-0 max-w-[160px]">
-                            <div className="mb-0">
-                               <ClickableTooltip content={food.name}>
-                                 <h3 className="text-sm font-semibold text-foreground truncate overflow-hidden text-ellipsis whitespace-nowrap">{food.name}</h3>
-                               </ClickableTooltip>
+                           {/* Template Food Info */}
+                           <div className="flex-1 min-w-0 max-w-[100px]">
+                             <div className="mb-0">
+                                <ClickableTooltip content={food.name}>
+                                  <h3 className="text-sm font-semibold text-foreground truncate overflow-hidden text-ellipsis whitespace-nowrap">{food.name}</h3>
+                                </ClickableTooltip>
+                             </div>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <span className="font-medium">{Math.round(food.serving_size)}g</span>
+                              <span className="text-muted-foreground/60">•</span>
+                              <span className="font-medium">{Math.round(food.calories)}</span>
+                              <span className="text-muted-foreground/60">•</span>
+                              <span className="font-medium">{Math.round(food.carbs)}g</span>
                             </div>
-                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                             <span className="font-medium">{Math.round(food.serving_size)}g</span>
-                             <span className="text-muted-foreground/60">•</span>
-                             <span className="font-medium">{Math.round(food.calories)}</span>
-                             <span className="text-muted-foreground/60">•</span>
-                             <span className="font-medium">{Math.round(food.carbs)}g</span>
-                           </div>
-                         </div>
+                          </div>
 
-                         {/* Add to Today Button */}
-                         <div className="flex-shrink-0">
-                           <Button
-                             variant="default"
-                             size="sm"
-                             onClick={() => handleQuickSelect({
-                               id: food.id,
-                               name: food.name,
-                               calories_per_100g: (food.calories / food.serving_size) * 100,
-                               carbs_per_100g: (food.carbs / food.serving_size) * 100,
-                               is_favorite: false,
-                               image_url: food.image_url,
-                               variations: []
-                             }, false)}
-                             className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
-                             title="Add to today's plan"
-                           >
-                             <Plus className="w-3 h-3 text-primary-foreground" />
-                           </Button>
-                         </div>
+                          {/* Add to Today Button */}
+                          <div className="flex-shrink-0 ml-auto">
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleQuickSelect({
+                                id: food.id,
+                                name: food.name,
+                                calories_per_100g: (food.calories / food.serving_size) * 100,
+                                carbs_per_100g: (food.carbs / food.serving_size) * 100,
+                                is_favorite: false,
+                                image_url: food.image_url,
+                                variations: []
+                              }, false)}
+                              className="h-5 w-5 p-1 bg-primary hover:bg-primary/90 rounded"
+                              title="Add to today's plan"
+                            >
+                              <Plus className="w-3 h-3 text-primary-foreground" />
+                            </Button>
+                          </div>
                        </div>
                      </div>
                   ))}
