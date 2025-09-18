@@ -303,15 +303,15 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
 
       {/* Control buttons */}
       <div className="space-y-4">
-        <Button 
-          onClick={handleEndFast}
-          variant="destructive"
-          size="action-main"
-          className="w-full"
-        >
-          <Square className="w-4 h-4 mr-2" />
-          End Fast
-        </Button>
+          <Button 
+            onClick={handleEndFast}
+            variant="action-primary"
+            size="action-main"
+            className="w-full"
+          >
+            <Square className="w-4 h-4 mr-2" />
+            End Fast
+          </Button>
       </div>
     </div>
   );

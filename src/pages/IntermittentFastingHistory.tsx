@@ -15,21 +15,18 @@ const IntermittentFastingHistory = () => {
   };
 
   const getSessionStatusColor = (status: string, completed: boolean) => {
-    if (completed) return 'text-green-600';
-    if (status === 'active') return 'text-accent';
+    if (completed) return 'text-foreground';
     return 'text-muted-foreground';
   };
 
   const getSessionStatusText = (status: string, completed: boolean) => {
     if (completed) return 'Completed';
-    if (status === 'active') return 'Active';
     return 'Incomplete';
   };
 
   const getSessionStatusIcon = (status: string, completed: boolean) => {
-    if (completed) return <CheckCircle className="w-4 h-4" />;
-    if (status === 'active') return <Clock className="w-4 h-4" />;
-    return <XCircle className="w-4 h-4" />;
+    if (completed) return <CheckCircle className="w-3 h-3" />;
+    return <XCircle className="w-3 h-3" />;
   };
 
   const groupSessionsByDate = (sessions: any[]) => {
@@ -123,13 +120,10 @@ const IntermittentFastingHistory = () => {
                             <h3 className="font-semibold">
                               {session.fasting_window_hours}:{session.eating_window_hours} Schedule
                             </h3>
-                            <span className={`text-xs px-2 py-1 rounded-full ${getSessionStatusColor(session.status, session.completed)} bg-current/10 flex items-center gap-1`}>
+                            <span className={`text-xs px-2 py-1 rounded-full ${getSessionStatusColor(session.status, session.completed)} bg-muted/20 flex items-center gap-1`}>
                               {getSessionStatusIcon(session.status, session.completed)}
                               {getSessionStatusText(session.status, session.completed)}
                             </span>
-                            {session.completed && (
-                              <Trophy className="w-4 h-4 text-yellow-500" />
-                            )}
                           </div>
                         </div>
                         
