@@ -121,6 +121,9 @@ serve(async (req) => {
       base_prompt: promptsData?.find(p => p.prompt_section === 'base_prompt')?.prompt_content || 
         'You are a food nutrition analyzer. Your job is to analyze user food input and create appropriate food entries with accurate nutritional information.',
       
+      partial_recognition_rules: promptsData?.find(p => p.prompt_section === 'partial_recognition_rules')?.prompt_content ||
+        'PARTIAL RECOGNITION HANDLING:\n- Process ALL recognizable foods normally with full nutrition data\n- For unrecognized items, create individual entries with needsManualInput: true\n- NEVER treat an entire food list as one item due to partial recognition failure',
+      
       composite_rules: promptsData?.find(p => p.prompt_section === 'composite_rules')?.prompt_content || 
         'COMPOSITE FOOD INTELLIGENCE:\n- "Omelette from X, Y, Z" = ONE omelette entry (combine all ingredients nutritionally)\n- "Sandwich with X" = ONE sandwich entry (bread + filling combined)\n- "Salad with X, Y" = ONE salad entry (all components combined)\n- "Pancakes with syrup" = ONE pancake entry (including syrup)',
       
@@ -138,6 +141,8 @@ serve(async (req) => {
     };
 
     const systemMessage = `${prompts.base_prompt}
+
+${prompts.partial_recognition_rules}
 
 ${prompts.composite_rules}
 
@@ -211,6 +216,10 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
                         fat_per_100g: {
                           type: "number",
                           description: "Fat per 100g (optional, for completeness)"
+                        },
+                        needsManualInput: {
+                          type: "boolean",
+                          description: "Set to true for unrecognized foods that need manual nutrition input"
                         }
                       },
                       required: ["name", "serving_size", "calories", "carbs", "calories_per_100g", "carbs_per_100g"]
@@ -299,29 +308,67 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
       }
     }
 
-    // If no function call and no foods found, provide fallback
+    // Enhanced fallback logic for individual food parsing
     if (!functionCall && completion && !completion.includes('validation_error')) {
-      return new Response(
-        JSON.stringify({
-          completion: completion,
-          functionCall: null,
-          errorType: 'no_foods_found',
-          originalTranscription: message,
-          fallbackSuggestion: {
-            name: capitalizeFoodName(message.trim()),
-            serving_size: 100, // Default serving size
-            calories: 0, // User will need to estimate
-            carbs: 0, // User will need to estimate
-            needsManualInput: true
+      // Attempt to parse individual foods from the input
+      const possibleFoods = message.split(/[,;]|and(?:\s|$)/).map(food => food.trim()).filter(food => food.length > 0);
+      
+      if (possibleFoods.length > 1) {
+        // Multiple potential foods detected - create individual manual entries
+        const fallbackFoods = possibleFoods.map(foodName => ({
+          name: capitalizeFoodName(foodName),
+          serving_size: 100, // Default serving size
+          calories: 0, // User will need to estimate
+          carbs: 0, // User will need to estimate
+          calories_per_100g: 0,
+          carbs_per_100g: 0,
+          needsManualInput: true
+        }));
+
+        return new Response(
+          JSON.stringify({
+            completion: `I recognized ${possibleFoods.length} food items but need your help with nutritional information. Please review and adjust as needed.`,
+            functionCall: {
+              name: 'add_multiple_foods',
+              arguments: {
+                foods: fallbackFoods,
+                destination: 'today'
+              }
+            },
+            originalTranscription: message,
+            fallbackCreated: true
+          }),
+          { 
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
           }
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
+        );
+      } else {
+        // Single unrecognized food - use original fallback
+        return new Response(
+          JSON.stringify({
+            completion: completion,
+            functionCall: null,
+            errorType: 'no_foods_found',
+            originalTranscription: message,
+            fallbackSuggestion: {
+              name: capitalizeFoodName(message.trim()),
+              serving_size: 100, // Default serving size
+              calories: 0, // User will need to estimate
+              carbs: 0, // User will need to estimate
+              needsManualInput: true
+            }
+          }),
+          { 
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
+          }
+        );
+      }
     }
 
     return new Response(

@@ -238,12 +238,21 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
           // Store original transcription for user reference
           setFoodSuggestion({
             foods,
-            destination: 'today',
+            destination: data.functionCall.arguments.destination || 'today',
             added: false,
             originalTranscription: data.originalTranscription || transcription
           });
           setSelectedFoodIds(new Set(foods.map((_: any, index: number) => index)));
           setShowFoodModal(true);
+
+          // Show different message for fallback vs AI-parsed foods
+          if (data.fallbackCreated) {
+            toast({
+              title: "Manual Review Required",
+              description: `I identified ${foods.length} food items but need your help with nutritional information. Please review and adjust.`,
+              variant: "default"
+            });
+          }
         } else {
           toast({
             title: "No foods detected",

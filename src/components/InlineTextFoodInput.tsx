@@ -65,18 +65,27 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
       if (data.functionCall?.name === 'add_multiple_foods' && data.functionCall?.arguments?.foods) {
         const suggestion: FoodSuggestion = {
           foods: data.functionCall.arguments.foods,
-          destination: 'today'
+          destination: data.functionCall.arguments.destination || 'today'
         };
         setFoodSuggestion(suggestion);
         setSelectedFoodIds(new Set(suggestion.foods.map((_, index) => index)));
         setShowFoodModal(true);
         
-        toast({
-          title: "✓ Food Recognized",
-          description: `Found ${suggestion.foods.length} food item${suggestion.foods.length === 1 ? '' : 's'}`,
-          className: "bg-green-600 text-white border-0",
-          duration: 2000,
-        });
+        // Show different message for fallback vs AI-parsed foods
+        if (data.fallbackCreated) {
+          toast({
+            title: "Manual Review Required",
+            description: `I identified ${suggestion.foods.length} food items but need your help with nutritional information.`,
+            variant: "default"
+          });
+        } else {
+          toast({
+            title: "✓ Food Recognized",
+            description: `Found ${suggestion.foods.length} food item${suggestion.foods.length === 1 ? '' : 's'}`,
+            className: "bg-green-600 text-white border-0",
+            duration: 2000,
+          });
+        }
         return;
       }
 
