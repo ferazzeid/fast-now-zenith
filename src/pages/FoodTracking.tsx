@@ -505,15 +505,15 @@ const FoodTracking = () => {
                   <div className="space-y-1">
                     {/* Small icon buttons positioned above food list */}
                     <div className="flex justify-end items-center gap-2 pb-4 border-b border-border">
-                      <div className="flex items-center gap-2 mr-2">
+                      <div className="flex items-center gap-4 mr-2">
                         <Button
                           size="sm"
                           variant="default"
                           onClick={() => setShowClearAllDialog(true)}
-                          className={`h-5 w-5 p-1 rounded text-destructive hover:text-destructive ${
+                          className={`h-5 w-5 p-1 rounded text-muted-foreground hover:text-foreground ${
                             isClearingAll 
                               ? 'bg-muted/50 hover:bg-muted/70' 
-                              : 'bg-transparent hover:bg-destructive/10'
+                              : 'bg-transparent hover:bg-muted/10'
                           }`}
                           disabled={isClearingAll}
                           title="Delete all foods"
@@ -526,11 +526,7 @@ const FoodTracking = () => {
                           variant="default"
                           onClick={handleMarkAllAsEaten}
                           disabled={isBulkMarking}
-                          className={`h-5 w-5 p-1 rounded ${
-                            todayEntries.some(entry => !entry.consumed)
-                              ? 'bg-accent hover:bg-accent/90 text-accent-foreground' 
-                              : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
-                          }`}
+                          className="h-5 w-5 p-1 rounded bg-muted/50 hover:bg-muted/70 text-muted-foreground"
                           title="Mark all foods as eaten"
                           aria-label="Mark all foods as eaten"
                         >
@@ -559,15 +555,15 @@ const FoodTracking = () => {
                         <Save className="w-3 h-3" />
                         Save to Template
                       </Button>
-                      <div className="flex items-center gap-2 mr-2">
+                      <div className="flex items-center gap-4 mr-2">
                         <Button
                           size="sm"
                           variant="default"
                           onClick={() => setShowClearAllDialog(true)}
-                          className={`h-5 w-5 p-1 rounded text-destructive hover:text-destructive ${
+                          className={`h-5 w-5 p-1 rounded text-muted-foreground hover:text-foreground ${
                             isClearingAll 
                               ? 'bg-muted/50 hover:bg-muted/70' 
-                              : 'bg-transparent hover:bg-destructive/10'
+                              : 'bg-transparent hover:bg-muted/10'
                           }`}
                           disabled={isClearingAll}
                           title="Delete all foods"
@@ -580,11 +576,7 @@ const FoodTracking = () => {
                           variant="default"
                           onClick={handleMarkAllAsEaten}
                           disabled={isBulkMarking}
-                          className={`h-5 w-5 p-1 rounded ${
-                            todayEntries.some(entry => !entry.consumed)
-                              ? 'bg-accent hover:bg-accent/90 text-accent-foreground' 
-                              : 'bg-muted/50 hover:bg-muted/70 text-muted-foreground'
-                          }`}
+                          className="h-5 w-5 p-1 rounded bg-muted/50 hover:bg-muted/70 text-muted-foreground"
                           title="Mark all foods as eaten"
                           aria-label="Mark all foods as eaten"
                         >
