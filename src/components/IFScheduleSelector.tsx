@@ -65,33 +65,33 @@ export const IFScheduleSelector = ({
 
   return (
     <UniversalModal isOpen={true} onClose={onClose} title="Select Schedule">
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 p-4">
 
         {/* Quick Presets */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">Quick Presets</h3>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {IF_PRESETS.map((preset) => (
               <button
                 key={preset.name}
                 onClick={() => handlePresetSelect(preset)}
                 className={cn(
-                  "text-center p-3 bg-muted rounded border border-border transition-all duration-200",
+                  "text-center p-2 bg-muted rounded border border-border transition-all duration-200",
                   selectedPreset?.name === preset.name
                     ? "border-primary bg-primary/10 text-primary"
                     : "hover:border-muted-foreground/50 hover:bg-muted/80"
                 )}
               >
-                <div className="font-bold text-xl">{preset.name}</div>
+                <div className="font-bold text-lg">{preset.name}</div>
               </button>
             ))}
           </div>
         </div>
 
         {/* Custom Schedule - Always Visible */}
-        <div className="space-y-3">
+        <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">Custom Schedule</h3>
-          <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+          <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 Fasting Window: {customFastingHours[0]} hours
@@ -110,18 +110,18 @@ export const IFScheduleSelector = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div className="text-center p-3 bg-background rounded border border-border">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="text-center p-2 bg-background rounded border border-border">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Clock className="w-3 h-3" />
-                  <span className="font-medium">Fasting</span>
+                  <span className="font-medium text-xs">Fast</span>
                 </div>
                 <div className="text-lg font-bold">{customFastingHours[0]}h</div>
               </div>
-              <div className="text-center p-3 bg-background rounded border border-border">
+              <div className="text-center p-2 bg-background rounded border border-border">
                 <div className="flex items-center justify-center gap-1 mb-1">
                   <Utensils className="w-3 h-3" />
-                  <span className="font-medium">Eating</span>
+                  <span className="font-medium text-xs">Eat</span>
                 </div>
                 <div className="text-lg font-bold">{customEatingHours}h</div>
               </div>
@@ -130,8 +130,7 @@ export const IFScheduleSelector = ({
         </div>
 
         {/* Start Time Options */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium text-muted-foreground">Start Time</h3>
+        <div className="space-y-2">
           <div className="flex gap-2">
             <Button
               onClick={() => setStartInPast(false)}
@@ -152,8 +151,8 @@ export const IFScheduleSelector = ({
           </div>
           
           {startInPast && (
-            <div className="p-4 bg-muted/30 rounded-lg border border-border">
-              <div className="space-y-3">
+            <div className="p-3 bg-muted/30 rounded-lg border border-border">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium">
                   Hours Ago: {hoursAgo}h
                 </Label>
@@ -189,7 +188,7 @@ export const IFScheduleSelector = ({
         </div>
 
         {/* Start Button - Large */}
-        <div className="pt-4">
+        <div className="pt-2">
           <Button
             onClick={handleConfirm}
             disabled={!canConfirm}

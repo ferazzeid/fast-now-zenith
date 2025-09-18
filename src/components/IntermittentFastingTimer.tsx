@@ -248,12 +248,12 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               </div>
             </div>
             <div className="flex items-center gap-1">
-              {/* Toggle with background */}
-              <div className="flex items-center bg-muted rounded-full p-1 border border-border">
+              {/* Toggle with same design as E/I toggle */}
+              <div className="flex items-center bg-muted rounded-full p-0.5 border border-border">
                 <button
                   onClick={() => setAutoRestart(false)}
                   className={cn(
-                    "w-6 h-6 rounded-full text-xs font-bold transition-all duration-200",
+                    "w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center",
                     !autoRestart 
                       ? "bg-primary text-primary-foreground shadow-sm" 
                       : "text-muted-foreground hover:text-foreground"
@@ -264,7 +264,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
                 <button
                   onClick={() => setAutoRestart(true)}
                   className={cn(
-                    "w-6 h-6 rounded-full text-xs font-bold transition-all duration-200",
+                    "w-6 h-6 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center",
                     autoRestart 
                       ? "bg-primary text-primary-foreground shadow-sm" 
                       : "text-muted-foreground hover:text-foreground"
