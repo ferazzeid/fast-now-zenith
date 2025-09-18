@@ -31,7 +31,14 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
 
   useEffect(() => {
     setLocalShowInAnimations(motivator.show_in_animations);
-  }, [motivator.show_in_animations]);
+    // Debug: Log motivator data
+    console.log('🔍 SimpleMotivatorCard motivator:', { 
+      id: motivator.id, 
+      title: motivator.title, 
+      author: motivator.author, 
+      category: motivator.category 
+    });
+  }, [motivator.show_in_animations, motivator.id, motivator.title, motivator.author, motivator.category]);
   return (
     <Card className="overflow-hidden relative bg-card">
       <CardContent className="p-6">
@@ -45,6 +52,11 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
            {motivator.category === 'saved_quote' && motivator.author && (
              <cite className="text-sm text-muted-foreground/80 not-italic font-medium mt-2 block text-left">
                — {motivator.author}
+             </cite>
+           )}
+           {motivator.category === 'saved_quote' && motivator.title && motivator.title !== motivator.content && !motivator.author && (
+             <cite className="text-sm text-muted-foreground/80 not-italic font-medium mt-2 block text-left">
+               — {motivator.title}
              </cite>
            )}
            {motivator.title && motivator.category !== 'saved_quote' && motivator.title !== motivator.content && (

@@ -348,7 +348,7 @@ const Motivators = () => {
                 {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
               </h1>
               <p className="text-sm text-muted-foreground text-left">
-                {activeTab === 'goals' ? 'Your personal motivators' : activeTab === 'quotes' ? 'Quotes saved from timers' : 'Your personal notes and thoughts'}
+                {activeTab === 'goals' ? 'Your personal motivators' : activeTab === 'quotes' ? 'Your inspirational quotes collection' : 'Your personal notes and thoughts'}
               </p>
             </div>
           </div>
@@ -488,7 +488,7 @@ const Motivators = () => {
                       <div>
                         <h3 className="font-semibold text-warm-text mb-2">No saved quotes yet</h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Quotes you save from timer screens will appear here
+                          Select quotes from our curated collection to build your personal library
                         </p>
                       </div>
                     </div>
