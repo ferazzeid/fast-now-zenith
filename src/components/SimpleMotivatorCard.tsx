@@ -43,7 +43,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
              </p>
            )}
            {motivator.category === 'saved_quote' && motivator.author && (
-             <cite className="text-sm text-muted-foreground not-italic">
+             <cite className="text-sm text-muted-foreground/80 not-italic font-medium mt-2 block text-left">
                — {motivator.author}
              </cite>
            )}
