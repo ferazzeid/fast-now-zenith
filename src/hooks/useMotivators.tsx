@@ -69,7 +69,7 @@ export const useMotivators = () => {
         imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
         linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
         show_in_animations: item.show_in_animations ?? false, // Default to false if not set
-        author: item.author // Ensure author field is preserved
+        author: item.author || null // Handle new author field
       }));
       
       console.log('🎯 TRANSFORMED MOTIVATORS:', transformedData.map(m => ({ 
@@ -136,7 +136,7 @@ export const useMotivators = () => {
           ...data, 
           imageUrl: data.image_url, 
           linkUrl: data.link_url,
-          author: data.author // Ensure author is preserved
+          author: (data as any).author // Handle new author field with type assertion
         };
         console.log('🎯 Created motivator data:', transformedData);
         setMotivators(prev => [transformedData as Motivator, ...prev]);
@@ -233,7 +233,12 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const transformedData = data.map(item => ({ ...item, imageUrl: item.image_url, linkUrl: item.link_url }));
+        const transformedData = data.map(item => ({ 
+          ...item, 
+          imageUrl: item.image_url, 
+          linkUrl: item.link_url,
+          author: (item as any).author || null // Handle new author field
+        }));
         setMotivators(prev => [...transformedData as Motivator[], ...prev]);
         toast({
           title: "Motivators Created!",
@@ -278,7 +283,12 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
+        const transformedData = { 
+          ...data, 
+          imageUrl: data.image_url, 
+          linkUrl: data.link_url,
+          author: (data as any).author || null // Handle new author field
+        };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         toast({
           title: "📝 Quote Saved!",

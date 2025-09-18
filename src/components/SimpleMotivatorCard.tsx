@@ -31,14 +31,7 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
 
   useEffect(() => {
     setLocalShowInAnimations(motivator.show_in_animations);
-    // Debug: Log motivator data
-    console.log('🔍 SimpleMotivatorCard motivator:', { 
-      id: motivator.id, 
-      title: motivator.title, 
-      author: motivator.author, 
-      category: motivator.category 
-    });
-  }, [motivator.show_in_animations, motivator.id, motivator.title, motivator.author, motivator.category]);
+  }, [motivator.show_in_animations]);
   return (
     <Card className="overflow-hidden relative bg-card">
       <CardContent className="p-6">

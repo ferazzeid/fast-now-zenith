@@ -981,6 +981,7 @@ export type Database = {
       }
       motivators: {
         Row: {
+          author: string | null
           category: string | null
           content: string
           created_at: string
@@ -1001,6 +1002,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          author?: string | null
           category?: string | null
           content: string
           created_at?: string
@@ -1021,6 +1023,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          author?: string | null
           category?: string | null
           content?: string
           created_at?: string
