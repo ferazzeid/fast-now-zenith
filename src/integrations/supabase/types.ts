@@ -1283,6 +1283,7 @@ export type Database = {
           enable_fasting_slideshow: boolean | null
           enable_food_slideshow: boolean | null
           enable_goals_in_animations: boolean | null
+          enable_if_slideshow: boolean | null
           enable_notes_in_animations: boolean | null
           enable_quotes_in_animations: boolean | null
           enable_walking_slideshow: boolean | null
@@ -1293,6 +1294,10 @@ export type Database = {
           id: string
           last_activity_at: string | null
           manual_tdee_override: number | null
+          mini_timer_enabled: boolean | null
+          mini_timer_opacity: number | null
+          mini_timer_position: string | null
+          mini_timer_size: string | null
           monthly_ai_requests: number | null
           navigation_preferences: Json | null
           onboarding_completed: boolean | null
@@ -1332,6 +1337,7 @@ export type Database = {
           enable_fasting_slideshow?: boolean | null
           enable_food_slideshow?: boolean | null
           enable_goals_in_animations?: boolean | null
+          enable_if_slideshow?: boolean | null
           enable_notes_in_animations?: boolean | null
           enable_quotes_in_animations?: boolean | null
           enable_walking_slideshow?: boolean | null
@@ -1342,6 +1348,10 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           manual_tdee_override?: number | null
+          mini_timer_enabled?: boolean | null
+          mini_timer_opacity?: number | null
+          mini_timer_position?: string | null
+          mini_timer_size?: string | null
           monthly_ai_requests?: number | null
           navigation_preferences?: Json | null
           onboarding_completed?: boolean | null
@@ -1381,6 +1391,7 @@ export type Database = {
           enable_fasting_slideshow?: boolean | null
           enable_food_slideshow?: boolean | null
           enable_goals_in_animations?: boolean | null
+          enable_if_slideshow?: boolean | null
           enable_notes_in_animations?: boolean | null
           enable_quotes_in_animations?: boolean | null
           enable_walking_slideshow?: boolean | null
@@ -1391,6 +1402,10 @@ export type Database = {
           id?: string
           last_activity_at?: string | null
           manual_tdee_override?: number | null
+          mini_timer_enabled?: boolean | null
+          mini_timer_opacity?: number | null
+          mini_timer_position?: string | null
+          mini_timer_size?: string | null
           monthly_ai_requests?: number | null
           navigation_preferences?: Json | null
           onboarding_completed?: boolean | null
