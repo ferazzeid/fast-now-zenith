@@ -41,26 +41,44 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   const [eatingElapsed, setEatingElapsed] = useState(0);
   const [showScheduleSelector, setShowScheduleSelector] = useState(false);
 
-  // Update elapsed times every second
+  // Update elapsed times every second - but only for the active window
   useEffect(() => {
     if (!todaySession) return;
 
     const interval = setInterval(() => {
       const now = new Date();
       
-      if (todaySession.fasting_start_time) {
+      // Only calculate elapsed time for the currently active window
+      if (todaySession.status === 'fasting' && todaySession.fasting_start_time) {
         const fastingStart = new Date(todaySession.fasting_start_time);
-        setFastingElapsed(Math.floor((now.getTime() - fastingStart.getTime()) / 1000));
+        const elapsed = Math.floor((now.getTime() - fastingStart.getTime()) / 1000);
+        setFastingElapsed(elapsed);
+        
+        // Auto-transition to eating when fasting window completes
+        if (todaySession.fasting_window_hours && elapsed >= todaySession.fasting_window_hours * 3600) {
+          console.log('🎉 Fasting window complete! Auto-starting eating window...');
+          endFastingWindow(todaySession.id).catch(console.error);
+        }
+      } else if (todaySession.status === 'eating' && todaySession.eating_start_time) {
+        const eatingStart = new Date(todaySession.eating_start_time);
+        const elapsed = Math.floor((now.getTime() - eatingStart.getTime()) / 1000);
+        setEatingElapsed(elapsed);
+        
+        // Auto-transition when eating window completes
+        if (todaySession.eating_window_hours && elapsed >= todaySession.eating_window_hours * 3600) {
+          console.log('🔄 Eating window complete! Ending session...');
+          endEatingWindow(todaySession.id).catch(console.error);
+        }
       }
       
-      if (todaySession.eating_start_time) {
-        const eatingStart = new Date(todaySession.eating_start_time);
-        setEatingElapsed(Math.floor((now.getTime() - eatingStart.getTime()) / 1000));
-      }
+      // Reset inactive timer
+      if (todaySession.status !== 'fasting') setFastingElapsed(0);
+      if (todaySession.status !== 'eating') setEatingElapsed(0);
+      
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [todaySession]);
+  }, [todaySession, endFastingWindow, endEatingWindow]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -329,7 +347,10 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
                 textShadow: '0 1px 2px rgba(0,0,0,0.1)'
               }}
             >
-              {getDisplayTime(fastingElapsed, todaySession?.fasting_window_hours ? todaySession.fasting_window_hours * 60 * 60 : 0, topCountDirection)}
+              {todaySession?.status === 'fasting' 
+                ? getDisplayTime(fastingElapsed, todaySession?.fasting_window_hours ? todaySession.fasting_window_hours * 60 * 60 : 0, topCountDirection)
+                : '00:00:00'
+              }
             </div>
             <div className={cn(
               "text-lg font-medium transition-colors duration-300",
@@ -351,22 +372,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           
           {/* Bottom Display - Eating window status/timer */}
           <div>
-            {todaySession?.status === 'fasting' ? (
-              <>
-                <div 
-                  className="text-2xl font-mono font-medium text-muted-foreground/70 mb-1 tracking-wide"
-                  style={{ 
-                    fontFeatureSettings: '"tnum" 1',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                  }}
-                >
-                  --:--:--
-                </div>
-                <div className="text-sm font-medium text-muted-foreground/60">
-                  Awaiting Eating Window
-                </div>
-              </>
-            ) : todaySession?.status === 'eating' ? (
+            {todaySession?.status === 'eating' ? (
               <>
                 <div 
                   className="text-2xl font-mono font-medium text-foreground mb-1 tracking-wide"
@@ -400,7 +406,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
                   00:00:00
                 </div>
                 <div className="text-sm font-medium text-muted-foreground/60">
-                  Ready to Eat
+                  {todaySession?.status === 'fasting' ? 'Awaiting Eating Window' : 'Ready to Eat'}
                 </div>
               </>
             )}
@@ -417,7 +423,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             size="action-main"
             className="w-full"
           >
-            End Fasting
+            End Fasting & Start Eating
           </Button>
         )}
         
@@ -429,19 +435,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             className="w-full"
           >
             End Eating
-          </Button>
-        )}
-        
-        {todaySession?.status !== 'fasting' && todaySession?.status !== 'eating' && (
-          <Button 
-            onClick={handleStartFasting}
-            variant="action-primary"
-            size="start-button"
-            className="w-full"
-            disabled={loading}
-          >
-            <Play className="w-8 h-8 mr-3" />
-            Start Fasting
           </Button>
         )}
       </div>
