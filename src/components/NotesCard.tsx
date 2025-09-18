@@ -184,7 +184,7 @@ export const NotesCard = ({ note, onUpdate, onDelete }: NotesCardProps) => {
                   </Tooltip>
                 </TooltipProvider>
 
-                {adminSettings.enable_notes_in_animations && (
+                {true && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

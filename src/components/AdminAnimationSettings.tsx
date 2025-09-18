@@ -18,22 +18,14 @@ export const AdminAnimationSettings = ({ onTestCelebration }: AdminAnimationSett
   
   const [enableFastingSlideshow, setEnableFastingSlideshow] = useState(true);
   const [enableWalkingSlideshow, setEnableWalkingSlideshow] = useState(true);
-  const [enableFoodSlideshow, setEnableFoodSlideshow] = useState(true);
   const [enableCeramicAnimations, setEnableCeramicAnimations] = useState(true);
-  const [enableQuotesInAnimations, setEnableQuotesInAnimations] = useState(true);
-  const [enableNotesInAnimations, setEnableNotesInAnimations] = useState(true);
-  const [enableGoalsInAnimations, setEnableGoalsInAnimations] = useState(true);
   const [animationDuration, setAnimationDuration] = useState(10);
 
   useEffect(() => {
     if (profile) {
       setEnableFastingSlideshow(profile.enable_fasting_slideshow ?? true);
       setEnableWalkingSlideshow(profile.enable_walking_slideshow ?? true);
-      setEnableFoodSlideshow((profile as any).enable_food_slideshow ?? true);
       setEnableCeramicAnimations(profile.enable_ceramic_animations ?? true);
-      setEnableQuotesInAnimations((profile as any).enable_quotes_in_animations ?? true);
-      setEnableNotesInAnimations((profile as any).enable_notes_in_animations ?? true);
-      setEnableGoalsInAnimations((profile as any).enable_goals_in_animations ?? true);
       setAnimationDuration((profile as any).animation_duration_seconds ?? 10);
     }
   }, [profile]);
@@ -128,20 +120,6 @@ export const AdminAnimationSettings = ({ onTestCelebration }: AdminAnimationSett
           </div>
           
           <div className="flex items-center justify-between">
-            <Label htmlFor="food-slideshow">
-              Food Tracking Slideshow
-            </Label>
-            <Switch
-              id="food-slideshow"
-              checked={enableFoodSlideshow}
-              onCheckedChange={(checked) => {
-                setEnableFoodSlideshow(checked);
-                handleAnimationToggle('enable_food_slideshow', checked);
-              }}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
             <Label htmlFor="ceramic-animations">
               Hourly Timer Animations
             </Label>
@@ -151,48 +129,6 @@ export const AdminAnimationSettings = ({ onTestCelebration }: AdminAnimationSett
               onCheckedChange={(checked) => {
                 setEnableCeramicAnimations(checked);
                 handleAnimationToggle('enable_ceramic_animations', checked);
-              }}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="quotes-in-animations">
-              Show Quotes in Timer Animations
-            </Label>
-            <Switch
-              id="quotes-in-animations"
-              checked={enableQuotesInAnimations}
-              onCheckedChange={(checked) => {
-                setEnableQuotesInAnimations(checked);
-                handleAnimationToggle('enable_quotes_in_animations', checked);
-              }}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="notes-in-animations">
-              Show Notes in Timer Animations
-            </Label>
-            <Switch
-              id="notes-in-animations"
-              checked={enableNotesInAnimations}
-              onCheckedChange={(checked) => {
-                setEnableNotesInAnimations(checked);
-                handleAnimationToggle('enable_notes_in_animations', checked);
-              }}
-            />
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <Label htmlFor="goals-in-animations">
-              Show Goals/Motivators in Timer Animations
-            </Label>
-            <Switch
-              id="goals-in-animations"
-              checked={enableGoalsInAnimations}
-              onCheckedChange={(checked) => {
-                setEnableGoalsInAnimations(checked);
-                handleAnimationToggle('enable_goals_in_animations', checked);
               }}
             />
           </div>

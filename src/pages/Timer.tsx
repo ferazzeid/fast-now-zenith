@@ -49,7 +49,7 @@ const Timer = () => {
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
   const [stopAction, setStopAction] = useState<'finish' | 'cancel'>('finish');
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { enable_quotes_in_animations } = useAdminAnimationSettings();
+  // Remove all related settings - quotes are always enabled
   const [showFastingHistory, setShowFastingHistory] = useState(false);
   const [timerModeSheetOpen, setTimerModeSheetOpen] = useState(false);
   
@@ -487,7 +487,7 @@ const Timer = () => {
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
                 fastType={fastType}
                 goalDuration={fastDuration}
-                showSlideshow={enable_quotes_in_animations}
+                showSlideshow={true}
                 celebrationAnimation={celebration.isVisible ? {
                   isActive: celebration.isVisible,
                   type: celebration.animationType as any,
@@ -504,7 +504,7 @@ const Timer = () => {
               isActive={timerStatus.walking.isActive}
               onStart={handleWalkingStart}
               onStop={handleWalkingStop}
-              showSlideshow={enable_quotes_in_animations}
+              showSlideshow={true}
               selectedSpeed={3}
               onSpeedChange={() => {}}
             />

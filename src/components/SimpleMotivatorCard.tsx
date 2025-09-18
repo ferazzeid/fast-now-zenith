@@ -60,8 +60,8 @@ export const SimpleMotivatorCard = memo<SimpleMotivatorCardProps>(({
           {/* Actions - animation toggle and delete */}
           <div className="flex-shrink-0 flex items-center space-x-1">
             {onToggleAnimation && (
-              (motivator.category === 'saved_quote' && adminSettings.enable_quotes_in_animations) ||
-              (motivator.category !== 'saved_quote' && adminSettings.enable_goals_in_animations)
+              (motivator.category === 'saved_quote' && true) ||
+              (motivator.category !== 'saved_quote' && true)
             ) && (
               <Tooltip>
                 <TooltipTrigger asChild>

@@ -50,7 +50,7 @@ export const UnifiedMotivatorRotation = ({
         return showInAnimations !== false; // Show if true or undefined/null
       });
 
-    const goalMotivators = adminSettings.enable_goals_in_animations 
+    const goalMotivators = true 
       ? allMotivators
           .filter(item => item.category !== 'saved_quote' && item.category !== 'personal_note') // Only actual goals
           .map(item => ({
@@ -62,7 +62,7 @@ export const UnifiedMotivatorRotation = ({
           }))
       : [];
 
-    const savedQuotes = adminSettings.enable_quotes_in_animations 
+    const savedQuotes = true 
       ? allMotivators
           .filter(item => item.category === 'saved_quote' && item.content && item.content.trim() !== '') // Saved quotes from motivators table
           .map(item => ({
@@ -77,7 +77,7 @@ export const UnifiedMotivatorRotation = ({
 
     // Add walking timer quotes only if enabled
     const walkingQuotes = quoteSettings?.walking_timer_quotes || [];
-    const filteredQuotes = (adminSettings.enable_quotes_in_animations && quoteSettings?.walking_timer_quotes_enabled !== false) 
+    const filteredQuotes = (true && quoteSettings?.walking_timer_quotes_enabled !== false) 
       ? walkingQuotes
           .filter(quote => quote.text && quote.text.trim() !== '') // Filter out empty quotes
           .map((quote, index) => ({

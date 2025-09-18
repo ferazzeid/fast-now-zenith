@@ -55,7 +55,7 @@ const Walking = () => {
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
   const { walkingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
-  const { enable_quotes_in_animations } = useAdminAnimationSettings();
+  // Remove all related settings - quotes are always enabled
   
   console.log('🚶 WALKING PAGE - Quote Display State:', { 
     walkingQuotesEnabled, 
@@ -262,7 +262,7 @@ const Walking = () => {
             onResume={handleResume}
             onStop={() => setShowStopConfirm(true)}
             onCancel={() => handleCancel()}
-            showSlideshow={enable_quotes_in_animations}
+            showSlideshow={true}
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}
             onSpeedChange={async (newSpeed) => {

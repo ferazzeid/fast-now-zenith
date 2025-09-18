@@ -1,9 +1,6 @@
 import { useProfile } from './useProfile';
 
 interface AdminAnimationSettings {
-  enable_quotes_in_animations: boolean;
-  enable_notes_in_animations: boolean;
-  enable_goals_in_animations: boolean;
   enable_if_slideshow: boolean;
   animation_duration_seconds: number;
   mini_timer_enabled: boolean;
@@ -16,9 +13,6 @@ export const useAdminAnimationSettings = (): AdminAnimationSettings => {
   const { profile } = useProfile();
 
   return {
-    enable_quotes_in_animations: (profile as any)?.enable_quotes_in_animations ?? true,
-    enable_notes_in_animations: (profile as any)?.enable_notes_in_animations ?? true,
-    enable_goals_in_animations: (profile as any)?.enable_goals_in_animations ?? true,
     enable_if_slideshow: (profile as any)?.enable_if_slideshow ?? true,
     animation_duration_seconds: (profile as any)?.animation_duration_seconds ?? 10,
     mini_timer_enabled: (profile as any)?.mini_timer_enabled ?? true,

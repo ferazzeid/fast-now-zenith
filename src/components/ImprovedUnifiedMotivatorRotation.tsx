@@ -74,7 +74,8 @@ export const ImprovedUnifiedMotivatorRotation = ({
     }
 
     // Collect goals - but only if admin allows the category
-    if (adminSettings.enable_goals_in_animations) {
+    // Show all motivators by default (no filtering)
+    if (true) {
       const activeGoals = motivators.filter(m => 
         m.show_in_animations && 
         m.title && 
@@ -95,7 +96,8 @@ export const ImprovedUnifiedMotivatorRotation = ({
     }
 
     // Collect quotes - but only if admin allows quotes
-    if (adminSettings.enable_quotes_in_animations) {
+    // Show all quotes by default (no filtering)
+    if (true) {
       const savedQuotes = motivators.filter(m => 
         m.show_in_animations && 
         m.category === 'saved_quote' &&
@@ -151,7 +153,8 @@ export const ImprovedUnifiedMotivatorRotation = ({
     }
 
     // Collect notes - but only if admin allows notes
-    if (adminSettings.enable_notes_in_animations) {
+    // Show all notes by default (no filtering)
+    if (true) {
       const activeNotes = motivators.filter(m => 
         m.show_in_animations && 
         m.category === 'personal_note' &&

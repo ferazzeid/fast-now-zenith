@@ -30,7 +30,6 @@ import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { AccessGate } from '@/components/AccessGate';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { SmartImage } from '@/components/SmartImage';
-import { ImprovedUnifiedMotivatorRotation } from '@/components/ImprovedUnifiedMotivatorRotation';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -465,21 +464,7 @@ const FoodTracking = () => {
               {/* Food Statistics Card */}
               <div className="mb-6 relative">
                 <ComponentErrorBoundary>
-                  {/* Food Slideshow Background Layer */}
-                  {profile?.enable_food_slideshow && (
-                    <div className="absolute inset-0 rounded-lg overflow-hidden">
-                      <ImprovedUnifiedMotivatorRotation
-                        isActive={true}
-                        className="absolute inset-0 pointer-events-none"
-                        quotesType="walking"
-                      />
-                    </div>
-                  )}
-                  
-                  {/* Stats Card with proper background and z-index */}
-                  <div className="relative z-10">
-                    <FoodStatsCard entries={todayEntries} />
-                  </div>
+                  <FoodStatsCard entries={todayEntries} />
                 </ComponentErrorBoundary>
               </div>
 
