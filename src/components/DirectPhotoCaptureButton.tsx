@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Camera, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProcessingDots } from '@/components/ProcessingDots';
-import { FoodAnalysisResults } from '@/components/FoodAnalysisResults';
+import { FoodSelectionModal } from '@/components/FoodSelectionModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccess } from '@/hooks/useAccess';
@@ -11,35 +11,36 @@ import { useToast } from '@/hooks/use-toast';
 import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 import { saveImageLocally } from '@/utils/localImageStorage';
 import { compressImage, getBase64FromFile } from '@/utils/imageCompression';
-import { getPhotoWorkflowUseConfirmation } from '@/utils/adminSettings';
 
 interface DirectPhotoCaptureButtonProps {
   onFoodAdded?: (food: any) => void;
   className?: string;
 }
 
-interface AnalysisResult {
-  name?: string;
-  calories_per_100g?: number;
-  carbs_per_100g?: number;
+interface FoodItem {
+  name: string;
+  serving_size: number;
+  calories: number;
+  carbs: number;
+  calories_per_100g: number;
+  carbs_per_100g: number;
   protein_per_100g?: number;
   fat_per_100g?: number;
-  estimated_serving_size?: number;
   confidence?: number;
   description?: string;
-  // Extended properties for confirmation workflow
-  totalCalories?: number;
-  totalCarbs?: number;
-  totalProtein?: number;
-  totalFat?: number;
-  servingSize?: number;
-  image_url?: string;
+}
+
+interface FoodSuggestion {
+  foods: FoodItem[];
+  destination: 'today' | 'template';
+  originalTranscription: string;
 }
 
 export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [showFoodModal, setShowFoodModal] = useState(false);
+  const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
+  const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [imageUrl, setImageUrl] = useState<string>('');
   
   const { user } = useAuth();
@@ -48,54 +49,55 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const { toast } = useToast();
   const { isUploading, uploadState, startUpload, startAnalysis, completeUpload, completeAnalysis, setUploadError, reset } = useUploadLoading();
 
-  // Check if user has access to AI analysis features
-  const canUseAIAnalysis = access_level === 'admin' || hasAIAccess;
-
   const handleCameraClick = () => {
-    if (!user) {
-      toast({
-        title: "Sign In Required",
-        description: "Please sign in to capture photos",
-        variant: "destructive",
-      });
-      return;
-    }
+    sessionGuard.withSessionGuard(async () => {
+      if (!user) {
+        toast({
+          title: "Sign in required",
+          description: "Please sign in to use photo analysis",
+          variant: "destructive",
+        });
+        return;
+      }
+      cameraInputRef.current?.click();
+    }, 'Photo Capture');
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     
-    cameraInputRef.current?.click();
-  };
+    if (!file) return;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
-    }
-    // Reset the input so the same file can be selected again
-    e.target.value = '';
-  };
+    // Clear the input to allow the same file to be selected again
+    event.target.value = '';
 
-  const handleFileUpload = async (file: File) => {
     // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
-        title: "Error", 
+        title: "Invalid file type",
         description: "Please select an image file",
         variant: "destructive",
       });
       return;
     }
 
-    // Validate file size (max 5MB before compression)
-    if (file.size > 5 * 1024 * 1024) {
+    // Validate file size (20MB limit)
+    const maxSize = 20 * 1024 * 1024;
+    if (file.size > maxSize) {
       toast({
-        title: "Error",
-        description: "Image size must be less than 5MB",
+        title: "File too large",
+        description: "Please select an image smaller than 20MB",
         variant: "destructive",
       });
       return;
     }
 
-    if (!sessionGuard.withSessionGuard) return;
+    await handleFileUpload(file);
+  };
 
+  const canUseAIAnalysis = hasAIAccess;
+
+  const handleFileUpload = async (file: File) => {
     await sessionGuard.withSessionGuard(async () => {
       try {
         startUpload();
@@ -130,58 +132,29 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             
             if (error) throw error;
             
-            const result = data as AnalysisResult;
+            console.log('Photo analysis response:', data);
             
-            if (result) {
-              const servingSize = result.estimated_serving_size || 100;
-              const totalCalories = Math.round((result.calories_per_100g || 0) * servingSize / 100);
-              const totalCarbs = Math.round((result.carbs_per_100g || 0) * servingSize / 100 * 10) / 10;
-              const totalProtein = Math.round((result.protein_per_100g || 0) * servingSize / 100 * 10) / 10;
-              const totalFat = Math.round((result.fat_per_100g || 0) * servingSize / 100 * 10) / 10;
-
-              const analysisWithTotals = {
-                ...result,
-                totalCalories,
-                totalCarbs,
-                totalProtein,
-                totalFat,
-                servingSize,
-                image_url: localImageId
+            // Handle unified response format (same as voice)
+            if (data?.functionCall?.name === 'add_multiple_foods') {
+              const suggestion: FoodSuggestion = {
+                foods: data.functionCall.arguments.foods || [],
+                destination: data.functionCall.arguments.destination || 'today',
+                originalTranscription: data.originalTranscription || 'Photo analysis'
               };
-
-              // Check admin setting for workflow choice
-              const useConfirmation = getPhotoWorkflowUseConfirmation();
               
-              if (useConfirmation) {
-                // Show confirmation dialog
-                setAnalysisResult(analysisWithTotals);
-                setShowConfirmation(true);
-                completeAnalysis();
-              } else {
-                // Add immediately (original behavior)
-                const foodEntry = {
-                  name: result.name || 'Unknown Food',
-                  serving_size: servingSize,
-                  calories: totalCalories,
-                  carbs: totalCarbs,
-                  protein: totalProtein,
-                  fat: totalFat,
-                  source: 'photo_analysis',
-                  image_url: localImageId
-                };
-                
-                onFoodAdded?.(foodEntry);
-                
-                toast({
-                  title: "✓ Food Added",
-                  description: `${result.name || 'Food'} added to your log`,
-                });
-                
-                completeAnalysis();
-                cleanup();
-              }
+              // Initialize selection with all items selected
+              const allSelected = new Set(suggestion.foods.map((_, index) => index));
+              setSelectedFoodIds(allSelected);
+              
+              setFoodSuggestion(suggestion);
+              setShowFoodModal(true);
+              completeAnalysis();
             } else {
-              handleAnalysisError('Could not analyze the image. Please try again or add food manually.');
+              // Fallback for no foods found or errors
+              handleAnalysisError(
+                data?.completion || 
+                'Could not identify any food items in this image. Please try a clearer photo or add food manually.'
+              );
             }
 
           } catch (analysisError) {
@@ -202,8 +175,17 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
           description: "Please try again",
           variant: "destructive",
         });
+      } catch (uploadError) {
+        console.error('Upload error:', uploadError);
+        reset();
+        
+        toast({
+          title: "Upload failed",
+          description: "Please try again",
+          variant: "destructive",
+        });
       }
-    }, 'Photo Capture');
+    });
   };
 
   const handleAnalysisError = (message: string) => {
@@ -216,32 +198,77 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     });
   };
 
-  const handleConfirmFood = (result: AnalysisResult) => {
-    const foodEntry = {
-      name: result.name || 'Unknown Food',
-      serving_size: result.servingSize || result.estimated_serving_size || 100,
-      calories: result.totalCalories || Math.round((result.calories_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100),
-      carbs: result.totalCarbs || Math.round((result.carbs_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100 * 10) / 10,
-      protein: result.totalProtein || Math.round((result.protein_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100 * 10) / 10,
-      fat: result.totalFat || Math.round((result.fat_per_100g || 0) * (result.servingSize || result.estimated_serving_size || 100) / 100 * 10) / 10,
-      source: 'photo_analysis',
-      image_url: result.image_url || '' // Use the image_url from the result
-    };
+  // Modal handlers (unified with voice workflow)
+  const handleFoodModalClose = () => {
+    setShowFoodModal(false);
+    setFoodSuggestion(null);
+    setSelectedFoodIds(new Set());
+    cleanup();
+  };
+
+  const handleSelectionChange = (selectedIds: Set<number>) => {
+    setSelectedFoodIds(selectedIds);
+  };
+
+  const handleFoodUpdate = (index: number, updates: Partial<FoodItem>) => {
+    if (!foodSuggestion) return;
+    const updatedFoods = [...foodSuggestion.foods];
+    updatedFoods[index] = { ...updatedFoods[index], ...updates };
+    setFoodSuggestion({
+      ...foodSuggestion,
+      foods: updatedFoods
+    });
+  };
+
+  const handleFoodRemove = (index: number) => {
+    if (!foodSuggestion) return;
+    const updatedFoods = foodSuggestion.foods.filter((_, i) => i !== index);
     
-    onFoodAdded?.(foodEntry);
+    // Update selected indices after removal
+    const newSelected = new Set<number>();
+    selectedFoodIds.forEach(id => {
+      if (id < index) {
+        newSelected.add(id);
+      } else if (id > index) {
+        newSelected.add(id - 1);
+      }
+    });
+    
+    setSelectedFoodIds(newSelected);
+    setFoodSuggestion({
+      ...foodSuggestion,
+      foods: updatedFoods
+    });
+  };
+
+  const handleDestinationChange = (destination: 'today' | 'template' | 'library') => {
+    if (!foodSuggestion) return;
+    setFoodSuggestion({
+      ...foodSuggestion,
+      destination
+    });
+  };
+
+  const handleAddFoods = async () => {
+    if (!foodSuggestion) return;
+    
+    const selectedFoods = Array.from(selectedFoodIds).map(index => foodSuggestion.foods[index]);
+    
+    selectedFoods.forEach(food => {
+      const foodEntry = {
+        ...food,
+        source: 'photo_analysis',
+        image_url: '' // Could add image reference here if needed
+      };
+      onFoodAdded?.(foodEntry);
+    });
     
     toast({
       title: "✓ Food Added",
-      description: `${result.name || 'Food'} added to your log`,
+      description: `${selectedFoods.length} food item${selectedFoods.length > 1 ? 's' : ''} added to your log`,
     });
     
-    handleRejectFood();
-  };
-
-  const handleRejectFood = () => {
-    setShowConfirmation(false);
-    setAnalysisResult(null);
-    cleanup();
+    handleFoodModalClose();
   };
 
   const cleanup = () => {
@@ -266,19 +293,11 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
   return (
     <>
-      <Button 
-        variant="action-secondary"
-        size="start-button"
-        className={`w-full flex items-center justify-center transition-colors ${
-          isUploading || uploadState === 'analyzing'
-            ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
-            : canUseAIAnalysis 
-              ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
-              : 'bg-primary/50 text-primary-foreground opacity-50'
-        }`}
+      <Button
         onClick={handleCameraClick}
-        disabled={isUploading || uploadState === 'analyzing'}
-        aria-label="AI photo analysis to add food"
+        disabled={isUploading}
+        className={`h-20 w-20 rounded-full p-2 bg-primary hover:bg-primary/90 ${className}`}
+        size="lg"
       >
         {getButtonContent()}
       </Button>
@@ -292,16 +311,20 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         className="hidden"
       />
 
-      {/* Confirmation Modal */}
-      {showConfirmation && analysisResult && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <FoodAnalysisResults
-            result={analysisResult}
-            imageUrl={imageUrl}
-            onConfirm={handleConfirmFood}
-            onReject={handleRejectFood}
-          />
-        </div>
+      {/* Food Selection Modal (unified with voice) */}
+      {showFoodModal && foodSuggestion && (
+        <FoodSelectionModal
+          isOpen={showFoodModal}
+          onClose={handleFoodModalClose}
+          foodSuggestion={foodSuggestion}
+          selectedFoodIds={selectedFoodIds}
+          onSelectionChange={handleSelectionChange}
+          onFoodUpdate={handleFoodUpdate}
+          onFoodRemove={handleFoodRemove}
+          onDestinationChange={handleDestinationChange}
+          onAddFoods={handleAddFoods}
+          isProcessing={isUploading}
+        />
       )}
     </>
   );

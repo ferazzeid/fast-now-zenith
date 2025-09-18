@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-// Remove this import - we'll implement the resolution inline
 
 // Utility function to capitalize food names properly
 const capitalizeFoodName = (foodName: string): string => {
@@ -51,42 +50,30 @@ async function buildImageAnalysisPrompt(supabase: any): Promise<string> {
 
     const prompts = {
       food_identification: promptsData?.find(p => p.prompt_section === 'food_identification')?.prompt_content || 
-        'Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues.',
+        'Identify ALL visible food items in this image. Look for: (1) individual foods, (2) packaged products with labels, (3) multiple distinct items. Read any visible text/brands/flavors.',
       
       nutrition_reading: promptsData?.find(p => p.prompt_section === 'nutrition_reading')?.prompt_content ||
-        'Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.',
+        'When nutrition labels are visible, read them carefully. Pay special attention to dairy variants (Greek, Skyr, plain vs flavored) and fat percentages.',
       
       fallback_estimation: promptsData?.find(p => p.prompt_section === 'fallback_estimation')?.prompt_content ||
-        'If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.',
+        'For items without visible labels, estimate nutrition based on typical values. If multiple foods are visible, create separate entries for each.',
       
       output_format: promptsData?.find(p => p.prompt_section === 'output_format')?.prompt_content ||
-        `Return ONLY JSON with this shape:
-{
-  "name": "Food name (include brand/type if visible)",
-  "calories_per_100g": number,
-  "carbs_per_100g": number,
-  "estimated_serving_size": number, // grams
-  "confidence": number, // 0-1
-  "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
-}`
+        'Use the add_multiple_foods function to return all identified foods. Each food should have accurate nutrition per 100g and estimated serving size. Set destination to "today".'
     };
 
-    return `You are a nutrition expert analyzing food images. ${prompts.food_identification} ${prompts.nutrition_reading}
-            ${prompts.output_format}
-            ${prompts.fallback_estimation}`;
+    return `You are a nutrition expert analyzing food images. ${prompts.food_identification} ${prompts.nutrition_reading} ${prompts.fallback_estimation} ${prompts.output_format}
+
+CRITICAL: Identify ALL separate food items visible in the image. If you see multiple distinct foods, create separate entries for each one. If you see a single food item, still return it as an array with one item.`;
   } catch (error) {
     console.error('Error loading image analysis prompts, using fallback:', error);
-    return `You are a nutrition expert analyzing food images. Your goals: (1) identify the food precisely (read any on-pack text/brand/flavor), (2) read nutrition labels when visible, (3) if no label, estimate from typical values and visible cues. Pay extra attention to dairy/yogurt variants (Greek, Skyr, plain vs flavored). If a fat percentage is shown (e.g., 0%, 2%, 10%), use it to adjust calories and macros.
-            Return ONLY JSON with this shape:
-            {
-              "name": "Food name (include brand/type if visible)",
-              "calories_per_100g": number,
-              "carbs_per_100g": number,
-              "estimated_serving_size": number, // grams
-              "confidence": number, // 0-1
-              "description": "Brief rationale (e.g., label read, visible yogurt 2% fat, vanilla)"
-            }
-            If a barcode or label text is visible, incorporate it. Always return valid JSON only, no other text.`;
+    return `You are a nutrition expert analyzing food images. Identify ALL visible food items. Look for individual foods, packaged products with labels, and multiple distinct items. Read any visible text/brands/flavors.
+
+When nutrition labels are visible, read them carefully. For items without visible labels, estimate nutrition based on typical values.
+
+Use the add_multiple_foods function to return all identified foods. Each food should have accurate nutrition per 100g and estimated serving size. Set destination to "today".
+
+CRITICAL: If multiple foods are visible, create separate entries for each one. If only one food is visible, still return it as an array with one item.`;
   }
 }
 
@@ -342,7 +329,7 @@ serve(async (req) => {
       throw new Error('No valid image data provided');
     }
 
-    // Call OpenAI Vision API
+    // Call OpenAI Vision API with function calling (unified with voice)
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -361,13 +348,83 @@ serve(async (req) => {
             content: [
               {
                 type: 'text',
-                text: 'Analyze this food image and extract nutritional information.'
+                text: 'Analyze this food image and identify ALL food items visible. Create entries for each separate food item you can identify.'
               },
               imageContent
             ]
           }
         ],
-        max_tokens: 500,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "add_multiple_foods",
+              description: "Add multiple food entries identified from the image",
+              parameters: {
+                type: "object",
+                properties: {
+                  foods: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        name: {
+                          type: "string",
+                          description: "Name of the food item (include brand/type if visible)"
+                        },
+                        serving_size: {
+                          type: "number",
+                          description: "Estimated serving size in grams"
+                        },
+                        calories: {
+                          type: "number",
+                          description: "Total calories for this serving"
+                        },
+                        carbs: {
+                          type: "number",
+                          description: "Total carbs in grams for this serving"
+                        },
+                        calories_per_100g: {
+                          type: "number",
+                          description: "Calories per 100g (for recalculation)"
+                        },
+                        carbs_per_100g: {
+                          type: "number",
+                          description: "Carbs per 100g (for recalculation)"
+                        },
+                        protein_per_100g: {
+                          type: "number",
+                          description: "Protein per 100g (optional)"
+                        },
+                        fat_per_100g: {
+                          type: "number",
+                          description: "Fat per 100g (optional)"
+                        },
+                        confidence: {
+                          type: "number",
+                          description: "Confidence score 0-1 for this identification"
+                        },
+                        description: {
+                          type: "string",
+                          description: "Brief rationale for identification"
+                        }
+                      },
+                      required: ["name", "serving_size", "calories", "carbs", "calories_per_100g", "carbs_per_100g", "confidence"]
+                    }
+                  },
+                  destination: {
+                    type: "string",
+                    enum: ["today", "template"],
+                    description: "Where to add the foods - 'today' for today's entries"
+                  }
+                },
+                required: ["foods", "destination"]
+              }
+            }
+          }
+        ],
+        tool_choice: "auto",
+        max_completion_tokens: 1000,
         temperature: 0.1
       }),
     });
@@ -404,85 +461,56 @@ serve(async (req) => {
                       (usage.completion_tokens / 1000) * modelPricing.output;
     }
 
-    const analysisResult = data.choices[0].message.content;
-    console.log('Analysis result:', analysisResult);
+    let completion = data.choices[0].message.content || '';
+    let functionCall = null;
 
-    // Try to parse the JSON response with robust handling
-    let nutritionData;
-    try {
-      nutritionData = JSON.parse(analysisResult);
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI response as JSON:', parseError);
-      
-      // Enhanced fallback: handle markdown-wrapped JSON and various formats
-      let cleanedResponse = analysisResult.trim();
-      
-      // First, try to extract JSON from markdown code blocks
-      if (cleanedResponse.includes('```')) {
-        const markdownPatterns = [
-          /```json\s*\n?\s*(\{[\s\S]*?\})\s*\n?\s*```/i,
-          /```\s*\n?\s*(\{[\s\S]*?\})\s*\n?\s*```/i,
-          /(\{[\s\S]*?\})/i
-        ];
-        
-        for (const pattern of markdownPatterns) {
-          const match = cleanedResponse.match(pattern);
-          if (match) {
-            cleanedResponse = match[1].trim();
-            console.log('Extracted JSON from markdown:', cleanedResponse);
-            break;
+    // Extract function call (unified with voice analysis)
+    if (data.choices[0].message.tool_calls && data.choices[0].message.tool_calls.length > 0) {
+      const toolCall = data.choices[0].message.tool_calls[0];
+      if (toolCall.type === 'function' && toolCall.function.name === 'add_multiple_foods') {
+        try {
+          const args = JSON.parse(toolCall.function.arguments);
+          
+          // Capitalize food names for consistent formatting
+          if (args.foods && Array.isArray(args.foods)) {
+            args.foods = args.foods.map((food: any) => ({
+              ...food,
+              name: capitalizeFoodName(food.name)
+            }));
           }
-        }
-      }
-      
-      // Try parsing the cleaned response
-      try {
-        nutritionData = JSON.parse(cleanedResponse);
-        console.log('Successfully parsed extracted JSON:', nutritionData);
-      } catch (secondParseError) {
-        console.error('Second parse attempt failed:', secondParseError);
-        
-        // Final fallback: find the first complete JSON object
-        const jsonPatterns = [
-          /\{[^{}]*"name"[^{}]*"calories_per_100g"[\s\S]*?\}/,
-          /\{[\s\S]*?\}/
-        ];
-        
-        for (const pattern of jsonPatterns) {
-          const jsonMatch = cleanedResponse.match(pattern);
-          if (jsonMatch) {
-            try {
-              nutritionData = JSON.parse(jsonMatch[0]);
-              console.log('Successfully parsed with fallback pattern');
-              break;
-            } catch (thirdParseError) {
-              console.error('Pattern match failed:', thirdParseError);
-              continue;
-            }
-          }
-        }
-        
-        if (!nutritionData) {
-          console.error('All JSON parsing attempts failed:', { 
-            original: analysisResult, 
-            cleaned: cleanedResponse
-          });
-          throw new Error('Failed to extract valid JSON from OpenAI response');
+          
+          functionCall = {
+            name: 'add_multiple_foods',
+            arguments: args
+          };
+
+          // Log successful function call extraction
+          console.log('Function call extracted:', functionCall);
+        } catch (e) {
+          console.error('Error parsing function arguments:', e);
+          functionCall = null;
         }
       }
     }
 
-    // Validate the required fields
-    if (!nutritionData.name || typeof nutritionData.calories_per_100g !== 'number' || typeof nutritionData.carbs_per_100g !== 'number') {
-      throw new Error('Invalid nutrition data format from OpenAI');
+    // If no function call was extracted, provide fallback response
+    if (!functionCall) {
+      console.log('No function call found, providing fallback response');
+      return new Response(
+        JSON.stringify({
+          completion: completion || "I could not identify any food items in this image. Please try a clearer photo or add the food manually.",
+          functionCall: null,
+          errorType: 'no_foods_found',
+          originalTranscription: 'Photo analysis'
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
-
-    // Apply capitalization to food name for consistency
-    if (nutritionData && nutritionData.name) {
-      nutritionData.name = capitalizeFoodName(nutritionData.name);
-    }
-
-    console.log('Successfully analyzed food image:', nutritionData);
 
     // Increment usage counter (all users count against limits now)
     try {
@@ -527,16 +555,15 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        name: nutritionData.name,
-        calories_per_100g: Math.round(nutritionData.calories_per_100g * 100) / 100,
-        carbs_per_100g: Math.round(nutritionData.carbs_per_100g * 100) / 100,
-        estimated_serving_size: nutritionData.estimated_serving_size || 100,
-        confidence: nutritionData.confidence || 0.8,
-        description: nutritionData.description || ''
+        completion: completion,
+        functionCall: functionCall,
+        originalTranscription: 'Photo analysis'
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
       }
     );
 
