@@ -13,6 +13,7 @@ import { CustomScheduleSlider } from './CustomScheduleSlider';
 import { IFScheduleSelector } from './IFScheduleSelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
+import { InlineTimer } from './InlineTimer';
 
 interface IntermittentFastingTimerProps {
   isActive?: boolean;
@@ -311,6 +312,18 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             />
           </div>
         )}
+        
+        {/* Inline Timer - shows when slideshow is active */}
+        <InlineTimer 
+          displayTime={
+            todaySession?.status === 'fasting' 
+              ? getDisplayTime(fastingElapsed, todaySession?.fasting_window_hours ? todaySession.fasting_window_hours * 60 * 60 : 0, topCountDirection)
+              : todaySession?.status === 'eating'
+              ? getDisplayTime(eatingElapsed, todaySession?.eating_window_hours ? todaySession.eating_window_hours * 60 * 60 : 0, bottomCountDirection)
+              : '00:00:00'
+          }
+          isVisible={(todaySession?.status === 'fasting' || todaySession?.status === 'eating') && motivatorMode === 'motivator-focused'}
+        />
 
         {/* Top Counter Toggle Button */}
         {todaySession?.status === 'fasting' && motivatorMode === 'timer-focused' && (

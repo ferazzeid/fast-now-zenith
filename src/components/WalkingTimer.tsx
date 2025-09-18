@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
+import { InlineTimer } from './InlineTimer';
 import { ClickableTooltip } from './ClickableTooltip';
 import { AuthorTooltip } from './AuthorTooltip';
 import { useMiniTimer } from '@/contexts/MiniTimerContext';
@@ -111,6 +112,12 @@ const WalkingTimerComponent = ({
               />
             </div>
           )}
+          
+          {/* Inline Timer - shows when slideshow is active */}
+          <InlineTimer 
+            displayTime={displayTime}
+            isVisible={isActive && !isPaused && motivatorMode === 'motivator-focused'}
+          />
           
           
           {/* Main time display */}

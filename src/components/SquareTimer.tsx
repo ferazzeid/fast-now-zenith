@@ -8,6 +8,7 @@ import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { SquareCelebrationEffects } from './SquareCelebrationEffects';
+import { InlineTimer } from './InlineTimer';
 import { useMiniTimer } from '@/contexts/MiniTimerContext';
 
 import { useToast } from '@/hooks/use-toast';
@@ -131,6 +132,12 @@ const SquareTimerComponent = ({
                 />
               </div>
             )}
+            
+            {/* Inline Timer - shows when slideshow is active */}
+            <InlineTimer 
+              displayTime={displayTime}
+              isVisible={isActive && motivatorMode === 'motivator-focused'}
+            />
             
             {/* Count Direction Toggle Button - only show when timer-focused */}
             {isActive && motivatorMode === 'timer-focused' && (
