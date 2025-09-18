@@ -8,6 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
 import { useOptimizedWalkingSession } from '@/hooks/optimized/useOptimizedWalkingSession';
+import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { TimerBadge } from '@/components/TimerBadge';
 import { CalorieBadge } from '@/components/CalorieBadge';
 import { TrialTimerBadge } from '@/components/TrialTimerBadge';
@@ -15,6 +16,7 @@ import { useConnectionStore } from '@/stores/connectionStore';
 import { useAccess } from '@/hooks/useAccess';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigationPreferences } from '@/hooks/useNavigationPreferences';
+import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -24,6 +26,8 @@ export const Navigation = () => {
   const { currentSession: fastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { todayTotals } = useFoodEntriesQuery();
   const { currentSession: walkingSession } = useOptimizedWalkingSession();
+  const { getIFTimerStatus } = useIntermittentFasting();
+  const { profile } = useOptimizedProfile();
   const isAnimationsSuspended = false;
   const { isOnline } = useConnectionStore();
   const { isTrial: inTrial, daysRemaining, hasPremiumFeatures, hasFoodAccess, access_level, createSubscription, refetch } = useAccess();
@@ -68,8 +72,29 @@ export const Navigation = () => {
     // Remove aggressive refetch that was poisoning sessions
   }, []);
 
-  // Memoize fasting badge calculation to prevent unnecessary recalculations
+  // Determine which fasting tracker to use based on user preference and current route
+  const isOnIFPage = location.pathname.includes('/intermittent-fasting');
+  const isOnTimerPage = location.pathname.includes('/timer') || location.pathname === '/';
+  const userPreferredMode = profile?.fasting_mode || 'extended';
+  
+  // Smart fasting badge calculation that works for both modes
   const getFastingBadge = useMemo(() => {
+    // If user is on IF page or prefers IF, use IF logic
+    const shouldUseIF = isOnIFPage || (userPreferredMode === 'intermittent' && !isOnTimerPage);
+    
+    if (shouldUseIF) {
+      const ifStatus = getIFTimerStatus();
+      if (ifStatus.time !== null) {
+        return { 
+          time: formatTime(ifStatus.time), 
+          isEating: ifStatus.isEating,
+          label: ifStatus.label
+        };
+      }
+      return null;
+    }
+    
+    // Use extended fasting logic
     if (!fastingSession || fastingSession.status !== 'active') {
       return null;
     }
@@ -77,49 +102,19 @@ export const Navigation = () => {
     const startTime = new Date(fastingSession.start_time).getTime();
     const elapsed = Math.floor((currentTime - startTime) / 1000); // seconds
     
-    // Check if intermittent fasting and determine if in eating window
-    const goalDuration = fastingSession.goal_duration_seconds || 0;
-    const isIntermittent = goalDuration <= 23 * 3600; // 23 hours or less
-    
-    if (isIntermittent) {
-      const eatingWindow = 8 * 60 * 60; // 8 hours eating window
-      const totalCycleTime = goalDuration + eatingWindow;
-      const cyclePosition = elapsed % totalCycleTime;
-      const isInEatingWindow = cyclePosition >= goalDuration;
-      
-      if (isInEatingWindow) {
-        // Show eating window countdown
-        const eatingStartTime = cyclePosition - goalDuration;
-        const eatingTimeRemaining = Math.max(0, eatingWindow - eatingStartTime);
-        return { 
-          time: formatTime(eatingTimeRemaining), 
-          isEating: true,
-          label: 'Eating'
-        };
-      } else {
-        // Show current fast progress
-        return { 
-          time: formatTime(cyclePosition), 
-          isEating: false,
-          label: 'Fasting'
-        };
-      }
-    }
-    
-    // Regular fasting display - show elapsed time
     return { 
       time: formatTime(elapsed), 
       isEating: false,
       label: 'Fasting'
     };
-  }, [fastingSession, currentTime, formatTime]);
+  }, [fastingSession, currentTime, formatTime, getIFTimerStatus, isOnIFPage, isOnTimerPage, userPreferredMode]);
   
   // Memoize navigation items to prevent unnecessary re-renders
   const navItems = useMemo(() => [
     { 
       icon: Clock, 
       label: 'Fast', 
-      path: '/',
+      path: userPreferredMode === 'intermittent' ? '/intermittent-fasting' : '/timer',
       badge: getFastingBadge?.time || null,
       isEating: getFastingBadge?.isEating || false
     },

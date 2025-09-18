@@ -286,6 +286,38 @@ export const useIntermittentFasting = () => {
     staleTime: 10 * 60 * 1000 // 10 minutes
   });
 
+  // Navigation counter integration - get smart timer status for IF
+  const getIFTimerStatus = useCallback(() => {
+    if (!todaySessionQuery.data) {
+      return { time: null, isEating: false, label: 'Ready' };
+    }
+
+    const session = todaySessionQuery.data;
+    const now = new Date();
+
+    if (session.status === 'fasting' && session.fasting_start_time) {
+      const fastingStart = new Date(session.fasting_start_time);
+      const elapsed = Math.floor((now.getTime() - fastingStart.getTime()) / 1000);
+      
+      return {
+        time: elapsed,
+        isEating: false,
+        label: 'Fasting'
+      };
+    } else if (session.status === 'eating' && session.eating_start_time) {
+      const eatingStart = new Date(session.eating_start_time);
+      const elapsed = Math.floor((now.getTime() - eatingStart.getTime()) / 1000);
+      
+      return {
+        time: elapsed,
+        isEating: true,
+        label: 'Eating'
+      };
+    }
+
+    return { time: null, isEating: false, label: 'Ready' };
+  }, [todaySessionQuery.data]);
+
   // Utility functions
   const refreshTodaySession = useCallback(async () => {
     await queryClient.refetchQueries({ queryKey: todaySessionQueryKey(user?.id || null) });
@@ -318,5 +350,8 @@ export const useIntermittentFasting = () => {
     isStartingFasting: startFastingWindowMutation.isPending,
     isEndingFasting: endFastingWindowMutation.isPending,
     isEndingEating: endEatingWindowMutation.isPending,
+    
+    // Smart navigation timer status
+    getIFTimerStatus,
   };
 };

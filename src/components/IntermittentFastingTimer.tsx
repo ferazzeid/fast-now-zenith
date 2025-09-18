@@ -34,6 +34,9 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     loading
   } = useIntermittentFasting();
 
+  // Debug: Log session state
+  console.log('🔍 IF Timer - Session state:', { todaySession, loading });
+
   const [selectedTab, setSelectedTab] = useState<'quick' | 'custom'>('quick');
   const [selectedPreset, setSelectedPreset] = useState(IF_PRESETS[0]);
   const [topCountDirection, setTopCountDirection] = useState<'up' | 'down'>('up'); // Default: count up
@@ -169,7 +172,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         </Card>
 
-        {/* Setup Schedule Button */}
+        {/* Start Fast Button */}
         <Button 
           onClick={handleStartFastingClick}
           variant="action-primary"
