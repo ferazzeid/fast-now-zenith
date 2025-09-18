@@ -88,7 +88,7 @@ export const DeficitDisplay = ({ deficit, loading, tdee, fatInGrams, thirtyDayPr
         
         {/* Additional metrics if available */}
         {fatInGrams !== undefined && thirtyDayProjection !== undefined && deficit > 0 && (
-          <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-ceramic-shadow/50">
+          <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-subtle">
               <div className="text-center">
                 <div className="flex items-center justify-center space-x-1 mb-1">
                   <Flame className="w-3 h-3 text-muted-foreground" />
