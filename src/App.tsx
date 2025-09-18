@@ -8,6 +8,8 @@ import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persist
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { CriticalErrorBoundary, PageErrorBoundary } from "@/components/enhanced/ComprehensiveErrorBoundary";
 import { AsyncErrorBoundary } from "@/components/AsyncErrorBoundary";
+import { MiniTimerProvider } from "@/contexts/MiniTimerContext";
+import { MiniTimer } from "@/components/MiniTimer";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
@@ -188,6 +190,7 @@ const AppContent = () => {
         <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
           {!isAuthRoute && <DailyStatsPanel />}
+          <MiniTimer />
            <Routes>
              <Route path="/auth" element={
                <PageErrorBoundary>
@@ -486,13 +489,15 @@ const App = () => {
             <ThemeProvider>
               <SimpleWalkingStatsProvider>
                 <NavigationPreferencesProvider>
-                  <Router>
-                    <NavigationGuard>
-                      <AsyncErrorBoundary>
-                        <AppContent />
-                      </AsyncErrorBoundary>
-                    </NavigationGuard>
-                  </Router>
+                  <MiniTimerProvider>
+                    <Router>
+                      <NavigationGuard>
+                        <AsyncErrorBoundary>
+                          <AppContent />
+                        </AsyncErrorBoundary>
+                      </NavigationGuard>
+                    </Router>
+                  </MiniTimerProvider>
                 </NavigationPreferencesProvider>
               </SimpleWalkingStatsProvider>
             </ThemeProvider>

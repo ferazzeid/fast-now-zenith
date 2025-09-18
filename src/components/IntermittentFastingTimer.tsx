@@ -12,10 +12,12 @@ import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { CustomScheduleSlider } from './CustomScheduleSlider';
 import { IFScheduleSelector } from './IFScheduleSelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 
 interface IntermittentFastingTimerProps {
   isActive?: boolean;
   className?: string;
+  showSlideshow?: boolean;
 }
 
 const IF_PRESETS = [
@@ -26,8 +28,10 @@ const IF_PRESETS = [
 
 export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> = ({
   isActive = false,
-  className = ""
+  className = "",
+  showSlideshow = false
 }) => {
+  const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const {
     todaySession,
     startIFSession,
@@ -296,8 +300,20 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     <div className={`max-w-md mx-auto space-y-6 ${className}`}>
       {/* Unified Dual Timer Card - first object, no session info card */}
       <Card className="p-4 text-center relative overflow-hidden min-h-[220px]">
+        {/* Unified motivator rotation (images + titles) */}
+        {showSlideshow && (todaySession?.status === 'fasting' || todaySession?.status === 'eating') && (
+          <div className="absolute inset-0 rounded-lg overflow-hidden">
+            <ImprovedUnifiedMotivatorRotation 
+              isActive={showSlideshow && (todaySession?.status === 'fasting' || todaySession?.status === 'eating')} 
+              onModeChange={setMotivatorMode}
+              className="rounded-lg"
+              quotesType="fasting"
+            />
+          </div>
+        )}
+
         {/* Top Counter Toggle Button */}
-        {todaySession?.status === 'fasting' && (
+        {todaySession?.status === 'fasting' && motivatorMode === 'timer-focused' && (
           <div className="absolute top-4 right-4 z-20">
             <TooltipProvider>
               <Tooltip>
@@ -324,7 +340,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         )}
 
         {/* Bottom Counter Toggle Button */}
-        {todaySession?.status === 'eating' && (
+        {todaySession?.status === 'eating' && motivatorMode === 'timer-focused' && (
           <div className="absolute bottom-4 right-4 z-20">
             <TooltipProvider>
               <Tooltip>
@@ -351,7 +367,13 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         )}
 
         {/* Dual Counter Display */}
-        <div className="mb-2 flex flex-col justify-center items-center">
+        <div 
+          className={cn(
+            "mb-2 flex flex-col justify-center items-center transition-opacity duration-1000",
+            motivatorMode === 'motivator-focused' ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          )}
+          style={{ zIndex: 13 }}
+        >
           {/* Main Fasting Counter - Always shows fasting time */}
           <div className="mb-4">
             <div 

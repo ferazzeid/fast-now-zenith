@@ -9,6 +9,7 @@ import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { AuthorTooltip } from './AuthorTooltip';
+import { useMiniTimer } from '@/contexts/MiniTimerContext';
 
 import { useToast } from '@/hooks/use-toast';
 import { formatDistance } from '@/utils/unitConversions';
@@ -57,6 +58,24 @@ const WalkingTimerComponent = ({
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const isAnimationsSuspended = false;
   const { toast } = useToast();
+  const { updateTimer, removeTimer } = useMiniTimer();
+
+  // Update mini-timer when walking state changes
+  useEffect(() => {
+    if (isActive) {
+      updateTimer('walking', {
+        id: 'walking',
+        type: 'walking',
+        displayTime,
+        isActive: true,
+        isPaused,
+        realTimeStats,
+        startTime: realTimeStats?.startTime
+      });
+    } else {
+      removeTimer('walking');
+    }
+  }, [isActive, isPaused, displayTime, realTimeStats, updateTimer, removeTimer]);
 
   // Simplified speed display logic without console spam
   const getCurrentSpeedDisplay = useCallback(() => {

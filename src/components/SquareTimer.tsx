@@ -1,4 +1,4 @@
-import { useState, memo, useCallback } from 'react';
+import { useState, memo, useCallback, useEffect } from 'react';
 import { Play, Clock, Activity, TrendingUp, ChevronUp, ChevronDown, CheckCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { UnifiedMotivatorRotation } from './UnifiedMotivatorRotation';
 import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 import { ClickableTooltip } from './ClickableTooltip';
 import { SquareCelebrationEffects } from './SquareCelebrationEffects';
+import { useMiniTimer } from '@/contexts/MiniTimerContext';
 
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,6 +53,30 @@ const SquareTimerComponent = ({
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
   const isAnimationsSuspended = false;
   const { toast } = useToast();
+  const { updateTimer, removeTimer } = useMiniTimer();
+
+  // Update mini-timer when timer state changes
+  useEffect(() => {
+    if (isActive) {
+      updateTimer('fasting', {
+        id: 'fasting',
+        type: 'fasting',
+        displayTime,
+        isActive: true,
+        progress,
+        startTime
+      });
+    } else {
+      removeTimer('fasting');
+    }
+  }, [isActive, displayTime, progress, startTime, updateTimer, removeTimer]);
+
+  // Update mini-timer visibility based on slideshow mode
+  useEffect(() => {
+    if (showSlideshow && isActive && motivatorMode === 'motivator-focused') {
+      // Timer is hidden by slideshow, mini-timer should be visible
+    }
+  }, [showSlideshow, isActive, motivatorMode]);
 
   const formatTimeFasting = useCallback((seconds: number) => {
     const hours = Math.floor(seconds / 3600);
