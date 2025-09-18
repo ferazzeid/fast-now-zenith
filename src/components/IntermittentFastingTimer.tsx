@@ -57,9 +57,9 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         const elapsed = Math.floor((now.getTime() - fastingStart.getTime()) / 1000);
         setFastingElapsed(elapsed);
         
-        // Auto-transition to eating when fasting window completes
+        // Auto-end session when fasting window completes
         if (todaySession.fasting_window_hours && elapsed >= todaySession.fasting_window_hours * 3600) {
-          console.log('🎉 Fasting window complete! Auto-starting eating window...');
+          console.log('🎉 Fasting window complete! Ending session...');
           endEatingWindow(todaySession.id).catch(console.error);
         }
       } else if (todaySession.status === 'eating' && todaySession.eating_start_time) {
@@ -67,14 +67,14 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         const elapsed = Math.floor((now.getTime() - eatingStart.getTime()) / 1000);
         setEatingElapsed(elapsed);
         
-        // Auto-transition when eating window completes
+        // Auto-end when eating window completes
         if (todaySession.eating_window_hours && elapsed >= todaySession.eating_window_hours * 3600) {
           console.log('🔄 Eating window complete! Ending session...');
           endEatingWindow(todaySession.id).catch(console.error);
         }
       }
       
-      // Reset inactive timer
+      // Reset inactive timers
       if (todaySession.status !== 'fasting') setFastingElapsed(0);
       if (todaySession.status !== 'eating') setEatingElapsed(0);
       
@@ -247,32 +247,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         )}
 
-        {/* Bottom Counter Toggle Button */}
-        {todaySession?.status === 'eating' && (
-          <div className="absolute bottom-4 right-4 z-20">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    onClick={() => setBottomCountDirection(prev => prev === 'up' ? 'down' : 'up')}
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
-                  >
-                    {bottomCountDirection === 'up' ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{bottomCountDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        )}
+        {/* Bottom Counter Toggle Button - Remove since no eating window */}
 
         {/* Dual Counter Display */}
         <div className="mb-2 flex flex-col justify-center items-center">
@@ -308,46 +283,20 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           {/* Gentle Dividing Line */}
           <div className="w-full h-px bg-border/30 my-3"></div>
           
-          {/* Bottom Display - Eating window status/timer */}
+          {/* Bottom Display - Shows "Ready to complete" instead of eating window */}
           <div>
-            {todaySession?.status === 'eating' ? (
-              <>
-                <div 
-                  className="text-2xl font-mono font-medium text-foreground mb-1 tracking-wide"
-                  style={{ 
-                    fontFeatureSettings: '"tnum" 1',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                  }}
-                >
-                  {getDisplayTime(eatingElapsed, todaySession?.eating_window_hours ? todaySession.eating_window_hours * 60 * 60 : 0, bottomCountDirection)}
-                </div>
-                <div className="text-sm font-medium text-foreground">
-                  Eating Window
-                </div>
-                
-                {/* Progress indicator for eating */}
-                {todaySession?.eating_window_hours && (
-                  <div className="flex items-center justify-center gap-2 mt-2 text-xs text-muted-foreground">
-                    <span>{Math.round(getProgress(eatingElapsed, todaySession.eating_window_hours * 60 * 60))}% complete</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <div 
-                  className="text-2xl font-mono font-medium text-muted-foreground/70 mb-1 tracking-wide"
-                  style={{ 
-                    fontFeatureSettings: '"tnum" 1',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                  }}
-                >
-                  00:00:00
-                </div>
-                <div className="text-sm font-medium text-muted-foreground/60">
-                  {todaySession?.status === 'fasting' ? 'Awaiting Eating Window' : 'Ready to Eat'}
-                </div>
-              </>
-            )}
+            <div 
+              className="text-2xl font-mono font-medium text-muted-foreground/70 mb-1 tracking-wide"
+              style={{ 
+                fontFeatureSettings: '"tnum" 1',
+                textShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              }}
+            >
+              00:00:00
+            </div>
+            <div className="text-sm font-medium text-muted-foreground/60">
+              Ready to Complete
+            </div>
           </div>
         </div>
       </Card>
