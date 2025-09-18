@@ -208,6 +208,13 @@ export const useIntermittentFasting = () => {
         title: "Fasting Window Started!",
         description: "Your fasting period has begun."
       });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error starting fasting window",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
@@ -236,6 +243,13 @@ export const useIntermittentFasting = () => {
       toast({
         title: "Eating Window Started!",
         description: "Your eating period has begun."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error ending fasting window",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive"
       });
     }
   });
@@ -266,6 +280,13 @@ export const useIntermittentFasting = () => {
       toast({
         title: "IF Session Completed!",
         description: "Great job completing your intermittent fasting day!"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error ending eating window",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive"
       });
     }
   });

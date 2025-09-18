@@ -59,14 +59,7 @@ export const IFScheduleSelector = ({
 
   return (
     <UniversalModal isOpen={true} onClose={onClose} title="Select Schedule">
-      <div className="relative space-y-6 p-6">
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
-        >
-          <X className="w-3 h-3" />
-        </button>
+      <div className="space-y-6 p-6">
 
         {/* Quick Presets */}
         <div className="space-y-3">

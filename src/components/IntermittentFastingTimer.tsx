@@ -106,10 +106,16 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
 
   const handleScheduleSelect = async (fastingHours: number, eatingHours: number) => {
     setShowScheduleSelector(false);
-    await startIFSession({ 
-      fasting_window_hours: fastingHours, 
-      eating_window_hours: eatingHours 
-    });
+    try {
+      await startIFSession({ 
+        fasting_window_hours: fastingHours, 
+        eating_window_hours: eatingHours 
+      });
+    } catch (error) {
+      // Keep the selector open if there's an error
+      setShowScheduleSelector(true);
+      console.error('Failed to start IF session:', error);
+    }
   };
 
   const handleStartFastingClick = () => {
@@ -118,17 +124,32 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
 
   const handleStartFasting = async () => {
     if (!todaySession?.id) return;
-    await startFastingWindow(todaySession.id);
+    try {
+      await startFastingWindow(todaySession.id);
+    } catch (error) {
+      console.error('Failed to start fasting window:', error);
+      // Error is already handled by the mutation's onError
+    }
   };
 
   const handleEndFasting = async () => {
     if (!todaySession?.id) return;
-    await endFastingWindow(todaySession.id);
+    try {
+      await endFastingWindow(todaySession.id);
+    } catch (error) {
+      console.error('Failed to end fasting window:', error);
+      // Error is already handled by the mutation's onError if present
+    }
   };
 
   const handleEndEating = async () => {
     if (!todaySession?.id) return;
-    await endEatingWindow(todaySession.id);
+    try {
+      await endEatingWindow(todaySession.id);
+    } catch (error) {
+      console.error('Failed to end eating window:', error);
+      // Error is already handled by the mutation's onError if present
+    }
   };
 
   // If no session exists or session is completed, show setup interface
