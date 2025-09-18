@@ -67,7 +67,8 @@ const Motivators = () => {
       title: quote.author || 'Unknown Author',
       content: quote.text,
       category: 'saved_quote',
-      author: quote.author
+      author: quote.author,
+      show_in_animations: false // Default to hidden from timer animations
     });
   };
 
