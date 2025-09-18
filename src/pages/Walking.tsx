@@ -26,6 +26,7 @@ import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { useAccess } from '@/hooks/useAccess';
 import OutboxSyncIndicator from '@/components/OutboxSyncIndicator';
 import { AdminInsightDisplay } from '@/components/AdminInsightDisplay';
+import { useAdminAnimationSettings } from '@/hooks/useAdminAnimationSettings';
 
 
 const Walking = () => {
@@ -54,6 +55,7 @@ const Walking = () => {
   const { walkingStats } = useSimpleWalkingStats();
   const { quotes } = useQuoteSettings();
   const { walkingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
+  const { enable_quotes_in_animations } = useAdminAnimationSettings();
   
   console.log('🚶 WALKING PAGE - Quote Display State:', { 
     walkingQuotesEnabled, 
@@ -260,7 +262,7 @@ const Walking = () => {
             onResume={handleResume}
             onStop={() => setShowStopConfirm(true)}
             onCancel={() => handleCancel()}
-            showSlideshow={profile?.enable_walking_slideshow ?? false}
+            showSlideshow={enable_quotes_in_animations}
             units={profile?.units || 'imperial'}
             selectedSpeed={selectedSpeed}
             onSpeedChange={async (newSpeed) => {

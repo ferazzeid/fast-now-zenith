@@ -37,6 +37,7 @@ import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSyste
 import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { IntermittentFastingTimer } from '@/components/IntermittentFastingTimer';
 import { FastingModeToggle } from '@/components/FastingModeToggle';
+import { useAdminAnimationSettings } from '@/hooks/useAdminAnimationSettings';
 
 const Timer = () => {
   const navigate = useNavigate();
@@ -48,6 +49,7 @@ const Timer = () => {
   const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false);
   const [stopAction, setStopAction] = useState<'finish' | 'cancel'>('finish');
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const { enable_quotes_in_animations } = useAdminAnimationSettings();
   const [showFastingHistory, setShowFastingHistory] = useState(false);
   const [timerModeSheetOpen, setTimerModeSheetOpen] = useState(false);
   
@@ -58,9 +60,9 @@ const Timer = () => {
   const { currentMode, timerStatus, switchMode, formatTime, sheetOpen, setSheetOpen } = useTimerNavigation();
   const { ifEnabled } = useIntermittentFasting();
   const { toast } = useToast();
-  const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
   const { user } = useAuth();
   const { profile } = useProfile();
+  const { execute: executeFastingAction, isLoading: isFastingActionLoading } = useStandardizedLoading();
   const { quotes } = useQuoteSettings();
   const { fastingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
   
@@ -485,7 +487,7 @@ const Timer = () => {
                 onToggleCountDirection={() => setCountDirection(countDirection === 'up' ? 'down' : 'up')}
                 fastType={fastType}
                 goalDuration={fastDuration}
-                showSlideshow={profile?.enable_fasting_slideshow ?? false}
+                showSlideshow={enable_quotes_in_animations}
                 celebrationAnimation={celebration.isVisible ? {
                   isActive: celebration.isVisible,
                   type: celebration.animationType as any,
@@ -502,7 +504,7 @@ const Timer = () => {
               isActive={timerStatus.walking.isActive}
               onStart={handleWalkingStart}
               onStop={handleWalkingStop}
-              showSlideshow={profile?.enable_walking_slideshow ?? false}
+              showSlideshow={enable_quotes_in_animations}
               selectedSpeed={3}
               onSpeedChange={() => {}}
             />
