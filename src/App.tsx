@@ -60,7 +60,9 @@ import { useAuthStore } from '@/stores/authStore';
 
 import { HookConsistencyBoundary } from './components/HookConsistencyBoundary';
 import { supabase } from '@/integrations/supabase/client';
-
+import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
+import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSystem';
+import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery';
 
 
 // Using optimized query client from @/lib/query-client
@@ -94,6 +96,10 @@ const AppContent = () => {
   const initialize = useAuthStore(state => state.initialize);
   const { profile, isProfileComplete } = useProfile();
   const [showOnboarding, setShowOnboarding] = useState(false);
+  
+  // Global celebration system - monitors fasting sessions across the entire app
+  const { currentSession: fastingSession } = useFastingSessionQuery();
+  const { celebration, checkForMilestones, closeCelebration } = useCelebrationMilestones(fastingSession?.id);
   
   // Apply user's primary color from profile to global CSS variables
   useEffect(() => {
@@ -180,6 +186,30 @@ const AppContent = () => {
   useEffect(() => {
     trackPageView(location.pathname);
   }, [location.pathname]);
+
+  // Global milestone monitoring - runs across all pages
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (fastingSession) {
+      const updateTimer = () => {
+        const startTime = new Date(fastingSession.start_time);
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        
+        // Check for celebration milestones globally
+        checkForMilestones(elapsed, fastingSession.goal_duration_seconds);
+      };
+
+      // Update immediately, then every 30 seconds (less frequent than timer page)
+      updateTimer();
+      interval = setInterval(updateTimer, 30000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [fastingSession?.start_time, fastingSession?.id, fastingSession?.goal_duration_seconds, checkForMilestones]);
 
   // App is ready to render
   return (
@@ -464,6 +494,17 @@ const AppContent = () => {
         isOpen={showOnboarding}
         onClose={() => setShowOnboarding(false)}
       />
+
+      {/* Global Celebration System - Appears over all pages */}
+      {celebration.enhancedVisible && celebration.currentEvent && (
+        <EnhancedCelebrationSystem
+          isVisible={celebration.enhancedVisible}
+          type={celebration.currentEvent.type}
+          hours={celebration.currentEvent.hours}
+          message={celebration.currentEvent.message}
+          onClose={closeCelebration}
+        />
+      )}
     </div>
   );
 };

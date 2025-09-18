@@ -29,10 +29,8 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { useQuoteDisplay } from '@/hooks/useQuoteDisplay';
 import { queryClient } from '@/lib/query-client';
 import { supabase } from '@/integrations/supabase/client';
-import { useCelebrationMilestones } from '@/hooks/useCelebrationMilestones';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
-import { EnhancedCelebrationSystem } from '@/components/EnhancedCelebrationSystem';
 
 import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { IntermittentFastingTimer } from '@/components/IntermittentFastingTimer';
@@ -67,7 +65,6 @@ const Timer = () => {
   const { fastingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
   
   const { saveQuoteAsGoal } = useMotivators();
-  const { celebration, checkForMilestones, resetMilestones, closeCelebration, triggerCelebration } = useCelebrationMilestones(fastingSession?.id);
 
 
   const isRunning = !!fastingSession;
@@ -122,10 +119,6 @@ const Timer = () => {
     }
   }, [fastingSession]);
 
-  // Memoize the milestone check function to prevent recreation
-  const stableMilestoneCheck = useCallback((elapsed: number, goalDuration?: number) => {
-    checkForMilestones(elapsed, goalDuration);
-  }, [checkForMilestones]);
 
   // Memoize the end session function to prevent recreation
   const stableEndSession = useCallback(async (sessionId: string) => {
@@ -142,9 +135,6 @@ const Timer = () => {
         const now = new Date();
         const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
         setTimeElapsed(elapsed);
-
-        // Check for celebration milestones
-        stableMilestoneCheck(elapsed, fastingSession.goal_duration_seconds);
       };
 
       // Update immediately
@@ -249,10 +239,9 @@ const Timer = () => {
         clearTimeout(goalTimeout);
       }
     };
-  }, [isRunning, fastingSession?.start_time, fastingSession?.id, fastingSession?.goal_duration_seconds, stableMilestoneCheck, stableEndSession, toast, formatTimeFasting]);
+  }, [isRunning, fastingSession?.start_time, fastingSession?.id, fastingSession?.goal_duration_seconds, stableEndSession, toast, formatTimeFasting]);
 
   const handleFastingStart = async () => {
-    resetMilestones(); // Reset celebration state for new fast
     await executeFastingAction(async () => {
       const result = await startFastingSession({ goal_duration_seconds: fastDuration });
       if (result) {
@@ -488,11 +477,6 @@ const Timer = () => {
                 fastType={fastType}
                 goalDuration={fastDuration}
                 showSlideshow={true}
-                celebrationAnimation={celebration.isVisible ? {
-                  isActive: celebration.isVisible,
-                  type: celebration.animationType as any,
-                  onAnimationEnd: closeCelebration
-                } : undefined}
                 startTime={fastingSession?.start_time}
               />
             </>
@@ -580,16 +564,6 @@ const Timer = () => {
         </div>
       </PageOnboardingModal>
 
-      {/* Enhanced Celebration System - Overlays everything */}
-      {celebration.enhancedVisible && celebration.currentEvent && (
-        <EnhancedCelebrationSystem
-          isVisible={celebration.enhancedVisible}
-          type={celebration.currentEvent.type}
-          hours={celebration.currentEvent.hours}
-          message={celebration.currentEvent.message}
-          onClose={closeCelebration}
-        />
-      )}
 
     </div>
   );
