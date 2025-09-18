@@ -190,7 +190,7 @@ const AppContent = () => {
         <div className={`mx-auto max-w-md min-h-screen bg-background relative shadow-2xl overflow-x-hidden ${isAuthRoute ? '' : 'px-4'}`}>
           <SEOManager />
           {!isAuthRoute && <DailyStatsPanel />}
-          <MiniTimer />
+          {!isAuthRoute && <MiniTimer />}
            <Routes>
              <Route path="/auth" element={
                <PageErrorBoundary>
