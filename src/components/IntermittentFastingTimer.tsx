@@ -35,6 +35,8 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
 
   const [selectedTab, setSelectedTab] = useState<'quick' | 'custom'>('quick');
   const [selectedPreset, setSelectedPreset] = useState(IF_PRESETS[0]);
+  const [topCountDirection, setTopCountDirection] = useState<'up' | 'down'>('up'); // Default: count up
+  const [bottomCountDirection, setBottomCountDirection] = useState<'up' | 'down'>('down'); // Default: count down
   const [fastingElapsed, setFastingElapsed] = useState(0);
   const [eatingElapsed, setEatingElapsed] = useState(0);
   const [showScheduleSelector, setShowScheduleSelector] = useState(false);
@@ -65,6 +67,15 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getDisplayTime = (elapsed: number, goalSeconds: number, direction: 'up' | 'down') => {
+    if (direction === 'up') {
+      return formatTime(elapsed);
+    } else {
+      const remaining = Math.max(0, goalSeconds - elapsed);
+      return formatTime(remaining);
+    }
   };
 
   const getProgress = (elapsed: number, goalSeconds: number) => {
@@ -253,6 +264,59 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     <div className={`max-w-md mx-auto space-y-6 ${className}`}>
       {/* Unified Dual Timer Card - first object, no session info card */}
       <Card className="p-4 text-center relative overflow-hidden min-h-[220px]">
+        {/* Top Counter Toggle Button */}
+        {todaySession?.status === 'fasting' && (
+          <div className="absolute top-4 right-4 z-20">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setTopCountDirection(prev => prev === 'up' ? 'down' : 'up')}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
+                  >
+                    {topCountDirection === 'up' ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{topCountDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
+
+        {/* Bottom Counter Toggle Button */}
+        {todaySession?.status === 'eating' && (
+          <div className="absolute bottom-4 right-4 z-20">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => setBottomCountDirection(prev => prev === 'up' ? 'down' : 'up')}
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 bg-background/80 backdrop-blur-sm border border-subtle hover:bg-background/90"
+                  >
+                    {bottomCountDirection === 'up' ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{bottomCountDirection === 'up' ? 'Switch to countdown' : 'Switch to count-up'}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        )}
 
         {/* Dual Counter Display */}
         <div className="mb-2 flex flex-col justify-center items-center">
@@ -265,7 +329,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
                 textShadow: '0 1px 2px rgba(0,0,0,0.1)'
               }}
             >
-              {formatTime(fastingElapsed)}
+              {getDisplayTime(fastingElapsed, todaySession?.fasting_window_hours ? todaySession.fasting_window_hours * 60 * 60 : 0, topCountDirection)}
             </div>
             <div className={cn(
               "text-lg font-medium transition-colors duration-300",
@@ -311,7 +375,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
                     textShadow: '0 1px 2px rgba(0,0,0,0.05)'
                   }}
                 >
-                  {formatTime(eatingElapsed)}
+                  {getDisplayTime(eatingElapsed, todaySession?.eating_window_hours ? todaySession.eating_window_hours * 60 * 60 : 0, bottomCountDirection)}
                 </div>
                 <div className="text-sm font-medium text-foreground">
                   Eating Window
