@@ -62,18 +62,18 @@ const FoodTracking = () => {
     }
   }, [location.pathname]);
 
-  const handlePhotoCapture = async (food: any) => {
+  const handlePhotoCapture = async (foods: any[]) => {
     try {
-      if (food) {
-        await addFoodEntry(food);
+      if (foods && foods.length > 0) {
+        await addMultipleFoodEntries(foods);
         // Toast is already shown by DirectPhotoCaptureButton
       }
     } catch (error) {
-      console.error('Error adding food from photo:', error);
+      console.error('Error adding foods from photo:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add food from photo"
+        description: "Failed to add foods from photo"
       });
     }
   };

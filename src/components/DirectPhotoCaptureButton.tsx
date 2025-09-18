@@ -243,16 +243,17 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const handleAddFoods = async () => {
     if (!foodSuggestion) return;
     
-    const selectedFoods = Array.from(selectedFoodIds).map(index => foodSuggestion.foods[index]);
-    
-    selectedFoods.forEach(food => {
-      const foodEntry = {
+    const selectedFoods = Array.from(selectedFoodIds).map(index => {
+      const food = foodSuggestion.foods[index];
+      return {
         ...food,
         source: 'photo_analysis',
         image_url: '' // Could add image reference here if needed
       };
-      onFoodAdded?.(foodEntry);
     });
+    
+    // Pass the entire array to match the voice input pattern
+    onFoodAdded?.(selectedFoods);
     
     toast({
       title: "✓ Food Added",
