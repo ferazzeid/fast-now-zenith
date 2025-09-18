@@ -126,16 +126,21 @@ export const useIntermittentFasting = () => {
       const sessionDate = sessionData.session_date || new Date();
       const dateString = sessionDate.toISOString().split('T')[0];
 
-      // Check if session already exists for this date
+      // Check if session already exists for this date and clean it up if needed
       const { data: existingSession } = await supabase
         .from('intermittent_fasting_sessions')
-        .select('id')
+        .select('id, status')
         .eq('user_id', user.id)
         .eq('session_date', dateString)
         .maybeSingle();
 
       if (existingSession) {
-        throw new Error('IF session already exists for this date');
+        // Delete the existing session to start fresh
+        await supabase
+          .from('intermittent_fasting_sessions')
+          .delete()
+          .eq('id', existingSession.id)
+          .eq('user_id', user.id);
       }
 
       const { data, error } = await supabase

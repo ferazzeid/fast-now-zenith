@@ -14,7 +14,7 @@ interface IFScheduleSelectorProps {
 const IF_PRESETS = [
   { name: '16:8', fastingHours: 16, eatingHours: 8 },
   { name: '18:6', fastingHours: 18, eatingHours: 6 },
-  { name: '23:1', fastingHours: 23, eatingHours: 1 }
+  { name: '20:4', fastingHours: 20, eatingHours: 4 }
 ];
 
 export const IFScheduleSelector = ({
@@ -76,10 +76,7 @@ export const IFScheduleSelector = ({
                     : "hover:border-muted-foreground/50 hover:bg-muted/80"
                 )}
               >
-                <div className="font-bold text-xl mb-1">{preset.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {preset.fastingHours}h fast • {preset.eatingHours}h eating
-                </div>
+                <div className="font-bold text-xl">{preset.name}</div>
               </button>
             ))}
           </div>
