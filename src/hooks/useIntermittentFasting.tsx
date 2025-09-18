@@ -150,7 +150,8 @@ export const useIntermittentFasting = () => {
           session_date: dateString,
           fasting_window_hours: sessionData.fasting_window_hours,
           eating_window_hours: sessionData.eating_window_hours,
-          status: 'setup'
+          status: 'fasting',
+          fasting_start_time: new Date().toISOString()
         })
         .select()
         .single();
@@ -163,9 +164,11 @@ export const useIntermittentFasting = () => {
       queryClient.invalidateQueries({ queryKey: ifHistoryQueryKey(user?.id || null) });
       
       toast({
-        title: "IF Session Setup!",
-        description: `Your ${data.fasting_window_hours}:${data.eating_window_hours} schedule is ready to start.`
+        title: "Fasting Started!",
+        description: `Your ${data.fasting_window_hours}:${data.eating_window_hours} fast has begun.`
       });
+      
+      return data; // Return the session data so it can be used in the component
     },
     onError: (error) => {
       toast({

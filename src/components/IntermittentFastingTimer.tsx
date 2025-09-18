@@ -29,7 +29,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     todaySession,
     startIFSession,
     startFastingWindow,
-    endFastingWindow,
     endEatingWindow,
     loading
   } = useIntermittentFasting();
@@ -61,7 +60,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         // Auto-transition to eating when fasting window completes
         if (todaySession.fasting_window_hours && elapsed >= todaySession.fasting_window_hours * 3600) {
           console.log('🎉 Fasting window complete! Auto-starting eating window...');
-          endFastingWindow(todaySession.id).catch(console.error);
+          endEatingWindow(todaySession.id).catch(console.error);
         }
       } else if (todaySession.status === 'eating' && todaySession.eating_start_time) {
         const eatingStart = new Date(todaySession.eating_start_time);
@@ -82,7 +81,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [todaySession, endFastingWindow, endEatingWindow]);
+  }, [todaySession, endEatingWindow]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -107,6 +106,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   const handleScheduleSelect = async (fastingHours: number, eatingHours: number) => {
     setShowScheduleSelector(false);
     try {
+      // Create session and automatically start fasting
       await startIFSession({ 
         fasting_window_hours: fastingHours, 
         eating_window_hours: eatingHours 
@@ -135,20 +135,19 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   const handleEndFasting = async () => {
     if (!todaySession?.id) return;
     try {
-      await endFastingWindow(todaySession.id);
+      await endEatingWindow(todaySession.id);
     } catch (error) {
       console.error('Failed to end fasting window:', error);
       // Error is already handled by the mutation's onError if present
     }
   };
 
-  const handleEndEating = async () => {
+  const handleEndFast = async () => {
     if (!todaySession?.id) return;
     try {
       await endEatingWindow(todaySession.id);
     } catch (error) {
-      console.error('Failed to end eating window:', error);
-      // Error is already handled by the mutation's onError if present
+      console.error('Failed to end fast:', error);
     }
   };
 
@@ -215,50 +214,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
       </div>
     );
   }
-
-  // If session is in setup state, show ready to start interface
-  if (todaySession?.status === 'setup') {
-    return (
-      <div className={`max-w-md mx-auto space-y-6 ${className}`}>
-        {/* Setup Complete Card */}
-        <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
-          <div className="mb-2 flex flex-col justify-center items-center">
-            <div 
-              className="text-5xl font-mono font-bold text-warm-text mb-2 tracking-wide"
-              style={{ 
-                fontFeatureSettings: '"tnum" 1',
-                textShadow: '0 1px 2px rgba(0,0,0,0.1)'
-              }}
-            >
-              {todaySession.fasting_window_hours}:{todaySession.eating_window_hours}
-            </div>
-            <div className="text-lg font-medium text-muted-foreground mb-4">
-              Schedule Ready
-            </div>
-            
-            <div className="w-full h-px bg-border/30 my-3"></div>
-            
-            <div className="text-sm text-muted-foreground">
-              {todaySession.fasting_window_hours} hour fast, {todaySession.eating_window_hours} hour eating window
-            </div>
-          </div>
-        </Card>
-
-        {/* Start Fasting Button */}
-        <Button 
-          onClick={handleStartFasting}
-          variant="action-primary"
-          size="start-button"
-          className="w-full"
-          disabled={loading}
-        >
-          <Play className="w-8 h-8 mr-3" />
-          Start Fasting
-        </Button>
-      </div>
-    );
-  }
-
 
   // Active session - show unified dual timer card directly
   return (
@@ -399,27 +354,15 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
 
       {/* Control buttons */}
       <div className="space-y-4">
-        {todaySession?.status === 'fasting' && (
-          <Button 
-            onClick={handleEndFasting}
-            variant="action-primary"
-            size="action-main"
-            className="w-full"
-          >
-            End Fasting & Start Eating
-          </Button>
-        )}
-        
-        {todaySession?.status === 'eating' && (
-          <Button 
-            onClick={handleEndEating}
-            variant="action-primary"
-            size="action-main"
-            className="w-full"
-          >
-            End Eating
-          </Button>
-        )}
+        <Button 
+          onClick={handleEndFast}
+          variant="destructive"
+          size="action-main"
+          className="w-full"
+        >
+          <Square className="w-4 h-4 mr-2" />
+          End Fast
+        </Button>
       </div>
     </div>
   );
