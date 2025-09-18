@@ -289,8 +289,8 @@ export const useIntermittentFasting = () => {
       queryClient.setQueryData(todaySessionQueryKey(user?.id || null), data);
       queryClient.invalidateQueries({ queryKey: ifHistoryQueryKey(user?.id || null) });
       toast({
-        title: "IF Session Completed!",
-        description: "Great job completing your intermittent fasting day!"
+        title: "Fasting Stopped",
+        description: "Your session has been completed and saved to history."
       });
     },
     onError: (error) => {

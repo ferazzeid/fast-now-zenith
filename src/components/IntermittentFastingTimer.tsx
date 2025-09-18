@@ -189,39 +189,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   if (!todaySession || todaySession?.status === 'completed') {
     return (
       <div className={`max-w-md mx-auto space-y-6 ${className}`}>
-        {/* Auto-restart Toggle */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1">
-                <Button
-                  onClick={() => setAutoRestart(false)}
-                  variant={!autoRestart ? "default" : "outline"}
-                  size="sm"
-                  className="w-8 h-8 p-0 text-xs font-bold"
-                >
-                  M
-                </Button>
-                <Button
-                  onClick={() => setAutoRestart(true)}
-                  variant={autoRestart ? "default" : "outline"}
-                  size="sm"
-                  className="w-8 h-8 p-0 text-xs font-bold"
-                >
-                  A
-                </Button>
-              </div>
-              <div className="text-sm">
-                <div className="font-medium">{autoRestart ? 'Auto-cycle' : 'Manual start'}</div>
-                <div className="text-xs text-muted-foreground">
-                  {autoRestart ? 'Cycles restart automatically' : 'Manual restart required'}
-                </div>
-              </div>
-            </div>
-            <Settings2 className="w-4 h-4 text-muted-foreground" />
-          </div>
-        </Card>
-
         {/* Main Timer Card */}
         <Card className="p-4 text-center relative overflow-hidden min-h-[180px]">
           <div className="mb-2 flex flex-col justify-center items-center">
@@ -290,6 +257,36 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             </div>
           )}
         </div>
+
+        {/* Auto-restart Toggle - Bottom positioned for consistency */}
+        <Card className="p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <div className="font-medium text-xs text-muted-foreground mb-1">Cycle Mode</div>
+              <div className="text-xs text-muted-foreground">
+                {autoRestart ? 'Auto-cycle enabled' : 'Manual restart'}
+              </div>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                onClick={() => setAutoRestart(false)}
+                variant={!autoRestart ? "default" : "ghost"}
+                size="sm"
+                className="w-7 h-7 p-0 text-xs font-bold rounded-md"
+              >
+                M
+              </Button>
+              <Button
+                onClick={() => setAutoRestart(true)}
+                variant={autoRestart ? "default" : "ghost"}
+                size="sm"
+                className="w-7 h-7 p-0 text-xs font-bold rounded-md"
+              >
+                A
+              </Button>
+            </div>
+          </div>
+        </Card>
 
         {/* Start in Past Modal */}
         {showPastStart && lastSchedule && (
