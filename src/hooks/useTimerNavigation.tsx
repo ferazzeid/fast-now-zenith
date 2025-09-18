@@ -153,7 +153,12 @@ export const useTimerNavigation = () => {
     if (mode === 'if' || mode === 'fasting') {
       const fastingMode = mode === 'if' ? 'intermittent' : 'extended';
       if (profile?.fasting_mode !== fastingMode) {
-        updateProfile({ fasting_mode: fastingMode });
+        try {
+          updateProfile({ fasting_mode: fastingMode });
+        } catch (error) {
+          console.error('Profile update failed:', error);
+          // Don't block navigation on profile update failure
+        }
       }
     }
     
