@@ -550,10 +550,9 @@ const FoodTracking = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowSaveToTemplateDialog(true)}
-                        className="text-foreground hover:bg-accent/10 text-xs px-3 py-2 h-auto flex items-center gap-1"
+                        className="text-foreground text-xs px-2 py-2 h-auto flex items-center gap-1"
                       >
                         <Save className="w-3 h-3" />
-                        Save to Template
                       </Button>
                       <div className="flex items-center gap-4 mr-2">
                         <Button

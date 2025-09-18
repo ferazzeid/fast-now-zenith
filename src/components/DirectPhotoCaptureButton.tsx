@@ -287,7 +287,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       <Button
         onClick={handleCameraClick}
         disabled={isUploading}
-        className={`h-20 w-20 rounded-full p-2 bg-primary hover:bg-primary/90 ${className}`}
+        className={`h-20 w-20 rounded-lg p-2 bg-primary hover:bg-primary/90 ${className}`}
         size="lg"
       >
         {getButtonContent()}
