@@ -34,14 +34,14 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
       >
         <ToggleGroupItem 
           value="fasting" 
-          className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm min-w-[28px] cursor-pointer"
+          className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm w-[32px] cursor-pointer flex items-center justify-center"
           aria-label="Extended Fasting Mode"
         >
           E
         </ToggleGroupItem>
         <ToggleGroupItem 
           value="if" 
-          className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm min-w-[28px] cursor-pointer"
+          className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm w-[32px] cursor-pointer flex items-center justify-center"
           aria-label="Intermittent Fasting Mode"
         >
           I
