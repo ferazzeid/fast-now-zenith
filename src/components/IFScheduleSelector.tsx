@@ -138,7 +138,7 @@ export const IFScheduleSelector = ({
               size="sm"
               className="flex-1"
             >
-              Start Now
+              Now
             </Button>
             <Button
               onClick={() => setStartInPast(true)}
@@ -146,7 +146,7 @@ export const IFScheduleSelector = ({
               size="sm"
               className="flex-1"
             >
-              Start in Past
+              Past
             </Button>
           </div>
           
@@ -196,7 +196,7 @@ export const IFScheduleSelector = ({
             size="start-button"
             className="w-full text-lg py-4"
           >
-            {startInPast ? `Start Past Fast (${getSelectedDisplay()})` : `Start Fast (${getSelectedDisplay()})`}
+            {startInPast ? `Start Past Fast` : `Start Fast`}
           </Button>
         </div>
       </div>
