@@ -149,47 +149,9 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   {motivator.title}
                 </h3>
                 
-                {/* Actions */}
-                <div className="flex gap-1">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit();
-                        }}
-                        className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Edit this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  {shouldShowExpandButton && (
+                {/* Expand button only */}
+                {shouldShowExpandButton && (
+                  <div className="flex gap-1">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -205,8 +167,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                         <p>Show full description</p>
                       </TooltipContent>
                     </Tooltip>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -233,46 +195,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                   {motivator.title}
                 </h3>
                 
-                {/* Actions */}
+                {/* Collapse button only */}
                 <div className="flex gap-1 ml-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEdit();
-                        }}
-                        className="p-1 h-6 w-6 hover:bg-muted hover:text-foreground"
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Edit this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="p-1 h-6 w-6 hover:bg-destructive/10 hover:text-destructive"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete this motivator</p>
-                    </TooltipContent>
-                  </Tooltip>
-
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -293,10 +217,53 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
 
               {/* Full-width content text */}
               {displayContent && (
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                   {displayContent}
                 </p>
               )}
+
+              {/* Edit and Delete buttons below content */}
+              <div className="flex gap-2 justify-end pt-2 border-t border-subtle">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit();
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="w-4 h-4" />
+                      Edit
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Edit this motivator</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="sm" 
+                      variant="outline" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsDeleteModalOpen(true);
+                      }}
+                      className="flex items-center gap-2 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete this motivator</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
           </div>
         )}

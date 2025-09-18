@@ -138,7 +138,7 @@ export const DailyStatsPanel = memo(() => {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <div className={`w-full px-4 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-ceramic-shadow' : ''}`}>
+          <div className={`w-full px-4 py-3 flex items-center justify-between bg-card hover:bg-card/95 transition-colors ${isExpanded ? 'border-l border-r border-subtle' : ''}`}>
             <div className="flex items-center space-x-2">
               {appLogo ? (
                 <img 
@@ -183,7 +183,7 @@ export const DailyStatsPanel = memo(() => {
               className="fixed inset-0 bg-black/20 z-[-1]" 
               onClick={() => setIsExpanded(false)}
             />
-            <div className="bg-card w-full z-50 rounded-b-lg border-l border-r border-b border-ceramic-shadow">
+            <div className="bg-card w-full z-50 rounded-b-lg border-l border-r border-b border-subtle">
               <div className="px-6 py-3 space-y-3">
                 {/* Main Deficit Display */}
                 <AccessGate feature="food">
@@ -247,7 +247,7 @@ export const DailyStatsPanel = memo(() => {
 
                           {/* Dividing line and carbs */}
                           <div className="flex items-center space-x-2">
-                            <div className="w-px h-6 bg-border"></div>
+                            <div className="w-px h-6 bg-subtle"></div>
                             <div className="flex items-center space-x-1">
                               <span className="text-sm font-medium text-foreground">{Math.round(todayTotals.carbs)}g</span>
                               <ClickableTooltip content="Total carbs consumed from food today">
@@ -291,7 +291,7 @@ export const DailyStatsPanel = memo(() => {
                   </div>
 
                   {/* Divider */}
-                  <div className="border-t border-ceramic-shadow/50 my-3"></div>
+                  <div className="border-t border-subtle my-3"></div>
 
                   {/* Activity Section with Sessions Breakdown */}
                   <WalkingSessionsBreakdown 
