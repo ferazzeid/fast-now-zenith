@@ -63,13 +63,18 @@ const Motivators = () => {
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
   const personalNotes = motivators.filter(m => m.category === 'personal_note');
   const handleSelectQuote = async (quote: Quote) => {
-    await handleCreateMotivator({
-      title: quote.author || 'Unknown Author',
-      content: quote.text,
-      category: 'saved_quote',
-      author: quote.author,
-      show_in_animations: false // Default to hidden from timer animations
-    });
+    console.log('🎯 Selected quote:', quote);
+    try {
+      await handleCreateMotivator({
+        title: quote.author || 'Unknown Author',
+        content: quote.text,
+        category: 'saved_quote',
+        author: quote.author,
+        show_in_animations: false // Default to hidden from timer animations
+      });
+    } catch (error) {
+      console.error('Error creating quote motivator:', error);
+    }
   };
 
   const handleCreateMotivator = async (motivatorData) => {

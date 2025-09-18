@@ -68,7 +68,8 @@ export const useMotivators = () => {
         ...item,
         imageUrl: item.image_url || item.imageUrl || null, // Handle both field names and provide fallback
         linkUrl: validateAndFixUrl(item.link_url || item.linkUrl), // Validate and fix URLs 
-        show_in_animations: item.show_in_animations ?? false // Default to false if not set
+        show_in_animations: item.show_in_animations ?? false, // Default to false if not set
+        author: item.author // Ensure author field is preserved
       }));
       
       console.log('🎯 TRANSFORMED MOTIVATORS:', transformedData.map(m => ({ 
@@ -131,7 +132,13 @@ export const useMotivators = () => {
       if (error) throw error;
 
       if (data) {
-        const transformedData = { ...data, imageUrl: data.image_url, linkUrl: data.link_url };
+        const transformedData = { 
+          ...data, 
+          imageUrl: data.image_url, 
+          linkUrl: data.link_url,
+          author: data.author // Ensure author is preserved
+        };
+        console.log('🎯 Created motivator data:', transformedData);
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         
         // No need to refresh immediately - state is already updated optimistically
