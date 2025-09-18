@@ -56,13 +56,13 @@ export const ResponsivePageHeader = ({
       )}
       
       {/* Title section with conditional padding based on buttons */}
-      <div className={`${leftButton ? 'pl-12' : 'pl-0'} pr-12`}>
+      <div className={`${leftButton ? 'pl-12' : 'pl-0'} pr-20`}>
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-foreground flex-shrink-0">
             {title}
           </h1>
-          {/* Right side navigation - positioned relative for dropdown */}
-          <div className="flex items-center gap-1 sm:gap-2 relative ml-auto">
+           {/* Right side navigation - positioned relative for dropdown */}
+           <div className="flex items-center gap-1 sm:gap-2 relative justify-end">
             {onHistoryClick && (
               <HistoryButton onClick={onHistoryClick} title={historyTitle} />
             )}

@@ -439,8 +439,8 @@ const Timer = () => {
           <ResponsivePageHeader
             title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
             subtitle={currentMode === 'fasting' ? 'Extended Fasting' : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
-            onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
-            historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
+            onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : () => navigate('/walking-history')}
+            historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : "View walking history"}
             showAuthorTooltip={true}
             authorTooltipContentKey="timer-general"
             authorTooltipContent="Track your fasting and walking sessions with precise timing and progress visualization."
