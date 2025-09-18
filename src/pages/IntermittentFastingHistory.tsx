@@ -118,72 +118,25 @@ const IntermittentFastingHistory = () => {
                   {daySessions.map((session) => (
                     <Card key={session.id} className="overflow-hidden">
                       <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold text-sm">
-                                {session.fasting_window_hours}:{session.eating_window_hours} Schedule
-                              </h3>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${getSessionStatusColor(session.status, session.completed)} bg-current/10 flex items-center gap-1`}>
-                                {getSessionStatusIcon(session.status, session.completed)}
-                                {getSessionStatusText(session.status, session.completed)}
-                              </span>
-                              {session.completed && (
-                                <Trophy className="w-4 h-4 text-yellow-500" />
-                              )}
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {session.fasting_start_time && (
-                                <>Fasting started: {format(new Date(session.fasting_start_time), 'h:mm a')}</>
-                              )}
-                              {session.eating_start_time && (
-                                <> • Eating: {format(new Date(session.eating_start_time), 'h:mm a')}</>
-                              )}
-                            </p>
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-semibold">
+                              {session.fasting_window_hours}:{session.eating_window_hours} Schedule
+                            </h3>
+                            <span className={`text-xs px-2 py-1 rounded-full ${getSessionStatusColor(session.status, session.completed)} bg-current/10 flex items-center gap-1`}>
+                              {getSessionStatusIcon(session.status, session.completed)}
+                              {getSessionStatusText(session.status, session.completed)}
+                            </span>
+                            {session.completed && (
+                              <Trophy className="w-4 h-4 text-yellow-500" />
+                            )}
                           </div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Fasting Window</p>
-                              <p className="font-medium">{formatDuration(session.fasting_window_hours)}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Trophy className="w-4 h-4 text-muted-foreground" />
-                            <div>
-                              <p className="text-xs text-muted-foreground">Eating Window</p>
-                              <p className="font-medium">{formatDuration(session.eating_window_hours)}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Timeline details if available */}
-                        {(session.fasting_start_time || session.eating_start_time || session.eating_end_time) && (
-                          <div className="mt-3 pt-3 border-t border-border/50">
-                            <div className="text-xs text-muted-foreground space-y-1">
-                              {session.fasting_start_time && (
-                                <div className="flex justify-between">
-                                  <span>Fasting started:</span>
-                                  <span>{format(new Date(session.fasting_start_time), 'h:mm a')}</span>
-                                </div>
-                              )}
-                              {session.eating_start_time && (
-                                <div className="flex justify-between">
-                                  <span>Eating started:</span>
-                                  <span>{format(new Date(session.eating_start_time), 'h:mm a')}</span>
-                                </div>
-                              )}
-                              {session.eating_end_time && (
-                                <div className="flex justify-between">
-                                  <span>Eating ended:</span>
-                                  <span>{format(new Date(session.eating_end_time), 'h:mm a')}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                        
+                        {session.fasting_start_time && (
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Fasting started: {format(new Date(session.fasting_start_time), 'h:mm a')}
+                          </p>
                         )}
                       </CardContent>
                     </Card>
