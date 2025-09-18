@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Clock, Utensils } from 'lucide-react';
+import { X, Clock, Utensils, Plus, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -7,7 +7,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { cn } from '@/lib/utils';
 
 interface IFScheduleSelectorProps {
-  onSelect: (fastingHours: number, eatingHours: number) => void;
+  onSelect: (fastingHours: number, eatingHours: number, customStartTime?: Date) => void;
   onClose: () => void;
 }
 
@@ -24,6 +24,8 @@ export const IFScheduleSelector = ({
   const [selectedPreset, setSelectedPreset] = useState<typeof IF_PRESETS[0] | null>(null);
   const [customFastingHours, setCustomFastingHours] = useState([16]);
   const [isCustom, setIsCustom] = useState(false);
+  const [startInPast, setStartInPast] = useState(false);
+  const [hoursAgo, setHoursAgo] = useState(6);
 
   const customEatingHours = 24 - customFastingHours[0];
 
@@ -39,10 +41,14 @@ export const IFScheduleSelector = ({
   };
 
   const handleConfirm = () => {
+    const customStartTime = startInPast 
+      ? new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
+      : undefined;
+      
     if (selectedPreset) {
-      onSelect(selectedPreset.fastingHours, selectedPreset.eatingHours);
+      onSelect(selectedPreset.fastingHours, selectedPreset.eatingHours, customStartTime);
     } else if (isCustom) {
-      onSelect(customFastingHours[0], customEatingHours);
+      onSelect(customFastingHours[0], customEatingHours, customStartTime);
     }
   };
 
@@ -123,6 +129,65 @@ export const IFScheduleSelector = ({
           </div>
         </div>
 
+        {/* Start Time Options */}
+        <div className="space-y-3">
+          <h3 className="text-sm font-medium text-muted-foreground">Start Time</h3>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => setStartInPast(false)}
+              variant={!startInPast ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+            >
+              Start Now
+            </Button>
+            <Button
+              onClick={() => setStartInPast(true)}
+              variant={startInPast ? "default" : "outline"}
+              size="sm"
+              className="flex-1"
+            >
+              Start in Past
+            </Button>
+          </div>
+          
+          {startInPast && (
+            <div className="p-4 bg-muted/30 rounded-lg border border-border">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">
+                  Hours Ago: {hoursAgo}h
+                </Label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    onClick={() => setHoursAgo(Math.max(1, hoursAgo - 1))}
+                    variant="outline"
+                    size="sm"
+                    className="w-8 h-8 p-0"
+                    disabled={hoursAgo <= 1}
+                  >
+                    <Minus className="w-4 h-4" />
+                  </Button>
+                  <div className="flex-1 text-center font-mono text-lg font-bold">
+                    {hoursAgo}h
+                  </div>
+                  <Button
+                    onClick={() => setHoursAgo(Math.min(24, hoursAgo + 1))}
+                    variant="outline"
+                    size="sm"
+                    className="w-8 h-8 p-0"
+                    disabled={hoursAgo >= 24}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground text-center">
+                  Start time: {new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Start Button - Large */}
         <div className="pt-4">
           <Button
@@ -132,7 +197,7 @@ export const IFScheduleSelector = ({
             size="start-button"
             className="w-full text-lg py-4"
           >
-            Start Fast ({getSelectedDisplay()})
+            {startInPast ? `Start Past Fast (${getSelectedDisplay()})` : `Start Fast (${getSelectedDisplay()})`}
           </Button>
         </div>
       </div>

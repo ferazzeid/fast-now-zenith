@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Clock, Play, Square, ChevronUp, ChevronDown, Settings2, Calendar } from 'lucide-react';
+import { X, Play, Square, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -51,10 +51,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   // Auto-restart and schedule memory
   const [autoRestart, setAutoRestart] = useState(false);
   const [lastSchedule, setLastSchedule] = useState<{fastingHours: number, eatingHours: number} | null>(null);
-  
-  // Start in past functionality
-  const [showPastStart, setShowPastStart] = useState(false);
-  const [hoursAgo, setHoursAgo] = useState(6);
 
   // Update elapsed times every second - but only for the active window
   useEffect(() => {
@@ -122,18 +118,13 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     return Math.min((elapsed / goalSeconds) * 100, 100);
   };
 
-  const handleScheduleSelect = async (fastingHours: number, eatingHours: number, startInPast?: boolean) => {
+  const handleScheduleSelect = async (fastingHours: number, eatingHours: number, customStartTime?: Date) => {
     setShowScheduleSelector(false);
-    setShowPastStart(false);
     
     // Remember the schedule for manual restarts
     setLastSchedule({ fastingHours, eatingHours });
     
     try {
-      const customStartTime = startInPast 
-        ? new Date(Date.now() - hoursAgo * 60 * 60 * 1000)
-        : undefined;
-        
       // Create session and automatically start fasting
       await startIFSession({ 
         fasting_window_hours: fastingHours, 
@@ -236,25 +227,14 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </Button>
           
           {lastSchedule && (
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => setShowScheduleSelector(true)}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                Change Schedule
-              </Button>
-              <Button 
-                onClick={() => setShowPastStart(true)}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-              >
-                <Calendar className="w-4 h-4 mr-1" />
-                Start in Past
-              </Button>
-            </div>
+            <Button 
+              onClick={() => setShowScheduleSelector(true)}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              Change Schedule
+            </Button>
           )}
         </div>
 
@@ -268,87 +248,35 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <Button
-                onClick={() => setAutoRestart(false)}
-                variant={!autoRestart ? "default" : "ghost"}
-                size="sm"
-                className="w-7 h-7 p-0 text-xs font-bold rounded-md"
-              >
-                M
-              </Button>
-              <Button
-                onClick={() => setAutoRestart(true)}
-                variant={autoRestart ? "default" : "ghost"}
-                size="sm"
-                className="w-7 h-7 p-0 text-xs font-bold rounded-md"
-              >
-                A
-              </Button>
+              {/* Toggle with background */}
+              <div className="flex items-center bg-muted rounded-full p-1 border border-border">
+                <button
+                  onClick={() => setAutoRestart(false)}
+                  className={cn(
+                    "w-6 h-6 rounded-full text-xs font-bold transition-all duration-200",
+                    !autoRestart 
+                      ? "bg-primary text-primary-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  M
+                </button>
+                <button
+                  onClick={() => setAutoRestart(true)}
+                  className={cn(
+                    "w-6 h-6 rounded-full text-xs font-bold transition-all duration-200",
+                    autoRestart 
+                      ? "bg-primary text-primary-foreground shadow-sm" 
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  A
+                </button>
+              </div>
             </div>
           </div>
         </Card>
 
-        {/* Start in Past Modal */}
-        {showPastStart && lastSchedule && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Start Cycle in Past</CardTitle>
-                <Button
-                  onClick={() => setShowPastStart(false)}
-                  variant="ghost"
-                  size="sm"
-                  className="w-8 h-8 p-0"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <CardDescription>
-                Already been fasting? Start your {lastSchedule.fastingHours}:{lastSchedule.eatingHours} cycle from when you actually began.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">
-                  Hours Ago: {hoursAgo}h
-                </Label>
-                <Slider
-                  value={[hoursAgo]}
-                  onValueChange={(value) => setHoursAgo(value[0])}
-                  min={1}
-                  max={24}
-                  step={1}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>1h ago</span>
-                  <span>24h ago</span>
-                </div>
-                
-                <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded">
-                  <strong>Start time:</strong> {new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toLocaleString()}
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => setShowPastStart(false)}
-                  variant="outline"
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={() => handleScheduleSelect(lastSchedule.fastingHours, lastSchedule.eatingHours, true)}
-                  variant="action-primary"
-                  className="flex-1"
-                >
-                  Start Past Cycle
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Schedule Selection Modal */}
         {showScheduleSelector && (
