@@ -532,7 +532,7 @@ const Settings = () => {
                     <div className="grid grid-cols-3 gap-3">
                       <div className="space-y-2">
                         <Label htmlFor="weight" className="text-warm-text">
-                          Weight ({profile?.units === 'metric' ? 'kg' : 'lbs'})
+                          Weight <span className="text-xs text-muted-foreground">({profile?.units === 'metric' ? 'kg' : 'lbs'})</span>
                         </Label>
                         <Input
                           id="weight"
@@ -548,7 +548,7 @@ const Settings = () => {
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="height" className="text-warm-text">
-                          Height ({profile?.units === 'metric' ? 'cm' : 'in'})
+                          Height <span className="text-xs text-muted-foreground">({profile?.units === 'metric' ? 'cm' : 'in'})</span>
                         </Label>
                         <Input
                           id="height"
@@ -717,10 +717,7 @@ const Settings = () => {
                   <h3 className="text-lg font-semibold text-warm-text">Appearance</h3>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-warm-text">Theme</div>
-                  <ThemeToggle />
-                </div>
+                <ThemeToggle />
                 
                 <UserColorPicker 
                   value={primaryColor}
