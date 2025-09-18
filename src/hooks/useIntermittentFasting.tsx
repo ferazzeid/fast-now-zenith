@@ -47,6 +47,7 @@ interface StartIFSessionData {
   fasting_window_hours: number;
   eating_window_hours: number;
   session_date?: Date;
+  custom_start_time?: Date; // For starting cycles in the past
 }
 
 const todaySessionQueryKey = (userId: string | null) => ['if-session-today', userId];
@@ -151,7 +152,9 @@ export const useIntermittentFasting = () => {
           fasting_window_hours: sessionData.fasting_window_hours,
           eating_window_hours: sessionData.eating_window_hours,
           status: 'fasting',
-          fasting_start_time: new Date().toISOString()
+          fasting_start_time: sessionData.custom_start_time 
+            ? sessionData.custom_start_time.toISOString() 
+            : new Date().toISOString()
         })
         .select()
         .single();
