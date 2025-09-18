@@ -142,30 +142,15 @@ export const useTimerNavigation = () => {
   const switchMode = (mode: TimerMode) => {
     const currentPath = location.pathname;
     
-    // Check for active sessions that should take precedence
-    let targetMode = mode;
-    
-    // Active timer precedence: if there's an active session, switch to it instead
-    if (fastingSession && fastingSession.status === 'active') {
-      targetMode = 'fasting';
-      console.log('🔄 Switching to active fasting session instead of', mode);
-    } else if (walkingSession && walkingSession.status === 'active') {
-      targetMode = 'walking';
-      console.log('🔄 Switching to active walking session instead of', mode);
-    } else if (ifSession && (ifSession.status === 'fasting' || ifSession.status === 'eating')) {
-      targetMode = 'if';
-      console.log('🔄 Switching to active IF session instead of', mode);
-    }
-    
     // Prevent unnecessary navigation if already on the target page
-    if ((targetMode === 'walking' && currentPath.includes('/walking')) ||
-        (targetMode === 'if' && currentPath.includes('/intermittent-fasting')) ||
-        (targetMode === 'fasting' && (currentPath.includes('/timer') || currentPath === '/'))) {
+    if ((mode === 'walking' && currentPath.includes('/walking')) ||
+        (mode === 'if' && currentPath.includes('/intermittent-fasting')) ||
+        (mode === 'fasting' && (currentPath.includes('/timer') || currentPath === '/'))) {
       return;
     }
     
-    // Save the fasting mode preference only if no active sessions override it
-    if (targetMode === mode && (mode === 'if' || mode === 'fasting')) {
+    // Save the fasting mode preference for IF/Extended fasting modes
+    if (mode === 'if' || mode === 'fasting') {
       const fastingMode = mode === 'if' ? 'intermittent' : 'extended';
       if (profile?.fasting_mode !== fastingMode) {
         try {
@@ -180,9 +165,9 @@ export const useTimerNavigation = () => {
     setSheetOpen(false); // Auto-close the sheet
     
     // Navigate to the appropriate timer page using React Router
-    if (targetMode === 'walking') {
+    if (mode === 'walking') {
       navigate('/walking');
-    } else if (targetMode === 'if') {
+    } else if (mode === 'if') {
       navigate('/intermittent-fasting');
     } else {
       navigate('/timer');
