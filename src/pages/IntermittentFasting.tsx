@@ -9,7 +9,7 @@ import { useIntermittentFasting } from "@/hooks/useIntermittentFasting";
 const IntermittentFasting: React.FC = () => {
   const navigate = useNavigate();
   const { currentMode, switchMode } = useTimerNavigation();
-  const { ifEnabled } = useIntermittentFasting();
+  const { ifEnabled, todaySession } = useIntermittentFasting();
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
@@ -18,7 +18,11 @@ const IntermittentFasting: React.FC = () => {
         <div className="relative">
           <ResponsivePageHeader 
             title="Fasting Tracker"
-            subtitle="Start Your Fast"
+            subtitle={
+              (ifEnabled && (todaySession?.status === 'fasting' || todaySession?.status === 'eating')) 
+                ? "Intermittent Fasting" 
+                : "Start Your Fast"
+            }
             onHistoryClick={() => navigate('/intermittent-fasting-history')}
             historyTitle="View IF history"
             showAuthorTooltip={true}
