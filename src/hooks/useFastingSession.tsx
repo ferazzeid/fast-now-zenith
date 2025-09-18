@@ -98,6 +98,24 @@ export const useFastingSession = () => {
     }
 
     return await execute(async () => {
+      // Check for active intermittent fasting session first
+      const { data: activeIFSession } = await supabase
+        .from('intermittent_fasting_sessions')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .in('status', ['setup', 'fasting', 'eating'])
+        .eq('session_date', new Date().toISOString().split('T')[0])
+        .maybeSingle();
+
+      if (activeIFSession) {
+        toast({
+          title: "Cannot Start Extended Fast",
+          description: "You have an active intermittent fasting session. Please complete it first.",
+          variant: "destructive",
+        });
+        throw new Error("Active intermittent fasting session found");
+      }
+
       // End any existing active sessions first
       await supabase
         .from('fasting_sessions')

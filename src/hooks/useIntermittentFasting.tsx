@@ -111,6 +111,18 @@ export const useIntermittentFasting = () => {
     mutationFn: async (sessionData: StartIFSessionData): Promise<IntermittentFastingSession> => {
       if (!user) throw new Error('User not authenticated');
 
+      // Check for active extended fasting session first
+      const { data: activeExtendedSession } = await supabase
+        .from('fasting_sessions')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (activeExtendedSession) {
+        throw new Error('You have an active extended fasting session. Please complete it first.');
+      }
+
       const sessionDate = sessionData.session_date || new Date();
       const dateString = sessionDate.toISOString().split('T')[0];
 
@@ -163,6 +175,18 @@ export const useIntermittentFasting = () => {
   const startFastingWindowMutation = useMutation({
     mutationFn: async (sessionId: string) => {
       if (!user) throw new Error('User not authenticated');
+
+      // Check for active extended fasting session before starting IF fasting
+      const { data: activeExtendedSession } = await supabase
+        .from('fasting_sessions')
+        .select('id, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (activeExtendedSession) {
+        throw new Error('You have an active extended fasting session. Please complete it first.');
+      }
 
       const { data, error } = await supabase
         .from('intermittent_fasting_sessions')
