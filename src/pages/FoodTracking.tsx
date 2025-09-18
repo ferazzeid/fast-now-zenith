@@ -38,7 +38,7 @@ const FoodTracking = () => {
   const [editingEntry, setEditingEntry] = useState<any>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
-  const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState(false);
+  const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState<boolean | any>(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -80,13 +80,30 @@ const FoodTracking = () => {
 
   const handleSaveToTemplateConfirm = async () => {
     try {
-      const foodsToSave = todayEntries.map(entry => ({
-        name: entry.name,
-        calories: entry.calories,
-        carbs: entry.carbs,
-        serving_size: entry.serving_size,
-        image_url: entry.image_url
-      }));
+      // Check if saving individual item or all items
+      const isIndividualSave = typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null;
+      
+      let foodsToSave;
+      if (isIndividualSave) {
+        // Save single item
+        const entry = showSaveToTemplateDialog;
+        foodsToSave = [{
+          name: entry.name,
+          calories: entry.calories,
+          carbs: entry.carbs,
+          serving_size: entry.serving_size,
+          image_url: entry.image_url
+        }];
+      } else {
+        // Save all items
+        foodsToSave = todayEntries.map(entry => ({
+          name: entry.name,
+          calories: entry.calories,
+          carbs: entry.carbs,
+          serving_size: entry.serving_size,
+          image_url: entry.image_url
+        }));
+      }
       
       const result = await saveAsTemplate(foodsToSave, true); // true = append mode
       
@@ -594,6 +611,7 @@ const FoodTracking = () => {
               {editingEntry && (
                 <EditFoodEntryModal
                   entry={editingEntry}
+                  isOpen={!!editingEntry}
                   onUpdate={async (updatedEntry) => {
                     try {
                       await updateFoodEntry({ 
@@ -641,11 +659,17 @@ const FoodTracking = () => {
 
               {/* Save to Template Confirmation Modal */}
               <ConfirmationModal
-                isOpen={showSaveToTemplateDialog}
+                isOpen={!!showSaveToTemplateDialog}
                 onClose={() => setShowSaveToTemplateDialog(false)}
                 onConfirm={handleSaveToTemplateConfirm}
-                title="Save All Foods to Template"
-                description={`This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`}
+                title={typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null 
+                  ? `Save "${showSaveToTemplateDialog.name}" to Template`
+                  : "Save All Foods to Template"
+                }
+                description={typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null
+                  ? `This will add "${showSaveToTemplateDialog.name}" to your daily template. You can reuse this template to quickly add your favorite foods on other days.`
+                  : `This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`
+                }
                 confirmText="Save to Template"
                 cancelText="Cancel"
               />
