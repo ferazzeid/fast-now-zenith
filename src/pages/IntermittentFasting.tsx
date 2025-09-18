@@ -18,11 +18,7 @@ const IntermittentFasting: React.FC = () => {
         <div className="relative">
           <ResponsivePageHeader 
             title="Fasting Tracker"
-            subtitle={
-              (ifEnabled && (todaySession?.status === 'fasting' || todaySession?.status === 'eating')) 
-                ? "Intermittent Fasting" 
-                : "Start Your Fast"
-            }
+            subtitle="Intermittent Fasting"
             onHistoryClick={() => navigate('/intermittent-fasting-history')}
             historyTitle="View IF history"
             showAuthorTooltip={true}

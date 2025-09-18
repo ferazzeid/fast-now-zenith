@@ -447,7 +447,7 @@ const Timer = () => {
         <div className="relative">
           <ResponsivePageHeader
             title={currentMode === 'fasting' ? 'Fasting Timer' : currentMode === 'if' ? 'Intermittent Fasting' : 'Walking Timer'}
-            subtitle={currentMode === 'fasting' ? getCurrentMode() : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
+            subtitle={currentMode === 'fasting' ? 'Extended Fasting' : currentMode === 'if' ? 'Track your daily IF session' : 'Track your walking session'}
             onHistoryClick={currentMode === 'fasting' ? () => navigate('/fasting-history') : currentMode === 'if' ? () => navigate('/intermittent-fasting-history') : undefined}
             historyTitle={currentMode === 'fasting' ? "View fasting history" : currentMode === 'if' ? "View IF history" : undefined}
             showAuthorTooltip={true}
