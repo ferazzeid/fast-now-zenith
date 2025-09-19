@@ -513,66 +513,88 @@ const FoodTracking = () => {
 
               {/* Action Buttons - Two Column Layout */}
               <div className="mb-6 grid grid-cols-2 gap-6">
-                <div className="flex flex-col items-center gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      {hasAccess ? (
-                        <DirectPhotoCaptureButton onFoodAdded={handlePhotoCapture} />
-                      ) : (
-                        // Free Mode: Manual Input Button (reuses photo button styling)
-                        <Button
-                          onClick={handleManualInput}
-                          variant="action-secondary"
-                          size="start-button"
-                          className="w-full flex items-center justify-center transition-colors"
-                        >
-                          <div className="flex items-center space-x-1">
-                            <Plus className="w-6 h-6" />
-                            <div className="w-12 h-12 flex items-center justify-center">
-                              <span className="text-2xl">⌨️</span>
-                            </div>
-                          </div>
-                        </Button>
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{hasAccess ? "Take a photo to automatically detect food and nutrition" : "Manually enter food details"}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <span className="text-xs text-muted-foreground text-center">Add with photo</span>
-                </div>
+                {hasAccess ? (
+                  // Premium Mode: Keep existing buttons exactly as they are
+                  <>
+                    <div className="flex flex-col items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DirectPhotoCaptureButton onFoodAdded={handlePhotoCapture} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Take a photo to automatically detect food and nutrition</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <span className="text-xs text-muted-foreground text-center">Add with photo</span>
+                    </div>
 
-                <div className="flex flex-col items-center gap-2">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      {hasAccess ? (
-                        <DirectVoiceFoodInput onFoodAdded={handleVoiceInput} />
-                      ) : (
-                        // Free Mode: Premium Placeholder Button (reuses voice button styling)
-                        <Button
-                          onClick={() => {
-                            // TODO: Open Premium upgrade modal
-                            console.log('Premium upgrade modal - to be implemented');
-                          }}
-                          variant="action-secondary"
-                          size="start-button"
-                          className="w-full flex items-center justify-center transition-colors opacity-60"
-                        >
-                          <div className="flex items-center space-x-1">
-                            <Plus className="w-6 h-6" />
-                            <div className="w-12 h-12 flex items-center justify-center">
-                              <Lock className="w-8 h-8" />
+                    <div className="flex flex-col items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DirectVoiceFoodInput onFoodAdded={handleVoiceInput} />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Speak to add foods using voice recognition</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <span className="text-xs text-muted-foreground text-center">Add with voice</span>
+                    </div>
+                  </>
+                ) : (
+                  // Free Mode: Replace buttons entirely
+                  <>
+                    <div className="flex flex-col items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={handleManualInput}
+                            variant="action-secondary"
+                            size="start-button"
+                            className="w-full flex items-center justify-center transition-colors"
+                          >
+                            <div className="flex items-center space-x-1">
+                              <Plus className="w-6 h-6" />
+                              <div className="w-12 h-12 flex items-center justify-center">
+                                <span className="text-2xl">⌨️</span>
+                              </div>
                             </div>
-                          </div>
-                        </Button>
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{hasAccess ? "Speak to add foods using voice recognition" : "Voice input available with Premium"}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                  <span className="text-xs text-muted-foreground text-center">Add with voice</span>
-                </div>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Manually enter food details</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <span className="text-xs text-muted-foreground text-center">Add manually</span>
+                    </div>
+
+                    <div className="flex flex-col items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() => {
+                              // TODO: Open Premium upgrade modal
+                              console.log('Premium upgrade modal - to be implemented');
+                            }}
+                            variant="action-secondary"
+                            size="start-button"
+                            className="w-full flex items-center justify-center transition-colors opacity-60"
+                          >
+                            <div className="flex items-center space-x-1">
+                              <Plus className="w-6 h-6" />
+                              <div className="w-12 h-12 flex items-center justify-center">
+                                <Lock className="w-8 h-8" />
+                              </div>
+                            </div>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Premium features available with upgrade</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <span className="text-xs text-muted-foreground text-center">Premium</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Food Entries List */}
