@@ -3,13 +3,15 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import type { PluginOption } from "vite";
 import { swVersionPlugin } from "./scripts/sw-version-plugin";
+import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const plugins: PluginOption[] = [react(), swVersionPlugin()];
-  
-  // Skip lovable-tagger to avoid ESM import issues in build
-  // It's only needed for development tagging anyway
+  const plugins: PluginOption[] = [
+    react(),
+    swVersionPlugin(),
+    mode === 'development' && componentTagger(),
+  ].filter(Boolean);
   
   return {
     base: './', // Use relative paths for Capacitor WebView compatibility
