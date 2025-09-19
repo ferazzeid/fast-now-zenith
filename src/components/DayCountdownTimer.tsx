@@ -24,9 +24,9 @@ export const DayCountdownTimer = () => {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 text-muted-foreground">
-      <Clock className="h-4 w-4" />
-      <span className="text-sm">
+    <div className="flex items-center gap-3 text-foreground">
+      <Clock className="h-6 w-6" />
+      <span className="text-lg font-semibold">
         {timeLeft.hours}h {timeLeft.minutes}m until day ends
       </span>
     </div>

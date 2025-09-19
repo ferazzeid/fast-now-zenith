@@ -50,7 +50,7 @@ export const DailySummaryVerticalTimeline = ({
       
       data.push({
         day,
-        projectedWeight: projectedWeight ? Math.round(projectedWeight) : null,
+        projectedWeight: projectedWeight ? Math.round(projectedWeight * 10) / 10 : null,
         description,
         isToday,
         isPast,
@@ -88,7 +88,7 @@ export const DailySummaryVerticalTimeline = ({
           {/* Vertical timeline line */}
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted"></div>
           
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-3">
             {timelineData.map((item) => (
               <div key={item.day} className="relative flex items-center gap-4">
                 {/* Timeline dot */}

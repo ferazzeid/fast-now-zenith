@@ -124,11 +124,8 @@ export default function DailyReconciliation() {
 
         <div className="space-y-6">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Daily Summary</h1>
-              <p className="text-muted-foreground">Review the day</p>
-            </div>
+          <div className="space-y-3">
+            <h1 className="text-3xl font-bold">Daily Summary</h1>
             <DayCountdownTimer />
           </div>
 
@@ -141,29 +138,55 @@ export default function DailyReconciliation() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
                     <p className="text-sm text-muted-foreground">Today's Deficit</p>
                     <p className="text-2xl font-bold text-primary">{Math.round(deficitData.todayDeficit)} cal</p>
                   </div>
-                </div>
-                <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">30-Day Projection</p>
-                    <p className="text-2xl font-bold text-green-600">{Math.round(goalCalculations.thirtyDayProjection)}g loss</p>
+                    <p className="text-sm text-muted-foreground">30-Day Weight Loss</p>
+                    <p className="text-2xl font-bold text-green-600">{Math.round(goalCalculations.thirtyDayProjection / 1000 * 10) / 10} kg</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
+                
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-muted-foreground">Calories Burned</p>
-                    <p className="text-lg font-semibold">{Math.round(deficitData.totalCaloriesBurned)} cal</p>
+                    <p className="text-sm text-muted-foreground">Projected Weight (30d)</p>
+                    <p className="text-lg font-semibold">
+                      {goalCalculations.currentWeight ? 
+                        Math.round((goalCalculations.currentWeight - (goalCalculations.thirtyDayProjection / 1000)) * 10) / 10 
+                        : '--'} kg
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Current Weight</p>
+                    <p className="text-lg font-semibold">
+                      {goalCalculations.currentWeight || '--'} kg
+                      <Button size="sm" variant="ghost" className="ml-2 h-6 text-xs">Update</Button>
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Calories Planned</p>
+                    <p className="text-lg font-semibold">{Math.round(foodContext?.todayCalories || 0)} cal</p>
+                  </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Calories Consumed</p>
                     <p className="text-lg font-semibold">{Math.round(deficitData.caloriesConsumed)} cal</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Carbs Today</p>
+                    <p className="text-lg font-semibold">{Math.round(foodContext?.todayCarbs || 0)}g</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Calories Burned</p>
+                    <p className="text-lg font-semibold">{Math.round(deficitData.totalCaloriesBurned)} cal</p>
                   </div>
                 </div>
               </div>
@@ -181,23 +204,15 @@ export default function DailyReconciliation() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-medium">Today's Walking</h4>
-                  <p className="text-sm">
-                    Total Time: <span className="font-medium">{Math.round(walkingContext?.totalWalkingTimeToday || 0)} min</span>
-                  </p>
-                  <p className="text-sm">
-                    Sessions: <span className="font-medium">{walkingContext?.totalWalkingSessions || 0}</span>
-                  </p>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Today's Walking</h4>
+                  <p className="text-2xl font-bold text-primary">{Math.round(walkingContext?.totalWalkingTimeToday || 0)} min</p>
+                  <p className="text-sm text-muted-foreground">{walkingContext?.totalWalkingSessions || 0} sessions</p>
                 </div>
                 
                 <div>
-                  <h4 className="font-medium">External Activities</h4>
-                  <p className="text-sm">
-                    Activities: <span className="font-medium">{manualBurns.length}</span>
-                  </p>
-                  <p className="text-sm">
-                    Calories: <span className="font-medium">{Math.round(manualCaloriesTotal)} cal</span>
-                  </p>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">External Activities</h4>
+                  <p className="text-2xl font-bold text-primary">{Math.round(manualCaloriesTotal)} cal</p>
+                  <p className="text-sm text-muted-foreground">{manualBurns.length} activities</p>
                 </div>
               </div>
             </CardContent>
@@ -213,36 +228,19 @@ export default function DailyReconciliation() {
             </CardHeader>
             <CardContent>
               {fastingContext?.isCurrentlyFasting ? (
-                <p className="font-medium">
-                  Extended fast ongoing - Hour {Math.round(fastingContext.currentFastDuration)}
-                </p>
+                <div>
+                  <p className="text-lg font-bold">
+                    <span className="text-primary">Ongoing:</span> 
+                    <span className="text-sm font-normal ml-2">Extended fast</span>
+                  </p>
+                  <p className="text-2xl font-bold text-green-600">{Math.round(fastingContext.currentFastDuration)} hours</p>
+                </div>
               ) : (
-                <p className="text-muted-foreground">No active fasting session</p>
+                <p className="text-lg font-medium text-muted-foreground">No fasting currently happening</p>
               )}
             </CardContent>
           </Card>
 
-          {/* Food Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Utensils className="h-5 w-5" />
-                Food Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Calories Today</p>
-                  <p className="text-xl font-semibold">{Math.round(foodContext?.todayCalories || 0)} cal</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Carbs Today</p>
-                  <p className="text-xl font-semibold">{Math.round(foodContext?.todayCarbs || 0)}g</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Goals & Progress */}
           <DailySummaryGoalsSection 
