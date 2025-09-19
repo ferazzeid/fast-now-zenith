@@ -644,9 +644,9 @@ const FoodTracking = () => {
                 </Button>
                 <Button
                   size="sm"
-                  variant="ghost"
+                  variant="ghost"  
                   onClick={handleMarkAllAsEaten}
-                  className="h-5 w-5 p-1 rounded border border-muted-foreground hover:bg-muted/30 text-muted-foreground hover:text-foreground"
+                  className="h-5 w-5 p-1 rounded border-2 border-muted-foreground/60 hover:border-muted-foreground hover:bg-muted/20 text-muted-foreground hover:text-foreground bg-transparent"
                   title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
                   disabled={isBulkMarking}
                 >

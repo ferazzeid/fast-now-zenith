@@ -240,41 +240,53 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
       {isOpen && (
         <>
-          {/* Overlay backdrop for click-outside-to-close */}
+          {/* Full screen overlay backdrop */}
           <div 
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 bg-black/20"
             onClick={handleCancel}
           />
           
-          {/* Dropdown positioned below the button with proper width and centering */}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50 w-80 max-w-[calc(100vw-1rem)] p-4 bg-background/95 backdrop-blur-sm rounded-lg border border-subtle shadow-lg">
-            <div className="flex items-center gap-3">
-              <Input
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter food"
-                className="flex-1 h-10 text-sm text-center border-0 bg-muted/50 placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:border-0 focus-visible:bg-muted/80 rounded-md"
-                autoFocus
-                disabled={isProcessing}
-              />
-              <Button
-                onClick={handleSubmit}
-                disabled={!inputText.trim() || isProcessing}
-                size="sm"
-                variant="default"
-                className="shrink-0 h-10 px-3 rounded-md"
-                title="Add food"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-1" />
-                    Processing...
-                  </>
-                ) : (
-                  "Go"
-                )}
-              </Button>
+          {/* Centered modal-style input */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md bg-background rounded-lg border border-border shadow-xl p-6">
+              <h3 className="text-lg font-semibold mb-4 text-center">Enter Food</h3>
+              <div className="flex items-center gap-3">
+                <Input
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter food (e.g., apple, rice, chicken)"
+                  className="flex-1 h-12 text-center text-base border-2 focus-visible:ring-2 focus-visible:ring-ring"
+                  autoFocus
+                  disabled={isProcessing}
+                />
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!inputText.trim() || isProcessing}
+                  size="lg"
+                  variant="default"
+                  className="shrink-0 h-12 px-6 font-semibold"
+                  title="Add food"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Go"
+                  )}
+                </Button>
+              </div>
+              <div className="flex justify-center mt-4">
+                <Button 
+                  variant="ghost" 
+                  onClick={handleCancel}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </div>
         </>
