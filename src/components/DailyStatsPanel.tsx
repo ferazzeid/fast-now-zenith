@@ -275,15 +275,43 @@ export const DailyStatsPanel = memo(() => {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
                       <Target className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm font-medium text-warm-text">Base Daily Burn</span>
-                      <ClickableTooltip content={`Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`}>
+                      <span className="text-sm font-medium text-warm-text">
+                        {deficitData.isProgressiveBurnEnabled ? 'Earned Daily Burn' : 'Base Daily Burn'}
+                      </span>
+                      <ClickableTooltip content={
+                        deficitData.isProgressiveBurnEnabled 
+                          ? `Progressive burn enabled: You've earned ${formatNumber(deficitData.earnedTdee || 0)} calories out of your full ${formatNumber(deficitData.tdee)} daily burn (${deficitData.progressivePercentage}% based on time of day). Your BMR is ${formatNumber(deficitData.bmr)} calories.`
+                          : `Your Total Daily Energy Expenditure (TDEE) based on BMR (${formatNumber(deficitData.bmr)}) × activity multiplier for ${getActivityLevelDisplay(deficitData.activityLevel)}. This already includes your selected activity level.`
+                      }>
                         <Info className="w-4 h-4 text-muted-foreground" />
                       </ClickableTooltip>
                     </div>
                     <div className="text-sm font-bold text-foreground">
-                      {formatNumber(deficitData.tdee)} cal
+                      {deficitData.isProgressiveBurnEnabled 
+                        ? `${formatNumber(deficitData.earnedTdee || 0)} cal`
+                        : `${formatNumber(deficitData.tdee)} cal`
+                      }
                     </div>
                   </div>
+                  
+                  {/* Progressive Burn Indicator */}
+                  {deficitData.isProgressiveBurnEnabled && (
+                    <div className="mb-3 p-2 bg-muted/30 rounded-md border border-border/30">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                        <span>Daily Progress</span>
+                        <span>{deficitData.progressivePercentage}%</span>
+                      </div>
+                      <div className="w-full bg-muted rounded-full h-1.5">
+                        <div 
+                          className="bg-accent h-1.5 rounded-full transition-all duration-300" 
+                          style={{ width: `${deficitData.progressivePercentage}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {formatNumber(deficitData.earnedTdee || 0)} / {formatNumber(deficitData.tdee)} calories earned
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Activity Level Selector */}
                   <div className="mb-3">

@@ -9,6 +9,7 @@ import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings"
 import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSettings";
 import { AdminIntermittentFastingSettings } from "@/components/AdminIntermittentFastingSettings";
 import { AdminDailyReconciliationSettings } from "@/components/AdminDailyReconciliationSettings";
+import { AdminProgressiveBurnSettings } from "@/components/AdminProgressiveBurnSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -45,6 +46,10 @@ export default function AdminOperations() {
 
         <section aria-label="Daily reconciliation settings">
           <AdminDailyReconciliationSettings />
+        </section>
+
+        <section aria-label="Progressive daily burn settings">
+          <AdminProgressiveBurnSettings />
         </section>
 
         <section aria-label="Google authentication settings" className="pb-24">

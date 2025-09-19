@@ -26,6 +26,7 @@ import { useOptimizedManualCalorieBurns } from './useOptimizedManualCalorieBurns
 import { useOptimizedWalkingSession } from './useOptimizedWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
+import { useProgressiveBurnSetting } from '@/hooks/useProgressiveBurnSetting';
 import { useCallback } from 'react';
 
 interface DailyDeficitData {
@@ -33,10 +34,13 @@ interface DailyDeficitData {
   totalCaloriesBurned: number;
   bmr: number;
   tdee: number;
+  earnedTdee?: number; // For progressive burn feature
+  progressivePercentage?: number; // For progressive burn feature
   caloriesConsumed: number;
   walkingCalories: number;
   manualCalories: number;
   activityLevel: string;
+  isProgressiveBurnEnabled?: boolean; // For progressive burn feature
 }
 
 interface ManualCalorieBurn {
@@ -59,9 +63,27 @@ export const useDailyDeficitQuery = () => {
   const { todayTotals } = useFoodEntriesQuery();
   const { sessions: walkingSessions } = useOptimizedWalkingSession();
   const { todayOverride } = useDailyActivityOverride();
+  const { isProgressiveBurnEnabled } = useProgressiveBurnSetting();
   
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
+
+  // Calculate earned TDEE based on current time (for progressive burn feature)
+  const calculateEarnedTdee = useCallback((fullTdee: number): { earnedTdee: number; progressivePercentage: number } => {
+    if (!isProgressiveBurnEnabled) {
+      return { earnedTdee: fullTdee, progressivePercentage: 100 };
+    }
+
+    const now = new Date();
+    const hoursIntoDay = now.getHours() + (now.getMinutes() / 60);
+    
+    // Linear distribution: 0% at midnight, 100% at end of day
+    // This creates a smooth progression throughout the day
+    const progressivePercentage = Math.min(100, (hoursIntoDay / 24) * 100);
+    const earnedTdee = Math.round(fullTdee * (progressivePercentage / 100));
+    
+    return { earnedTdee, progressivePercentage };
+  }, [isProgressiveBurnEnabled]);
 
   // Create a profile hash for cache invalidation when profile changes
   const effectiveActivityLevel = todayOverride?.activity_level || profile?.activity_level || 'lightly_active';
@@ -181,7 +203,12 @@ export const useDailyDeficitQuery = () => {
       const walkingCalories = walkingCaloriesQuery.data || 0;
       const manualCalories = manualCaloriesTotal || 0;
       
-      const totalCaloriesBurned = bmrTdee.tdee + walkingCalories + manualCalories;
+      // Calculate earned TDEE for progressive burn feature
+      const { earnedTdee, progressivePercentage } = calculateEarnedTdee(bmrTdee.tdee);
+      
+      // Use earned TDEE instead of full TDEE when progressive burn is enabled
+      const effectiveTdee = isProgressiveBurnEnabled ? earnedTdee : bmrTdee.tdee;
+      const totalCaloriesBurned = effectiveTdee + walkingCalories + manualCalories;
       const todayDeficit = totalCaloriesBurned - caloriesConsumed;
 
       return {
@@ -189,16 +216,19 @@ export const useDailyDeficitQuery = () => {
         totalCaloriesBurned: Math.round(totalCaloriesBurned),
         bmr: bmrTdee.bmr,
         tdee: bmrTdee.tdee,
+        earnedTdee: earnedTdee,
+        progressivePercentage: Math.round(progressivePercentage),
         caloriesConsumed,
         walkingCalories,
         manualCalories,
         activityLevel: effectiveActivityLevel,
+        isProgressiveBurnEnabled,
       };
     },
     {
       enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
                walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
-      staleTime: 1 * 60 * 1000, // PERFORMANCE: 1 minute stale time - deficit changes frequently
+      staleTime: isProgressiveBurnEnabled ? 30 * 60 * 1000 : 1 * 60 * 1000, // 30 minutes for progressive, 1 minute for normal
       gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
     }
   );
@@ -218,10 +248,13 @@ export const useDailyDeficitQuery = () => {
       totalCaloriesBurned: 0,
       bmr: 0,
       tdee: 0,
+      earnedTdee: 0,
+      progressivePercentage: 0,
       caloriesConsumed: 0,
       walkingCalories: 0,
       manualCalories: 0,
       activityLevel: 'lightly_active',
+      isProgressiveBurnEnabled: false,
     },
     
     // Loading states
