@@ -5,11 +5,19 @@ import type { PluginOption } from "vite";
 import { swVersionPlugin } from "./scripts/sw-version-plugin";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode }) => {
+  const isProduction = mode === 'production' || process.env.NODE_ENV === 'production';
+
   const plugins: PluginOption[] = [react(), swVersionPlugin()];
-  
-  // Note: lovable-tagger is skipped due to ESM compatibility issues in this build setup
-  // The component tagging functionality is not essential for core app functionality
+
+  if (mode === 'development') {
+    try {
+      const { componentTagger } = await import('lovable-tagger');
+      plugins.push(componentTagger());
+    } catch (e: any) {
+      console.warn('lovable-tagger not available:', e?.message || 'Unknown error');
+    }
+  }
   
   return {
     base: './', // Use relative paths for Capacitor WebView compatibility
