@@ -1,13 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { 
-  PROTECTED_CORS_HEADERS, 
-  resolveOpenAIApiKey,
-  resolveOpenAIModel,
-  getModelConfig
-} from '../_shared/protected-config.ts';
-import { AIUsageTracker, extractTokenUsage } from '../_shared/ai-usage-tracker.ts';
 
 // Utility function to capitalize food names properly
 const capitalizeFoodName = (foodName: string): string => {
@@ -37,7 +30,10 @@ const capitalizeFoodName = (foodName: string): string => {
     .join(' ');
 };
 
-const corsHeaders = PROTECTED_CORS_HEADERS;
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -48,8 +44,8 @@ serve(async (req) => {
   let message: string | null = null;
 
   try {
-    const requestBody = await req.json();
-    message = requestBody.message;
+    const requestData = await req.json();
+    message = requestData.message;
     
     if (!message) {
       throw new Error('No message provided');
@@ -111,8 +107,28 @@ serve(async (req) => {
       );
     }
 
-    // Get OpenAI API key
-    const openAIApiKey = await resolveOpenAIApiKey(supabase);
+    // Get OpenAI API key from shared settings or environment
+    let openAIApiKey: string;
+    try {
+      const { data: sharedKey } = await supabase
+        .from('shared_settings')
+        .select('setting_value')
+        .eq('setting_key', 'shared_api_key')
+        .maybeSingle();
+      
+      if (sharedKey?.setting_value) {
+        openAIApiKey = sharedKey.setting_value;
+      } else {
+        const envKey = Deno.env.get('OPENAI_API_KEY');
+        if (envKey) {
+          openAIApiKey = envKey;
+        } else {
+          throw new Error('OpenAI API key not available');
+        }
+      }
+    } catch (error) {
+      throw new Error('OpenAI API key not available');
+    }
 
     // No food context - keep it simple
 
@@ -164,14 +180,19 @@ USER INPUT: "${message}"
 
 ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
 
-    // Get OpenAI configuration
-    const modelName = await resolveOpenAIModel(supabase);
-    const modelConfig = getModelConfig(modelName);
+    // Use hardcoded model configuration
+    const modelName = 'gpt-4o-mini';
+    const modelConfig = {
+      model: 'gpt-4o-mini',
+      supportsTemperature: true,
+      tokenParam: 'max_tokens',
+      maxTokens: 4000
+    };
     
     console.log(`🤖 Using model: ${modelName} with config:`, modelConfig);
 
     // OpenAI API call with function calling
-    const requestBody: any = {
+    const openaiRequestBody: any = {
       model: modelConfig.model,
       messages: [
         { role: 'system', content: systemMessage },
@@ -210,10 +231,10 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
 
     // Add model-specific parameters
     if (modelConfig.supportsTemperature) {
-      requestBody.temperature = 0.3;
+      openaiRequestBody.temperature = 0.3;
     }
     
-    requestBody[modelConfig.tokenParam] = Math.min(4000, modelConfig.maxTokens);
+    openaiRequestBody[modelConfig.tokenParam] = Math.min(4000, modelConfig.maxTokens);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -221,7 +242,7 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(openaiRequestBody),
     });
 
     if (!response.ok) {
@@ -232,7 +253,11 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
     console.log('OpenAI Response:', JSON.stringify(result, null, 2));
 
     // Extract token usage and calculate cost
-    const tokenUsage = extractTokenUsage(result);
+    const tokenUsage = {
+      inputTokens: result.usage?.prompt_tokens || 0,
+      outputTokens: result.usage?.completion_tokens || 0,
+      totalTokens: result.usage?.total_tokens || 0
+    };
     const estimatedCost = tokenUsage.totalTokens * 0.000015; // Approximate cost
 
     let completion = result.choices[0].message.content || '';
@@ -377,28 +402,12 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
   } catch (error) {
     console.error('Error in analyze-food-voice function:', error);
     
-    // Try to log the error if we have user context
-    try {
-      if (userId) {
-        const usageTracker = new AIUsageTracker(
-          Deno.env.get('SUPABASE_URL') ?? '',
-          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-        );
-        
-        await usageTracker.logChatCompletion({
-          userId: userId,
-          featureType: 'voice_analysis',
-          modelName: 'unknown',
-          inputTokens: 0,
-          outputTokens: 0,
-          success: false,
-          errorMessage: (error as Error).message,
-          metadata: { message_length: message?.length || 0 }
-        });
-      }
-    } catch (logError) {
-      console.error('Failed to log error:', logError);
-    }
+    // Log error for debugging
+    console.error('Failed to process voice input:', {
+      userId: userId,
+      messageLength: message?.length || 0,
+      error: (error as Error).message
+    });
     
     return new Response(
       JSON.stringify({ 

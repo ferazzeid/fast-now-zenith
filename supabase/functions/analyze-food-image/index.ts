@@ -329,9 +329,14 @@ serve(async (req) => {
       throw new Error('No valid image data provided');
     }
 
-    // Get OpenAI configuration
-    const modelName = await resolveOpenAIModel(supabase);
-    const modelConfig = getModelConfig(modelName);
+    // Use hardcoded model configuration
+    const modelName = 'gpt-4o';
+    const modelConfig = {
+      model: 'gpt-4o',
+      supportsTemperature: true,
+      tokenParam: 'max_tokens',
+      maxTokens: 4000
+    };
     
     console.log(`🤖 Using model: ${modelName} for image analysis`);
 
