@@ -7,10 +7,10 @@ interface ManualInputButtonProps {
 }
 
 export const ManualInputButton = ({ onClick, title = "Manual food entry" }: ManualInputButtonProps) => {
-  const { hasAccess } = useAccess();
+  const { hasPremiumFeatures } = useAccess();
   
-  // Only show for premium users
-  if (!hasAccess) {
+  // Only show for premium users (not free users)
+  if (!hasPremiumFeatures) {
     return null;
   }
 
