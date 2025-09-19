@@ -8,7 +8,7 @@ import { EnhancedHeightSelector } from '@/components/EnhancedHeightSelector';
 import { useProfile } from '@/hooks/useProfile';
 import { useToast } from '@/hooks/use-toast';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
-import { X, ChevronRight } from 'lucide-react';
+import { X } from 'lucide-react';
 
 interface ProfileOnboardingFlowProps {
   onComplete: () => void;
@@ -378,67 +378,42 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
       <div className="grid grid-cols-2 gap-4">
         <button
           onClick={() => openModal('weight')}
-          className="p-4 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left group"
+          className="p-4 bg-muted/30 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">Weight</div>
-              <div className="font-medium">{formatDisplayValue('weight')}</div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </div>
+          <div className="text-sm text-muted-foreground">Weight</div>
+          <div className="font-medium">{formatDisplayValue('weight')}</div>
         </button>
 
         <button
           onClick={() => openModal('height')}
-          className="p-4 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left group"
+          className="p-4 bg-muted/30 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">Height</div>
-              <div className="font-medium">{formatDisplayValue('height')}</div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </div>
+          <div className="text-sm text-muted-foreground">Height</div>
+          <div className="font-medium">{formatDisplayValue('height')}</div>
         </button>
 
         <button
           onClick={() => openModal('age')}
-          className="p-4 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left group"
+          className="p-4 bg-muted/30 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">Age</div>
-              <div className="font-medium">{formatDisplayValue('age')}</div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </div>
+          <div className="text-sm text-muted-foreground">Age</div>
+          <div className="font-medium">{formatDisplayValue('age')}</div>
         </button>
 
         <button
           onClick={() => openModal('sex')}
-          className="p-4 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left group"
+          className="p-4 bg-muted/30 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">Sex</div>
-              <div className="font-medium">{formatDisplayValue('sex')}</div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </div>
+          <div className="text-sm text-muted-foreground">Sex</div>
+          <div className="font-medium">{formatDisplayValue('sex')}</div>
         </button>
 
         <button
           onClick={() => openModal('activityLevel')}
-          className="p-4 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left col-span-2 group"
+          className="p-4 bg-muted/30 border border-subtle rounded-lg hover:bg-muted/50 hover:border-emphasis transition-all duration-200 text-left col-span-2"
         >
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-muted-foreground">Activity Level</div>
-              <div className="font-medium">{formatDisplayValue('activityLevel')}</div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-          </div>
+          <div className="text-sm text-muted-foreground">Activity Level</div>
+          <div className="font-medium">{formatDisplayValue('activityLevel')}</div>
         </button>
       </div>
 
