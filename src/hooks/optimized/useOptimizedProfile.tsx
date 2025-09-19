@@ -114,7 +114,12 @@ export const useOptimizedProfile = () => {
         variant: "destructive",
       });
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Don't show toast for automatic fasting mode updates
+      if (variables && Object.keys(variables).length === 1 && 'fasting_mode' in variables) {
+        return;
+      }
+      
       toast({
         title: "Profile Updated",
         description: "Your profile has been successfully updated.",
