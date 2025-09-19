@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, X, BookOpen, Lock, Crown, Save, Keyboard } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, X, BookOpen, Lock, Crown, Save, Keyboard, Copy } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -616,35 +616,36 @@ const FoodTracking = () => {
 
         {/* Bulk Actions - Show only when there are entries */}
         {todayEntries.length > 0 && (
-          <div className="mb-6 space-y-3">
-            <div className="flex gap-2">
-              <Button
-                onClick={handleMarkAllAsEaten}
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                disabled={isBulkMarking}
-              >
-                <Check className="w-4 h-4 mr-2" />
-                {isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
-              </Button>
+          <div className="mb-6">
+            <div className="flex justify-center gap-4">
               <Button
                 onClick={() => setShowSaveToTemplateDialog(true)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="flex-1"
+                className="w-10 h-10 p-0 rounded-lg hover:bg-muted"
+                title="Save to Template"
               >
-                <Save className="w-4 h-4 mr-2" />
-                Save to Template
+                <Copy className="w-5 h-5" />
               </Button>
               <Button
                 onClick={() => setShowClearAllDialog(true)}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="text-destructive hover:text-destructive"
+                className="w-10 h-10 p-0 rounded-lg hover:bg-muted text-destructive hover:text-destructive"
+                title="Clear All"
                 disabled={isClearingAll}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-5 h-5" />
+              </Button>
+              <Button
+                onClick={handleMarkAllAsEaten}
+                variant="ghost"
+                size="sm"
+                className="w-10 h-10 p-0 rounded-lg hover:bg-muted"
+                title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
+                disabled={isBulkMarking}
+              >
+                <Check className="w-5 h-5" />
               </Button>
             </div>
           </div>
