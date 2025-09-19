@@ -11,7 +11,11 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
-    appendUserAgent: 'FastNowZenith'
+    appendUserAgent: 'FastNowZenith',
+    permissions: [
+      'android.permission.RECORD_AUDIO',
+      'android.permission.MODIFY_AUDIO_SETTINGS'
+    ]
   },
   ios: {
     scheme: 'FastNow Zenith',

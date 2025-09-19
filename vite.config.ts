@@ -42,7 +42,8 @@ export default defineConfig(async ({ mode }) => {
           },
         },
       },
-      sourcemap: true, // Always generate sourcemaps for better error tracing
+      sourcemap: false, // Explicitly disable sourcemaps for smaller build size
+      minify: 'esbuild', // Use esbuild for fast minification
     },
     define: {
       // Ensure environment detection works
