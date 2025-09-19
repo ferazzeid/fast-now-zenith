@@ -241,6 +241,9 @@ export const useFoodEntriesQuery = () => {
         }
       );
 
+      // Invalidate deficit query for immediate update
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
+
       // Show success notification
       toast({
         title: "Foods Added Successfully",
@@ -386,6 +389,8 @@ export const useFoodEntriesQuery = () => {
       );
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      // Invalidate deficit query for immediate update
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
       
       // Show success toast with specific context
       toast({
@@ -497,6 +502,8 @@ export const useFoodEntriesQuery = () => {
       
       // Only invalidate daily totals since that's a derived calculation
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      // Invalidate deficit query for immediate update
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
       
       toast({
         title: "Food entry updated",
@@ -563,6 +570,8 @@ export const useFoodEntriesQuery = () => {
     onSuccess: () => {
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      // Invalidate deficit query for immediate update
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
     },
   });
 
@@ -613,6 +622,8 @@ export const useFoodEntriesQuery = () => {
       
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      // Invalidate deficit query for immediate update
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
     },
     onError: (err, id, context) => {
       // Rollback on error
@@ -673,6 +684,8 @@ export const useFoodEntriesQuery = () => {
       
       // Invalidate daily totals to recalculate
       queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+      // Invalidate deficit query for immediate update
+      queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
     },
     onError: (err, entryIds, context) => {
       // Rollback on error
@@ -705,6 +718,7 @@ export const useFoodEntriesQuery = () => {
     // Invalidate first to clear any stale cache, then refetch
     await queryClient.invalidateQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });
     await queryClient.invalidateQueries({ queryKey: dailyTotalsQueryKey(user?.id || null, today) });
+    await queryClient.invalidateQueries({ queryKey: ['daily-deficit-stable'] });
     
     // Force fresh fetch
     await queryClient.refetchQueries({ queryKey: foodEntriesQueryKey(user?.id || null, today) });

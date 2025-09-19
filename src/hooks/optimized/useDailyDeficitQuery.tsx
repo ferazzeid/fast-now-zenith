@@ -228,7 +228,7 @@ export const useDailyDeficitQuery = () => {
     {
       enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
                walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
-      staleTime: isProgressiveBurnEnabled ? 30 * 60 * 1000 : 1 * 60 * 1000, // 30 minutes for progressive, 1 minute for normal
+      staleTime: 30 * 1000, // 30 seconds for responsive updates
       gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
     }
   );
