@@ -209,33 +209,78 @@ export default function DailyReconciliation() {
             </CardContent>
           </Card>
 
-          {/* Activities (Walking & External) */}
+          {/* Activities */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Footprints className="h-5 w-5" />
-                Activities (Walking & External)
+                Activities
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Walking Time</h4>
-                  <p className="text-3xl font-bold text-primary">{Math.round(walkingContext?.totalWalkingTimeToday || 0)}</p>
-                  <p className="text-sm text-muted-foreground">minutes ({walkingContext?.totalWalkingSessions || 0} sessions)</p>
+              <div className="space-y-4">
+                {/* Walking Sessions */}
+                {walkingContext?.totalWalkingSessions > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm text-muted-foreground">Walking Sessions</h4>
+                    <div className="space-y-1">
+                      {Array.from({ length: walkingContext.totalWalkingSessions || 0 }, (_, i) => {
+                        // Calculate session duration (simplified for demo - could be enhanced with real session data)
+                        const avgDuration = Math.round((walkingContext.totalWalkingTimeToday || 0) / (walkingContext.totalWalkingSessions || 1));
+                        const calories = Math.round(avgDuration * 5); // Rough calculation: 5 cal/min
+                        return (
+                          <div key={i} className="flex justify-between items-center py-1">
+                            <span className="text-sm">Walking Session {i + 1}</span>
+                            <div className="text-right">
+                              <span className="text-sm font-medium">{avgDuration} minutes</span>
+                              <span className="text-xs text-muted-foreground ml-2">~{calories} cal</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual Activities */}
+                {manualBurns.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm text-muted-foreground">External Activities</h4>
+                    <div className="space-y-1">
+                      {manualBurns.map((burn, i) => (
+                        <div key={burn.id} className="flex justify-between items-center py-1">
+                          <span className="text-sm">{burn.activity_name}</span>
+                          <span className="text-sm font-medium">{burn.calories_burned} calories</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Total Summary */}
+                <div className="border-t pt-4 mt-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Total Walking</p>
+                      <p className="font-semibold">{Math.round(walkingContext?.totalWalkingTimeToday || 0)} min</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">External</p>
+                      <p className="font-semibold">{Math.round(manualCaloriesTotal)} cal</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Total Burned</p>
+                      <p className="font-semibold text-green-600">{Math.round(deficitData.totalCaloriesBurned)} cal</p>
+                    </div>
+                  </div>
                 </div>
-                
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">External Activities</h4>
-                  <p className="text-3xl font-bold text-primary">{Math.round(manualCaloriesTotal)}</p>
-                  <p className="text-sm text-muted-foreground">calories ({manualBurns.length} activities)</p>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Calories Burned</h4>
-                  <p className="text-3xl font-bold text-green-600">{Math.round(deficitData.totalCaloriesBurned)}</p>
-                  <p className="text-sm text-muted-foreground">total today</p>
-                </div>
+
+                {/* No Activities Message */}
+                {(!walkingContext?.totalWalkingSessions || walkingContext.totalWalkingSessions === 0) && manualBurns.length === 0 && (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">No activities logged today</p>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -257,12 +302,22 @@ export default function DailyReconciliation() {
                     <span className="text-sm text-muted-foreground">• Extended fast</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-bold text-green-600">{Math.round(fastingContext.currentFastDuration)}</p>
+                    <p className="text-3xl font-bold text-green-600">
+                      {fastingContext.currentFastDuration && !isNaN(fastingContext.currentFastDuration) 
+                        ? Math.round(fastingContext.currentFastDuration) 
+                        : 0}
+                    </p>
                     <p className="text-sm text-muted-foreground">hours completed</p>
                   </div>
                 </div>
               ) : (
-                <p className="text-lg font-medium text-muted-foreground">No fasting currently happening</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                    <span className="text-lg font-medium text-muted-foreground">Not Active</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">No fasting session in progress</p>
+                </div>
               )}
             </CardContent>
           </Card>

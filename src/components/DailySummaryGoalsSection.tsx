@@ -44,7 +44,7 @@ export const DailySummaryGoalsSection = ({
         .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .eq('is_active', true)
         .not('category', 'eq', 'saved_quote') // Exclude quotes
-        .in('category', ['weight_goal', 'personal', 'personal_note']) // Only include actual goals
+        .in('category', ['weight_goal', 'personal']) // Only include actual goals, exclude personal_note
         .order('created_at', { ascending: false });
 
       if (error) throw error;

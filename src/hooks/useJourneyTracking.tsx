@@ -128,7 +128,7 @@ export const useJourneyTracking = () => {
     const diffTime = today.getTime() - startDate.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    return Math.max(0, diffDays + 1); // +1 because day 1 is the start date
+    return Math.max(1, diffDays + 1); // Start from day 1, minimum day 1
   };
 
   // Calculate total fat burned so far
@@ -144,12 +144,45 @@ export const useJourneyTracking = () => {
     return Math.round(totalDeficit / journeyProgress.length);
   };
 
+  // End journey mutation
+  const endJourneyMutation = useMutation({
+    mutationFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      if (!activeJourney) throw new Error('No active journey to end');
+
+      const { error } = await supabase
+        .from('user_journeys')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('id', activeJourney.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Journey Ended",
+        description: "Your journey has been successfully completed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['active-journey'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Ending Journey",
+        description: error instanceof Error ? error.message : "Failed to end journey",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     activeJourney,
     journeyProgress,
     journeyLoading,
     startJourney: startJourneyMutation.mutate,
     isStartingJourney: startJourneyMutation.isPending,
+    endJourney: endJourneyMutation.mutate,
+    isEndingJourney: endJourneyMutation.isPending,
     getCurrentDay,
     getTotalFatBurned,
     getAverageDeficit,
