@@ -1,5 +1,5 @@
 export const BUILD_INFO = { 
-  version: import.meta.env.VITE_APP_VERSION || "114", 
+  version: import.meta.env.VITE_APP_VERSION || "1.1.0", 
   commit: import.meta.env.VITE_COMMIT_SHA || "production-build",
   timestamp: import.meta.env.PROD ? undefined : new Date().toISOString()
 };
