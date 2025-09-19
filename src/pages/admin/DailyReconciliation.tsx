@@ -1,57 +1,34 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useBaseQuery } from "@/hooks/useBaseQuery";
 import { supabase } from "@/integrations/supabase/client";
 import { usePageSEO } from "@/hooks/usePageSEO";
 import { AdminSubnav } from "@/components/AdminSubnav";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
-import { CalendarDays, Users, Utensils, Footprints, Activity, AlertTriangle, CheckCircle, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+import { TrendingUp, Footprints, Activity, Timer, Utensils, Target, Calendar, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ReconciliationTestProtocol } from "@/components/ReconciliationTestProtocol";
 import { Link } from "react-router-dom";
+import { useDailyDeficitQuery } from "@/hooks/optimized/useDailyDeficitQuery";
+import { useGoalCalculations } from "@/hooks/useGoalCalculations";
+import { useFastingContext } from "@/hooks/useFastingContext";
+import { useWalkingContext } from "@/hooks/useWalkingContext";
+import { useFoodContext } from "@/hooks/useFoodContext";
+import { useOptimizedManualCalorieBurns } from "@/hooks/optimized/useOptimizedManualCalorieBurns";
+import { DailySummaryJourneyTimeline } from "@/components/DailySummaryJourneyTimeline";
+import { DailySummaryGoalsSection } from "@/components/DailySummaryGoalsSection";
 
-interface DailyStats {
-  date: string;
-  totalUsers: number;
-  activeUsers: number;
-  foodEntries: number;
-  walkingSessions: number;
-  manualCalorieBurns: number;
-  issues: {
-    overlappingWalkingSessions: number;
-    duplicateFoodEntries: number;
-    missingProfileData: number;
-    invalidCalorieValues: number;
-  };
-}
-
-interface UserActivity {
-  userId: string;
-  displayName: string;
-  foodEntries: number;
-  walkingSessions: number;
-  manualBurns: number;
-  totalCalories: number;
-  issues: string[];
-}
+// Component interfaces are now handled by individual section components
 
 export default function DailyReconciliation() {
   usePageSEO({
-    title: "Daily Reconciliation – Admin Operations",
-    description: "Review and reconcile daily user activities and data.",
+    title: "Daily Summary – Admin Operations",
+    description: "Review the day and track progress.",
     canonicalPath: "/admin/reconciliation",
   });
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
   // Check if reconciliation is enabled - use consistent query key
-  const { data: isReconciliationEnabled, isLoading: isCheckingAccess, refetch: refetchAccess } = useBaseQuery(
+  const { data: isReconciliationEnabled, isLoading: isCheckingAccess } = useBaseQuery(
     ['daily-reconciliation-enabled'], // Match the settings component query key
     async () => {
       const { data, error } = await supabase
@@ -68,104 +45,25 @@ export default function DailyReconciliation() {
       return data?.setting_value === 'true';
     },
     {
-      staleTime: 10 * 1000, // Shorter cache time for faster updates
+      staleTime: 10 * 1000,
       gcTime: 30 * 1000,
     }
   );
 
-  // Fetch daily statistics
-  const { data: dailyStats, isLoading: isLoadingStats, refetch: refetchStats } = useBaseQuery<DailyStats | null>(
-    ['daily-stats', selectedDate],
-    async () => {
-      if (!isReconciliationEnabled) return null;
+  // Load today's data using existing hooks
+  const { deficitData, loading: deficitLoading } = useDailyDeficitQuery();
+  const goalCalculations = useGoalCalculations();
+  const { context: fastingContext, refreshContext: refreshFasting } = useFastingContext();
+  const { context: walkingContext, refreshContext: refreshWalking } = useWalkingContext();
+  const { context: foodContext, refreshContext: refreshFood } = useFoodContext();
+  const { manualBurns, todayTotal: manualCaloriesTotal, loading: manualLoading } = useOptimizedManualCalorieBurns();
 
-      // Get all food entries for the selected date
-      const { data: foodEntries, error: foodError } = await supabase
-        .from('food_entries')
-        .select('id, user_id, calories, name, source_date')
-        .eq('source_date', selectedDate);
-
-      if (foodError) throw foodError;
-
-      // Get all walking sessions for the selected date
-      const { data: walkingSessions, error: walkingError } = await supabase
-        .from('walking_sessions')
-        .select('id, user_id, start_time, end_time, session_state')
-        .gte('start_time', `${selectedDate}T00:00:00`)
-        .lt('start_time', `${selectedDate}T23:59:59`);
-
-      if (walkingError) throw walkingError;
-
-      // Get all manual calorie burns for the selected date
-      const { data: manualBurns, error: manualError } = await supabase
-        .from('manual_calorie_burns')
-        .select('id, user_id, calories_burned, activity_name, created_at')
-        .gte('created_at', `${selectedDate}T00:00:00`)
-        .lt('created_at', `${selectedDate}T23:59:59`);
-
-      if (manualError) throw manualError;
-
-      // Calculate statistics and detect issues
-      const allUserIds = new Set([
-        ...foodEntries.map(e => e.user_id),
-        ...walkingSessions.map(s => s.user_id),
-        ...manualBurns.map(b => b.user_id)
-      ]);
-
-      // Issue detection
-      const issues = {
-        overlappingWalkingSessions: 0,
-        duplicateFoodEntries: 0,
-        missingProfileData: 0,
-        invalidCalorieValues: 0,
-      };
-
-      // Check for overlapping walking sessions per user
-      const userSessions = walkingSessions.reduce((acc, session) => {
-        if (!acc[session.user_id]) acc[session.user_id] = [];
-        acc[session.user_id].push(session);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      Object.values(userSessions).forEach((sessions: any[]) => {
-        for (let i = 0; i < sessions.length - 1; i++) {
-          const current = sessions[i];
-          const next = sessions[i + 1];
-          if (current.end_time && new Date(current.end_time) > new Date(next.start_time)) {
-            issues.overlappingWalkingSessions++;
-          }
-        }
-      });
-
-      // Check for invalid calorie values
-      issues.invalidCalorieValues = foodEntries.filter(entry => 
-        entry.calories < 0 || entry.calories > 10000
-      ).length;
-
-      return {
-        date: selectedDate,
-        totalUsers: allUserIds.size,
-        activeUsers: allUserIds.size, // All users with any activity
-        foodEntries: foodEntries.length,
-        walkingSessions: walkingSessions.length,
-        manualCalorieBurns: manualBurns.length,
-        issues,
-      };
-    },
-    {
-      enabled: !!isReconciliationEnabled && !!selectedDate,
-      staleTime: 30 * 1000,
-      gcTime: 5 * 60 * 1000,
-    }
-  );
-
-  const handleAnalyzeDay = async () => {
-    setIsAnalyzing(true);
-    try {
-      await refetchStats();
-    } finally {
-      setIsAnalyzing(false);
-    }
+  const refreshAllData = async () => {
+    await Promise.all([
+      refreshFasting(),
+      refreshWalking(),
+      refreshFood()
+    ]);
   };
 
   if (isCheckingAccess) {
@@ -190,7 +88,7 @@ export default function DailyReconciliation() {
           <Alert>
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
-              <span>Daily Reconciliation is currently disabled. Enable it in the Operations settings to access this feature.</span>
+              <span>Daily Summary is currently disabled. Enable it in the Operations settings to access this feature.</span>
               <Button asChild variant="outline" size="sm" className="ml-4">
                 <Link to="/admin/operations" className="flex items-center gap-2">
                   Go to Operations
@@ -203,178 +101,234 @@ export default function DailyReconciliation() {
     );
   }
 
-  const totalIssues = dailyStats ? Object.values(dailyStats.issues).reduce((sum, count) => sum + count, 0) : 0;
+  const isLoading = deficitLoading || manualLoading;
+
+  if (isLoading) {
+    return (
+      <AdminHealthCheck>
+        <main className="container mx-auto p-6">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading today's data...</p>
+          </div>
+        </main>
+      </AdminHealthCheck>
+    );
+  }
 
   return (
     <AdminHealthCheck>
-      <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]">
+      <main className="container mx-auto p-6 space-y-6 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]">
         <AdminSubnav />
 
         <div className="space-y-6">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold">Daily Reconciliation</h1>
-              <p className="text-muted-foreground">Review and validate daily user activities</p>
+              <h1 className="text-3xl font-bold">Daily Summary</h1>
+              <p className="text-muted-foreground">Review the day</p>
             </div>
-            <Badge variant="secondary" className="text-xs">
-              EXPERIMENTAL
-            </Badge>
           </div>
 
-          {/* Date Selection */}
+          {/* Today's Deficit & Projections */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="h-5 w-5" />
-                Select Date
+                <TrendingUp className="h-5 w-5" />
+                Today's Deficit & Projections
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reconciliation-date">Date to Reconcile</Label>
-                  <Input
-                    id="reconciliation-date"
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    max={new Date().toISOString().split('T')[0]}
-                    className="w-48"
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Today's Deficit</p>
+                  <p className="text-2xl font-bold text-primary">{deficitData.todayDeficit} cal</p>
                 </div>
-                <Button 
-                  onClick={handleAnalyzeDay}
-                  disabled={isAnalyzing || isLoadingStats}
-                  className="self-end"
-                >
-                  {isAnalyzing && <Clock className="h-4 w-4 animate-spin mr-2" />}
-                  Analyze Day
-                </Button>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Calories Burned</p>
+                  <p className="text-lg font-semibold">{deficitData.totalCaloriesBurned} cal</p>
+                  <p className="text-xs text-muted-foreground">
+                    TDEE: {deficitData.tdee} + Walking: {deficitData.walkingCalories} + Manual: {deficitData.manualCalories}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Calories Consumed</p>
+                  <p className="text-lg font-semibold">{deficitData.caloriesConsumed} cal</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">30-Day Projection</p>
+                  <p className="text-lg font-semibold text-green-600">{goalCalculations.thirtyDayProjection}g fat loss</p>
+                  {goalCalculations.weeksToGoal && (
+                    <p className="text-xs text-muted-foreground">
+                      Goal in {goalCalculations.weeksToGoal} weeks
+                    </p>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Statistics Overview */}
-          {dailyStats && (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="p-4">
+          {/* Activities (Walking & External) */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Footprints className="h-5 w-5" />
+                Activities (Walking & External)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {walkingContext?.isCurrentlyWalking && (
+                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-blue-600" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Active Users</p>
-                        <p className="text-2xl font-bold">{dailyStats.activeUsers}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Utensils className="h-4 w-4 text-green-600" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Food Entries</p>
-                        <p className="text-2xl font-bold">{dailyStats.foodEntries}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Footprints className="h-4 w-4 text-purple-600" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Walking Sessions</p>
-                        <p className="text-2xl font-bold">{dailyStats.walkingSessions}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-orange-600" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Manual Burns</p>
-                        <p className="text-2xl font-bold">{dailyStats.manualCalorieBurns}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Issues Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    {totalIssues > 0 ? (
-                      <AlertTriangle className="h-5 w-5 text-amber-600" />
-                    ) : (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                    )}
-                    Data Quality Issues
-                  </CardTitle>
-                  <CardDescription>
-                    {totalIssues === 0 
-                      ? "No data quality issues detected for this date."
-                      : `${totalIssues} issue${totalIssues === 1 ? '' : 's'} detected that may require attention.`
-                    }
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Overlapping Walking Sessions</span>
-                        <Badge variant={dailyStats.issues.overlappingWalkingSessions > 0 ? "destructive" : "secondary"}>
-                          {dailyStats.issues.overlappingWalkingSessions}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Invalid Calorie Values</span>
-                        <Badge variant={dailyStats.issues.invalidCalorieValues > 0 ? "destructive" : "secondary"}>
-                          {dailyStats.issues.invalidCalorieValues}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Duplicate Food Entries</span>
-                        <Badge variant={dailyStats.issues.duplicateFoodEntries > 0 ? "destructive" : "secondary"}>
-                          {dailyStats.issues.duplicateFoodEntries}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Missing Profile Data</span>
-                        <Badge variant={dailyStats.issues.missingProfileData > 0 ? "destructive" : "secondary"}>
-                          {dailyStats.issues.missingProfileData}
-                        </Badge>
-                      </div>
+                      <Activity className="h-4 w-4 text-green-600" />
+                      <span className="font-medium">Currently Walking</span>
+                      <span className="text-green-600">
+                        {walkingContext.currentWalkingDuration.toFixed(1)} min 
+                        {walkingContext.isPaused ? ' (Paused)' : ''}
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Today's Walking</h4>
+                    <div className="space-y-1">
+                      <p className="text-sm">Total Time: <span className="font-medium">{walkingContext?.totalWalkingTimeToday?.toFixed(1) || 0} min</span></p>
+                      <p className="text-sm">Sessions: <span className="font-medium">{walkingContext?.totalWalkingSessions || 0}</span></p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h4 className="font-medium">External Activities</h4>
+                    <div className="space-y-1">
+                      <p className="text-sm">Activities: <span className="font-medium">{manualBurns.length}</span></p>
+                      <p className="text-sm">Calories: <span className="font-medium">{manualCaloriesTotal} cal</span></p>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Testing Protocol */}
-              <ReconciliationTestProtocol />
-            </>
-          )}
+                {manualBurns.length > 0 && (
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">Today's External Activities</h5>
+                    <div className="space-y-1">
+                      {manualBurns.slice(0, 3).map((burn) => (
+                        <div key={burn.id} className="text-xs text-muted-foreground">
+                          {burn.activity_name}: {burn.calories_burned} cal at {new Date(burn.created_at).toLocaleTimeString()}
+                        </div>
+                      ))}
+                      {manualBurns.length > 3 && (
+                        <p className="text-xs text-muted-foreground">+{manualBurns.length - 3} more activities</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-          {!dailyStats && selectedDate && !isLoadingStats && !isAnalyzing && (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <CalendarDays className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Select a Date to Begin</h3>
-                <p className="text-muted-foreground">
-                  Click "Analyze Day" to review activities and detect potential issues.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+          {/* Fasting Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Timer className="h-5 w-5" />
+                Fasting Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {fastingContext?.isCurrentlyFasting ? (
+                <div className="space-y-2">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="font-medium text-blue-800 dark:text-blue-200">
+                      Currently Fasting: {fastingContext.currentFastDuration.toFixed(1)} hours
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-300">
+                      Goal: {fastingContext.fastingGoal} hours • 
+                      {fastingContext.timeUntilGoal > 0 
+                        ? ` ${fastingContext.timeUntilGoal.toFixed(1)} hours remaining`
+                        : ' Goal achieved!'
+                      }
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">Not currently fasting</p>
+              )}
+              
+              {fastingContext && (
+                <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="text-muted-foreground">Total Completed Fasts</p>
+                    <p className="font-medium">{fastingContext.totalFastsCompleted}</p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground">Average Duration</p>
+                    <p className="font-medium">{fastingContext.averageFastDuration.toFixed(1)} hours</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Food Overview */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Utensils className="h-5 w-5" />
+                Food Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Calories Today</p>
+                    <p className="text-xl font-semibold">
+                      {foodContext?.todayCalories || 0} / {foodContext?.calorieGoal || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {foodContext?.caloriesRemaining || 0} remaining
+                    </p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Carbs Today</p>
+                    <p className="text-xl font-semibold">
+                      {foodContext?.todayCarbs || 0}g / {foodContext?.carbGoal || 0}g
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {foodContext?.carbsRemaining || 0}g remaining
+                    </p>
+                  </div>
+                </div>
+
+                {foodContext?.recentEntries && foodContext.recentEntries.length > 0 && (
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium">Recent Meals</h5>
+                    <div className="space-y-1">
+                      {foodContext.recentEntries.map((entry, index) => (
+                        <div key={index} className="text-xs text-muted-foreground">
+                          {entry.name}: {entry.calories} cal, {entry.carbs}g carbs at {entry.time}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Goals & Progress */}
+          <DailySummaryGoalsSection 
+            goalCalculations={goalCalculations}
+            refreshData={refreshAllData}
+          />
+
+          {/* Journey Timeline */}
+          <DailySummaryJourneyTimeline 
+            currentDeficit={deficitData.todayDeficit}
+            goalCalculations={goalCalculations}
+          />
         </div>
       </main>
     </AdminHealthCheck>
