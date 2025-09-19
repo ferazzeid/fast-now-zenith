@@ -618,36 +618,41 @@ const FoodTracking = () => {
         {/* Bulk Actions - Show only when there are entries */}
         {todayEntries.length > 0 && (
           <div className="mb-6">
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-between items-center px-4">
+              {/* Left side - Save to Template */}
               <Button
                 onClick={() => setShowSaveToTemplateDialog(true)}
                 variant="ghost"
                 size="sm"
-                className="w-10 h-10 p-0 rounded-lg hover:bg-muted text-foreground"
+                className="w-10 h-10 p-0 rounded-lg hover:bg-muted"
                 title="Save to Template"
               >
-                <Copy className="w-5 h-5" />
+                <Save className="w-5 h-5" />
               </Button>
-              <Button
-                onClick={() => setShowClearAllDialog(true)}
-                variant="ghost"
-                size="sm"
-                className="w-10 h-10 p-0 rounded-lg hover:bg-muted text-red-500 hover:text-red-600"
-                title="Clear All"
-                disabled={isClearingAll}
-              >
-                <Trash2 className="w-5 h-5" />
-              </Button>
-              <Button
-                onClick={handleMarkAllAsEaten}
-                variant="ghost"
-                size="sm"
-                className="w-10 h-10 p-0 rounded-lg hover:bg-muted text-green-500 hover:text-green-600"
-                title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
-                disabled={isBulkMarking}
-              >
-                <Check className="w-5 h-5" />
-              </Button>
+              
+              {/* Right side - Delete and Check */}
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setShowClearAllDialog(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="w-10 h-10 p-0 rounded-lg hover:bg-muted"
+                  title="Clear All"
+                  disabled={isClearingAll}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+                <Button
+                  onClick={handleMarkAllAsEaten}
+                  variant="ghost"
+                  size="sm"
+                  className="w-10 h-10 p-0 rounded-lg hover:bg-muted"
+                  title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
+                  disabled={isBulkMarking}
+                >
+                  <Check className="w-5 h-5" />
+                </Button>
+              </div>
             </div>
           </div>
         )}
