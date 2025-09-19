@@ -318,7 +318,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
 
                   {/* Dark overlay for text readability */}
                   <div 
-                    className="absolute inset-0 bg-black/40 transition-all duration-500 ease-in-out"
+                    className="absolute inset-0 bg-background/95 transition-all duration-500 ease-in-out"
                     style={{ opacity: showContent ? 1 : 0 }}
                   />
 
@@ -332,12 +332,12 @@ export const ImprovedUnifiedMotivatorRotation = ({
                       }}
                     >
                       {current.type === 'motivator' ? (
-                        <p className="text-lg font-bold leading-tight text-white uppercase tracking-wide drop-shadow-lg">
+                        <p className="text-lg font-bold leading-tight text-foreground uppercase tracking-wide drop-shadow-lg">
                           {current.title}
                         </p>
                       ) : current.type === 'note' ? (
                         <p 
-                          className={`font-medium leading-snug text-white drop-shadow-lg ${
+                          className={`font-medium leading-snug text-foreground drop-shadow-lg ${
                             (current.content?.length || 0) > 100 ? 'text-base' :
                             (current.content?.length || 0) > 60 ? 'text-lg' : 'text-xl'
                           }`}
@@ -350,7 +350,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
                       ) : (
                         <div className="text-center">
                           <p 
-                            className={`font-medium leading-snug text-white drop-shadow-lg ${
+                            className={`font-medium leading-snug text-foreground drop-shadow-lg ${
                               current.title.length > 150 ? 'text-sm' : 
                               current.title.length > 100 ? 'text-base' : 'text-lg'
                             }`}
@@ -358,7 +358,7 @@ export const ImprovedUnifiedMotivatorRotation = ({
                             "{current.title}"
                           </p>
                           {current.author && current.author !== 'Unknown Author' && current.author.trim() !== '' && (
-                            <p className="text-sm text-white/90 mt-3 font-medium drop-shadow-lg">
+                            <p className="text-sm text-muted-foreground mt-3 font-medium drop-shadow-lg">
                               — {current.author}
                             </p>
                           )}

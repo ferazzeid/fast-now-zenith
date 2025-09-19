@@ -22,7 +22,7 @@ export const WeightGoalVisual: React.FC<WeightGoalVisualProps> = ({
 
   return (
     <div className={cn(
-      "flex items-center justify-center bg-accent text-white font-bold transition-all duration-300 rounded-t-xl",
+      "flex items-center justify-center bg-background text-foreground font-bold transition-all duration-300 rounded-lg border",
       sizeClasses[size],
       className
     )}>
@@ -30,7 +30,7 @@ export const WeightGoalVisual: React.FC<WeightGoalVisualProps> = ({
         <span className="tabular-nums">
           {weight}
         </span>
-        <span className="text-[0.4em] font-semibold">
+        <span className="text-[0.4em] font-semibold uppercase">
           {unit}
         </span>
       </div>

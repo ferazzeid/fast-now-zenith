@@ -62,17 +62,17 @@ export const ResponsivePageHeader = ({
             {title}
           </h1>
            {/* Right side navigation - positioned relative for dropdown */}
-           <div className="flex items-center gap-1 sm:gap-2 relative justify-end">
-            {onHistoryClick && (
-              <HistoryButton onClick={onHistoryClick} title={historyTitle} />
-            )}
-            {onMyFoodsClick && (
-              <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
-            )}
-            {onFoodAdded && (
-              <InlineTextFoodInput onFoodAdded={onFoodAdded} />
-            )}
-          </div>
+           <div className="flex items-center gap-1 sm:gap-2 relative">
+             {onHistoryClick && (
+               <HistoryButton onClick={onHistoryClick} title={historyTitle} />
+             )}
+             {onMyFoodsClick && (
+               <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
+             )}
+             {onFoodAdded && (
+               <InlineTextFoodInput onFoodAdded={onFoodAdded} />
+             )}
+           </div>
         </div>
         <p className="text-sm text-muted-foreground text-left">{subtitle}</p>
       </div>

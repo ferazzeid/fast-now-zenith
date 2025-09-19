@@ -226,7 +226,7 @@ export const UnifiedMotivatorRotation = ({
       {showText && current && (
         <>
           {/* Dark overlay for text readability - always present during text phase */}
-          <div className="absolute inset-0 bg-black/40 transition-opacity duration-1000" style={{ zIndex: 9 }} />
+          <div className="absolute inset-0 bg-background/95 transition-opacity duration-1000" style={{ zIndex: 9 }} />
           
           <div
             className="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-1000"
@@ -235,14 +235,14 @@ export const UnifiedMotivatorRotation = ({
             <div className="text-center max-w-3xl w-full animate-fade-in">
               {current.type === 'motivator' ? (
                 /* Goals: Direct text on overlay */
-                <p className="text-sm font-bold leading-tight text-white uppercase tracking-wide">
+                <p className="text-sm font-bold leading-tight text-foreground uppercase tracking-wide">
                   {current.title}
                 </p>
               ) : (
                 /* Quotes: Direct text on overlay */
                 <div className="text-center">
                   <p 
-                    className={`font-medium leading-snug text-white ${
+                    className={`font-medium leading-snug text-foreground ${
                       current.title.length > 150 ? 'text-xs' : 
                       current.title.length > 100 ? 'text-sm' : 'text-sm'
                     }`}
@@ -252,7 +252,7 @@ export const UnifiedMotivatorRotation = ({
                   {(current as any).author && 
                    (current as any).author !== 'Unknown Author' && 
                    (current as any).author.trim() !== '' && (
-                    <p className="text-xs text-white/80 mt-2 font-medium">
+                    <p className="text-xs text-muted-foreground mt-2 font-medium">
                       — {(current as any).author}
                     </p>
                   )}
