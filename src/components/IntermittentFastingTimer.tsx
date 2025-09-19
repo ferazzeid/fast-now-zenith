@@ -14,6 +14,8 @@ import { IFScheduleSelector } from './IFScheduleSelector';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRotation';
 import { InlineTimer } from './InlineTimer';
+import { FastingModeToggle } from './FastingModeToggle';
+import { useTimerNavigation } from '@/hooks/useTimerNavigation';
 
 interface IntermittentFastingTimerProps {
   isActive?: boolean;
@@ -33,13 +35,15 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   showSlideshow = false
 }) => {
   const [motivatorMode, setMotivatorMode] = useState<'timer-focused' | 'motivator-focused'>('timer-focused');
+  const { currentMode, switchMode } = useTimerNavigation();
   const {
     todaySession,
     startIFSession,
     startFastingWindow,
     endFastingWindow,
     endEatingWindow,
-    loading
+    loading,
+    ifEnabled
   } = useIntermittentFasting();
 
   // Debug: Log session state
@@ -282,6 +286,26 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             </div>
           </div>
         </Card>
+
+        {/* Fasting Mode Toggle - E/I Toggle positioned at same level */}
+        {ifEnabled && (
+          <Card className="p-3">
+            <div className="flex items-center justify-between">
+              <div className="text-sm">
+                <div className="text-xs text-muted-foreground">
+                  Fasting mode
+                </div>
+              </div>
+              <div className="flex items-center gap-1">
+                <FastingModeToggle
+                  currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
+                  onModeChange={switchMode}
+                  showIF={true}
+                />
+              </div>
+            </div>
+          </Card>
+        )}
 
 
         {/* Schedule Selection Modal */}

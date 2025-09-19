@@ -24,29 +24,27 @@ export const FastingModeToggle: React.FC<FastingModeToggleProps> = ({
   };
 
   return (
-    <div className="absolute top-0 right-0 z-20 pointer-events-auto">
-      <ToggleGroup 
-        type="single" 
-        value={currentMode} 
-        onValueChange={handleModeChange}
-        className="bg-muted rounded-md p-0.5 shadow-sm"
-        size="sm"
+    <ToggleGroup 
+      type="single" 
+      value={currentMode} 
+      onValueChange={handleModeChange}
+      className="bg-muted rounded-md p-0.5 shadow-sm"
+      size="sm"
+    >
+      <ToggleGroupItem 
+        value="fasting" 
+        className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm w-[32px] cursor-pointer flex items-center justify-center"
+        aria-label="Extended Fasting Mode"
       >
-        <ToggleGroupItem 
-          value="fasting" 
-          className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm w-[32px] cursor-pointer flex items-center justify-center"
-          aria-label="Extended Fasting Mode"
-        >
-          E
-        </ToggleGroupItem>
-        <ToggleGroupItem 
-          value="if" 
-          className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm w-[32px] cursor-pointer flex items-center justify-center"
-          aria-label="Intermittent Fasting Mode"
-        >
-          I
-        </ToggleGroupItem>
-      </ToggleGroup>
-    </div>
+        E
+      </ToggleGroupItem>
+      <ToggleGroupItem 
+        value="if" 
+        className="h-7 px-3 text-xs font-medium data-[state=on]:bg-background data-[state=on]:shadow-sm w-[32px] cursor-pointer flex items-center justify-center"
+        aria-label="Intermittent Fasting Mode"
+      >
+        I
+      </ToggleGroupItem>
+    </ToggleGroup>
   );
 };
