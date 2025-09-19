@@ -75,7 +75,7 @@ export const DailySummaryGoalsSection = ({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Target className="h-5 w-5" />
-          Goals & Progress
+          Goals
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -99,10 +99,10 @@ export const DailySummaryGoalsSection = ({
                   <p className="text-muted-foreground">Goal</p>
                   <p className="font-semibold">{goalCalculations.goalWeight} kg</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">To Lose</p>
-                  <p className="font-semibold">{goalCalculations.weightToLose?.toFixed(1)} kg</p>
-                </div>
+                  <div>
+                    <p className="text-muted-foreground">To Lose</p>
+                    <p className="font-semibold">{Math.round(goalCalculations.weightToLose || 0)} kg</p>
+                  </div>
                 {goalCalculations.weeksToGoal && (
                   <div>
                     <p className="text-muted-foreground">ETA</p>
@@ -121,7 +121,7 @@ export const DailySummaryGoalsSection = ({
                       className="text-xs"
                     >
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      Still Relevant
+                      Still relevant
                     </Button>
                     <Button 
                       size="sm" 
