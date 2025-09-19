@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useToast } from '@/hooks/use-toast';
 import { useBaseQuery } from '@/hooks/useBaseQuery';
+import { useOptimizedProfile } from './useOptimizedProfile';
+import { useStepEstimation } from '@/utils/stepEstimation';
 
 export interface WalkingSession {
   id: string;
@@ -32,6 +34,8 @@ export const useOptimizedWalkingSession = () => {
   const user = useAuthStore(state => state.user);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { profile, calculateWalkingCalories } = useOptimizedProfile();
+  const { estimateStepsForSession } = useStepEstimation();
 
   // Get all walking sessions using useBaseQuery
   const walkingSessionsQuery = useBaseQuery(
@@ -322,8 +326,47 @@ export const useOptimizedWalkingSession = () => {
       
       const activeDurationSeconds = Math.max(0, totalElapsed - totalPauseTime);
       const durationMinutes = Math.floor(activeDurationSeconds / 60);
+      
+      // Get session speed (default to profile speed if not set)
+      const sessionSpeed = activeSession.speed_mph || profile?.default_walking_speed || 3.2;
+      
+      // Calculate metrics if we have valid duration
+      let caloriesBurned = 0;
+      let distance = 0;
+      let estimatedSteps = 0;
+      
+      if (durationMinutes > 0) {
+        // Calculate distance in miles
+        distance = (sessionSpeed * durationMinutes) / 60;
+        
+        // Calculate calories using profile function
+        if (profile && calculateWalkingCalories) {
+          caloriesBurned = Math.round(calculateWalkingCalories(durationMinutes, sessionSpeed));
+        } else {
+          // Fallback MET calculation
+          const met = sessionSpeed <= 3 ? 3.2 : sessionSpeed <= 4 ? 3.8 : sessionSpeed <= 5 ? 4.5 : 5.0;
+          const weightKg = profile?.weight || 70; // Default weight if not available
+          caloriesBurned = Math.round((met * weightKg * durationMinutes) / 60);
+        }
+        
+        // Calculate estimated steps
+        if (estimateStepsForSession) {
+          estimatedSteps = estimateStepsForSession(durationMinutes, sessionSpeed);
+        } else {
+          // Fallback step calculation
+          const distanceMeters = distance * 1609.34;
+          const strideLength = 0.78; // meters, average stride
+          estimatedSteps = Math.round(distanceMeters / strideLength);
+        }
+      }
 
-      console.log('🚶 Session duration calc:', { totalElapsed, totalPauseTime, activeDurationSeconds, durationMinutes });
+      console.log('🚶 Session metrics calculated:', { 
+        durationMinutes, 
+        sessionSpeed, 
+        distance, 
+        caloriesBurned, 
+        estimatedSteps 
+      });
 
       const { data, error } = await supabase
         .from('walking_sessions')
@@ -331,6 +374,11 @@ export const useOptimizedWalkingSession = () => {
           end_time: now.toISOString(),
           session_state: 'completed',
           status: 'completed',
+          duration_minutes: durationMinutes,
+          distance: distance,
+          calories_burned: caloriesBurned,
+          estimated_steps: estimatedSteps,
+          speed_mph: sessionSpeed,
         })
         .eq('id', activeSession.id)
         .eq('user_id', user.id)
@@ -342,7 +390,7 @@ export const useOptimizedWalkingSession = () => {
         throw error;
       }
 
-      console.log('🚶 Successfully ended session:', data);
+      console.log('🚶 Successfully ended session with metrics:', data);
       return data;
     },
     onMutate: async () => {
