@@ -82,7 +82,7 @@ export function AdminCostCalculator() {
           Cost Calculator
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Model Selection */}
         <div className="space-y-2">
           <Label>AI Model</Label>
@@ -106,94 +106,84 @@ export function AdminCostCalculator() {
         </div>
 
         {/* Usage Parameters */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="requests">Requests/Day</Label>
+        <div className="grid grid-cols-3 gap-3">
+          <div className="space-y-1">
+            <Label className="text-xs">Requests/Day</Label>
             <Input
-              id="requests"
               type="number"
               value={requestsPerDay}
               onChange={(e) => setRequestsPerDay(e.target.value)}
               min="0"
+              className="h-8 text-xs"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="input-tokens">Avg Input Tokens</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">Input</Label>
             <Input
-              id="input-tokens"
               type="number"
               value={avgInputTokens}
               onChange={(e) => setAvgInputTokens(e.target.value)}
               min="0"
+              className="h-8 text-xs"
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="output-tokens">Avg Output Tokens</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">Output</Label>
             <Input
-              id="output-tokens"
               type="number"
               value={avgOutputTokens}
               onChange={(e) => setAvgOutputTokens(e.target.value)}
               min="0"
+              className="h-8 text-xs"
             />
           </div>
         </div>
 
         {/* Model Details */}
         {selectedModelData && (
-          <div className="p-4 bg-muted/50 rounded-lg">
-            <div className="text-sm font-medium mb-2">Pricing Details</div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Input: </span>
-                <span>${(selectedModelData.inputCost / 100).toFixed(4)}/1K tokens</span>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Output: </span>
-                <span>${(selectedModelData.outputCost / 100).toFixed(4)}/1K tokens</span>
-              </div>
+          <div className="p-2 bg-muted/50 rounded text-xs">
+            <div className="font-medium mb-1">Pricing Details</div>
+            <div className="grid grid-cols-2 gap-2">
+              <span>Input: ${(selectedModelData.inputCost / 100).toFixed(4)}/1K tokens</span>
+              <span>Output: ${(selectedModelData.outputCost / 100).toFixed(4)}/1K tokens</span>
             </div>
           </div>
         )}
 
         {/* Cost Breakdown */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <DollarSign className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Per Request</span>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="p-2 bg-primary/5 rounded border border-primary/20">
+            <div className="flex items-center gap-1 mb-1">
+              <DollarSign className="w-3 h-3 text-primary" />
+              <span className="text-xs font-medium">Per Request</span>
             </div>
-            <div className="text-xl font-bold text-primary">
+            <div className="text-sm font-bold text-primary">
               ${calculations.requestCost.toFixed(6)}
             </div>
           </div>
 
-          <div className="p-4 bg-green-500/5 rounded-lg border border-green-500/20">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium">Daily Cost</span>
+          <div className="p-2 bg-green-500/5 rounded border border-green-500/20">
+            <div className="flex items-center gap-1 mb-1">
+              <TrendingUp className="w-3 h-3 text-green-600" />
+              <span className="text-xs font-medium">Daily Cost</span>
             </div>
-            <div className="text-xl font-bold text-green-600">
+            <div className="text-sm font-bold text-green-600">
               ${calculations.dailyCost.toFixed(2)}
             </div>
           </div>
 
-          <div className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium">Monthly Cost</span>
-            </div>
-            <div className="text-xl font-bold text-blue-600">
+          <div className="p-2 bg-blue-500/5 rounded border border-blue-500/20">
+            <div className="text-xs font-medium mb-1">Monthly Cost</div>
+            <div className="text-sm font-bold text-blue-600">
               ${calculations.monthlyCost.toFixed(2)}
             </div>
           </div>
 
-          <div className="p-4 bg-purple-500/5 rounded-lg border border-purple-500/20">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium">Yearly Cost</span>
-            </div>
-            <div className="text-xl font-bold text-purple-600">
+          <div className="p-2 bg-purple-500/5 rounded border border-purple-500/20">
+            <div className="text-xs font-medium mb-1">Yearly Cost</div>
+            <div className="text-sm font-bold text-purple-600">
               ${calculations.yearlyCart.toFixed(2)}
             </div>
           </div>

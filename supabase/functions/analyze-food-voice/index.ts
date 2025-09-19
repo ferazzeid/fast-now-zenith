@@ -7,6 +7,7 @@ import {
   resolveOpenAIModel,
   getModelConfig
 } from '../_shared/protected-config.ts';
+import { AIUsageTracker, extractTokenUsage } from '../_shared/ai-usage-tracker.ts';
 
 // Utility function to capitalize food names properly
 const capitalizeFoodName = (foodName: string): string => {
@@ -352,7 +353,10 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
       JSON.stringify({
         completion: completion,
         functionCall: functionCall,
-        originalTranscription: message
+        originalTranscription: message,
+        model_used: modelConfig.model,
+        tokens_used: tokenUsage,
+        estimated_cost: estimatedCost
       }),
       { 
         headers: { 
@@ -364,6 +368,29 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
 
   } catch (error) {
     console.error('Error in analyze-food-voice function:', error);
+    
+    // Try to log the error if we have user context
+    try {
+      if (userId) {
+        const usageTracker = new AIUsageTracker(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+        
+        await usageTracker.logChatCompletion({
+          userId: userId,
+          featureType: 'voice_analysis',
+          modelName: 'unknown',
+          inputTokens: 0,
+          outputTokens: 0,
+          success: false,
+          errorMessage: (error as Error).message,
+          metadata: { message_length: message?.length || 0 }
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
     
     return new Response(
       JSON.stringify({ 
