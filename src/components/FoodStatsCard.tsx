@@ -164,10 +164,10 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
           <div className="text-center">
             <ClickableTooltip content={`Daily goal: ${dailyAllowance} cal`}>
               <div className="cursor-pointer">
-                <div className={`text-sm font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCalories, dailyAllowance)}`}>
+                <div className={`text-lg font-semibold font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCalories, dailyAllowance)}`}>
                   {Math.round(animatedTotalCalories)}
                 </div>
-                <div className="text-xs text-muted-foreground mt-1 font-medium">
+                <div className="text-sm text-muted-foreground mt-1 font-semibold">
                   Calories planned
                 </div>
               </div>
@@ -178,11 +178,11 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
           <div className="text-center">
             <ClickableTooltip content={`Daily goal: ${Math.round(dailyCarbGoal)}g`}>
               <div className="cursor-pointer">
-                <div className={`text-sm font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCarbs, dailyCarbGoal)} flex items-baseline justify-center gap-1`}>
+                <div className={`text-lg font-semibold font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCarbs, dailyCarbGoal)} flex items-baseline justify-center gap-1`}>
                   <span>{Math.round(animatedTotalCarbs)}</span>
-                  <span className="text-xs font-mono">g</span>
+                  <span className="text-sm font-mono">g</span>
                 </div>
-                <div className="text-xs text-muted-foreground mt-1 font-medium">
+                <div className="text-sm text-muted-foreground mt-1 font-semibold">
                   Carbs planned
                 </div>
               </div>

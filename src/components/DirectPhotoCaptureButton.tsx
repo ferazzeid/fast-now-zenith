@@ -139,7 +139,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               const suggestion: FoodSuggestion = {
                 foods: data.functionCall.arguments.foods || [],
                 destination: data.functionCall.arguments.destination || 'today',
-                originalTranscription: data.originalTranscription || 'Photo analysis'
+                originalTranscription: data.originalTranscription || '' // Don't set placeholder text
               };
               
               // Initialize selection with all items selected

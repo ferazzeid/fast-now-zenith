@@ -222,8 +222,10 @@ export const FoodSelectionModal = ({
           </Card>
         )}
 
-        {/* Original Voice Input Display */}
-        {foodSuggestion.originalTranscription && (
+        {/* Original Voice Input Display - Only show for voice transcriptions, not photo analysis */}
+        {foodSuggestion.originalTranscription && 
+         foodSuggestion.originalTranscription !== 'Photo analysis' && 
+         !foodSuggestion.originalTranscription.toLowerCase().includes('photo') && (
           <Card className="p-3 bg-muted/30 border border-muted-foreground/20">
             <div className="text-xs text-muted-foreground mb-1">What I heard:</div>
             <div className="text-sm font-medium">
