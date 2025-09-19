@@ -61,7 +61,7 @@ const IntermittentFasting: React.FC = () => {
   return (
     <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
-        {/* Header with Toggle - matching Timer.tsx exactly */}
+        {/* Header with Toggle */}
         <div className="relative">
           <ResponsivePageHeader 
             title="Fasting Tracker"
@@ -71,13 +71,17 @@ const IntermittentFasting: React.FC = () => {
             showAuthorTooltip={true}
             authorTooltipContentKey="timer-if"
             authorTooltipContent="Track your intermittent fasting sessions with precise timing and progress visualization."
+            className="pr-24" // Extra padding to make room for toggle
           />
           
-          <FastingModeToggle
-            currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
-            onModeChange={switchMode}
-            showIF={ifEnabled}
-          />
+          {/* Toggle positioned to not conflict with history button */}
+          <div className="absolute top-4 right-16 z-20">
+            <FastingModeToggle
+              currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
+              onModeChange={switchMode}
+              showIF={ifEnabled !== false} // Show by default unless explicitly disabled
+            />
+          </div>
         </div>
         
         <div className="space-y-6 mt-6">
