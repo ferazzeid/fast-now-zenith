@@ -367,7 +367,7 @@ const Motivators = () => {
             <div className="col-span-1 flex flex-col items-center gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
+                   <Button 
                      onClick={() => {
                        if (activeTab === 'notes') {
                          // Show note creation modal
@@ -380,7 +380,7 @@ const Motivators = () => {
                       }
                     }}
                     variant="action-primary"
-                    size="action-tall"
+                    size="start-button"
                     className="w-full flex items-center justify-center"
                     aria-label={
                       activeTab === 'notes' ? 'Create note' : 
@@ -413,7 +413,7 @@ const Motivators = () => {
                      <Button
                        onClick={() => navigate('/motivator-ideas')}
                        variant="action-secondary"
-                       size="action-tall"
+                       size="start-button"
                        className="w-full flex items-center justify-center"
                        aria-label="Browse motivator ideas"
                      >

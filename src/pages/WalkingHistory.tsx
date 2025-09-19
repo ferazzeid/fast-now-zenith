@@ -231,7 +231,7 @@ const WalkingHistory = () => {
           </Button>
         </div>
 
-        {!sessions || sessions.length === 0 ? (
+        {(!sessions || sessions.length === 0) && !activeSession ? (
           <div className="text-center py-12">
             <Footprints className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Walking Sessions Yet</h3>
