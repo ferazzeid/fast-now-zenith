@@ -2,6 +2,7 @@ import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { HistoryButton } from '@/components/HistoryButton';
 import { MyFoodsButton } from '@/components/MyFoodsButton';
 import { InlineTextFoodInput } from '@/components/InlineTextFoodInput';
+import { ManualInputButton } from '@/components/ManualInputButton';
 import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
 import { ReactNode } from 'react';
 
@@ -14,6 +15,8 @@ interface ResponsivePageHeaderProps {
   onMyFoodsClick?: () => void;
   myFoodsTitle?: string;
   onFoodAdded?: (foods: any[]) => void;
+  onManualInput?: () => void;
+  manualInputTitle?: string;
   showAuthorTooltip?: boolean;
   authorTooltipContent?: string;
   authorTooltipContentKey?: string;
@@ -30,6 +33,8 @@ export const ResponsivePageHeader = ({
   onMyFoodsClick,
   myFoodsTitle = "Browse food library",
   onFoodAdded,
+  onManualInput,
+  manualInputTitle = "Manual food entry",
   showAuthorTooltip = false,
   authorTooltipContent,
   authorTooltipContentKey,
@@ -64,17 +69,20 @@ export const ResponsivePageHeader = ({
             {title}
           </h1>
            {/* Right side navigation - positioned relative for dropdown - aligned right */}
-           <div className="flex items-center gap-1 sm:gap-2 relative ml-auto">
-             {onFoodAdded && (
-               <InlineTextFoodInput onFoodAdded={onFoodAdded} />
-             )}
-             {onMyFoodsClick && (
-               <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
-             )}
-             {onHistoryClick && (
-               <HistoryButton onClick={onHistoryClick} title={historyTitle} />
-             )}
-           </div>
+            <div className="flex items-center gap-1 sm:gap-2 relative ml-auto">
+              {onFoodAdded && (
+                <InlineTextFoodInput onFoodAdded={onFoodAdded} />
+              )}
+              {onManualInput && (
+                <ManualInputButton onClick={onManualInput} title={manualInputTitle} />
+              )}
+              {onMyFoodsClick && (
+                <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
+              )}
+              {onHistoryClick && (
+                <HistoryButton onClick={onHistoryClick} title={historyTitle} />
+              )}
+            </div>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground text-left">{subtitle}</p>

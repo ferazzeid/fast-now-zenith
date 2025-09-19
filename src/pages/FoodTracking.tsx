@@ -164,6 +164,11 @@ const FoodTracking = () => {
     }
   };
 
+  const handleManualInput = () => {
+    // Temporary placeholder - will be implemented in Step 2
+    console.log('Manual input button clicked');
+  };
+
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
     try {
@@ -482,6 +487,8 @@ const FoodTracking = () => {
                 onMyFoodsClick={() => navigate('/my-foods')}
                 myFoodsTitle="Browse food library"
                 onFoodAdded={handleTextInput}
+                onManualInput={handleManualInput}
+                manualInputTitle="Manual food entry"
                 showAuthorTooltip={false}
               />
 
