@@ -571,9 +571,9 @@ const FoodTracking = () => {
                        <span className="text-xs font-medium">Manual Entry</span>
                      </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    Manual food entry
-                  </TooltipContent>
+                   <TooltipContent side="bottom">
+                     Type food details manually
+                   </TooltipContent>
                 </Tooltip>
               </div>
 
