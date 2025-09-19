@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, Image, Edit, Trash2, BookOpen } from 'lucide-react';
+import { ChevronDown, Image, Edit, Trash2, BookOpen, Eye, EyeOff } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
 import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,19 +21,24 @@ interface ExpandableMotivatorCardProps {
     category?: string;
     linkUrl?: string;
     slug?: string;
+    show_in_animations?: boolean;
   };
   onEdit: () => void;
   onDelete: () => void;
+  onToggleAnimation?: (id: string, showInAnimations: boolean) => Promise<void>;
 }
 
 export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({ 
   motivator, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onToggleAnimation
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(motivator.imageUrl || '');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [localShowInAnimations, setLocalShowInAnimations] = useState(motivator.show_in_animations ?? true);
+  const [isToggling, setIsToggling] = useState(false);
   
   const [showContentModal, setShowContentModal] = useState(false);
   const [selectedContent, setSelectedContent] = useState<{
@@ -50,7 +55,8 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
     setCurrentImageUrl(motivator.imageUrl || '');
-  }, [motivator.imageUrl]);
+    setLocalShowInAnimations(motivator.show_in_animations ?? true);
+  }, [motivator.imageUrl, motivator.show_in_animations]);
 
   const handleReadMore = async () => {
     try {
@@ -222,8 +228,55 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
                 </p>
               )}
 
-              {/* Edit and Delete buttons below content */}
+              {/* Eye icon, Edit and Delete buttons below content */}
               <div className="flex gap-2 justify-end pt-2 border-t border-subtle">
+                {onToggleAnimation && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (isToggling) return;
+                          
+                          const newValue = !localShowInAnimations;
+                          setIsToggling(true);
+                          setLocalShowInAnimations(newValue);
+                          
+                          try {
+                            await onToggleAnimation(motivator.id, newValue);
+                            toast({
+                              description: `Goal ${newValue ? 'will show' : 'hidden from'} in timer animations`,
+                            });
+                          } catch (error) {
+                            setLocalShowInAnimations(!newValue);
+                            toast({
+                              description: "Failed to update animation setting",
+                              variant: "destructive",
+                            });
+                          } finally {
+                            setIsToggling(false);
+                          }
+                        }}
+                        disabled={isToggling}
+                        className="flex items-center gap-2"
+                      >
+                        {isToggling ? (
+                          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                        ) : localShowInAnimations ? (
+                          <Eye className="w-4 h-4" />
+                        ) : (
+                          <EyeOff className="w-4 h-4" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{localShowInAnimations ? 'Hide from timer animations' : 'Show in timer animations'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button

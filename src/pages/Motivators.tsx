@@ -11,6 +11,7 @@ import { useMotivators } from '@/hooks/useMotivators';
 import { useAdminGoalManagement } from '@/hooks/useAdminGoalManagement';
 import { useStaticSystemMotivators } from '@/hooks/useStaticSystemMotivators';
 import { MotivatorFormModal } from '@/components/MotivatorFormModal';
+import { checkAnimationLimit, getAnimationLimitMessage } from '@/utils/animationLimits';
 import { QuoteSelectionModal } from '@/components/QuoteSelectionModal';
 import { Quote } from '@/hooks/useQuoteSettings';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
@@ -70,7 +71,7 @@ const Motivators = () => {
         content: quote.text,
         category: 'saved_quote',
         author: quote.author,
-        show_in_animations: false // Default to hidden from timer animations
+        show_in_animations: false // Default to hidden from timer animations for saved quotes
       });
     } catch (error) {
       console.error('Error creating quote motivator:', error);
@@ -457,6 +458,9 @@ const Motivators = () => {
                     motivator={motivator}
                     onEdit={() => handleEditMotivator(motivator)}
                     onDelete={() => handleDeleteMotivator(motivator.id)}
+                    onToggleAnimation={async (id: string, showInAnimations: boolean) => {
+                      await updateMotivator(id, { show_in_animations: showInAnimations });
+                    }}
                   />
                      ))}
                     
@@ -505,13 +509,26 @@ const Motivators = () => {
                           key={motivator.id}
                           motivator={motivator}
                           onDelete={() => handleDeleteMotivator(motivator.id)}
-                          onToggleAnimation={async (id: string, showInAnimations: boolean) => {
-                            try {
-                              await updateMotivator(id, { show_in_animations: showInAnimations });
-                            } catch (error) {
-                              console.error('Error toggling animation setting:', error);
-                            }
-                          }}
+                           onToggleAnimation={async (id: string, showInAnimations: boolean) => {
+                             try {
+                               // Check limit when trying to enable animation
+                               if (showInAnimations) {
+                                 const { canEnable, limit } = checkAnimationLimit(motivators, 'saved_quote', id);
+                                 if (!canEnable) {
+                                   toast({
+                                     title: "Animation Limit Reached",
+                                     description: getAnimationLimitMessage('saved_quote', limit),
+                                     variant: "destructive"
+                                   });
+                                   return;
+                                 }
+                               }
+                               
+                               await updateMotivator(id, { show_in_animations: showInAnimations });
+                             } catch (error) {
+                               console.error('Error toggling animation setting:', error);
+                             }
+                           }}
                         />
                     ))}
                   </div>
@@ -552,16 +569,29 @@ const Motivators = () => {
                           content: note.content,
                           show_in_animations: note.show_in_animations
                         }}
-                        onUpdate={async (id, updates) => {
-                          await updateMotivator(id, updates);
-                          // Don't call refreshMotivators() here - let optimistic updates handle UI
-                          // Only show toast for non-animation updates to avoid double toasts
-                          if (!updates.hasOwnProperty('show_in_animations')) {
-                            toast({
-                              description: "Note updated successfully",
-                            });
-                          }
-                        }}
+                         onUpdate={async (id, updates) => {
+                           // Check animation limit for notes if enabling animations
+                           if (updates.show_in_animations === true) {
+                             const { canEnable, limit } = checkAnimationLimit(motivators, 'personal_note', id);
+                             if (!canEnable) {
+                               toast({
+                                 title: "Animation Limit Reached",
+                                 description: getAnimationLimitMessage('personal_note', limit),
+                                 variant: "destructive"
+                               });
+                               return;
+                             }
+                           }
+                           
+                           await updateMotivator(id, updates);
+                           // Don't call refreshMotivators() here - let optimistic updates handle UI
+                           // Only show toast for non-animation updates to avoid double toasts
+                           if (!updates.hasOwnProperty('show_in_animations')) {
+                             toast({
+                               description: "Note updated successfully",
+                             });
+                           }
+                         }}
                         onDelete={handleDeleteMotivator}
                       />
                     ))}
