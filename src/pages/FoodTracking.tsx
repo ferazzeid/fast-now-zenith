@@ -560,32 +560,40 @@ const FoodTracking = () => {
               <div className="flex flex-col items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                     <Button
-                       onClick={handleManualInput}
-                       variant="outline"
-                       className="w-full h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-solid"
-                     >
-                       <div className="flex items-center gap-1">
-                         <Keyboard className="w-4 h-4" />
-                       </div>
-                       <span className="text-xs font-medium">Manual Entry</span>
-                     </Button>
+                    <div className="w-full">
+                      <Button
+                        onClick={handleManualInput}
+                        variant="action-secondary"
+                        size="start-button"
+                        className="w-full flex items-center justify-center transition-colors"
+                      >
+                        <div className="flex items-center space-x-1">
+                          <Plus className="w-6 h-6" />
+                          <Keyboard className="w-12 h-12" />
+                        </div>
+                      </Button>
+                    </div>
                   </TooltipTrigger>
-                   <TooltipContent side="bottom">
-                     Type food details manually
-                   </TooltipContent>
+                  <TooltipContent side="bottom">
+                    Type food details manually
+                  </TooltipContent>
                 </Tooltip>
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <Button
-                  onClick={() => setShowPremiumModal(true)}
-                  variant="outline"
-                  className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-pointer hover:opacity-70"
-                >
-                  <Lock className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">Premium Features</span>
-                </Button>
+                <div className="w-full">
+                  <Button
+                    onClick={() => setShowPremiumModal(true)}
+                    variant="action-secondary"
+                    size="start-button"
+                    className="w-full flex items-center justify-center transition-colors opacity-50 cursor-pointer hover:opacity-70"
+                  >
+                    <div className="flex items-center space-x-1">
+                      <Plus className="w-6 h-6" />
+                      <Lock className="w-12 h-12" />
+                    </div>
+                  </Button>
+                </div>
               </div>
             </>
           )}
