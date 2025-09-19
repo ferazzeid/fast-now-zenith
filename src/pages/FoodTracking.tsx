@@ -617,9 +617,9 @@ const FoodTracking = () => {
 
         {/* Bulk Actions - Show only when there are entries */}
         {todayEntries.length > 0 && (
-          <div className="mb-4 mt-2">
-            <div className="flex justify-between items-center px-2">
-              {/* Left side - Save to Template */}
+          <div className="mb-4 mt-1">
+            <div className="flex justify-between items-center px-1">
+              {/* Left side - Save to Template - pushed to edge */}
               <Button
                 onClick={() => setShowSaveToTemplateDialog(true)}
                 variant="ghost"
@@ -644,9 +644,9 @@ const FoodTracking = () => {
                 </Button>
                 <Button
                   size="sm"
-                  variant="default"
+                  variant="ghost"
                   onClick={handleMarkAllAsEaten}
-                  className="h-5 w-5 p-1 rounded bg-accent hover:bg-muted/30 text-white hover:text-accent"
+                  className="h-5 w-5 p-1 rounded border border-muted-foreground hover:bg-muted/30 text-muted-foreground hover:text-foreground"
                   title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
                   disabled={isBulkMarking}
                 >
