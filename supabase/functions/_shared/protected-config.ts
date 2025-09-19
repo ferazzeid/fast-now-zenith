@@ -16,12 +16,30 @@ export const PROTECTED_CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 } as const;
 
-// 🔑 OPENAI API CONFIGURATION - STABLE SETTINGS (COST OPTIMIZED)
+// 🔑 OPENAI API CONFIGURATION - DYNAMIC MODEL SUPPORT
 export const PROTECTED_OPENAI_CONFIG = {
-  CHAT_MODEL: 'gpt-4o-mini', // Changed from gpt-4.1-2025-04-14 for 90% cost savings
+  DEFAULT_CHAT_MODEL: 'gpt-4o-mini', // Fallback if no model configured
   BURST_LIMIT: 5,
   BURST_WINDOW_MS: 10_000,
 } as const;
+
+// 🧠 MODEL PARAMETER MAPPING
+interface ModelConfig {
+  supportsTemperature: boolean;
+  tokenParam: 'max_tokens' | 'max_completion_tokens';
+  maxTokens: number;
+}
+
+const MODEL_CONFIGS: Record<string, ModelConfig> = {
+  'gpt-5-2025-08-07': { supportsTemperature: false, tokenParam: 'max_completion_tokens', maxTokens: 16384 },
+  'gpt-5-mini-2025-08-07': { supportsTemperature: false, tokenParam: 'max_completion_tokens', maxTokens: 16384 },
+  'gpt-5-nano-2025-08-07': { supportsTemperature: false, tokenParam: 'max_completion_tokens', maxTokens: 8192 },
+  'o3-2025-04-16': { supportsTemperature: false, tokenParam: 'max_completion_tokens', maxTokens: 16384 },
+  'o4-mini-2025-04-16': { supportsTemperature: false, tokenParam: 'max_completion_tokens', maxTokens: 8192 },
+  'gpt-4.1-2025-04-14': { supportsTemperature: false, tokenParam: 'max_completion_tokens', maxTokens: 16384 },
+  'gpt-4o-mini': { supportsTemperature: true, tokenParam: 'max_tokens', maxTokens: 16384 },
+  'gpt-4o': { supportsTemperature: true, tokenParam: 'max_tokens', maxTokens: 4096 }
+};
 
 // 🚨 VALIDATION GUARDS
 export function validateCorsHeaders(headers: Record<string, string>): boolean {
@@ -31,9 +49,39 @@ export function validateCorsHeaders(headers: Record<string, string>): boolean {
 
 export function validateOpenAIConfig(config: Record<string, unknown>): boolean {
   return (
-    config.model === PROTECTED_OPENAI_CONFIG.CHAT_MODEL &&
+    typeof config.model === 'string' &&
+    MODEL_CONFIGS[config.model as string] !== undefined &&
     config.burstLimit === PROTECTED_OPENAI_CONFIG.BURST_LIMIT
   );
+}
+
+// 🤖 DYNAMIC MODEL RESOLUTION
+export async function resolveOpenAIModel(supabase: any): Promise<string> {
+  console.log('🤖 Resolving AI model...');
+  
+  try {
+    const { data } = await supabase
+      .from('shared_settings')
+      .select('setting_value')
+      .eq('setting_key', 'ai_model_name')
+      .maybeSingle();
+    
+    if (data?.setting_value && MODEL_CONFIGS[data.setting_value]) {
+      console.log(`✅ Using configured model: ${data.setting_value}`);
+      return data.setting_value;
+    }
+  } catch (error) {
+    console.error('❌ Failed to fetch model from database:', error);
+  }
+  
+  console.log(`⚠️  Using default model: ${PROTECTED_OPENAI_CONFIG.DEFAULT_CHAT_MODEL}`);
+  return PROTECTED_OPENAI_CONFIG.DEFAULT_CHAT_MODEL;
+}
+
+// 🧠 MODEL PARAMETER HELPER
+export function getModelConfig(modelName: string): ModelConfig & { model: string } {
+  const config = MODEL_CONFIGS[modelName] || MODEL_CONFIGS[PROTECTED_OPENAI_CONFIG.DEFAULT_CHAT_MODEL];
+  return { ...config, model: modelName };
 }
 
 // 🔧 API KEY RESOLUTION - SIMPLIFIED (SINGLE SOURCE)

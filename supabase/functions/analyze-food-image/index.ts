@@ -329,25 +329,25 @@ serve(async (req) => {
       throw new Error('No valid image data provided');
     }
 
+    // Get OpenAI configuration
+    const modelName = await resolveOpenAIModel(supabase);
+    const modelConfig = getModelConfig(modelName);
+    
+    console.log(`🤖 Using model: ${modelName} for image analysis`);
+
     // Call OpenAI Vision API with function calling (unified with voice)
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: await buildImageAnalysisPrompt(dataClient)
-          },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
+    const requestBody: any = {
+      model: modelConfig.model,
+      messages: [
+        {
+          role: 'system',
+          content: await buildImageAnalysisPrompt(dataClient)
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
                 text: 'Analyze this food image and identify ALL food items visible. Create entries for each separate food item you can identify.'
               },
               imageContent
@@ -423,11 +423,24 @@ serve(async (req) => {
             }
           }
         ],
-        tool_choice: "auto",
-        max_completion_tokens: 1000,
-        temperature: 0.1
-      }),
-    });
+        tool_choice: "auto"
+      };
+
+      // Add model-specific parameters
+      if (modelConfig.supportsTemperature) {
+        requestBody.temperature = 0.1;
+      }
+      
+      requestBody[modelConfig.tokenParam] = Math.min(1000, modelConfig.maxTokens);
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      });
 
     if (!response.ok) {
       const errorText = await response.text();

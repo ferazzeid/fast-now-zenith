@@ -3,8 +3,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { 
   PROTECTED_CORS_HEADERS, 
-  PROTECTED_OPENAI_CONFIG, 
-  resolveOpenAIApiKey
+  resolveOpenAIApiKey,
+  resolveOpenAIModel,
+  getModelConfig
 } from '../_shared/protected-config.ts';
 
 // Utility function to capitalize food names properly
@@ -158,88 +159,64 @@ USER INPUT: "${message}"
 
 ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
 
+    // Get OpenAI configuration
+    const modelName = await resolveOpenAIModel(supabase);
+    const modelConfig = getModelConfig(modelName);
+    
+    console.log(`🤖 Using model: ${modelName} with config:`, modelConfig);
+
     // OpenAI API call with function calling
+    const requestBody: any = {
+      model: modelConfig.model,
+      messages: [
+        { role: 'system', content: systemMessage },
+        { role: 'user', content: message }
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "add_multiple_foods",
+            description: "Add multiple food items with their nutritional information",
+            parameters: {
+              type: "object",
+              properties: {
+                foods: {
+                  type: "array",
+                  items: {
+                    type: "object", 
+                    properties: {
+                      name: { type: "string" },
+                      calories: { type: "number" },
+                      carbs: { type: "number" },
+                      serving_size: { type: "number" }
+                    },
+                    required: ["name", "calories", "carbs", "serving_size"]
+                  }
+                }
+              },
+              required: ["foods"]
+            }
+          }
+        }
+      ],
+      tool_choice: "auto"
+    };
+
+    // Add model-specific parameters
+    if (modelConfig.supportsTemperature) {
+      requestBody.temperature = 0.3;
+    }
+    
+    requestBody[modelConfig.tokenParam] = Math.min(4000, modelConfig.maxTokens);
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: PROTECTED_OPENAI_CONFIG.CHAT_MODEL,
-        messages: [
-          { role: 'system', content: systemMessage },
-          { role: 'user', content: message }
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "add_multiple_foods",
-              description: "Add food entries to the user's food log with accurate nutrition estimation",
-              parameters: {
-                type: "object",
-                properties: {
-                  foods: {
-                    type: "array",
-                    items: {
-                      type: "object",
-                      properties: {
-                        name: {
-                          type: "string",
-                          description: "Name of the food item"
-                        },
-                        serving_size: {
-                          type: "number",
-                          description: "Serving size in grams"
-                        },
-                        calories: {
-                          type: "number",
-                          description: "Total calories for this serving"
-                        },
-                        carbs: {
-                          type: "number",
-                          description: "Total carbs in grams for this serving"
-                        },
-                        calories_per_100g: {
-                          type: "number",
-                          description: "Calories per 100g (for automatic recalculation)"
-                        },
-                        carbs_per_100g: {
-                          type: "number",
-                          description: "Carbs per 100g (for automatic recalculation)"
-                        },
-                        protein_per_100g: {
-                          type: "number",
-                          description: "Protein per 100g (optional, for completeness)"
-                        },
-                        fat_per_100g: {
-                          type: "number",
-                          description: "Fat per 100g (optional, for completeness)"
-                        },
-                        needsManualInput: {
-                          type: "boolean",
-                          description: "Set to true for unrecognized foods that need manual nutrition input"
-                        }
-                      },
-                      required: ["name", "serving_size", "calories", "carbs", "calories_per_100g", "carbs_per_100g"]
-                    }
-                  },
-                  destination: {
-                    type: "string",
-                    enum: ["today", "template"],
-                    description: "Where to add the foods - 'today' for today's entries or 'template' for daily template"
-                  }
-                },
-                required: ["foods", "destination"]
-              }
-            }
-          }
-        ],
-        tool_choice: "auto",
-        max_completion_tokens: 1000,
-        temperature: 0.3
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {

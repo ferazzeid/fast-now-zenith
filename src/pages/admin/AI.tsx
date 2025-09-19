@@ -6,6 +6,7 @@ import { UserRequestLimits } from "@/components/UserRequestLimits";
 import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminCurrentModels } from "@/components/AdminCurrentModels";
+import { AdminModelSelector } from "@/components/AdminModelSelector";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +105,10 @@ export default function AdminAI() {
 
         <section aria-label="OpenAI API configuration">
           <SharedKeySettings />
+        </section>
+
+        <section aria-label="AI model selection">
+          <AdminModelSelector />
         </section>
 
         <section aria-label="Current OpenAI models">
