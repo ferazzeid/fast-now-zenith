@@ -23,7 +23,8 @@ export const IFScheduleSelector = ({
 }: IFScheduleSelectorProps) => {
   const [selectedPreset, setSelectedPreset] = useState<typeof IF_PRESETS[0] | null>(null);
   const [customFastingHours, setCustomFastingHours] = useState([16]);
-  const [isCustom, setIsCustom] = useState(false);
+  const [hasCustomSelection, setHasCustomSelection] = useState(false);
+  const [sliderTouched, setSliderTouched] = useState(false);
   const [startInPast, setStartInPast] = useState(false);
   const [hoursAgo, setHoursAgo] = useState(6);
 
@@ -31,13 +32,15 @@ export const IFScheduleSelector = ({
 
   const handlePresetSelect = (preset: typeof IF_PRESETS[0]) => {
     setSelectedPreset(preset);
-    setIsCustom(false);
+    setHasCustomSelection(false);
+    setSliderTouched(false);
   };
 
   const handleCustomChange = (hours: number[]) => {
     setCustomFastingHours(hours);
     setSelectedPreset(null);
-    setIsCustom(true);
+    setHasCustomSelection(true);
+    setSliderTouched(true);
   };
 
   const handleConfirm = () => {
@@ -47,17 +50,17 @@ export const IFScheduleSelector = ({
       
     if (selectedPreset) {
       onSelect(selectedPreset.fastingHours, selectedPreset.eatingHours, customStartTime);
-    } else if (isCustom) {
+    } else if (hasCustomSelection && sliderTouched) {
       onSelect(customFastingHours[0], customEatingHours, customStartTime);
     }
   };
 
-  const canConfirm = selectedPreset || isCustom;
+  const canConfirm = selectedPreset || (hasCustomSelection && sliderTouched);
 
   const getSelectedDisplay = () => {
     if (selectedPreset) {
       return selectedPreset.name;
-    } else if (isCustom) {
+    } else if (hasCustomSelection && sliderTouched) {
       return `${customFastingHours[0]}:${customEatingHours}`;
     }
     return 'Select Schedule';
@@ -76,10 +79,10 @@ export const IFScheduleSelector = ({
                 key={preset.name}
                 onClick={() => handlePresetSelect(preset)}
                 className={cn(
-                  "text-center p-2 bg-muted rounded border border-border transition-all duration-200",
+                  "text-center p-2 rounded border transition-all duration-200",
                   selectedPreset?.name === preset.name
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "hover:border-muted-foreground/50 hover:bg-muted/80"
+                    ? "border-accent bg-accent/20 text-accent-foreground font-medium"
+                    : "border-border bg-muted hover:border-muted-foreground/50 hover:bg-muted/80"
                 )}
               >
                 <div className="font-bold text-lg">{preset.name}</div>
@@ -91,7 +94,12 @@ export const IFScheduleSelector = ({
         {/* Custom Schedule - Always Visible */}
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-muted-foreground">Custom Schedule</h3>
-          <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-border">
+          <div className={cn(
+            "space-y-3 p-3 rounded-lg border transition-all duration-200",
+            hasCustomSelection && sliderTouched
+              ? "border-accent bg-accent/10"
+              : "border-border bg-muted/30"
+          )}>
             <div className="space-y-2">
               <Label className="text-sm font-medium">
                 Fasting Window: {customFastingHours[0]} hours
@@ -102,7 +110,10 @@ export const IFScheduleSelector = ({
                 min={12}
                 max={23}
                 step={1}
-                className="w-full"
+                className={cn(
+                  "w-full",
+                  hasCustomSelection && sliderTouched && "[&_[data-orientation=horizontal]]:bg-accent/20"
+                )}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>12h</span>
@@ -110,22 +121,25 @@ export const IFScheduleSelector = ({
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Clock className="w-3 h-3" />
-                  <span className="font-medium text-xs">Fast</span>
+            {/* Only show values when slider has been touched */}
+            {sliderTouched && (
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="text-center p-2 bg-background rounded border border-border">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <Clock className="w-3 h-3" />
+                    <span className="font-medium text-xs">Fast</span>
+                  </div>
+                  <div className="text-lg font-bold">{customFastingHours[0]}h</div>
                 </div>
-                <div className="text-lg font-bold">{customFastingHours[0]}h</div>
-              </div>
-              <div className="text-center p-2 bg-background rounded border border-border">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Utensils className="w-3 h-3" />
-                  <span className="font-medium text-xs">Eat</span>
+                <div className="text-center p-2 bg-background rounded border border-border">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <Utensils className="w-3 h-3" />
+                    <span className="font-medium text-xs">Eat</span>
+                  </div>
+                  <div className="text-lg font-bold">{customEatingHours}h</div>
                 </div>
-                <div className="text-lg font-bold">{customEatingHours}h</div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -194,7 +208,10 @@ export const IFScheduleSelector = ({
             disabled={!canConfirm}
             variant="action-primary"
             size="start-button"
-            className="w-full text-lg py-4"
+            className={cn(
+              "w-full text-lg py-4 transition-all duration-200",
+              !canConfirm && "opacity-50 cursor-not-allowed"
+            )}
           >
             {startInPast ? `Start Past Fast` : `Start Fast`}
           </Button>

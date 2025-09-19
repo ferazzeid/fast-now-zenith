@@ -201,7 +201,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
               Fasting Window
             </div>
             
-            <div className="w-full h-px bg-border/30 my-3"></div>
+            <div className="w-full h-px bg-border my-3"></div>
             
             <div 
               className="text-2xl font-mono font-medium text-muted-foreground/70 mb-1 tracking-wide"
@@ -247,7 +247,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         <Card className="p-3">
           <div className="flex items-center justify-between">
             <div className="text-sm">
-              <div className="font-medium text-xs text-muted-foreground mb-1">Cycle Mode</div>
               <div className="text-xs text-muted-foreground">
                 {autoRestart ? 'Auto-cycle enabled' : 'Manual restart'}
               </div>
@@ -417,7 +416,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
           
           {/* Gentle Dividing Line */}
-          <div className="w-full h-px bg-border/30 my-3"></div>
+          <div className="w-full h-px bg-border my-3"></div>
           
           {/* Bottom Display - Eating window status/timer */}
           <div>
