@@ -109,58 +109,31 @@ export const AdminToastSettings = () => {
         <CardTitle className="flex items-center gap-2">
           <MessageSquare className="h-5 w-5" />
           Toast Message Settings
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-sm">
-              <p>
-                Control how long notification messages are displayed to users.
-                Shorter durations prevent messages from cluttering the interface.
-              </p>
-            </TooltipContent>
-          </Tooltip>
         </CardTitle>
-        <CardDescription>
-          Configure the display duration for toast notification messages.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="toast-duration" className="text-sm font-medium">
+        <div className="flex items-center gap-3">
+          <Label htmlFor="toast-duration" className="text-sm font-medium w-32">
             Toast Duration (seconds)
           </Label>
-          <div className="flex items-center gap-3">
-            <Input
-              id="toast-duration"
-              type="number"
-              min="1"
-              max="30"
-              value={tempDuration}
-              onChange={(e) => setTempDuration(e.target.value)}
-              className="w-24"
-              disabled={isSaving}
-            />
-            <Button 
-              onClick={handleSave}
-              disabled={isSaving || tempDuration === currentDuration?.toString()}
-              size="sm"
-            >
-              {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Save
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Current setting: {currentDuration} second{currentDuration === 1 ? '' : 's'} 
-            (Range: 1-30 seconds)
-          </p>
-        </div>
-
-        <div className="bg-muted/50 p-3 rounded-lg border border-border/50">
-          <p className="text-sm text-muted-foreground">
-            <strong>Note:</strong> Shorter durations (3-5 seconds) are recommended to prevent 
-            messages from staying visible too long and cluttering the interface.
-          </p>
+          <Input
+            id="toast-duration"
+            type="number"
+            min="1"
+            max="30"
+            value={tempDuration}
+            onChange={(e) => setTempDuration(e.target.value)}
+            className="w-24"
+            disabled={isSaving}
+          />
+          <Button 
+            onClick={handleSave}
+            disabled={isSaving || tempDuration === currentDuration?.toString()}
+            size="sm"
+          >
+            {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Save
+          </Button>
         </div>
       </CardContent>
     </Card>

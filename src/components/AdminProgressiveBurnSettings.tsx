@@ -99,68 +99,19 @@ export const AdminProgressiveBurnSettings = () => {
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
           Progressive Daily Burn
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-            </TooltipTrigger>
-            <TooltipContent className="max-w-sm">
-              <p>
-                When enabled, TDEE calories are distributed throughout the day based on time,
-                creating a growing deficit instead of a shrinking one. This provides better 
-                psychological feedback and more realistic energy expenditure representation.
-              </p>
-            </TooltipContent>
-          </Tooltip>
         </CardTitle>
-        <CardDescription>
-          Distribute daily calorie burn progressively throughout the day instead of showing the full amount from midnight.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Label htmlFor="progressive-burn-toggle" className="text-sm font-medium">
-              Enable Progressive Daily Burn
-            </Label>
-            <p className="text-xs text-muted-foreground">
-              {isEnabled 
-                ? "TDEE is distributed throughout the day (experimental feature)"
-                : "TDEE is shown as full daily amount from midnight (current behavior)"
-              }
-            </p>
-          </div>
+          <Label htmlFor="progressive-burn-toggle" className="text-sm font-medium">
+            Enable Progressive Daily Burn
+          </Label>
           <Switch
             id="progressive-burn-toggle"
             checked={isEnabled || false}
             onCheckedChange={handleToggle}
             disabled={isSaving}
           />
-        </div>
-
-        {isEnabled && (
-          <div className="bg-muted/50 p-4 rounded-lg border border-border/50">
-            <div className="flex items-start gap-2">
-              <Clock className="h-4 w-4 text-primary mt-0.5" />
-              <div className="space-y-2">
-                <p className="text-sm font-medium">How Progressive Burn Works:</p>
-                <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• At 6 AM: 25% of TDEE is "earned"</li>
-                  <li>• At 12 PM: 50% of TDEE is "earned"</li>
-                  <li>• At 6 PM: 75% of TDEE is "earned"</li>
-                  <li>• At midnight: 100% of TDEE is "earned"</li>
-                </ul>
-                <p className="text-xs text-muted-foreground mt-2">
-                  This creates a growing deficit throughout the day instead of a shrinking one,
-                  providing better psychological feedback for users.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="text-xs text-muted-foreground">
-          <strong>Note:</strong> This is an experimental feature. Monitor user engagement 
-          and feedback before potentially making it available to users as a preference.
         </div>
       </CardContent>
     </Card>
