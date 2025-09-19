@@ -426,7 +426,7 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
           variant="action-secondary"
           size="start-button"
             className={cn(
-              "w-full h-full flex items-center justify-center transition-colors",
+              "w-full flex items-center justify-center transition-colors",
               voiceState === 'listening'
                 ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
                 : voiceState === 'processing' 

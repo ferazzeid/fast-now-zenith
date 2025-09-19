@@ -442,7 +442,7 @@ const FoodTracking = () => {
             className={`h-5 w-5 p-1 rounded ${
               entry.consumed 
                 ? 'bg-muted/50 hover:bg-muted/70 text-muted-foreground' 
-                : 'bg-background border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground'
+                : 'bg-accent hover:bg-muted/30 text-white hover:text-accent'
             }`}
             title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
             aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}

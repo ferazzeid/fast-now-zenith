@@ -290,7 +290,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         disabled={isUploading}
         variant="action-secondary"
         size="start-button"
-        className={`w-full h-full flex items-center justify-center transition-colors ${className}`}
+        className={`w-full flex items-center justify-center transition-colors ${className}`}
       >
         {getButtonContent()}
       </Button>
