@@ -5,14 +5,15 @@ import type { PluginOption } from "vite";
 import { swVersionPlugin } from "./scripts/sw-version-plugin";
 
 // https://vitejs.dev/config/
-export default defineConfig(async ({ mode }) => {
+export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production' || process.env.NODE_ENV === 'production';
   
   const plugins: PluginOption[] = [react(), swVersionPlugin()];
   
   if (mode === 'development') {
     try {
-      const { componentTagger } = await import('lovable-tagger');
+      // Use require for synchronous import in development
+      const { componentTagger } = require('lovable-tagger');
       plugins.push(componentTagger());
     } catch (e: any) {
       console.warn('lovable-tagger not available:', e?.message || 'Unknown error');
