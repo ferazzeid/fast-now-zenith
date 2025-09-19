@@ -605,14 +605,6 @@ const FoodTracking = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Start tracking your food to see your daily nutrition
               </p>
-              <Button 
-                onClick={handleManualInput}
-                variant="outline"
-                className="text-sm"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add your first food
-              </Button>
             </div>
           ) : (
             todayEntries.map(renderFoodEntryCard)
@@ -655,26 +647,6 @@ const FoodTracking = () => {
           </div>
         )}
 
-        {/* Premium upgrade prompt for free users - only for AI features */}
-        {!hasAIAccess && (
-          <div className="mt-8 p-4 border border-dashed border-muted rounded-lg text-center">
-            <Crown className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
-            <h3 className="text-lg font-medium mb-2">Unlock AI Food Tracking</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Get voice input, photo recognition, and smart nutritional analysis
-            </p>
-            <Button 
-              onClick={() => {
-                const { createSubscription } = useAccess();
-                createSubscription();
-              }}
-              className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
-            >
-              <Crown className="w-4 h-4 mr-2" />
-              Upgrade to Premium
-            </Button>
-          </div>
-        )}
       </div>
 
       {/* Modals */}
