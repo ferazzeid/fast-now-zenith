@@ -18,7 +18,7 @@ import MotivatorIdeas from "./pages/MotivatorIdeas";
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProfileOnboarding } from '@/components/GlobalProfileOnboarding';
-import { ResetPrimaryColor } from '@/components/ResetPrimaryColor';
+
 import { useProfile } from '@/hooks/useProfile';
 import Settings from "./pages/Settings";
 import Account from "./pages/Account";
@@ -517,10 +517,6 @@ const AppContent = () => {
         onClose={() => setShowOnboarding(false)}
       />
 
-      {/* Reset Primary Color Button - Only shows if user has custom color */}
-      <div className="fixed top-4 right-4 z-50">
-        <ResetPrimaryColor />
-      </div>
 
       {/* Global Celebration System - Appears over all pages */}
       {celebration.enhancedVisible && celebration.currentEvent && (
