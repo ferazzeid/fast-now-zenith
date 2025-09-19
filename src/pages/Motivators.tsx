@@ -59,8 +59,11 @@ const Motivators = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pendingAiSuggestion, setPendingAiSuggestion] = useState(null);
 
-  // Filter motivators based on active tab - only show user's personal goals
-  const goalMotivators = motivators.filter(m => m.category !== 'saved_quote' && m.category !== 'personal_note');
+  // Filter motivators based on active tab - only show user's personal goals (including weight goals)
+  const goalMotivators = motivators.filter(m => 
+    m.category !== 'saved_quote' && 
+    m.category !== 'personal_note'
+  );
   const savedQuotes = motivators.filter(m => m.category === 'saved_quote');
   const personalNotes = motivators.filter(m => m.category === 'personal_note');
   const handleSelectQuote = async (quote: Quote) => {

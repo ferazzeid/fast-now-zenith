@@ -1,18 +1,32 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Lightbulb, Mic, Upload } from 'lucide-react';
+import { X, Save, Sparkles, Lightbulb, Mic, Upload, Target, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { ImageUpload } from '@/components/ImageUpload';
+import { WeightGoalVisual } from '@/components/WeightGoalVisual';
 import { useToast } from '@/hooks/use-toast';
+import { useProfile } from '@/hooks/useProfile';
 import { useAdminTemplates } from '@/hooks/useAdminTemplates';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
+import { 
+  WeightGoalData, 
+  generateWeightGoalTitle, 
+  formatWhyReasons, 
+  encodeWeightGoalData,
+  decodeWeightGoalData,
+  isWeightGoal,
+  getWeightUnitsForSystem,
+  getDefaultWeightUnit,
+  parseWeightGoalContent
+} from '@/utils/weightGoalUtils';
 
 interface Motivator {
   id?: string;
@@ -34,39 +48,113 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
   const [tempMotivatorId, setTempMotivatorId] = useState<string | null>(null);
   
+  // Weight goal specific states
+  const [isWeightGoalMode, setIsWeightGoalMode] = useState(false);
+  const [weight, setWeight] = useState<number>(70);
+  const [selectedUnit, setSelectedUnit] = useState<'kg' | 'lbs' | 'stones'>('kg');
+  const [whyReason1, setWhyReason1] = useState('');
+  const [whyReason2, setWhyReason2] = useState('');
+  const [whyReason3, setWhyReason3] = useState('');
+  
   const { toast } = useToast();
+  const { profile } = useProfile();
   const { templates, loading: templatesLoading } = useAdminTemplates();
   const { isAdmin } = useAccess();
   
   const isEditing = !!motivator?.id;
+  const availableUnits = profile?.units ? getWeightUnitsForSystem(profile.units) : getWeightUnitsForSystem('metric');
 
   useEffect(() => {
     if (motivator) {
-      setTitle(motivator.title || '');
-      setContent(motivator.content || '');
-      setImageUrl(motivator.imageUrl || '');
+      const isWeightGoalMotivator = isWeightGoal(motivator);
+      setIsWeightGoalMode(isWeightGoalMotivator);
+      
+      if (isWeightGoalMotivator) {
+        // Parse weight goal data
+        const weightData = decodeWeightGoalData(motivator.content || '{}');
+        if (weightData) {
+          setWeight(weightData.weight);
+          setSelectedUnit(weightData.unit);
+          setWhyReason1(weightData.whyReasons[0] || '');
+          setWhyReason2(weightData.whyReasons[1] || '');
+          setWhyReason3(weightData.whyReasons[2] || '');
+        }
+        
+        // Don't set title/content for weight goals as they're auto-generated
+      } else {
+        setTitle(motivator.title || '');
+        setContent(motivator.content || '');
+        setImageUrl(motivator.imageUrl || '');
+      }
+    } else {
+      // New motivator - set default unit based on user preference
+      const defaultUnit = profile?.units ? getDefaultWeightUnit(profile.units) : 'kg';
+      setSelectedUnit(defaultUnit);
     }
-  }, [motivator]);
+  }, [motivator, profile?.units]);
 
 
 
   const handleSave = async () => {
-    if (!title.trim()) {
-      toast({
-        title: "Title required",
-        description: "Please add a title for your motivator.",
-        variant: "destructive",
-      });
-      return;
+    if (isWeightGoalMode) {
+      // Weight goal validation
+      if (!weight || weight <= 0) {
+        toast({
+          title: "Weight required",
+          description: "Please enter a valid target weight.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (!whyReason1.trim()) {
+        toast({
+          title: "Reason required", 
+          description: "Please provide at least one reason why you want to reach this weight.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Create weight goal data
+      const weightGoalData: WeightGoalData = {
+        weight,
+        unit: selectedUnit,
+        whyReasons: [whyReason1, whyReason2, whyReason3].filter(r => r.trim().length > 0)
+      };
+      
+      const motivatorData: Motivator = {
+        id: motivator?.id || tempMotivatorId || '',
+        title: generateWeightGoalTitle(weight, selectedUnit),
+        content: encodeWeightGoalData(weightGoalData),
+        category: 'weight_goal',
+        imageUrl: undefined // Weight goals use auto-generated visual
+      };
+      
+      await handleMotivatorSave(motivatorData);
+    } else {
+      // Regular goal validation
+      if (!title.trim()) {
+        toast({
+          title: "Title required",
+          description: "Please add a title for your motivator.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const motivatorData: Motivator = {
+        id: motivator?.id || tempMotivatorId || '',
+        title: title.trim(),
+        content: content.trim(),
+        imageUrl: imageUrl || undefined
+      };
+      
+      await handleMotivatorSave(motivatorData);
     }
-
-    const motivatorData: Motivator = {
-      id: motivator?.id || tempMotivatorId || '',
-      title: title.trim(),
-      content: content.trim(),
-      imageUrl: imageUrl || undefined
-    };
-
+  };
+  
+  const handleMotivatorSave = async (motivatorData: Motivator) => {
     // If we have a temporary motivator, update it instead of creating new
     if (tempMotivatorId && !motivator?.id) {
       try {
@@ -75,7 +163,8 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           .update({
             title: motivatorData.title,
             content: motivatorData.content,
-            image_url: motivatorData.imageUrl
+            image_url: motivatorData.imageUrl,
+            category: motivatorData.category
           })
           .eq('id', tempMotivatorId);
         
@@ -111,7 +200,11 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
     <UniversalModal
       isOpen={true}
       onClose={onClose}
-      title={isEditing ? 'Edit Motivator' : 'Create New Motivator'}
+      title={
+        isWeightGoalMode 
+          ? (isEditing ? 'Edit Weight Goal' : 'Create Weight Goal')
+          : (isEditing ? 'Edit Motivator' : 'Create New Motivator')
+      }
       variant="standard"
       size="sm"
       showCloseButton={true}
@@ -127,7 +220,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
           <Button 
             variant="action-primary"
             onClick={handleSave}
-            disabled={!title.trim()}
+            disabled={isWeightGoalMode ? (!weight || !whyReason1.trim()) : !title.trim()}
             className="flex-1"
           >
             {isEditing ? 'Update' : 'Create'}
@@ -136,89 +229,200 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
       }
     >
 
-        {/* Admin Templates (only for new motivators) */}
-        {!isEditing && templates.length > 0 && (
+        {/* Goal Type Toggle (only for new goals) */}
+        {!isEditing && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
-              <Lightbulb className="w-4 h-4 text-primary" />
-              <Label>Get inspired by examples</Label>
+              <Target className="w-4 h-4 text-primary" />
+              <Label>Goal Type</Label>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto">
-              {templates.map((template) => (
-                <Card 
-                  key={template.id} 
-                  className="p-3 cursor-pointer hover:bg-muted transition-colors"
-                  onClick={() => useTemplate(template)}
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium text-ui-sm">{template.title}</p>
-                    <p className="text-ui-xs text-muted-foreground line-clamp-2">{template.description}</p>
-                    <Badge variant="secondary">
-                      {template.category}
-                    </Badge>
-                  </div>
-                </Card>
-              ))}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                type="button"
+                variant={!isWeightGoalMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsWeightGoalMode(false)}
+                className="flex items-center gap-2"
+              >
+                <Lightbulb className="w-4 h-4" />
+                Regular Goal
+              </Button>
+              <Button
+                type="button"
+                variant={isWeightGoalMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsWeightGoalMode(true)}
+                className="flex items-center gap-2"
+              >
+                <Target className="w-4 h-4" />
+                Weight Goal
+              </Button>
             </div>
-            <p className="text-ui-xs text-muted-foreground mt-2">
-              💡 Click any example to use as a starting point (you can edit it afterwards)
-            </p>
           </div>
         )}
 
-        {/* Form */}
-        <div className="space-y-2">{/* Further reduced spacing to make content more compact */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="title">
-                Title
-              </Label>
-              <CircularVoiceButton
-                onTranscription={(text) => handleVoiceTranscription(text, 'title')}
-                size="sm"
-                context="title"
-              />
+        {/* Weight Goal Form */}
+        {isWeightGoalMode ? (
+          <div className="space-y-4">
+            {/* Weight Input */}
+            <div className="space-y-2">
+              <Label htmlFor="weight">Target Weight</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="weight"
+                  type="number"
+                  value={weight}
+                  onChange={(e) => setWeight(Number(e.target.value))}
+                  placeholder="Enter weight"
+                  min="1"
+                  max="1000"
+                  className="flex-1"
+                />
+                <Select value={selectedUnit} onValueChange={(value: 'kg' | 'lbs' | 'stones') => setSelectedUnit(value)}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableUnits.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.value.toUpperCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="content">
-                Description
-              </Label>
-              <CircularVoiceButton
-                onTranscription={(text) => handleVoiceTranscription(text, 'content')}
-                size="sm"
-                context="content"
-              />
+            {/* Weight Preview */}
+            {weight > 0 && (
+              <div className="flex justify-center">
+                <WeightGoalVisual 
+                  weight={weight}
+                  unit={selectedUnit}
+                  size="sm"
+                />
+              </div>
+            )}
+
+            {/* Why Reasons */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Label>Why do you want to reach this weight?</Label>
+                <span className="text-xs text-muted-foreground">
+                  (What will change in your life?)
+                </span>
+              </div>
+              
+              <div className="space-y-2">
+                <Input
+                  value={whyReason1}
+                  onChange={(e) => setWhyReason1(e.target.value)}
+                  placeholder="First reason (required)"
+                  className="border-primary/50"
+                />
+                <Input
+                  value={whyReason2}
+                  onChange={(e) => setWhyReason2(e.target.value)}
+                  placeholder="Second reason (optional)"
+                />
+                <Input
+                  value={whyReason3}
+                  onChange={(e) => setWhyReason3(e.target.value)}
+                  placeholder="Third reason (optional)"
+                />
+              </div>
+              
+              <p className="text-xs text-muted-foreground">
+                💡 Think about how reaching this weight will improve your health, confidence, or lifestyle
+              </p>
             </div>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="min-h-[100px]"
-            />
           </div>
+        ) : (
+          <>
+            {/* Admin Templates (only for new regular motivators) */}
+            {!isEditing && templates.length > 0 && (
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Lightbulb className="w-4 h-4 text-primary" />
+                  <Label>Get inspired by examples</Label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-40 overflow-y-auto">
+                  {templates.map((template) => (
+                    <Card 
+                      key={template.id} 
+                      className="p-3 cursor-pointer hover:bg-muted transition-colors"
+                      onClick={() => useTemplate(template)}
+                    >
+                      <div className="space-y-1">
+                        <p className="font-medium text-ui-sm">{template.title}</p>
+                        <p className="text-ui-xs text-muted-foreground line-clamp-2">{template.description}</p>
+                        <Badge variant="secondary">
+                          {template.category}
+                        </Badge>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                <p className="text-ui-xs text-muted-foreground mt-2">
+                  💡 Click any example to use as a starting point (you can edit it afterwards)
+                </p>
+              </div>
+            )}
 
+            {/* Regular Goal Form */}
+            <div className="space-y-2">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="title">
+                    Title
+                  </Label>
+                  <CircularVoiceButton
+                    onTranscription={(text) => handleVoiceTranscription(text, 'title')}
+                    size="sm"
+                    context="title"
+                  />
+                </div>
+                <Input
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Image (Optional)</Label>
-            <ImageUpload
-              currentImageUrl={imageUrl}
-              onImageUpload={setImageUrl}
-              onImageRemove={() => setImageUrl('')}
-              showUploadOptionsWhenImageExists={true}
-            />
-          </div>
-          
-          {/* Minimal spacing before footer buttons */}
-          <div className="h-2" />
-        </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="content">
+                    Description
+                  </Label>
+                  <CircularVoiceButton
+                    onTranscription={(text) => handleVoiceTranscription(text, 'content')}
+                    size="sm"
+                    context="content"
+                  />
+                </div>
+                <Textarea
+                  id="content"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Image (Optional)</Label>
+                <ImageUpload
+                  currentImageUrl={imageUrl}
+                  onImageUpload={setImageUrl}
+                  onImageRemove={() => setImageUrl('')}
+                  showUploadOptionsWhenImageExists={true}
+                />
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Minimal spacing before footer buttons */}
+        <div className="h-2" />
 
 
     </UniversalModal>

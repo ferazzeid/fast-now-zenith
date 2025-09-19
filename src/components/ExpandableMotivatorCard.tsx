@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ChevronDown, Image, Edit, Trash2, BookOpen, Eye, EyeOff } from 'lucide-react';
 import { MotivatorImageWithFallback } from '@/components/MotivatorImageWithFallback';
+import { WeightGoalVisual } from '@/components/WeightGoalVisual';
 import { useAccess } from '@/hooks/useAccess';
 import { supabase } from '@/integrations/supabase/client';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MotivatorContentModal } from '@/components/MotivatorContentModal';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
+import { isWeightGoal, decodeWeightGoalData, parseWeightGoalContent } from '@/utils/weightGoalUtils';
 
 interface ExpandableMotivatorCardProps {
   motivator: {
@@ -50,7 +52,17 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
   const { isAdmin } = useAccess();
   const { toast } = useToast();
   
-  const shouldShowExpandButton = motivator.content && motivator.content.length > 50;
+  
+  const isWeightGoalMotivator = isWeightGoal(motivator);
+  let weightGoalData = null;
+  let whyReasons: string[] = [];
+  
+  if (isWeightGoalMotivator) {
+    weightGoalData = decodeWeightGoalData(motivator.content || '{}');
+    whyReasons = weightGoalData?.whyReasons || [];
+  }
+  
+  const shouldShowExpandButton = (motivator.content && motivator.content.length > 50) || isWeightGoalMotivator;
 
   // Update current image when motivator changes (for realtime updates from database)
   useEffect(() => {
@@ -137,15 +149,26 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
         {/* Collapsed State: Image on top, title and actions below */}
         {!isExpanded && (
           <div>
-            {/* Full-width image at top */}
+            {/* Full-width image/visual at top */}
             <div className="w-full h-32 relative">
-              <MotivatorImageWithFallback
-                src={currentImageUrl}
-                alt={motivator.title}
-                className="w-full h-full object-cover"
-                onAddImageClick={onEdit}
-                showAddImagePrompt={!currentImageUrl}
-              />
+              {isWeightGoalMotivator && weightGoalData ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <WeightGoalVisual 
+                    weight={weightGoalData.weight}
+                    unit={weightGoalData.unit}
+                    size="sm"
+                    className="w-full h-full"
+                  />
+                </div>
+              ) : (
+                <MotivatorImageWithFallback
+                  src={currentImageUrl}
+                  alt={motivator.title}
+                  className="w-full h-full object-cover"
+                  onAddImageClick={onEdit}
+                  showAddImagePrompt={!currentImageUrl}
+                />
+              )}
             </div>
 
             {/* Title and actions */}
@@ -183,15 +206,26 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
         {/* Expanded State: Vertical layout with full-width image and content */}
         {isExpanded && (
           <div>
-            {/* Full-width image at top */}
+            {/* Full-width image/visual at top */}
             <div className="w-full h-48 relative">
-              <MotivatorImageWithFallback
-                src={currentImageUrl}
-                alt={motivator.title}
-                className="w-full h-full object-cover"
-                onAddImageClick={onEdit}
-                showAddImagePrompt={!currentImageUrl}
-              />
+              {isWeightGoalMotivator && weightGoalData ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <WeightGoalVisual 
+                    weight={weightGoalData.weight}
+                    unit={weightGoalData.unit}
+                    size="md"
+                    className="w-full h-full" 
+                  />
+                </div>
+              ) : (
+                <MotivatorImageWithFallback
+                  src={currentImageUrl}
+                  alt={motivator.title}
+                  className="w-full h-full object-cover"
+                  onAddImageClick={onEdit}
+                  showAddImagePrompt={!currentImageUrl}
+                />
+              )}
             </div>
 
             {/* Content below image */}
@@ -222,11 +256,24 @@ export const ExpandableMotivatorCard = memo<ExpandableMotivatorCardProps>(({
               </div>
 
               {/* Full-width content text */}
-              {displayContent && (
+              {isWeightGoalMotivator ? (
+                <div className="space-y-3 mb-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Why I want to reach this weight:</h4>
+                    <div className="space-y-1">
+                      {whyReasons.map((reason, index) => (
+                        <p key={index} className="text-sm text-muted-foreground leading-relaxed">
+                          {index + 1}. {reason}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : displayContent ? (
                 <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                   {displayContent}
                 </p>
-              )}
+              ) : null}
 
               {/* Eye icon, Edit and Delete buttons below content */}
               <div className="flex gap-2 justify-end pt-2 border-t border-subtle">

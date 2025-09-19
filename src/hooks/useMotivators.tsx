@@ -25,7 +25,7 @@ export interface Motivator {
 export interface CreateMotivatorData {
   title: string;
   content: string;
-  category: string;
+  category?: string;
   imageUrl?: string;
   show_in_animations?: boolean;
   linkUrl?: string;
@@ -118,7 +118,7 @@ export const useMotivators = () => {
           user_id: user.id,
           title: motivatorData.title,
           content: motivatorData.content,
-          category: motivatorData.category,
+          category: motivatorData.category || 'general',
           image_url: motivatorData.imageUrl,
           link_url: motivatorData.linkUrl,
           show_in_animations: motivatorData.show_in_animations ?? true,
