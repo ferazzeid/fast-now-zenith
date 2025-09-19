@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { supabase } from "@/integrations/supabase/client";
 import { Brain, Zap, DollarSign, AlertTriangle } from "lucide-react";
@@ -108,20 +109,27 @@ export function AdminCurrentModels() {
         <CardTitle className="text-lg">Current AI Models in Use</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-2">
-          {currentModelInfo.map((usage, index) => (
-            <div key={index} className="flex items-center justify-between p-2 bg-muted/30 rounded">
-              <div className="flex items-center gap-3">
-                <span className="font-medium text-sm">{usage.feature}</span>
-                <span className="text-xs text-muted-foreground">{usage.description}</span>
+        <TooltipProvider>
+          <div className="grid gap-1.5">
+            {currentModelInfo.map((usage, index) => (
+              <div key={index} className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm">
+                <span className="font-medium">{usage.feature}</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className={`text-xs max-w-[140px] ${getTierColor(usage.type)}`}>
+                      {getTierIcon(usage.type)}
+                      <span className="ml-1 truncate">{usage.model}</span>
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{usage.model}</p>
+                    <p className="text-xs text-muted-foreground">{usage.description}</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <Badge variant="outline" className={`text-xs ${getTierColor(usage.type)}`}>
-                {getTierIcon(usage.type)}
-                <span className="ml-1">{usage.model}</span>
-              </Badge>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </TooltipProvider>
       </CardContent>
     </Card>
   );
