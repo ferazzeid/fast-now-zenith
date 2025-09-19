@@ -256,30 +256,32 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             </div>
             <div className="flex items-center gap-1">
               {/* Toggle with same design as E/I toggle */}
-              <div className="bg-muted rounded-md p-0.5 shadow-sm">
-                <div className="flex">
-                  <button
-                    onClick={() => setAutoRestart(false)}
-                    className={cn(
-                      "h-7 px-3 text-xs font-medium min-w-[28px] cursor-pointer transition-all duration-200 rounded-sm",
-                      !autoRestart 
-                        ? "bg-background shadow-sm text-foreground" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    M
-                  </button>
-                  <button
-                    onClick={() => setAutoRestart(true)}
-                    className={cn(
-                      "h-7 px-3 text-xs font-medium min-w-[28px] cursor-pointer transition-all duration-200 rounded-sm",
-                      autoRestart 
-                        ? "bg-background shadow-sm text-foreground" 
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    A
-                  </button>
+              <div className="scale-85">
+                <div className="bg-muted rounded-md p-0.5 shadow-sm">
+                  <div className="flex">
+                    <button
+                      onClick={() => setAutoRestart(false)}
+                      className={cn(
+                        "h-7 px-3 text-xs font-medium w-[32px] cursor-pointer transition-all duration-200 rounded-sm flex items-center justify-center",
+                        !autoRestart 
+                          ? "bg-background shadow-sm text-foreground" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      M
+                    </button>
+                    <button
+                      onClick={() => setAutoRestart(true)}
+                      className={cn(
+                        "h-7 px-3 text-xs font-medium w-[32px] cursor-pointer transition-all duration-200 rounded-sm flex items-center justify-center",
+                        autoRestart 
+                          ? "bg-background shadow-sm text-foreground" 
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      A
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -73,7 +73,7 @@ const IntermittentFasting: React.FC = () => {
             authorTooltipContent="Track your intermittent fasting sessions with precise timing and progress visualization."
             className=""
             subtitleAction={ifEnabled ? (
-              <div className="scale-90">
+              <div className="scale-85">
                 <FastingModeToggle
                   currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
                   onModeChange={switchMode}
