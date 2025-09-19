@@ -31,6 +31,7 @@ import { AccessGate } from '@/components/AccessGate';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { SmartImage } from '@/components/SmartImage';
 import { ManualFoodEntryModal } from '@/components/ManualFoodEntryModal';
+import { PremiumFoodModal } from '@/components/PremiumFoodModal';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -41,6 +42,7 @@ const FoodTracking = () => {
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState<boolean | any>(false);
   const [showManualEntryModal, setShowManualEntryModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -62,6 +64,7 @@ const FoodTracking = () => {
       setShowClearAllDialog(false);
       setShowSaveToTemplateDialog(null);
       setShowManualEntryModal(false);
+      setShowPremiumModal(false);
     }
   }, [location.pathname]);
 
@@ -572,24 +575,14 @@ const FoodTracking = () => {
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
                     <Button
-                      onClick={() => {
-                        const { createSubscription } = useAccess();
-                        createSubscription();
-                      }}
+                      onClick={() => setShowPremiumModal(true)}
                       variant="outline"
                       className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-pointer hover:opacity-70"
                     >
                       <Lock className="w-5 h-5 text-muted-foreground" />
                       <span className="text-xs font-medium text-muted-foreground">Add with Voice</span>
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    Voice input (Premium Feature)
-                  </TooltipContent>
-                </Tooltip>
               </div>
             </>
           )}
@@ -716,6 +709,13 @@ const FoodTracking = () => {
               });
             }
           }}
+        />
+      )}
+      
+      {showPremiumModal && (
+        <PremiumFoodModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
         />
       )}
       
