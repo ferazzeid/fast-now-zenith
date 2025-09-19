@@ -46,8 +46,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     ifEnabled
   } = useIntermittentFasting();
 
-  // Debug: Log session state
-  console.log('🔍 IF Timer - Session state:', { todaySession, loading });
+  // Debug logging removed to reduce console spam
 
   const [selectedTab, setSelectedTab] = useState<'quick' | 'custom'>('quick');
   const [selectedPreset, setSelectedPreset] = useState(IF_PRESETS[0]);

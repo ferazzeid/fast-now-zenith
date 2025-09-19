@@ -242,7 +242,7 @@ export const useOptimizedWalkingSession = () => {
       const activeSession = queryClient.getQueryData(activeSessionQueryKey(user.id)) as WalkingSession;
       if (!activeSession) throw new Error('No active session found');
 
-      console.log('🚶 Ending walking session with manual duration:', activeSession.id, 'Duration:', manualDurationMinutes);
+      // Debug logging reduced to errors only
 
       const now = new Date();
       
@@ -270,15 +270,12 @@ export const useOptimizedWalkingSession = () => {
         throw error;
       }
 
-      console.log('🚶 Successfully ended session with manual duration:', data);
+      // Debug logging reduced to errors only
       return data;
     },
-    onMutate: async () => {
-      console.log('🚶 Starting end session with manual duration mutation');
-      queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
-    },
+      // Debug logging reduced to errors only
     onSuccess: (data) => {
-      console.log('🚶 End session with manual duration mutation success:', data);
+      // Debug logging reduced to errors only
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
       queryClient.invalidateQueries({ queryKey: walkingSessionsQueryKey(user?.id || null) });
     },
@@ -360,13 +357,7 @@ export const useOptimizedWalkingSession = () => {
         }
       }
 
-      console.log('🚶 Session metrics calculated:', { 
-        durationMinutes, 
-        sessionSpeed, 
-        distance, 
-        caloriesBurned, 
-        estimatedSteps 
-      });
+      // Debug logging reduced to errors only
 
       const { data, error } = await supabase
         .from('walking_sessions')
@@ -391,15 +382,15 @@ export const useOptimizedWalkingSession = () => {
         throw new Error(`Database error: ${error.message || error.code || 'Unknown database error'}`);
       }
 
-      console.log('🚶 Successfully ended session with metrics:', data);
+      // Debug logging reduced to errors only
       return data;
     },
     onMutate: async () => {
-      console.log('🚶 Starting end session mutation');
+      // Debug logging reduced to errors only
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
     },
     onSuccess: (data) => {
-      console.log('🚶 End session mutation success:', data);
+      // Debug logging reduced to errors only
       // Clear active session and update sessions list
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), null);
       queryClient.invalidateQueries({ queryKey: walkingSessionsQueryKey(user?.id || null) });

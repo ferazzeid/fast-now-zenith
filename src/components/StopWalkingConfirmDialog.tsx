@@ -88,21 +88,21 @@ export const StopWalkingConfirmDialog = ({
             </Button>
           </div>
         ) : (
-          <div className="flex gap-2 w-full">
+          <div className="grid grid-cols-3 gap-2 w-full">
             <Button 
               variant="outline" 
               size="action-secondary"
               onClick={handleClose}
-              className="flex-1"
+              className="w-full"
             >
               <X className="w-4 h-4" />
             </Button>
             {showLongSessionWarning && (
               <Button 
-                variant="action-primary"
+                variant="outline"
                 size="action-secondary"
                 onClick={() => setShowManualInput(true)}
-                className="flex-1"
+                className="w-full"
               >
                 Edit
               </Button>
@@ -111,7 +111,7 @@ export const StopWalkingConfirmDialog = ({
               variant="action-primary"
               size="action-secondary"
               onClick={onConfirm}
-              className="flex-1"
+              className={`w-full ${!showLongSessionWarning ? 'col-span-2' : ''}`}
             >
               {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
             </Button>

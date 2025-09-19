@@ -58,12 +58,7 @@ const Walking = () => {
   const { walkingQuotesEnabled, loading: quoteDisplayLoading } = useQuoteDisplay();
   // Remove all related settings - quotes are always enabled
   
-  console.log('🚶 WALKING PAGE - Quote Display State:', { 
-    walkingQuotesEnabled, 
-    quoteDisplayLoading,
-    hasWalkingQuotes: quotes?.walking_timer_quotes?.length > 0,
-    quotesObject: quotes
-  });
+  // Debug logging removed to reduce console spam
   const { saveQuoteAsGoal } = useMotivators();
   const { isAdmin } = useAccess();
 
