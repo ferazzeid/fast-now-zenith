@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, X, BookOpen, Lock, Crown, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, X, BookOpen, Lock, Crown, Save, Keyboard } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
@@ -554,17 +554,16 @@ const FoodTracking = () => {
               <div className="flex flex-col items-center gap-2">
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      onClick={handleManualInput}
-                      variant="outline"
-                      className="w-full h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-solid"
-                    >
-                      <div className="flex items-center gap-1">
-                        <Plus className="w-4 h-4" />
-                        <span className="text-xs">⌨</span>
-                      </div>
-                      <span className="text-xs font-medium">Add with Photo</span>
-                    </Button>
+                     <Button
+                       onClick={handleManualInput}
+                       variant="outline"
+                       className="w-full h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-solid"
+                     >
+                       <div className="flex items-center gap-1">
+                         <Keyboard className="w-4 h-4" />
+                       </div>
+                       <span className="text-xs font-medium">Add with Photo</span>
+                     </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
                     Manual food entry (free for all users)

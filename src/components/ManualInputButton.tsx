@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useAccess } from '@/hooks/useAccess';
 
 interface ManualInputButtonProps {
   onClick: () => void;
@@ -6,6 +7,13 @@ interface ManualInputButtonProps {
 }
 
 export const ManualInputButton = ({ onClick, title = "Manual food entry" }: ManualInputButtonProps) => {
+  const { hasAccess } = useAccess();
+  
+  // Only show for premium users
+  if (!hasAccess) {
+    return null;
+  }
+
   return (
     <Button
       variant="ghost"
