@@ -18,16 +18,8 @@ export const SmartHomeRedirect = () => {
   const { preferences, loading } = useNavigationPreferences();
   const { profile, loading: profileLoading } = useOptimizedProfile();
 
-  console.log('🏠 SmartHomeRedirect state:', { 
-    preferencesLoading: loading, 
-    profileLoading, 
-    preferences: preferences ? Object.keys(preferences) : 'null',
-    profile: profile ? 'exists' : 'null' 
-  });
-
   // Show loading while fetching preferences and profile
   if (loading || profileLoading) {
-    console.log('🏠 Showing loading spinner');
     return (
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center">
         <LoadingSpinner />
@@ -52,8 +44,6 @@ export const SmartHomeRedirect = () => {
   };
 
   const redirectPath = getRedirectPath();
-  
-  console.log('🏠 Redirecting to:', redirectPath);
 
   return <Navigate to={redirectPath} replace />;
 };
