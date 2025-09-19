@@ -442,7 +442,7 @@ const FoodTracking = () => {
             className={`h-5 w-5 p-1 rounded ${
               entry.consumed 
                 ? 'bg-muted/50 hover:bg-muted/70 text-muted-foreground' 
-                : 'bg-accent hover:bg-accent/90 text-accent-foreground'
+                : 'bg-background border-2 border-accent text-accent hover:bg-accent hover:text-accent-foreground'
             }`}
             title={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
             aria-label={entry.consumed ? "Mark as not eaten" : "Mark as eaten"}
@@ -567,7 +567,7 @@ const FoodTracking = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowSaveToTemplateDialog(true)}
-                        className="text-foreground text-xs px-2 py-2 h-auto flex items-center gap-1"
+                        className="text-muted-foreground hover:text-foreground text-xs px-2 py-2 h-auto flex items-center gap-1 bg-transparent hover:bg-muted/10"
                       >
                         <Save className="w-3 h-3" />
                       </Button>

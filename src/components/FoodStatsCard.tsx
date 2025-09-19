@@ -167,7 +167,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                 <div className={`text-lg font-semibold font-mono transition-all duration-500 animate-fade-in ${getProgressColor(animatedTotalCalories, dailyAllowance)}`}>
                   {Math.round(animatedTotalCalories)}
                 </div>
-                <div className="text-sm text-muted-foreground mt-1 font-semibold">
+                <div className="text-xs text-muted-foreground mt-1 font-medium">
                   Calories planned
                 </div>
               </div>
@@ -182,7 +182,7 @@ export const FoodStatsCard: React.FC<FoodStatsCardProps> = ({ entries }) => {
                   <span>{Math.round(animatedTotalCarbs)}</span>
                   <span className="text-sm font-mono">g</span>
                 </div>
-                <div className="text-sm text-muted-foreground mt-1 font-semibold">
+                <div className="text-xs text-muted-foreground mt-1 font-medium">
                   Carbs planned
                 </div>
               </div>
