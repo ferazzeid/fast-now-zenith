@@ -1000,6 +1000,50 @@ export type Database = {
         }
         Relationships: []
       }
+      journey_daily_progress: {
+        Row: {
+          created_at: string
+          daily_deficit: number | null
+          fat_burned_grams: number | null
+          id: string
+          journey_id: string
+          notes: string | null
+          progress_date: string
+          updated_at: string
+          weight_on_day: number | null
+        }
+        Insert: {
+          created_at?: string
+          daily_deficit?: number | null
+          fat_burned_grams?: number | null
+          id?: string
+          journey_id: string
+          notes?: string | null
+          progress_date: string
+          updated_at?: string
+          weight_on_day?: number | null
+        }
+        Update: {
+          created_at?: string
+          daily_deficit?: number | null
+          fat_burned_grams?: number | null
+          id?: string
+          journey_id?: string
+          notes?: string | null
+          progress_date?: string
+          updated_at?: string
+          weight_on_day?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journey_daily_progress_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "user_journeys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manual_calorie_burns: {
         Row: {
           activity_name: string
@@ -1947,6 +1991,42 @@ export type Database = {
           updated_at?: string
           user_id?: string
           variations?: Json | null
+        }
+        Relationships: []
+      }
+      user_journeys: {
+        Row: {
+          created_at: string
+          current_weight_at_start: number
+          id: string
+          is_active: boolean
+          journey_type: string
+          start_date: string
+          target_weight: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_weight_at_start: number
+          id?: string
+          is_active?: boolean
+          journey_type?: string
+          start_date: string
+          target_weight: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_weight_at_start?: number
+          id?: string
+          is_active?: boolean
+          journey_type?: string
+          start_date?: string
+          target_weight?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

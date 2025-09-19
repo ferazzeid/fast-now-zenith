@@ -34,7 +34,7 @@ export const DailySummaryGoalsSection = ({
   const { toast } = useToast();
   const [confirmedGoals, setConfirmedGoals] = useState<string[]>([]);
 
-  // Fetch user's personal motivators/goals
+  // Fetch user's personal motivators/goals (excluding quotes)
   const { data: goalMotivators, isLoading, refetch } = useBaseQuery<GoalMotivator[]>(
     ['user-goal-motivators'],
     async () => {
@@ -43,6 +43,8 @@ export const DailySummaryGoalsSection = ({
         .select('id, title, content, category, is_active')
         .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .eq('is_active', true)
+        .not('category', 'eq', 'saved_quote') // Exclude quotes
+        .in('category', ['weight_goal', 'personal', 'personal_note']) // Only include actual goals
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -155,9 +157,6 @@ export const DailySummaryGoalsSection = ({
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h5 className="font-medium text-sm">{motivator.title}</h5>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {motivator.content.substring(0, 100)}...
-                        </p>
                         <Badge variant="outline" className="mt-2 text-xs">
                           {motivator.category.replace('_', ' ')}
                         </Badge>
