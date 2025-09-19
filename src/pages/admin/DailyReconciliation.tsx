@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ReconciliationTestProtocol } from "@/components/ReconciliationTestProtocol";
+import { Link } from "react-router-dom";
 
 interface DailyStats {
   date: string;
@@ -49,9 +50,9 @@ export default function DailyReconciliation() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Check if reconciliation is enabled
-  const { data: isReconciliationEnabled, isLoading: isCheckingAccess } = useBaseQuery(
-    ['reconciliation-enabled'],
+  // Check if reconciliation is enabled - use consistent query key
+  const { data: isReconciliationEnabled, isLoading: isCheckingAccess, refetch: refetchAccess } = useBaseQuery(
+    ['daily-reconciliation-enabled'], // Match the settings component query key
     async () => {
       const { data, error } = await supabase
         .from('shared_settings')
@@ -67,8 +68,8 @@ export default function DailyReconciliation() {
       return data?.setting_value === 'true';
     },
     {
-      staleTime: 30 * 1000,
-      gcTime: 5 * 60 * 1000,
+      staleTime: 10 * 1000, // Shorter cache time for faster updates
+      gcTime: 30 * 1000,
     }
   );
 
@@ -188,8 +189,13 @@ export default function DailyReconciliation() {
           
           <Alert>
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
-              Daily Reconciliation is currently disabled. Enable it in the Operations settings to access this feature.
+            <AlertDescription className="flex items-center justify-between">
+              <span>Daily Reconciliation is currently disabled. Enable it in the Operations settings to access this feature.</span>
+              <Button asChild variant="outline" size="sm" className="ml-4">
+                <Link to="/admin/operations" className="flex items-center gap-2">
+                  Go to Operations
+                </Link>
+              </Button>
             </AlertDescription>
           </Alert>
         </main>
