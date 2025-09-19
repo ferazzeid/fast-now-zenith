@@ -1,4 +1,5 @@
 import * as React from "react"
+import { useToastDuration } from "@/hooks/useToastDuration"
 
 import type {
   ToastActionElement,
@@ -6,7 +7,7 @@ import type {
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 2000
+const TOAST_REMOVE_DELAY = 1000 // Base removal delay
 
 type ToasterToast = ToastProps & {
   id: string
@@ -55,7 +56,7 @@ interface State {
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
-const addToRemoveQueue = (toastId: string) => {
+const addToRemoveQueue = (toastId: string, customDelay?: number) => {
   if (toastTimeouts.has(toastId)) {
     return
   }
@@ -66,7 +67,7 @@ const addToRemoveQueue = (toastId: string) => {
       type: "REMOVE_TOAST",
       toastId: toastId,
     })
-  }, TOAST_REMOVE_DELAY)
+  }, customDelay || TOAST_REMOVE_DELAY)
 
   toastTimeouts.set(toastId, timeout)
 }
@@ -139,7 +140,10 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+// Global duration hook instance - we'll set this from the useToast hook
+let globalDurationMs = 5000;
+
+function toast({ duration, ...props }: Toast & { duration?: number }) {
   // Check if modal editing is active - suppress toasts if so
   try {
     const modalEditingElement = document.querySelector('[data-modal-editing="true"]');
@@ -156,6 +160,7 @@ function toast({ ...props }: Toast) {
   }
 
   const id = genId()
+  const toastDuration = duration ? duration * 1000 : globalDurationMs;
 
   const update = (props: ToasterToast) =>
     dispatch({
@@ -176,6 +181,11 @@ function toast({ ...props }: Toast) {
     },
   })
 
+  // Auto-dismiss after configured duration
+  setTimeout(() => {
+    dismiss()
+  }, toastDuration)
+
   return {
     id: id,
     dismiss,
@@ -185,6 +195,12 @@ function toast({ ...props }: Toast) {
 
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
+  const { durationMs } = useToastDuration();
+
+  // Update global duration when it changes
+  React.useEffect(() => {
+    globalDurationMs = durationMs;
+  }, [durationMs]);
 
   React.useEffect(() => {
     listeners.push(setState)

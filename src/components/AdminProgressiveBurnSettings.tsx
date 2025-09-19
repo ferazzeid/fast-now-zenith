@@ -48,7 +48,14 @@ export const AdminProgressiveBurnSettings = () => {
 
       if (error) throw error;
 
+      // Force immediate refetch to update the toggle state
       await refetch();
+      
+      // Also invalidate related queries that might use this setting
+      // This ensures the UI updates immediately
+      setTimeout(() => {
+        refetch();
+      }, 100);
       
       toast({
         title: enabled ? "Progressive Daily Burn Enabled" : "Progressive Daily Burn Disabled",

@@ -10,6 +10,7 @@ import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSetti
 import { AdminIntermittentFastingSettings } from "@/components/AdminIntermittentFastingSettings";
 import { AdminDailyReconciliationSettings } from "@/components/AdminDailyReconciliationSettings";
 import { AdminProgressiveBurnSettings } from "@/components/AdminProgressiveBurnSettings";
+import { AdminToastSettings } from "@/components/AdminToastSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -50,6 +51,10 @@ export default function AdminOperations() {
 
         <section aria-label="Progressive daily burn settings">
           <AdminProgressiveBurnSettings />
+        </section>
+
+        <section aria-label="Toast message settings">
+          <AdminToastSettings />
         </section>
 
         <section aria-label="Google authentication settings" className="pb-24">
