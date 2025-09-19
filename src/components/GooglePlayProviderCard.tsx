@@ -59,7 +59,9 @@ export const GooglePlayProviderCard = ({ provider, saving, updateProvider }: Goo
     }
   };
 
-  const hasServiceAccount = provider.config_data.service_account_key;
+  const hasServiceAccount = provider.config_data.service_account_key && 
+    typeof provider.config_data.service_account_key === 'object' && 
+    provider.config_data.service_account_key.type === 'service_account';
   const packageName = provider.config_data.package_name;
 
   return (
@@ -102,29 +104,41 @@ export const GooglePlayProviderCard = ({ provider, saving, updateProvider }: Goo
           </div>
           
           {hasServiceAccount ? (
-            <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-              <div className="flex items-start gap-2">
-                <CheckCircle className="w-4 h-4 text-green-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-green-800">Service Account Connected</p>
-                  <p className="text-xs text-green-700">
-                    Project: {hasServiceAccount.project_id}
-                  </p>
-                  <p className="text-xs text-green-700">
-                    Email: {hasServiceAccount.client_email}
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-2 text-xs"
-                    onClick={() => {
-                      const newConfigData = { ...provider.config_data };
-                      delete newConfigData.service_account_key;
-                      updateProvider(provider.provider, { config_data: newConfigData });
-                    }}
-                  >
-                    Replace Service Account
-                  </Button>
+            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+              <div className="flex items-start gap-3">
+                <div className="p-1 bg-green-100 rounded-full">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-green-800 mb-1">Service Account Successfully Configured</p>
+                  <div className="space-y-1 mb-3">
+                    <p className="text-xs text-green-700">
+                      <span className="font-medium">Project ID:</span> {provider.config_data.service_account_key.project_id}
+                    </p>
+                    <p className="text-xs text-green-700">
+                      <span className="font-medium">Service Email:</span> {provider.config_data.service_account_key.client_email}
+                    </p>
+                    <p className="text-xs text-green-700">
+                      <span className="font-medium">Status:</span> Ready for production use
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7"
+                      onClick={() => {
+                        const newConfigData = { ...provider.config_data };
+                        delete newConfigData.service_account_key;
+                        updateProvider(provider.provider, { config_data: newConfigData });
+                      }}
+                    >
+                      Replace Key
+                    </Button>
+                    <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                      JSON Key Loaded
+                    </Badge>
+                  </div>
                 </div>
               </div>
             </div>

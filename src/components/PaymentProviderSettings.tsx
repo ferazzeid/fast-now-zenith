@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { CreditCard, Smartphone, Apple } from 'lucide-react';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
 import { SmartInlineLoading } from '@/components/SimpleLoadingComponents';
-import { PaymentProviderOverview } from '@/components/PaymentProviderOverview';
+// Removed PaymentProviderOverview import
 import { StripeProviderCard } from '@/components/StripeProviderCard';
 import { GooglePlayProviderCard } from '@/components/GooglePlayProviderCard';
 
@@ -123,9 +123,6 @@ export const PaymentProviderSettings = () => {
 
   return (
     <div className="space-y-6">
-      {/* Provider Overview */}
-      <PaymentProviderOverview providers={providers} />
-
       {/* Active Providers */}
       {activeProviders.length > 0 && (
         <div className="space-y-4">
