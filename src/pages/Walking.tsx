@@ -36,6 +36,7 @@ const Walking = () => {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWalkingHistory, setShowWalkingHistory] = useState(false);
+  const [realTimeElapsed, setRealTimeElapsed] = useState(0);
   const { toast } = useToast();
   const { 
     currentSession, 
@@ -68,10 +69,45 @@ const Walking = () => {
 
   const isRunning = !!currentSession;
 
-  // Timer is now calculated in real-time from the optimized hook
-  // No local state needed - everything comes from the database
+  // Real-time timer that updates every second when active
+  useEffect(() => {
+    if (!currentSession) {
+      setRealTimeElapsed(0);
+      return;
+    }
 
-  // Stats are now managed by WalkingStatsContext
+    // Initial calculation
+    const calculateElapsed = () => {
+      const now = new Date();
+      const startTime = new Date(currentSession.start_time);
+      let totalElapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+      
+      // Subtract total pause duration
+      let totalPauseTime = currentSession.total_pause_duration || 0;
+      
+      // If currently paused, add current pause duration
+      if (currentSession.session_state === 'paused' && currentSession.pause_start_time) {
+        const currentPauseDuration = Math.floor((now.getTime() - new Date(currentSession.pause_start_time).getTime()) / 1000);
+        totalPauseTime += currentPauseDuration;
+      }
+      
+      return Math.max(0, totalElapsed - totalPauseTime);
+    };
+
+    setRealTimeElapsed(calculateElapsed());
+
+    // Only update every second if not paused
+    if (currentSession.session_state !== 'paused') {
+      const interval = setInterval(() => {
+        setRealTimeElapsed(calculateElapsed());
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [currentSession, currentSession?.session_state, currentSession?.start_time, currentSession?.total_pause_duration, currentSession?.pause_start_time]);
+
+  // Use real-time elapsed time for display
+  const displayElapsedTime = currentSession ? realTimeElapsed : 0;
 
   const handleStart = async () => {
     try {
@@ -142,7 +178,7 @@ const Walking = () => {
       trackWalkingEvent('stop', selectedSpeed, elapsedTime);
       toast({
         title: "Walking completed!",
-        description: `Great job! You walked for ${formatTime(elapsedTime)}.`
+        description: `Great job! You walked for ${formatTime(displayElapsedTime)}.`
       });
     } catch (error) {
       console.error('❌ Failed to stop walking session:', error);
@@ -254,7 +290,7 @@ const Walking = () => {
         {/* Timer Display - No Loading State Blocking */}
         <div className="relative mb-6">
           <WalkingTimer
-            displayTime={formatTime(elapsedTime)}
+            displayTime={formatTime(displayElapsedTime)}
             isActive={!!currentSession}
             isPaused={isPaused}
             onStart={handleStart}
@@ -321,7 +357,7 @@ const Walking = () => {
           onOpenChange={setShowStopConfirm}
           onConfirm={handleStopConfirm}
           onManualDurationConfirm={handleManualDurationConfirm}
-          currentDuration={formatTime(elapsedTime)}
+          currentDuration={formatTime(displayElapsedTime)}
           durationMinutes={Math.floor(elapsedTime / 60)}
           calories={walkingStats.calories}
           distance={walkingStats.distance}
@@ -333,7 +369,7 @@ const Walking = () => {
           open={showCancelConfirm}
           onOpenChange={setShowCancelConfirm}
           onConfirm={handleCancelConfirm}
-          currentDuration={formatTime(elapsedTime)}
+          currentDuration={formatTime(displayElapsedTime)}
           calories={walkingStats.calories}
           distance={walkingStats.distance}
           units={profile?.units || 'imperial'}
