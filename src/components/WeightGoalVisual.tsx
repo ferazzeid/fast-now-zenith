@@ -22,7 +22,7 @@ export const WeightGoalVisual: React.FC<WeightGoalVisualProps> = ({
 
   return (
     <div className={cn(
-      "flex items-center justify-center bg-background text-foreground font-bold transition-all duration-300 rounded-lg border",
+      "flex items-center justify-center bg-accent text-accent-foreground font-bold transition-all duration-300 rounded-t-lg",
       sizeClasses[size],
       className
     )}>
