@@ -24,6 +24,7 @@ import { useRecentFoods } from '@/hooks/useRecentFoods';
 import { useFoodContext } from '@/hooks/useFoodContext';
 import { useAuth } from '@/hooks/useAuth';
 import { DatabaseErrorBoundary } from '@/components/enhanced/DatabaseErrorBoundary';
+import { truncateFoodName } from '@/utils/textUtils';
 
 interface UserFood {
   id: string;
@@ -874,7 +875,7 @@ export const FoodLibraryView = ({
           <div className="flex-1 min-w-0 pr-2">
             <div className="mb-0.5">
               <ClickableTooltip content={food.name}>
-                <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
+                <h3 className="text-sm font-semibold text-foreground">{truncateFoodName(food.name)}</h3>
               </ClickableTooltip>
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -1178,9 +1179,9 @@ export const FoodLibraryView = ({
                            {/* Template Food Info */}
                            <div className="flex-1 min-w-0">
                              <div className="mb-0">
-                                <ClickableTooltip content={food.name}>
-                                  <h3 className="text-sm font-semibold text-foreground truncate">{food.name}</h3>
-                                </ClickableTooltip>
+                                 <ClickableTooltip content={food.name}>
+                                   <h3 className="text-sm font-semibold text-foreground">{truncateFoodName(food.name)}</h3>
+                                 </ClickableTooltip>
                              </div>
                             <div className="flex items-center gap-1 text-xs text-muted-foreground">
                               <span className="font-medium">{Math.round(food.serving_size)}g</span>

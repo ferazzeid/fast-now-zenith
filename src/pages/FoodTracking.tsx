@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Edit, Trash2, Utensils, MoreVertical, Check, X, BookOpen, Lock, Crown, Save, Keyboard, Copy } from 'lucide-react';
 import { convertToGrams } from '@/utils/foodConversions';
+import { truncateFoodName } from '@/utils/textUtils';
 import { DirectVoiceFoodInput } from '@/components/DirectVoiceFoodInput';
 import { DirectPhotoCaptureButton } from '@/components/DirectPhotoCaptureButton';
 import { HistoryButton } from '@/components/HistoryButton';
@@ -437,10 +438,10 @@ const FoodTracking = () => {
         <div className="flex-1 min-w-0 relative">
           <div className="mb-0 flex items-center gap-2 min-w-0">
             <ClickableTooltip content={entry.name}>
-              <h3 className={`text-sm font-semibold truncate ${
+              <h3 className={`text-sm font-semibold ${
                 entry.consumed ? 'text-muted-foreground line-through' : 'text-foreground'
               }`}>
-                {entry.name}
+                {truncateFoodName(entry.name)}
               </h3>
             </ClickableTooltip>
           </div>
