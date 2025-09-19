@@ -50,6 +50,9 @@ const FoodTracking = () => {
   const { profile, updateProfile } = useProfile();
   const { hasAccess, hasPremiumFeatures, hasAIAccess, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
+  
+  // Debug access state
+  console.log('Access Debug:', { hasAccess, hasPremiumFeatures, hasAIAccess, isAdmin, isSubscriptionActive });
   const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, bulkMarkAsEaten, clearAllEntries, refreshFoodEntries, isBulkMarking } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
   
@@ -513,7 +516,8 @@ const FoodTracking = () => {
 
         {/* Action Buttons - Two Column Layout */}
         <div className="mb-6 grid grid-cols-2 gap-6">
-          {hasAccess ? (
+          {/* Debug: Force free mode for testing */}
+          {false ? (
             // Premium Mode: Keep existing buttons exactly as they are
             <>
               <div className="flex flex-col items-center gap-2">
