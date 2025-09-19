@@ -802,7 +802,7 @@ const Settings = () => {
                        </span>
                     )}
                     {access.isTrial && (
-                       <span className="inline-flex items-center px-2 py-1 font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-ui-xs">
+                       <span className="inline-flex items-center px-2 py-1 font-medium bg-info/10 text-info-foreground dark:bg-info/20 dark:text-info-foreground rounded-full text-ui-xs">
                          Trial ({access.daysRemaining}d)
                        </span>
                     )}

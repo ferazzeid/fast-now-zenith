@@ -133,7 +133,7 @@ export const useNotificationSystem = () => {
     if (type === 'subscription_upsell') return 'text-purple-500';
     if (priority === 'high') return 'text-red-500';
     if (priority === 'medium') return 'text-orange-500';
-    return 'text-blue-500';
+    return 'text-info-foreground';
   };
 
   return {

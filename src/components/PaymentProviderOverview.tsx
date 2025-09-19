@@ -65,7 +65,7 @@ export const PaymentProviderOverview = ({ providers }: PaymentProviderOverviewPr
             <div className="text-sm text-muted-foreground">Configured</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{totalPlatforms}</div>
+            <div className="text-2xl font-bold text-info-foreground">{totalPlatforms}</div>
             <div className="text-sm text-muted-foreground">Platforms Covered</div>
           </div>
         </div>

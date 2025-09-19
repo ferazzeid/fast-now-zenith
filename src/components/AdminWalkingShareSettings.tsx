@@ -110,7 +110,7 @@ export const AdminWalkingShareSettings = () => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Share2 className="w-5 h-5 text-blue-500" />
+          <Share2 className="w-5 h-5 text-accent-foreground" />
           Walking Share Messages
         </CardTitle>
         <CardDescription>
@@ -169,7 +169,7 @@ export const AdminWalkingShareSettings = () => {
             <p>📍 1.2 miles covered</p>
             <p>⚡ Fast pace</p>
             <p className="mt-2">{motivationalText}</p>
-            <p className="text-blue-600">{hashtags}</p>
+            <p className="text-accent-foreground">{hashtags}</p>
           </div>
         </div>
       </CardContent>

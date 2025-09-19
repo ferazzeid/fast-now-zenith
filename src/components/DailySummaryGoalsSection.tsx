@@ -84,9 +84,9 @@ export const DailySummaryGoalsSection = ({
         <div className="space-y-6">
           {/* Current Weight Goal Progress */}
           {goalCalculations.currentWeight && goalCalculations.goalWeight && (
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="p-4 bg-info/5 dark:bg-info/10 rounded-lg border border-info/20 dark:border-info/30">
               <div className="flex items-center justify-between mb-2">
-                <h4 className="font-medium text-blue-800 dark:text-blue-200">
+                <h4 className="font-medium text-info-foreground dark:text-info-foreground">
                   Weight Loss Goal
                 </h4>
                 <Badge variant="secondary">Active</Badge>

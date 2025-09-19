@@ -156,7 +156,7 @@ export const DailySummaryJourneyTimeline = ({
               
               <div className="text-center">
                 <p className="text-xs text-muted-foreground">Final Projected (90d)</p>
-                <p className="font-semibold text-blue-600">
+                <p className="font-semibold text-info-foreground">
                   {projectedFinalWeight.toFixed(1)} kg
                 </p>
                 <p className="text-xs text-muted-foreground">

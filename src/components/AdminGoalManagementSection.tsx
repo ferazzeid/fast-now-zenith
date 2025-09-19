@@ -107,7 +107,7 @@ export const AdminGoalManagementSection: React.FC = () => {
                       <div className="text-sm text-muted-foreground">
                         {motivator.category} • Order: {motivator.display_order}
                         {motivator.slug && (
-                          <span className="ml-2 text-blue-600">• /{motivator.slug}</span>
+                          <span className="ml-2 text-accent-foreground">• /{motivator.slug}</span>
                         )}
                       </div>
                     </div>

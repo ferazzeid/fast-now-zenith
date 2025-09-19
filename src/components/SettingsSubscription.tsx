@@ -141,16 +141,16 @@ export const SettingsSubscription = () => {
               if (!timeRemaining) return null;
               
               return (
-                <div className="flex items-center justify-between py-2 px-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
+                <div className="flex items-center justify-between py-2 px-3 bg-info/5 dark:bg-info/10 rounded-lg">
                   <div>
-                    <p className="text-label text-blue-800 dark:text-blue-200">Trial Status</p>
-                    <p className="text-ui-sm text-blue-600 dark:text-blue-400">
+                    <p className="text-label text-info-foreground dark:text-info-foreground">Trial Status</p>
+                    <p className="text-ui-sm text-info-foreground dark:text-info-foreground">
                       {timeRemaining.expired ? 'Trial expired' : timeRemaining.text}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-ui-xs text-blue-600 dark:text-blue-400">Days Left</p>
-                    <p className="text-ui-sm text-blue-800 dark:text-blue-200">
+                    <p className="text-ui-xs text-info-foreground dark:text-info-foreground">Days Left</p>
+                    <p className="text-ui-sm text-info-foreground dark:text-info-foreground">
                       {daysRemaining}
                     </p>
                   </div>

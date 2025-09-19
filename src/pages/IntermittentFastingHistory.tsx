@@ -30,7 +30,7 @@ const IntermittentFastingHistory = () => {
     
     // If it's in progress (fasting/eating) and it's today and the latest session, show as in progress
     if ((session.status === 'fasting' || session.status === 'eating') && isToday && isLatestInDay) {
-      return 'text-blue-600 dark:text-blue-400';
+      return 'text-info-foreground dark:text-info-foreground';
     }
     
     // Everything else is effectively canceled (past sessions that weren't completed, or non-latest sessions)

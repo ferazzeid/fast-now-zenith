@@ -51,22 +51,22 @@ export const TrialIndicator = () => {
     );
   }
 
-  const urgencyColor = daysLeft <= 1 ? 'yellow' : daysLeft <= 3 ? 'blue' : 'green';
+  const urgencyColor = daysLeft <= 1 ? 'yellow' : daysLeft <= 3 ? 'info' : 'green';
   const colorClasses = {
     yellow: 'bg-yellow-50 border-yellow-200 dark:bg-yellow-950 dark:border-yellow-800',
-    blue: 'bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800',
+    info: 'bg-info/5 border-info/20 dark:bg-info/10 dark:border-info/30',
     green: 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800'
   };
   
   const textColorClasses = {
     yellow: 'text-yellow-800 dark:text-yellow-200',
-    blue: 'text-blue-800 dark:text-blue-200', 
+    info: 'text-info-foreground dark:text-info-foreground', 
     green: 'text-green-800 dark:text-green-200'
   };
 
   const subTextColorClasses = {
     yellow: 'text-yellow-600 dark:text-yellow-400',
-    blue: 'text-blue-600 dark:text-blue-400',
+    info: 'text-info-foreground dark:text-info-foreground',
     green: 'text-green-600 dark:text-green-400'
   };
 

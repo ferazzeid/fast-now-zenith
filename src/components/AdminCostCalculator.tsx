@@ -174,9 +174,9 @@ export function AdminCostCalculator() {
             </div>
           </div>
 
-          <div className="p-2 bg-blue-500/5 rounded border border-blue-500/20">
+          <div className="p-2 bg-info/5 rounded border border-info/20">
             <div className="text-xs font-medium mb-1">Monthly Cost</div>
-            <div className="text-sm font-bold text-blue-600">
+            <div className="text-sm font-bold text-info-foreground">
               ${calculations.monthlyCost.toFixed(2)}
             </div>
           </div>

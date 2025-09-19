@@ -199,8 +199,8 @@ export const UnifiedSubscriptionStatus: React.FC = () => {
         {renderPlatformSpecificActions()}
 
         {platform === 'android' && !isBillingAvailable && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="p-3 bg-info/5 border border-info/20 rounded-lg">
+            <p className="text-sm text-info-foreground">
               Install our app from Google Play Store to use native billing.
             </p>
           </div>

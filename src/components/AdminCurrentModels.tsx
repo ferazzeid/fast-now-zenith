@@ -29,7 +29,7 @@ const getTierColor = (type: ModelUsage['type']) => {
     case 'reasoning': return 'bg-purple-500/10 text-purple-700 border-purple-500/20';
     case 'efficient': return 'bg-green-500/10 text-green-700 border-green-500/20';
     case 'legacy': return 'bg-amber-500/10 text-amber-700 border-amber-500/20';
-    case 'audio': return 'bg-blue-500/10 text-blue-700 border-blue-500/20';
+    case 'audio': return 'bg-info/10 text-info-foreground border-info/20';
   }
 };
 

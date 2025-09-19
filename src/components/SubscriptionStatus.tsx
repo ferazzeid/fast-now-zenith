@@ -115,10 +115,10 @@ export const SubscriptionStatus: React.FC = () => {
             {isTrial && daysRemaining && (
               <div className="p-4 border rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <p className="font-medium text-blue-800 dark:text-blue-200">Trial Period</p>
+                  <Clock className="w-4 h-4 text-info-foreground dark:text-info-foreground" />
+                  <p className="font-medium text-info-foreground dark:text-info-foreground">Trial Period</p>
                 </div>
-                <p className="text-sm text-blue-600 dark:text-blue-400">
+                <p className="text-sm text-info-foreground dark:text-info-foreground">
                   Your free trial will end in {daysRemaining} day{daysRemaining !== 1 ? 's' : ''}. 
                   Upgrade to continue enjoying premium features.
                 </p>

@@ -292,7 +292,7 @@ export const ProgressiveImageUpload = ({
         <div className="w-full bg-muted rounded-full h-2">
           <div 
             className={`h-2 rounded-full transition-all duration-1000 ${
-              currentState === 'uploading' ? 'w-1/3 bg-blue-500' :
+              currentState === 'uploading' ? 'w-1/3 bg-info' :
               currentState === 'uploaded' ? 'w-2/3 bg-green-500' :
               'w-full bg-purple-500'
             }`} 

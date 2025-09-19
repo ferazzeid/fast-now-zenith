@@ -228,8 +228,8 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
 
         {/* Smart Recalculation Info */}
         {hasPerHundredGramData && (
-          <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-            <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200 text-sm">
+          <div className="p-3 bg-info/5 dark:bg-info/10 border border-info/20 dark:border-info/30 rounded-lg">
+            <div className="flex items-center gap-2 text-info-foreground dark:text-info-foreground text-sm">
               <Info className="w-4 h-4" />
               <span className="font-medium">Smart Nutrition</span>
               {(formData.calories_manually_set || formData.carbs_manually_set) && (
@@ -237,14 +237,14 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
                   size="sm"
                   variant="outline"
                   onClick={handleResetToCalculated}
-                  className="ml-auto h-6 px-2 text-xs border-blue-300"
+                  className="ml-auto h-6 px-2 text-xs border-info/30"
                 >
                   <RotateCcw className="w-3 h-3 mr-1" />
                   Reset to Calculated
                 </Button>
               )}
             </div>
-            <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+            <div className="text-xs text-info-foreground dark:text-info-foreground mt-1">
               {(formData.calories_manually_set || formData.carbs_manually_set) 
                 ? "Manual values - change serving size to auto-recalculate"
                 : "Values will auto-recalculate when you change the serving size"

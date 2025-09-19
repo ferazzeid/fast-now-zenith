@@ -107,13 +107,13 @@ export const OptimisticManualActivityDemo: React.FC = () => {
             <div 
               key={burn.id} 
               className={`flex items-center justify-between py-2 px-3 rounded border ${
-                burn.id.startsWith('temp-') ? 'bg-blue-50 border-blue-200 opacity-75' : 'bg-background'
+                burn.id.startsWith('temp-') ? 'bg-info/5 border-info/20 opacity-75' : 'bg-background'
               }`}
             >
               <div className="flex-1">
                 <span className="text-sm">{burn.activity_name}</span>
                 {burn.id.startsWith('temp-') && (
-                  <span className="text-xs text-blue-600 ml-2">(syncing...)</span>
+                  <span className="text-xs text-info-foreground ml-2">(syncing...)</span>
                 )}
               </div>
               <div className="flex items-center gap-2">

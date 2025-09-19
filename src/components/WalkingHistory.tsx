@@ -221,7 +221,7 @@ export const WalkingHistory = () => {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-6 w-6 p-1 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                      className="h-6 w-6 p-1 text-accent-foreground hover:bg-accent/5 hover:text-accent-foreground"
                       onClick={() => setEditingSession(session)}
                     >
                       <Edit3 className="w-3 h-3" />

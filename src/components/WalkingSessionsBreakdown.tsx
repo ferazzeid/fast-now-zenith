@@ -355,14 +355,14 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
             <div className="space-y-2">
               <div className="text-xs font-medium text-muted-foreground">External Activities:</div>
               {manualBurns.map((burn, index) => (
-                <Card key={burn.id} className="p-2 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                <Card key={burn.id} className="p-2 bg-info/5 dark:bg-info/10 border-info/20 dark:border-info/30">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <Plus className="w-3 h-3 text-blue-600" />
-                      <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                      <Plus className="w-3 h-3 text-info-foreground" />
+                      <span className="text-xs font-medium text-info-foreground dark:text-info-foreground">
                         {burn.activity_name}
                       </span>
-                      <span className="text-xs text-blue-600 dark:text-blue-400">
+                      <span className="text-xs text-info-foreground dark:text-info-foreground">
                         {new Date(burn.created_at).toLocaleTimeString('en-US', {
                           hour: 'numeric',
                           minute: '2-digit',
@@ -371,7 +371,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                       </span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="text-xs font-bold text-blue-700 dark:text-blue-300">
+                      <div className="text-xs font-bold text-info-foreground dark:text-info-foreground">
                         {burn.calories_burned} cal
                       </div>
                       <Button

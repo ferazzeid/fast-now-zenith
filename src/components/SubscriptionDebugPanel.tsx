@@ -65,7 +65,7 @@ export const SubscriptionDebugPanel = () => {
                     </div>
                     <div className="p-2 bg-gray-50 rounded">
                       <div className="font-medium">Has Access</div>
-                      <div className="text-blue-600">{String(unified.hasAccess)}</div>
+                      <div className="text-info-foreground">{String(unified.hasAccess)}</div>
                     </div>
                     <div className="p-2 bg-gray-50 rounded">
                       <div className="font-medium">Is Trial</div>

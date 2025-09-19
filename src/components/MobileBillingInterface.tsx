@@ -159,8 +159,8 @@ export const MobileBillingInterface: React.FC = () => {
         {renderPlatformSpecificContent()}
         
         {platform === 'android' && !isAvailable && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="mt-4 p-3 bg-info/5 border border-info/20 rounded-lg">
+            <p className="text-sm text-info-foreground">
               <strong>Note:</strong> To use Google Play Billing, download our app from the Google Play Store. 
               Web versions cannot access native billing APIs.
             </p>

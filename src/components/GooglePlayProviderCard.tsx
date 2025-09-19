@@ -191,9 +191,9 @@ export const GooglePlayProviderCard = ({ provider, saving, updateProvider }: Goo
             </div>
           )}
           
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm font-medium text-blue-900 mb-2">How to get your Service Account JSON:</p>
-            <ol className="text-xs text-blue-800 space-y-1 list-decimal list-inside">
+          <div className="p-3 bg-info/5 rounded-lg border border-info/20">
+            <p className="text-sm font-medium text-info-foreground mb-2">How to get your Service Account JSON:</p>
+            <ol className="text-xs text-info-foreground space-y-1 list-decimal list-inside">
               <li>Go to Google Cloud Console → IAM & Admin → Service Accounts</li>
               <li>Select your project or create a new service account</li>
               <li>Click "Keys" tab → "Add Key" → "Create new key"</li>

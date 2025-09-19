@@ -62,12 +62,12 @@ export const SimpleSubscriptionStatus: React.FC = () => {
 
       {/* Trial Warning */}
       {isTrial && daysRemaining && (
-        <div className="p-3 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <div className="p-3 bg-info/5 dark:bg-info/10 border border-info/20 dark:border-info/30 rounded-lg">
           <div className="flex items-center gap-2 mb-1">
-            <Clock className="w-3 h-3 text-blue-600" />
-            <p className="font-medium text-xs text-blue-800 dark:text-blue-200">Trial Ending Soon</p>
+            <Clock className="w-3 h-3 text-info-foreground" />
+            <p className="font-medium text-xs text-info-foreground dark:text-info-foreground">Trial Ending Soon</p>
           </div>
-          <p className="text-xs text-blue-600 dark:text-blue-400">
+          <p className="text-xs text-info-foreground dark:text-info-foreground">
             {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining. Upgrade to keep premium features.
           </p>
         </div>

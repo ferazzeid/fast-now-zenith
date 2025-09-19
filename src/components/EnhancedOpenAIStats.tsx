@@ -253,11 +253,11 @@ export const EnhancedOpenAIStats: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-4 p-2 bg-blue-50 border border-blue-200 rounded">
-              <div className="text-xs text-blue-600 mb-1">Today</div>
+            <div className="mt-4 p-2 bg-info/5 border border-info/20 rounded">
+              <div className="text-xs text-info-foreground mb-1">Today</div>
               <div className="flex justify-between text-sm">
-                <span className="text-blue-700">{stats?.today.totalRequests} requests</span>
-                <span className="font-semibold text-blue-800">${stats?.today.totalCost.toFixed(3)}</span>
+                <span className="text-info-foreground">{stats?.today.totalRequests} requests</span>
+                <span className="font-semibold text-info-foreground">${stats?.today.totalCost.toFixed(3)}</span>
               </div>
             </div>
 
