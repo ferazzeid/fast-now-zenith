@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -15,6 +16,8 @@ interface EmailAuthFormProps {
   handleSignUp: (e: React.FormEvent) => Promise<void>;
   isLoading: boolean;
   showResetPassword?: boolean;
+  rememberMe?: boolean;
+  setRememberMe?: (rememberMe: boolean) => void;
 }
 
 export const EmailAuthForm = ({
@@ -27,7 +30,9 @@ export const EmailAuthForm = ({
   handleSignIn,
   handleSignUp,
   isLoading,
-  showResetPassword = false
+  showResetPassword = false,
+  rememberMe = false,
+  setRememberMe
 }: EmailAuthFormProps) => {
   return (
     <>
@@ -75,6 +80,22 @@ export const EmailAuthForm = ({
             disabled={isLoading}
           />
         </div>
+        {!isSignUp && setRememberMe && (
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="remember-me"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+              disabled={isLoading}
+            />
+            <Label 
+              htmlFor="remember-me" 
+              className="text-sm text-muted-foreground cursor-pointer"
+            >
+              Remember me
+            </Label>
+          </div>
+        )}
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? (
             <>

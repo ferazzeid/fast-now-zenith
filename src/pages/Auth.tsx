@@ -21,6 +21,7 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [emailFormOpen, setEmailFormOpen] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   
   const { execute: executeAuth, isLoading } = useStandardizedLoading();
   
@@ -58,6 +59,11 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     await executeAuth(async () => {
+      if (rememberMe) {
+        localStorage.setItem('rememberMe', 'true');
+      } else {
+        localStorage.removeItem('rememberMe');
+      }
       await signIn(email, password);
     });
   };
@@ -165,6 +171,8 @@ const Auth = () => {
                     handleSignIn={handleSignIn}
                     handleSignUp={handleSignUp}
                     isLoading={isLoading}
+                    rememberMe={rememberMe}
+                    setRememberMe={setRememberMe}
                   />
                 </CollapsibleContent>
               </Collapsible>
@@ -180,6 +188,8 @@ const Auth = () => {
                 handleSignUp={handleSignUp}
                 isLoading={isLoading}
                 showResetPassword={true}
+                rememberMe={rememberMe}
+                setRememberMe={setRememberMe}
               />
             )}
 
