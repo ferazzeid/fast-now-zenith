@@ -15,7 +15,7 @@ type HeightUnit = 'cm' | 'ft' | 'in';
 export const EnhancedHeightSelector = ({ value, onChange, className }: HeightSelectorProps) => {
   const { profile, updateProfile } = useProfile();
   const [inputValue, setInputValue] = useState(value);
-  const [unit, setUnit] = useState<HeightUnit>(profile?.units === 'metric' ? 'cm' : 'ft');
+  const [unit, setUnit] = useState<HeightUnit>('cm'); // Always default to metric
 
   useEffect(() => {
     setInputValue(value);
@@ -130,30 +130,28 @@ export const EnhancedHeightSelector = ({ value, onChange, className }: HeightSel
       <Label htmlFor="height" className="text-sm font-medium mb-2 block">
         Height
       </Label>
-      <div className="relative">
+      <div className="flex items-center gap-2">
         <Input
           id="height"
           type="number"
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          placeholder={placeholder}
+          placeholder="0"
           min={min}
           max={max}
           step={step}
-          className="pr-20"
+          className="w-24 h-12 text-center text-lg font-medium"
         />
-        <div className="absolute right-1 top-1 bottom-1">
-          <Select value={unit} onValueChange={handleUnitChange}>
-            <SelectTrigger className="w-16 h-8 border-0 bg-muted/30 text-xs font-medium">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border min-w-16">
-              <SelectItem value="cm" className="text-xs">cm</SelectItem>
-              <SelectItem value="ft" className="text-xs">ft</SelectItem>
-              <SelectItem value="in" className="text-xs">in</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={unit} onValueChange={handleUnitChange}>
+          <SelectTrigger className="w-16 h-12 border bg-muted/30 text-sm font-medium">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-popover border min-w-16 z-50">
+            <SelectItem value="cm" className="text-sm">cm</SelectItem>
+            <SelectItem value="ft" className="text-sm">ft</SelectItem>
+            <SelectItem value="in" className="text-sm">in</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

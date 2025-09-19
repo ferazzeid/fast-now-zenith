@@ -213,39 +213,39 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
 
       case 'age':
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Age</label>
+          <div className="flex justify-center">
+            <div className="flex items-center gap-2">
               <Input
                 type="number"
                 value={typeof tempValue === 'string' ? tempValue : ''}
                 onChange={(e) => setTempValue(e.target.value)}
-                placeholder="Enter age (13-120)"
+                placeholder="0"
                 min="13"
                 max="120"
+                className="w-24 h-12 text-center text-lg font-medium"
               />
+              <div className="w-16 h-12 flex items-center justify-center bg-muted/30 border rounded-md text-sm font-medium">
+                years
+              </div>
             </div>
           </div>
         );
 
       case 'sex':
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Biological Sex</label>
-              <Select 
-                value={typeof tempValue === 'string' ? tempValue : ''} 
-                onValueChange={setTempValue}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select sex" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border border-subtle shadow-lg z-50">
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex justify-center">
+            <Select 
+              value={typeof tempValue === 'string' ? tempValue : ''} 
+              onValueChange={setTempValue}
+            >
+              <SelectTrigger className="w-48 h-12 text-lg">
+                <SelectValue placeholder="Select sex" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border border-subtle shadow-lg z-50">
+                <SelectItem value="male" className="text-lg">Male</SelectItem>
+                <SelectItem value="female" className="text-lg">Female</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         );
 
@@ -312,58 +312,47 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
         ];
 
         return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Activity Level</label>
-              <p className="text-xs text-muted-foreground">
-                Choose the option that best describes your typical weekly activity
-              </p>
-            </div>
-            <div className="space-y-3">
-              {activityOptions.map((option) => {
-                const calorieAddition = getCalorieAddition(option.value);
-                const isSelected = tempValue === option.value;
-                
-                return (
-                  <div
-                    key={option.value}
-                    onClick={() => setTempValue(option.value)}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors ${
-                      isSelected 
-                        ? 'border-primary bg-primary/5' 
-                        : 'border-subtle hover:bg-muted/50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">
-                          {option.title}
-                          {calorieAddition > 0 && (
-                            <span className="ml-2 text-primary font-semibold">
-                              +{calorieAddition} cal/day
-                            </span>
-                          )}
-                          {calorieAddition === 0 && (
-                            <span className="ml-2 text-muted-foreground text-xs">
-                              Base Rate
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {option.description}
-                        </div>
-                        <div className="text-xs text-muted-foreground/80 mt-1 italic">
-                          Examples: {option.example}
-                        </div>
+          <div className="space-y-3">
+            {activityOptions.map((option) => {
+              const calorieAddition = getCalorieAddition(option.value);
+              const isSelected = tempValue === option.value;
+              
+              return (
+                <div
+                  key={option.value}
+                  onClick={() => setTempValue(option.value)}
+                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                    isSelected 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-subtle hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">
+                        {option.title}
+                        {calorieAddition > 0 && (
+                          <span className="ml-2 text-primary font-semibold">
+                            +{calorieAddition} cal/day
+                          </span>
+                        )}
+                        {calorieAddition === 0 && (
+                          <span className="ml-2 text-muted-foreground text-xs">
+                            Base Rate
+                          </span>
+                        )}
                       </div>
-                      {isSelected && (
-                        <div className="w-4 h-4 rounded-full bg-primary flex-shrink-0 mt-0.5" />
-                      )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {option.description}
+                      </div>
                     </div>
+                    {isSelected && (
+                      <div className="w-4 h-4 rounded-full bg-primary flex-shrink-0" />
+                    )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         );
 

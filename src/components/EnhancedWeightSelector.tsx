@@ -15,7 +15,7 @@ type WeightUnit = 'kg' | 'lb';
 export const EnhancedWeightSelector = ({ value, onChange, className }: WeightSelectorProps) => {
   const { profile, updateProfile } = useProfile();
   const [inputValue, setInputValue] = useState(value);
-  const [unit, setUnit] = useState<WeightUnit>(profile?.units === 'metric' ? 'kg' : 'lb');
+  const [unit, setUnit] = useState<WeightUnit>('kg'); // Always default to metric
 
   useEffect(() => {
     setInputValue(value);
@@ -87,29 +87,27 @@ export const EnhancedWeightSelector = ({ value, onChange, className }: WeightSel
       <Label htmlFor="weight" className="text-sm font-medium mb-2 block">
         Weight
       </Label>
-      <div className="relative">
+      <div className="flex items-center gap-2">
         <Input
           id="weight"
           type="number"
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          placeholder={`Enter weight in ${unit}`}
+          placeholder="0"
           min={min}
           max={max}
           step={step}
-          className="pr-20"
+          className="w-24 h-12 text-center text-lg font-medium"
         />
-        <div className="absolute right-1 top-1 bottom-1">
-          <Select value={unit} onValueChange={handleUnitChange}>
-            <SelectTrigger className="w-16 h-8 border-0 bg-muted/30 text-xs font-medium">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border min-w-16">
-              <SelectItem value="kg" className="text-xs">kg</SelectItem>
-              <SelectItem value="lb" className="text-xs">lb</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        <Select value={unit} onValueChange={handleUnitChange}>
+          <SelectTrigger className="w-16 h-12 border bg-muted/30 text-sm font-medium">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-popover border min-w-16 z-50">
+            <SelectItem value="kg" className="text-sm">kg</SelectItem>
+            <SelectItem value="lb" className="text-sm">lb</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
