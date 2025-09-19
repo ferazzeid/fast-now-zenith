@@ -109,9 +109,9 @@ export const useFastingSession = () => {
 
       if (activeIFSession) {
         toast({
-          title: "Cannot Start Extended Fast",
-          description: "You have an active intermittent fasting session. Please complete it first.",
-          variant: "destructive",
+          title: "Fast Already in Progress",
+          description: "You already have an intermittent fasting session running. Please finish it before starting an extended fast.",
+          variant: "default",
         });
         throw new Error("Active intermittent fasting session found");
       }

@@ -121,7 +121,7 @@ export const useIntermittentFasting = () => {
         .maybeSingle();
 
       if (activeExtendedSession) {
-        throw new Error('You have an active extended fasting session. Please complete it first.');
+        throw new Error('You already have an extended fast running. Please finish it before starting intermittent fasting.');
       }
 
       const sessionDate = sessionData.session_date || new Date();
@@ -175,9 +175,9 @@ export const useIntermittentFasting = () => {
     },
     onError: (error) => {
       toast({
-        title: "Error starting IF session",
+        title: "Unable to Start Session",
         description: error instanceof Error ? error.message : "Please try again.",
-        variant: "destructive"
+        variant: "default"
       });
     }
   });
@@ -196,7 +196,7 @@ export const useIntermittentFasting = () => {
         .maybeSingle();
 
       if (activeExtendedSession) {
-        throw new Error('You have an active extended fasting session. Please complete it first.');
+        throw new Error('You already have an extended fast running. Please finish it before starting intermittent fasting.');
       }
 
       const { data, error } = await supabase
@@ -222,9 +222,9 @@ export const useIntermittentFasting = () => {
     },
     onError: (error) => {
       toast({
-        title: "Error starting fasting window",
+        title: "Unable to Start Fasting",
         description: error instanceof Error ? error.message : "Please try again.",
-        variant: "destructive"
+        variant: "default"
       });
     }
   });
