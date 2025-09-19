@@ -313,7 +313,7 @@ export const useIntermittentFasting = () => {
         .maybeSingle();
       
       if (error) throw error;
-      return data?.setting_value === 'true';
+      return data?.setting_value === 'true' || (data?.setting_value as any) === true;
     },
     staleTime: 10 * 60 * 1000 // 10 minutes
   });

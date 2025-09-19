@@ -302,7 +302,7 @@ export const useOptimizedWalkingSession = () => {
           .from('walking_sessions')
           .select('*')
           .eq('user_id', user.id)
-          .in('status', ['active', 'paused'])
+          .in('session_state', ['active', 'paused'])
           .order('start_time', { ascending: false })
           .limit(1)
           .maybeSingle();

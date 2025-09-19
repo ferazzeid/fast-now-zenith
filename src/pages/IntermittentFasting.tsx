@@ -77,13 +77,11 @@ const IntermittentFasting: React.FC = () => {
         
         <div className="space-y-6 mt-6">
           {/* Fasting Mode Toggle - aligned with manual restart toggle */}
-          <div className="flex justify-end">
-            <FastingModeToggle
-              currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
-              onModeChange={switchMode}
-              showIF={ifEnabled !== false} // Show by default unless explicitly disabled
-            />
-          </div>
+          <FastingModeToggle
+            currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
+            onModeChange={switchMode}
+            showIF={ifEnabled === true} // Show only when explicitly enabled
+          />
           
           <IntermittentFastingTimer showSlideshow={enable_if_slideshow} />
         </div>
