@@ -7,6 +7,9 @@ import { useStandardizedLoading } from "@/hooks/useStandardizedLoading";
 import { AdminHealthCheck } from "@/components/AdminHealthCheck";
 import { AdminCurrentModels } from "@/components/AdminCurrentModels";
 import { AdminModelSelector } from "@/components/AdminModelSelector";
+import { AdminModelTester } from "@/components/AdminModelTester";
+import { AdminCostCalculator } from "@/components/AdminCostCalculator";
+import { AdminModelComparison } from "@/components/AdminModelComparison";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,8 +114,20 @@ export default function AdminAI() {
           <AdminModelSelector />
         </section>
 
+        <section aria-label="Cost calculator">
+          <AdminCostCalculator />
+        </section>
+
+        <section aria-label="Model testing">
+          <AdminModelTester />
+        </section>
+
         <section aria-label="Current OpenAI models">
           <AdminCurrentModels />
+        </section>
+
+        <section aria-label="Model comparison">
+          <AdminModelComparison />
         </section>
 
         <section aria-label="AI request limits">
