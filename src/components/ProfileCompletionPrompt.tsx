@@ -126,9 +126,9 @@ export const ProfileCompletionPrompt = ({
           <Button 
             type="submit" 
             variant="action-primary"
-            size="action-secondary"
+            size="action-main"
             disabled={loading} 
-            className="flex-1"
+            className="flex-1 shadow-lg"
           >
             {loading ? "Saving..." : "Save"}
           </Button>
