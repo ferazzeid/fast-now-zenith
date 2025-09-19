@@ -73,18 +73,18 @@ const IntermittentFasting: React.FC = () => {
             authorTooltipContent="Track your intermittent fasting sessions with precise timing and progress visualization."
             className="pr-24" // Extra padding to make room for toggle
           />
-          
-          {/* Toggle positioned to not conflict with history button */}
-          <div className="absolute top-4 right-16 z-20">
+        </div>
+        
+        <div className="space-y-6 mt-6">
+          {/* Fasting Mode Toggle - aligned with manual restart toggle */}
+          <div className="flex justify-end">
             <FastingModeToggle
               currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
               onModeChange={switchMode}
               showIF={ifEnabled !== false} // Show by default unless explicitly disabled
             />
           </div>
-        </div>
-        
-        <div className="space-y-6 mt-6">
+          
           <IntermittentFastingTimer showSlideshow={enable_if_slideshow} />
         </div>
       </div>
