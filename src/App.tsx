@@ -522,30 +522,30 @@ const App = () => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <RealtimeDeficitProvider>
-          <HookConsistencyBoundary>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              
-              <ThemeProvider>
-                <SimpleWalkingStatsProvider>
-                  <NavigationPreferencesProvider>
-                    <MiniTimerProvider>
-                      <Router>
+        <HookConsistencyBoundary>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            
+            <ThemeProvider>
+              <SimpleWalkingStatsProvider>
+                <NavigationPreferencesProvider>
+                  <MiniTimerProvider>
+                    <Router>
+                      <RealtimeDeficitProvider>
                         <NavigationGuard>
                           <AsyncErrorBoundary>
                             <AppContent />
                           </AsyncErrorBoundary>
                         </NavigationGuard>
-                      </Router>
-                    </MiniTimerProvider>
-                  </NavigationPreferencesProvider>
-                </SimpleWalkingStatsProvider>
-              </ThemeProvider>
-            </TooltipProvider>
-          </HookConsistencyBoundary>
-        </RealtimeDeficitProvider>
+                      </RealtimeDeficitProvider>
+                    </Router>
+                  </MiniTimerProvider>
+                </NavigationPreferencesProvider>
+              </SimpleWalkingStatsProvider>
+            </ThemeProvider>
+          </TooltipProvider>
+        </HookConsistencyBoundary>
       </QueryClientProvider>
     </CriticalErrorBoundary>
   );
