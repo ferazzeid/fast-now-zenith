@@ -286,25 +286,6 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
           </div>
         </Card>
 
-        {/* Fasting Mode Toggle - E/I Toggle positioned at same level */}
-        {ifEnabled && (
-          <Card className="p-3">
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <div className="text-xs text-muted-foreground">
-                  Fasting mode
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <FastingModeToggle
-                  currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
-                  onModeChange={switchMode}
-                  showIF={true}
-                />
-              </div>
-            </div>
-          </Card>
-        )}
 
 
         {/* Schedule Selection Modal */}
