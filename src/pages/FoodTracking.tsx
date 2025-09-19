@@ -30,6 +30,7 @@ import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
 import { AccessGate } from '@/components/AccessGate';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { SmartImage } from '@/components/SmartImage';
+import { ManualFoodEntryModal } from '@/components/ManualFoodEntryModal';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -39,6 +40,7 @@ const FoodTracking = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showClearAllDialog, setShowClearAllDialog] = useState(false);
   const [showSaveToTemplateDialog, setShowSaveToTemplateDialog] = useState<boolean | any>(false);
+  const [showManualEntryModal, setShowManualEntryModal] = useState(false);
 
   const { user } = useAuth();
   const { toast } = useToast();
@@ -59,6 +61,7 @@ const FoodTracking = () => {
       setEditingEntry(null);
       setShowClearAllDialog(false);
       setShowSaveToTemplateDialog(null);
+      setShowManualEntryModal(false);
     }
   }, [location.pathname]);
 
@@ -165,8 +168,17 @@ const FoodTracking = () => {
   };
 
   const handleManualInput = () => {
-    // Temporary placeholder - will be implemented in Step 2
-    console.log('Manual input button clicked');
+    setShowManualEntryModal(true);
+  };
+
+  const handleManualFoodAdded = async (foodEntry: any) => {
+    try {
+      await addFoodEntry(foodEntry);
+      // Toast is handled by the modal
+    } catch (error) {
+      console.error('Error adding manual food entry:', error);
+      throw error; // Let the modal handle the error
+    }
   };
 
 
@@ -688,6 +700,13 @@ const FoodTracking = () => {
                 }
                 confirmText="Save to Template"
                 cancelText="Cancel"
+              />
+
+              {/* Manual Food Entry Modal */}
+              <ManualFoodEntryModal
+                isOpen={showManualEntryModal}
+                onClose={() => setShowManualEntryModal(false)}
+                onFoodAdded={handleManualFoodAdded}
               />
             </TooltipProvider>
           </div>
