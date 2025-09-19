@@ -43,6 +43,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     startFastingWindow,
     endFastingWindow,
     endEatingWindow,
+    cancelFast,
     loading,
     ifEnabled
   } = useIntermittentFasting();
@@ -57,6 +58,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   const [eatingElapsed, setEatingElapsed] = useState(0);
   const [showScheduleSelector, setShowScheduleSelector] = useState(false);
   const [showEndFastConfirmation, setShowEndFastConfirmation] = useState(false);
+  const [showCancelFastConfirmation, setShowCancelFastConfirmation] = useState(false);
   
   // Auto-restart and schedule memory
   const [autoRestart, setAutoRestart] = useState(false);
@@ -181,6 +183,10 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     setShowEndFastConfirmation(true);
   };
 
+  const handleCancelFast = () => {
+    setShowCancelFastConfirmation(true);
+  };
+
   const confirmEndFast = async () => {
     setShowEndFastConfirmation(false);
     if (!todaySession?.id) return;
@@ -188,6 +194,16 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
       await endEatingWindow(todaySession.id);
     } catch (error) {
       console.error('Failed to end fast:', error);
+    }
+  };
+
+  const confirmCancelFast = async () => {
+    setShowCancelFastConfirmation(false);
+    if (!todaySession?.id) return;
+    try {
+      await cancelFast(todaySession.id);
+    } catch (error) {
+      console.error('Failed to cancel fast:', error);
     }
   };
 
@@ -485,7 +501,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
       </Card>
 
       {/* Control buttons */}
-      <div className="space-y-4">
+      <div className="space-y-3">
           <Button 
             onClick={handleEndFast}
             variant="action-primary"
@@ -493,7 +509,17 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             className="w-full"
           >
             <Square className="w-4 h-4 mr-2" />
-            End Fast
+            Complete Fast
+          </Button>
+          
+          <Button 
+            onClick={handleCancelFast}
+            variant="outline"
+            size="action-main"
+            className="w-full"
+          >
+            <X className="w-4 h-4 mr-2" />
+            Cancel Fast
           </Button>
       </div>
       
@@ -502,10 +528,21 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
         isOpen={showEndFastConfirmation}
         onClose={() => setShowEndFastConfirmation(false)}
         onConfirm={confirmEndFast}
-        title="End Fast?"
-        description="Are you sure you want to end your intermittent fasting session? This will complete your current cycle."
-        confirmText="End Fast"
-        cancelText="Continue"
+        title="Complete Fast?"
+        description="Are you sure you want to complete your intermittent fasting session? This will mark your cycle as successfully completed."
+        confirmText="Complete Fast"
+        cancelText="Continue Fasting"
+      />
+
+      {/* Cancel Fast Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showCancelFastConfirmation}
+        onClose={() => setShowCancelFastConfirmation(false)}
+        onConfirm={confirmCancelFast}
+        title="Cancel Fast?"
+        description="Are you sure you want to cancel your intermittent fasting session? This will end your fast without completion."
+        confirmText="Cancel Fast"
+        cancelText="Continue Fasting"
       />
     </div>
   );

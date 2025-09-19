@@ -58,7 +58,7 @@ export const useIntermittentFasting = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Query for today's IF session
+  // Query for today's IF session - get the most recent active session for today
   const todaySessionQuery = useQuery({
     queryKey: todaySessionQueryKey(user?.id || null),
     queryFn: async (): Promise<IntermittentFastingSession | null> => {
@@ -71,6 +71,8 @@ export const useIntermittentFasting = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('session_date', today)
+        .in('status', ['fasting', 'eating']) // Only get active sessions
+        .order('created_at', { ascending: false })
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
@@ -127,21 +129,17 @@ export const useIntermittentFasting = () => {
       const sessionDate = sessionData.session_date || new Date();
       const dateString = sessionDate.toISOString().split('T')[0];
 
-      // Check if session already exists for this date and clean it up if needed
-      const { data: existingSession } = await supabase
+      // Check if there's already an active session for today
+      const { data: activeSession } = await supabase
         .from('intermittent_fasting_sessions')
         .select('id, status')
         .eq('user_id', user.id)
         .eq('session_date', dateString)
+        .in('status', ['fasting', 'eating'])
         .maybeSingle();
 
-      if (existingSession) {
-        // Delete the existing session to start fresh
-        await supabase
-          .from('intermittent_fasting_sessions')
-          .delete()
-          .eq('id', existingSession.id)
-          .eq('user_id', user.id);
+      if (activeSession) {
+        throw new Error('You already have an active intermittent fasting session for today. Please finish it before starting a new one.');
       }
 
       const { data, error } = await supabase
@@ -265,6 +263,43 @@ export const useIntermittentFasting = () => {
     }
   });
 
+  // Cancel fast mutation - NEW
+  const cancelFastMutation = useMutation({
+    mutationFn: async (sessionId: string) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('intermittent_fasting_sessions')
+        .update({
+          eating_end_time: new Date().toISOString(),
+          status: 'canceled',
+          completed: false
+        })
+        .eq('id', sessionId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(todaySessionQueryKey(user?.id || null), null); // Clear today's session
+      queryClient.invalidateQueries({ queryKey: ifHistoryQueryKey(user?.id || null) });
+      toast({
+        title: "Fast Canceled",
+        description: "Your session has been canceled and saved to history."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error canceling fast",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // End eating window mutation
   const endEatingWindowMutation = useMutation({
     mutationFn: async (sessionId: string) => {
@@ -374,6 +409,7 @@ export const useIntermittentFasting = () => {
     startFastingWindow: startFastingWindowMutation.mutateAsync,
     endFastingWindow: endFastingWindowMutation.mutateAsync,
     endEatingWindow: endEatingWindowMutation.mutateAsync,
+    cancelFast: cancelFastMutation.mutateAsync, // NEW
     refreshTodaySession,
     refreshHistory,
     
@@ -382,6 +418,7 @@ export const useIntermittentFasting = () => {
     isStartingFasting: startFastingWindowMutation.isPending,
     isEndingFasting: endFastingWindowMutation.isPending,
     isEndingEating: endEatingWindowMutation.isPending,
+    isCanceling: cancelFastMutation.isPending, // NEW
     
     // Smart navigation timer status
     getIFTimerStatus,

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Clock, Calendar, CheckCircle, XCircle, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { useIntermittentFasting } from '@/hooks/useIntermittentFasting';
 import { format } from 'date-fns';
 
@@ -15,17 +16,22 @@ const IntermittentFastingHistory = () => {
   };
 
   const getSessionStatusColor = (status: string, completed: boolean) => {
-    if (completed) return 'text-foreground';
+    if (status === 'completed' && completed) return 'text-green-600 dark:text-green-400';
+    if (status === 'canceled') return 'text-red-600 dark:text-red-400';
     return 'text-muted-foreground';
   };
 
   const getSessionStatusText = (status: string, completed: boolean) => {
-    if (completed) return 'Completed';
+    if (status === 'completed' && completed) return 'Completed';
+    if (status === 'canceled') return 'Canceled';
+    if (status === 'fasting' || status === 'eating') return 'In Progress';
     return 'Incomplete';
   };
 
   const getSessionStatusIcon = (status: string, completed: boolean) => {
-    if (completed) return <CheckCircle className="w-3 h-3" />;
+    if (status === 'completed' && completed) return <CheckCircle className="w-3 h-3" />;
+    if (status === 'canceled') return <XCircle className="w-3 h-3" />;
+    if (status === 'fasting' || status === 'eating') return <Clock className="w-3 h-3" />;
     return <XCircle className="w-3 h-3" />;
   };
 
@@ -43,6 +49,11 @@ const IntermittentFastingHistory = () => {
         groups[date] = [];
       }
       groups[date].push(session);
+    });
+    
+    // Sort sessions within each day by creation time (newest first)
+    Object.keys(groups).forEach(date => {
+      groups[date].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     });
     
     return groups;
@@ -112,26 +123,30 @@ const IntermittentFastingHistory = () => {
                 </div>
                 
                 <div className="space-y-3 ml-6">
-                  {daySessions.map((session) => (
+                  {daySessions.map((session, index) => (
                     <Card key={session.id} className="overflow-hidden">
                       <CardContent className="p-4">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start">
                           <div className="flex items-center gap-3">
-                            <h3 className="font-semibold">
-                              {session.fasting_window_hours}:{session.eating_window_hours} Schedule
-                            </h3>
-                            <span className={`text-xs px-2 py-1 rounded-full ${getSessionStatusColor(session.status, session.completed)} bg-muted/20 flex items-center gap-1`}>
-                              {getSessionStatusIcon(session.status, session.completed)}
-                              {getSessionStatusText(session.status, session.completed)}
-                            </span>
+                            <div>
+                              <h3 className="font-semibold flex items-center gap-2">
+                                {session.fasting_window_hours}:{session.eating_window_hours} Schedule
+                                {index === 0 && daySessions.length > 1 && (
+                                  <Badge variant="secondary" className="text-xs">Latest</Badge>
+                                )}
+                              </h3>
+                              {session.fasting_start_time && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Started: {format(new Date(session.fasting_start_time), 'h:mm a')}
+                                </p>
+                              )}
+                            </div>
                           </div>
+                          <span className={`text-xs px-2 py-1 rounded-full ${getSessionStatusColor(session.status, session.completed)} bg-muted/20 flex items-center gap-1 shrink-0`}>
+                            {getSessionStatusIcon(session.status, session.completed)}
+                            {getSessionStatusText(session.status, session.completed)}
+                          </span>
                         </div>
-                        
-                        {session.fasting_start_time && (
-                          <p className="text-sm text-muted-foreground mt-2">
-                            Fasting started: {format(new Date(session.fasting_start_time), 'h:mm a')}
-                          </p>
-                        )}
                       </CardContent>
                     </Card>
                   ))}
