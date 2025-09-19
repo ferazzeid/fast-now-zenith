@@ -106,7 +106,7 @@ export const StopWalkingConfirmDialog = ({
             <Button 
               variant="action-primary"
               onClick={onConfirm}
-              className={`h-12 text-base font-medium ${showLongSessionWarning ? 'flex-[2]' : 'flex-[3]'}`}
+              className="flex-[2] h-12 text-base font-medium"
             >
               {showLongSessionWarning ? 'Finish' : (actionType === 'cancel' ? 'Cancel Session' : 'Finish Session')}
             </Button>
