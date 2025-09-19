@@ -173,7 +173,7 @@ export const Navigation = () => {
 
   return (
     <TooltipProvider>
-      <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80" key={`nav-${JSON.stringify(preferences)}`}>
+      <nav className="fixed bottom-0 left-1/2 transform -translate-x-1/2 z-40 w-full max-w-md bg-background" key={`nav-${JSON.stringify(preferences)}`}>
         <div className="bg-ceramic-plate px-4 py-2">
           <div className="flex justify-around gap-1 relative">
             {/* Navigation Items */}
