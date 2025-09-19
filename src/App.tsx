@@ -68,6 +68,7 @@ import { useFastingSessionQuery } from '@/hooks/optimized/useFastingSessionQuery
 
 // Using optimized query client from @/lib/query-client
 const AdminData = lazy(() => import("./pages/admin/Data"));
+const AdminDailyReconciliation = lazy(() => import("./pages/admin/DailyReconciliation"));
 const AdminOperations = lazy(() => import("./pages/admin/Operations"));
 const AdminContent = lazy(() => import("./pages/admin/Content"));
 const AdminAI = lazy(() => import("./pages/admin/AI"));
@@ -341,26 +342,45 @@ const AppContent = () => {
                </ProtectedRoute>
              } />
             <Route path="/admin" element={<Navigate to="/admin/data" replace />} />
-            <Route path="/admin/data" element={
-              <ProtectedRoute>
-                <AdminProtectedRoute>
-                  <PageErrorBoundary>
-                    <Suspense fallback={
-                      <div className="container mx-auto p-6 space-y-4">
-                        <div className="h-8 w-48 rounded bg-muted animate-pulse" />
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="h-48 rounded-lg bg-muted animate-pulse" />
-                          <div className="h-48 rounded-lg bg-muted animate-pulse" />
-                        </div>
-                      </div>
-                    }>
-                      <AdminData />
-                    </Suspense>
-                  </PageErrorBoundary>
-                </AdminProtectedRoute>
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/operations" element={
+             <Route path="/admin/data" element={
+               <ProtectedRoute>
+                 <AdminProtectedRoute>
+                   <PageErrorBoundary>
+                     <Suspense fallback={
+                       <div className="container mx-auto p-6 space-y-4">
+                         <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="h-48 rounded-lg bg-muted animate-pulse" />
+                           <div className="h-48 rounded-lg bg-muted animate-pulse" />
+                         </div>
+                       </div>
+                     }>
+                       <AdminData />
+                     </Suspense>
+                   </PageErrorBoundary>
+                 </AdminProtectedRoute>
+               </ProtectedRoute>
+             } />
+             <Route path="/admin/reconciliation" element={
+               <ProtectedRoute>
+                 <AdminProtectedRoute>
+                   <PageErrorBoundary>
+                     <Suspense fallback={
+                       <div className="container mx-auto p-6 space-y-4">
+                         <div className="h-8 w-48 rounded bg-muted animate-pulse" />
+                         <div className="space-y-6">
+                           <div className="h-32 rounded-lg bg-muted animate-pulse" />
+                           <div className="h-48 rounded-lg bg-muted animate-pulse" />
+                         </div>
+                       </div>
+                     }>
+                       <AdminDailyReconciliation />
+                     </Suspense>
+                   </PageErrorBoundary>
+                 </AdminProtectedRoute>
+               </ProtectedRoute>
+             } />
+             <Route path="/admin/operations" element={
               <ProtectedRoute>
                 <AdminProtectedRoute>
                   <PageErrorBoundary>

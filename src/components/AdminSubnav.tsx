@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const items = [
   { label: "Data", to: "/admin/data" },
   { label: "OPS", to: "/admin/operations" },
+  { label: "Recon", to: "/admin/reconciliation" },
   { label: "Content", to: "/admin/content" },
   { label: "AI", to: "/admin/ai" },
   { label: "Func", to: "/admin/functions" },
