@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
+import { Plus, Loader2, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAccess } from '@/hooks/useAccess';
 import { FoodSelectionModal } from './FoodSelectionModal';
+import { PremiumFoodModal } from './PremiumFoodModal';
 
 interface InlineTextFoodInputProps {
   onFoodAdded?: (foods: any[]) => void;
@@ -34,8 +35,17 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
   const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
   const [showFoodModal, setShowFoodModal] = useState(false);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   const { toast } = useToast();
   const { hasAIAccess } = useAccess();
+
+  const handleButtonClick = () => {
+    if (!hasAIAccess) {
+      setShowPremiumModal(true);
+      return;
+    }
+    setIsOpen(true);
+  };
 
   const handleSubmit = async () => {
     if (!inputText.trim() || isProcessing) return;
@@ -213,15 +223,19 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
 
   return (
     <div className="relative">
-      {/* Plus button - always visible */}
+      {/* Plus/Lock button */}
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => setIsOpen(true)}
+        onClick={handleButtonClick}
         className="w-8 h-8 p-0 rounded-full bg-background/80 backdrop-blur-sm border border-subtle hover:bg-muted/80 hover:scale-110 transition-all duration-200"
-        title="Add food with text"
+        title={hasAIAccess ? "Add food with text" : "AI features require premium"}
       >
-        <Plus className="w-4 h-4 text-foreground" />
+        {hasAIAccess ? (
+          <Plus className="w-4 h-4 text-foreground" />
+        ) : (
+          <Lock className="w-4 h-4 text-muted-foreground" />
+        )}
       </Button>
 
       {isOpen && (
@@ -278,6 +292,12 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
         onDestinationChange={handleDestinationChange}
         onAddFoods={handleAddFoods}
         isProcessing={false}
+      />
+
+      {/* Premium Modal for free users */}
+      <PremiumFoodModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
       />
     </div>
   );
