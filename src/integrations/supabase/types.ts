@@ -841,12 +841,20 @@ export type Database = {
       food_entries: {
         Row: {
           calories: number
+          calories_manually_set: boolean | null
+          calories_per_100g: number | null
           carbs: number
+          carbs_manually_set: boolean | null
+          carbs_per_100g: number | null
           consumed: boolean
           created_at: string
+          fat_manually_set: boolean | null
+          fat_per_100g: number | null
           id: string
           image_url: string | null
           name: string
+          protein_manually_set: boolean | null
+          protein_per_100g: number | null
           serving_size: number | null
           source_date: string | null
           updated_at: string
@@ -854,12 +862,20 @@ export type Database = {
         }
         Insert: {
           calories: number
+          calories_manually_set?: boolean | null
+          calories_per_100g?: number | null
           carbs: number
+          carbs_manually_set?: boolean | null
+          carbs_per_100g?: number | null
           consumed?: boolean
           created_at?: string
+          fat_manually_set?: boolean | null
+          fat_per_100g?: number | null
           id?: string
           image_url?: string | null
           name: string
+          protein_manually_set?: boolean | null
+          protein_per_100g?: number | null
           serving_size?: number | null
           source_date?: string | null
           updated_at?: string
@@ -867,12 +883,20 @@ export type Database = {
         }
         Update: {
           calories?: number
+          calories_manually_set?: boolean | null
+          calories_per_100g?: number | null
           carbs?: number
+          carbs_manually_set?: boolean | null
+          carbs_per_100g?: number | null
           consumed?: boolean
           created_at?: string
+          fat_manually_set?: boolean | null
+          fat_per_100g?: number | null
           id?: string
           image_url?: string | null
           name?: string
+          protein_manually_set?: boolean | null
+          protein_per_100g?: number | null
           serving_size?: number | null
           source_date?: string | null
           updated_at?: string

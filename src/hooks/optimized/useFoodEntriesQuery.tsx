@@ -34,6 +34,15 @@ interface FoodEntry {
   created_at: string;
   consumed: boolean;
   image_url?: string;
+  // Enhanced nutritional intelligence fields
+  calories_per_100g?: number;
+  carbs_per_100g?: number;
+  protein_per_100g?: number;
+  fat_per_100g?: number;
+  calories_manually_set?: boolean;
+  carbs_manually_set?: boolean;
+  protein_manually_set?: boolean;
+  fat_manually_set?: boolean;
 }
 
 interface NewFoodEntry {
@@ -44,6 +53,15 @@ interface NewFoodEntry {
   consumed?: boolean;
   image_url?: string;
   insertAfterIndex?: number;
+  // Enhanced nutritional intelligence fields
+  calories_per_100g?: number;
+  carbs_per_100g?: number;
+  protein_per_100g?: number;
+  fat_per_100g?: number;
+  calories_manually_set?: boolean;
+  carbs_manually_set?: boolean;
+  protein_manually_set?: boolean;
+  fat_manually_set?: boolean;
 }
 
 interface DailyTotals {
@@ -136,6 +154,15 @@ export const useFoodEntriesQuery = () => {
         serving_size: entry.serving_size,
         consumed: entry.consumed ?? false,
         image_url: entry.image_url,
+        // Preserve nutritional intelligence data
+        calories_per_100g: entry.calories_per_100g,
+        carbs_per_100g: entry.carbs_per_100g,
+        protein_per_100g: entry.protein_per_100g,
+        fat_per_100g: entry.fat_per_100g,
+        calories_manually_set: entry.calories_manually_set ?? false,
+        carbs_manually_set: entry.carbs_manually_set ?? false,
+        protein_manually_set: entry.protein_manually_set ?? false,
+        fat_manually_set: entry.fat_manually_set ?? false,
       }));
 
       const { data, error } = await supabase
@@ -163,6 +190,15 @@ export const useFoodEntriesQuery = () => {
         consumed: entry.consumed ?? false,
         image_url: entry.image_url,
         created_at: new Date().toISOString(),
+        // Preserve nutritional intelligence data
+        calories_per_100g: entry.calories_per_100g,
+        carbs_per_100g: entry.carbs_per_100g,
+        protein_per_100g: entry.protein_per_100g,
+        fat_per_100g: entry.fat_per_100g,
+        calories_manually_set: entry.calories_manually_set ?? false,
+        carbs_manually_set: entry.carbs_manually_set ?? false,
+        protein_manually_set: entry.protein_manually_set ?? false,
+        fat_manually_set: entry.fat_manually_set ?? false,
       }));
 
       queryClient.setQueryData(
@@ -228,6 +264,15 @@ export const useFoodEntriesQuery = () => {
           serving_size: newEntry.serving_size,
           consumed: newEntry.consumed ?? false,
           image_url: newEntry.image_url,
+          // Preserve nutritional intelligence data
+          calories_per_100g: newEntry.calories_per_100g,
+          carbs_per_100g: newEntry.carbs_per_100g,
+          protein_per_100g: newEntry.protein_per_100g,
+          fat_per_100g: newEntry.fat_per_100g,
+          calories_manually_set: newEntry.calories_manually_set ?? false,
+          carbs_manually_set: newEntry.carbs_manually_set ?? false,
+          protein_manually_set: newEntry.protein_manually_set ?? false,
+          fat_manually_set: newEntry.fat_manually_set ?? false,
         })
         .select()
         .single();
@@ -254,6 +299,15 @@ export const useFoodEntriesQuery = () => {
         consumed: newEntry.consumed ?? false,
         image_url: newEntry.image_url,
         created_at: new Date().toISOString(),
+        // Preserve nutritional intelligence data
+        calories_per_100g: newEntry.calories_per_100g,
+        carbs_per_100g: newEntry.carbs_per_100g,
+        protein_per_100g: newEntry.protein_per_100g,
+        fat_per_100g: newEntry.fat_per_100g,
+        calories_manually_set: newEntry.calories_manually_set ?? false,
+        carbs_manually_set: newEntry.carbs_manually_set ?? false,
+        protein_manually_set: newEntry.protein_manually_set ?? false,
+        fat_manually_set: newEntry.fat_manually_set ?? false,
       };
 
       queryClient.setQueryData(

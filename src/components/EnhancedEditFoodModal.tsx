@@ -1,81 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
-import { ImageUpload } from '@/components/ImageUpload';
 import { LocalImageUpload } from '@/components/LocalImageUpload';
-import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
-import { Calculator, RotateCcw, Info } from 'lucide-react';
+import { Calculator, RotateCcw, Info, AlertTriangle } from 'lucide-react';
 import { 
   updateFoodItemWithRecalculation, 
   resetToCalculatedValues,
   isNutritionCalculated,
-  EnhancedFoodItem
+  EnhancedFoodItem,
+  calculateNutritionFromWeight
 } from '@/utils/nutritionCalculations';
 
-interface FoodEntry extends EnhancedFoodItem {
+interface FoodItem extends EnhancedFoodItem {
   id: string;
-  user_id?: string;
-  created_at?: string;
-  consumed?: boolean;
   image_url?: string;
-  protein?: number;
-  fat?: number;
-  protein_per_100g?: number;
-  fat_per_100g?: number;
-  protein_manually_set?: boolean;
-  fat_manually_set?: boolean;
 }
 
-interface EditFoodEntryModalProps {
-  entry: FoodEntry;
-  onUpdate: (updatedEntry: FoodEntry) => Promise<void>;
-  isOpen?: boolean;
-  onClose?: () => void;
+interface EnhancedEditFoodModalProps {
+  food: FoodItem;
+  onUpdate: (updates: Partial<FoodItem>) => Promise<void>;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoodEntryModalProps) => {
-  console.log('EditFoodEntryModal rendered with entry:', entry, 'isOpen:', isOpen);
-  const [internalOpen, setInternalOpen] = useState(false);
-  const [formData, setFormData] = useState<EnhancedFoodItem & { image_url?: string }>({
-    name: entry.name,
-    calories: entry.calories,
-    carbs: entry.carbs,
-    serving_size: entry.serving_size,
-    image_url: entry.image_url || '',
-    calories_per_100g: entry.calories_per_100g,
-    carbs_per_100g: entry.carbs_per_100g,
-    calories_manually_set: entry.calories_manually_set || false,
-    carbs_manually_set: entry.carbs_manually_set || false,
-  });
-  const { isLoading, execute } = useStandardizedLoading();
+export const EnhancedEditFoodModal = ({ food, onUpdate, isOpen, onClose }: EnhancedEditFoodModalProps) => {
+  const [formData, setFormData] = useState<EnhancedFoodItem & { image_url?: string }>(food);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Reset form when entry changes
-  useEffect(() => {
-    setFormData({
-      name: entry.name,
-      calories: entry.calories,
-      carbs: entry.carbs,
-      serving_size: entry.serving_size,
-      image_url: entry.image_url || '',
-      calories_per_100g: entry.calories_per_100g,
-      carbs_per_100g: entry.carbs_per_100g,
-      calories_manually_set: entry.calories_manually_set || false,
-      carbs_manually_set: entry.carbs_manually_set || false,
-    });
-  }, [entry.id]);
-
-  const handleFieldUpdate = (field: string, value: any) => {
+  // Smart field update with recalculation logic
+  const handleFieldUpdate = useCallback((field: string, value: any) => {
     if (field === 'serving_size') {
       // Smart recalculation when serving size changes
       const updatedItem = updateFoodItemWithRecalculation(formData, { serving_size: value });
       setFormData(updatedItem);
     } else {
       // Direct field update - mark as manually set if it's a nutritional value
-      const updates: Partial<EnhancedFoodItem> = { [field]: value };
+      const updates: Partial<EnhancedFoodItem & { image_url?: string }> = { [field]: value };
       
       if (field === 'calories') {
         updates.calories_manually_set = true;
@@ -85,19 +49,19 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
       
       setFormData(prev => ({ ...prev, ...updates }));
     }
-  };
+  }, [formData]);
 
-  const handleResetToCalculated = () => {
+  const handleResetToCalculated = useCallback(() => {
     const resetData = resetToCalculatedValues(formData);
-    setFormData(resetData);
+    setFormData({ ...resetData, image_url: formData.image_url });
     toast({
       title: "Values Reset",
       description: "Nutrition values recalculated from serving size.",
     });
-  };
+  }, [formData, toast]);
 
   const handleSave = async () => {
-    if (!formData.name.trim()) {
+    if (!formData.name?.trim()) {
       toast({
         title: "Error",
         description: "Food name is required",
@@ -108,17 +72,8 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
 
     if (isNaN(formData.calories) || formData.calories < 0) {
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Please enter a valid calories value",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (isNaN(formData.carbs) || formData.carbs < 0) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid carbs value",
         variant: "destructive"
       });
       return;
@@ -133,63 +88,60 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
       return;
     }
 
-    await execute(async () => {
-      const updatedEntry: FoodEntry = {
-        ...entry,
-        ...formData,
-        name: formData.name.trim(),
-      };
-
-      await onUpdate(updatedEntry);
-      
-      if (onClose) onClose(); else setInternalOpen(false);
-    }, {
-      onError: (error) => {
-        console.error('Failed to update food entry:', error);
-        toast({
-          title: "Error",
-          description: "Failed to update food entry",
-          variant: "destructive"
-        });
-      }
-    });
+    setIsLoading(true);
+    try {
+      await onUpdate(formData);
+      onClose();
+      toast({
+        title: "Food Updated",
+        description: "Your food entry has been successfully updated.",
+      });
+    } catch (error) {
+      console.error('Failed to update food:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update food entry",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: entry.name,
-      calories: entry.calories,
-      carbs: entry.carbs,
-      serving_size: entry.serving_size,
-      image_url: entry.image_url || '',
-      calories_per_100g: entry.calories_per_100g,
-      carbs_per_100g: entry.carbs_per_100g,
-      calories_manually_set: entry.calories_manually_set || false,
-      carbs_manually_set: entry.carbs_manually_set || false,
-    });
+  // Validate nutritional data for unrealistic values
+  const getValidationWarnings = () => {
+    const warnings = [];
+    const caloriesPerGram = formData.calories / formData.serving_size;
+    
+    if (caloriesPerGram > 9) {
+      warnings.push("Very high calorie density - please verify");
+    }
+    
+    if (formData.carbs > formData.serving_size) {
+      warnings.push("Carbs cannot exceed total weight");
+    }
+    
+    return warnings;
   };
 
   const nutritionStatus = isNutritionCalculated(formData);
   const hasPerHundredGramData = formData.calories_per_100g || formData.carbs_per_100g;
+  const validationWarnings = getValidationWarnings();
 
   return (
     <UniversalModal
-      isOpen={isOpen !== undefined ? isOpen : internalOpen}
-      onClose={() => {
-        if (onClose) onClose(); else setInternalOpen(false);
-        resetForm();
-      }}
-      title={`Edit ${entry.name}`}
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Edit ${food.name}`}
       variant="standard"
       size="sm"
       footer={
         <>
           <Button
             variant="outline"
-            onClick={() => {
-              if (onClose) onClose(); else setInternalOpen(false);
-            }}
+            onClick={onClose}
             className="flex-1"
+            disabled={isLoading}
           >
             Cancel
           </Button>
@@ -199,7 +151,7 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
             variant="action-primary"
             className="flex-1"
           >
-            {isLoading ? 'Saving...' : 'Save'}
+            {isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
         </>
       }
@@ -222,7 +174,6 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
             value={formData.name}
             onChange={(e) => handleFieldUpdate('name', e.target.value)}
             placeholder="Enter food name"
-            className=""
           />
         </div>
 
@@ -250,6 +201,21 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
                 : "Values will auto-recalculate when you change the serving size"
               }
             </div>
+          </div>
+        )}
+
+        {/* Validation Warnings */}
+        {validationWarnings.length > 0 && (
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 text-sm">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="font-medium">Please Review</span>
+            </div>
+            {validationWarnings.map((warning, index) => (
+              <div key={index} className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                • {warning}
+              </div>
+            ))}
           </div>
         )}
 
@@ -291,7 +257,6 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               placeholder="0"
               min="0"
               step="0.1"
-              className=""
             />
           </div>
           
@@ -313,10 +278,24 @@ export const EditFoodEntryModal = ({ entry, onUpdate, isOpen, onClose }: EditFoo
               placeholder="0"
               min="0"
               step="0.1"
-              className=""
             />
           </div>
         </div>
+
+        {/* Per-100g Data Display (if available) */}
+        {hasPerHundredGramData && (
+          <div className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+            <div className="font-medium">Per 100g reference:</div>
+            <div className="grid grid-cols-2 gap-2 mt-1">
+              {formData.calories_per_100g && (
+                <div>Calories: {formData.calories_per_100g}</div>
+              )}
+              {formData.carbs_per_100g && (
+                <div>Carbs: {formData.carbs_per_100g}g</div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </UniversalModal>
   );

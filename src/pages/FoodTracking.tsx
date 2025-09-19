@@ -338,7 +338,16 @@ const FoodTracking = () => {
                     carbs: entry.carbs,
                     serving_size: entry.serving_size,
                     image_url: entry.image_url,
-                    consumed: false
+                    consumed: false,
+                    // Preserve nutritional intelligence data
+                    calories_per_100g: entry.calories_per_100g,
+                    carbs_per_100g: entry.carbs_per_100g,
+                    protein_per_100g: entry.protein_per_100g,
+                    fat_per_100g: entry.fat_per_100g,
+                    calories_manually_set: entry.calories_manually_set,
+                    carbs_manually_set: entry.carbs_manually_set,
+                    protein_manually_set: entry.protein_manually_set,
+                    fat_manually_set: entry.fat_manually_set,
                   };
                   await addFoodEntry(duplicatedFood);
                   toast({
