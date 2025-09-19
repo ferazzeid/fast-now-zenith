@@ -2036,6 +2036,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           distance: number | null
+          duration_minutes: number | null
           edit_reason: string | null
           end_time: string | null
           estimated_steps: number | null
@@ -2056,6 +2057,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           distance?: number | null
+          duration_minutes?: number | null
           edit_reason?: string | null
           end_time?: string | null
           estimated_steps?: number | null
@@ -2076,6 +2078,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           distance?: number | null
+          duration_minutes?: number | null
           edit_reason?: string | null
           end_time?: string | null
           estimated_steps?: number | null
