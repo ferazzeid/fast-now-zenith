@@ -29,9 +29,9 @@ export const PremiumFoodModal = ({ isOpen, onClose }: PremiumFoodModalProps) => 
           <div className="flex items-start gap-3">
             <Mic className="w-5 h-5 text-muted-foreground mt-0.5" />
             <div>
-              <h4 className="font-medium">AI Voice Features</h4>
+              <h4 className="font-medium">AI Voice Input</h4>
               <p className="text-sm text-muted-foreground">
-                Describe your meals naturally with voice input and get instant nutrition analysis
+                Describe your meals naturally with voice and get instant nutrition analysis
               </p>
             </div>
           </div>
@@ -45,7 +45,7 @@ export const PremiumFoodModal = ({ isOpen, onClose }: PremiumFoodModalProps) => 
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            Free users are limited to manual input only. Upgrade now to unlock AI-powered functionality!
+            Premium users can add food using voice descriptions or photos with AI analysis. Free users can use manual entry to track their nutrition.
           </p>
           <div className="flex gap-2">
             <Button onClick={onClose} variant="outline" className="flex-1">

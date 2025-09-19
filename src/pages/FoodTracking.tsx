@@ -516,8 +516,7 @@ const FoodTracking = () => {
 
         {/* Action Buttons - Two Column Layout */}
         <div className="mb-6 grid grid-cols-2 gap-6">
-          {/* Debug: Force free mode for testing */}
-          {false ? (
+          {hasAIAccess ? (
             // Premium Mode: Keep existing buttons exactly as they are
             <>
               <div className="flex flex-col items-center gap-2">
@@ -569,24 +568,24 @@ const FoodTracking = () => {
                        <div className="flex items-center gap-1">
                          <Keyboard className="w-4 h-4" />
                        </div>
-                       <span className="text-xs font-medium">Add with Photo</span>
+                       <span className="text-xs font-medium">Manual Entry</span>
                      </Button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
-                    Manual food entry (free for all users)
+                    Manual food entry
                   </TooltipContent>
                 </Tooltip>
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                    <Button
-                      onClick={() => setShowPremiumModal(true)}
-                      variant="outline"
-                      className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-pointer hover:opacity-70"
-                    >
-                      <Lock className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-xs font-medium text-muted-foreground">Add with Voice</span>
-                    </Button>
+                <Button
+                  onClick={() => setShowPremiumModal(true)}
+                  variant="outline"
+                  className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-pointer hover:opacity-70"
+                >
+                  <Lock className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Premium Features</span>
+                </Button>
               </div>
             </>
           )}
