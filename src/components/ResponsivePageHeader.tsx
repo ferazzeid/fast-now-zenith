@@ -56,21 +56,21 @@ export const ResponsivePageHeader = ({
       )}
       
       {/* Title section with conditional padding based on buttons */}
-      <div className={`${leftButton ? 'pl-12' : 'pl-0'} pr-20`}>
+      <div className={`${leftButton ? 'pl-12' : 'pl-0'} ${showAuthorTooltip && isAuthorTooltipEnabled ? 'pr-12' : 'pr-0'}`}>
         <div className="flex items-center justify-between mb-1">
           <h1 className="text-2xl font-bold text-foreground flex-shrink-0">
             {title}
           </h1>
-           {/* Right side navigation - positioned relative for dropdown */}
-           <div className="flex items-center gap-1 sm:gap-2 relative">
-             {onHistoryClick && (
-               <HistoryButton onClick={onHistoryClick} title={historyTitle} />
+           {/* Right side navigation - positioned relative for dropdown - aligned right */}
+           <div className="flex items-center gap-1 sm:gap-2 relative ml-auto">
+             {onFoodAdded && (
+               <InlineTextFoodInput onFoodAdded={onFoodAdded} />
              )}
              {onMyFoodsClick && (
                <MyFoodsButton onClick={onMyFoodsClick} title={myFoodsTitle} />
              )}
-             {onFoodAdded && (
-               <InlineTextFoodInput onFoodAdded={onFoodAdded} />
+             {onHistoryClick && (
+               <HistoryButton onClick={onHistoryClick} title={historyTitle} />
              )}
            </div>
         </div>
