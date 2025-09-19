@@ -18,6 +18,7 @@ interface ResponsivePageHeaderProps {
   authorTooltipContent?: string;
   authorTooltipContentKey?: string;
   className?: string;
+  subtitleAction?: ReactNode;
 }
 
 export const ResponsivePageHeader = ({
@@ -32,7 +33,8 @@ export const ResponsivePageHeader = ({
   showAuthorTooltip = false,
   authorTooltipContent,
   authorTooltipContentKey,
-  className = ""
+  className = "",
+  subtitleAction
 }: ResponsivePageHeaderProps) => {
   const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
   return (
@@ -74,7 +76,14 @@ export const ResponsivePageHeader = ({
              )}
            </div>
         </div>
-        <p className="text-sm text-muted-foreground text-left">{subtitle}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground text-left">{subtitle}</p>
+          {subtitleAction && (
+            <div className="flex items-center gap-1">
+              {subtitleAction}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

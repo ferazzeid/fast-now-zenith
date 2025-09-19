@@ -71,24 +71,17 @@ const IntermittentFasting: React.FC = () => {
             showAuthorTooltip={true}
             authorTooltipContentKey="timer-if"
             authorTooltipContent="Track your intermittent fasting sessions with precise timing and progress visualization."
-            className="" // Remove extra padding since toggle is now inside timer
-          />
-          
-          {/* Fasting Mode Toggle positioned below subtitle */}
-          {ifEnabled && (
-            <div className="flex justify-end mt-2 mr-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Mode:</span>
-                <div className="scale-90">
-                  <FastingModeToggle
-                    currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
-                    onModeChange={switchMode}
-                    showIF={true}
-                  />
-                </div>
+            className=""
+            subtitleAction={ifEnabled ? (
+              <div className="scale-90">
+                <FastingModeToggle
+                  currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
+                  onModeChange={switchMode}
+                  showIF={true}
+                />
               </div>
-            </div>
-          )}
+            ) : undefined}
+          />
         </div>
         
         <div className="space-y-6 mt-6">
