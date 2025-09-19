@@ -34,16 +34,16 @@ export const DailySummaryGoalsSection = ({
   const { toast } = useToast();
   const [confirmedGoals, setConfirmedGoals] = useState<string[]>([]);
 
-  // Fetch goal-related motivators from system_motivators
+  // Fetch user's personal motivators/goals
   const { data: goalMotivators, isLoading, refetch } = useBaseQuery<GoalMotivator[]>(
-    ['goal-motivators'],
+    ['user-goal-motivators'],
     async () => {
       const { data, error } = await supabase
-        .from('system_motivators')
+        .from('motivators')
         .select('id, title, content, category, is_active')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .eq('is_active', true)
-        .in('category', ['weight_goal', 'fitness_goal', 'health_goal'])
-        .order('display_order', { ascending: true });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data || [];
@@ -142,12 +142,12 @@ export const DailySummaryGoalsSection = ({
             </div>
           )}
 
-          {/* Other Goal Ideas */}
+          {/* User's Personal Goals */}
           {goalMotivators && goalMotivators.length > 0 && (
             <div className="space-y-3">
-              <h4 className="font-medium">Other Goal Ideas</h4>
+              <h4 className="font-medium">Your Personal Goals</h4>
               <div className="space-y-2">
-                {goalMotivators.slice(0, 3).map((motivator) => (
+                {goalMotivators.slice(0, 5).map((motivator) => (
                   <div 
                     key={motivator.id}
                     className="p-3 border rounded-lg hover:bg-muted/50 transition-colors"
@@ -163,21 +163,33 @@ export const DailySummaryGoalsSection = ({
                         </Badge>
                       </div>
                       
-                      {!isGoalConfirmed(motivator.id) && (
+                      {!isGoalConfirmed(motivator.id) ? (
                         <Button 
                           size="sm" 
-                          variant="ghost"
+                          variant="outline"
                           onClick={() => handleConfirmGoal(motivator.id)}
                           className="text-xs ml-2"
                         >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Still relevant
                         </Button>
+                      ) : (
+                        <div className="flex items-center gap-1 text-green-600 ml-2">
+                          <CheckCircle className="h-3 w-3" />
+                        </div>
                       )}
                     </div>
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Show message if no goals found */}
+          {goalMotivators && goalMotivators.length === 0 && (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground mb-4">No personal goals found.</p>
+              <p className="text-sm text-muted-foreground">Create some motivators in the Motivators section to see them here.</p>
             </div>
           )}
 

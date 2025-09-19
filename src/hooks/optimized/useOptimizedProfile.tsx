@@ -10,6 +10,8 @@ export interface UserProfile {
   weight?: number;
   height?: number;
   age?: number;
+  daily_calorie_goal?: number;
+  daily_carb_goal?: number;
   calorie_goal?: number;
   protein_goal?: number;
   carb_goal?: number;

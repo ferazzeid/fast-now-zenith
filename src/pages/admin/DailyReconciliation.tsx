@@ -15,6 +15,7 @@ import { useFastingContext } from "@/hooks/useFastingContext";
 import { useWalkingContext } from "@/hooks/useWalkingContext";
 import { useFoodContext } from "@/hooks/useFoodContext";
 import { useOptimizedManualCalorieBurns } from "@/hooks/optimized/useOptimizedManualCalorieBurns";
+import { useOptimizedProfile } from "@/hooks/optimized/useOptimizedProfile";
 import { DailySummaryVerticalTimeline } from "@/components/DailySummaryVerticalTimeline";
 import { DailySummaryGoalsSection } from "@/components/DailySummaryGoalsSection";
 import { DayCountdownTimer } from "@/components/DayCountdownTimer";
@@ -58,6 +59,7 @@ export default function DailyReconciliation() {
   const { context: walkingContext, refreshContext: refreshWalking } = useWalkingContext();
   const { context: foodContext, refreshContext: refreshFood } = useFoodContext();
   const { manualBurns, todayTotal: manualCaloriesTotal, loading: manualLoading } = useOptimizedManualCalorieBurns();
+  const { profile, updateProfile } = useOptimizedProfile();
 
   const refreshAllData = async () => {
     await Promise.all([
@@ -124,9 +126,11 @@ export default function DailyReconciliation() {
 
         <div className="space-y-6">
           {/* Header */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h1 className="text-3xl font-bold">Daily Summary</h1>
-            <DayCountdownTimer />
+            <div className="scale-125 origin-left">
+              <DayCountdownTimer />
+            </div>
           </div>
 
           {/* Today's Deficit & Projections */}
@@ -152,7 +156,7 @@ export default function DailyReconciliation() {
                 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-muted-foreground">Projected Weight (30d)</p>
+                    <p className="text-sm text-muted-foreground">Projected 30D</p>
                     <p className="text-lg font-semibold">
                       {goalCalculations.currentWeight ? 
                         Math.round((goalCalculations.currentWeight - (goalCalculations.thirtyDayProjection / 1000)) * 10) / 10 
@@ -162,31 +166,43 @@ export default function DailyReconciliation() {
                   <div>
                     <p className="text-sm text-muted-foreground">Current Weight</p>
                     <p className="text-lg font-semibold">
-                      {goalCalculations.currentWeight || '--'} kg
-                      <Button size="sm" variant="ghost" className="ml-2 h-6 text-xs">Update</Button>
+                      {goalCalculations.currentWeight ? Math.round(goalCalculations.currentWeight * 10) / 10 : '--'} kg
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="ml-2 h-6 text-xs bg-muted/50"
+                        onClick={() => {
+                          const newWeight = prompt('Enter your current weight (kg):', goalCalculations.currentWeight?.toString());
+                          if (newWeight && !isNaN(Number(newWeight))) {
+                            updateProfile({ weight: Number(newWeight) });
+                          }
+                        }}
+                      >
+                        Update
+                      </Button>
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-muted-foreground">Calories Planned</p>
-                    <p className="text-lg font-semibold">{Math.round(foodContext?.todayCalories || 0)} cal</p>
-                  </div>
-                  <div>
                     <p className="text-sm text-muted-foreground">Calories Consumed</p>
                     <p className="text-lg font-semibold">{Math.round(deficitData.caloriesConsumed)} cal</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Calories Target</p>
+                    <p className="text-lg font-semibold">{Math.round(profile?.daily_calorie_goal || 0)} cal</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm text-muted-foreground">Carbs Today</p>
+                    <p className="text-sm text-muted-foreground">Carbs Consumed</p>
                     <p className="text-lg font-semibold">{Math.round(foodContext?.todayCarbs || 0)}g</p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Calories Burned</p>
-                    <p className="text-lg font-semibold">{Math.round(deficitData.totalCaloriesBurned)} cal</p>
+                    <p className="text-sm text-muted-foreground">Carbs Target</p>
+                    <p className="text-lg font-semibold">{Math.round(profile?.daily_carb_goal || 0)}g</p>
                   </div>
                 </div>
               </div>
@@ -202,17 +218,23 @@ export default function DailyReconciliation() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Today's Walking</h4>
-                  <p className="text-2xl font-bold text-primary">{Math.round(walkingContext?.totalWalkingTimeToday || 0)} min</p>
-                  <p className="text-sm text-muted-foreground">{walkingContext?.totalWalkingSessions || 0} sessions</p>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Walking Time</h4>
+                  <p className="text-3xl font-bold text-primary">{Math.round(walkingContext?.totalWalkingTimeToday || 0)}</p>
+                  <p className="text-sm text-muted-foreground">minutes ({walkingContext?.totalWalkingSessions || 0} sessions)</p>
                 </div>
                 
                 <div>
                   <h4 className="font-medium text-sm text-muted-foreground mb-1">External Activities</h4>
-                  <p className="text-2xl font-bold text-primary">{Math.round(manualCaloriesTotal)} cal</p>
-                  <p className="text-sm text-muted-foreground">{manualBurns.length} activities</p>
+                  <p className="text-3xl font-bold text-primary">{Math.round(manualCaloriesTotal)}</p>
+                  <p className="text-sm text-muted-foreground">calories ({manualBurns.length} activities)</p>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium text-sm text-muted-foreground mb-1">Calories Burned</h4>
+                  <p className="text-3xl font-bold text-green-600">{Math.round(deficitData.totalCaloriesBurned)}</p>
+                  <p className="text-sm text-muted-foreground">total today</p>
                 </div>
               </div>
             </CardContent>
@@ -228,12 +250,16 @@ export default function DailyReconciliation() {
             </CardHeader>
             <CardContent>
               {fastingContext?.isCurrentlyFasting ? (
-                <div>
-                  <p className="text-lg font-bold">
-                    <span className="text-primary">Ongoing:</span> 
-                    <span className="text-sm font-normal ml-2">Extended fast</span>
-                  </p>
-                  <p className="text-2xl font-bold text-green-600">{Math.round(fastingContext.currentFastDuration)} hours</p>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Status:</span>
+                    <span className="text-lg font-bold text-primary">Ongoing</span>
+                    <span className="text-sm text-muted-foreground">• Extended fast</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-bold text-green-600">{Math.round(fastingContext.currentFastDuration)}</p>
+                    <p className="text-sm text-muted-foreground">hours completed</p>
+                  </div>
                 </div>
               ) : (
                 <p className="text-lg font-medium text-muted-foreground">No fasting currently happening</p>

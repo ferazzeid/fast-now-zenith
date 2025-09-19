@@ -83,7 +83,7 @@ export const DailySummaryVerticalTimeline = ({
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="max-h-96 overflow-y-auto">
         <div className="relative">
           {/* Vertical timeline line */}
           <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-muted"></div>
