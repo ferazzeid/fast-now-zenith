@@ -79,7 +79,7 @@ export const ResponsivePageHeader = ({
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground text-left">{subtitle}</p>
           {subtitleAction && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0 ml-2">
               {subtitleAction}
             </div>
           )}
