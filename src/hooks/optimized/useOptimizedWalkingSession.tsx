@@ -387,7 +387,8 @@ export const useOptimizedWalkingSession = () => {
 
       if (error) {
         console.error('🚶 Database error ending session:', error);
-        throw error;
+        console.error('🚶 Full error details:', JSON.stringify(error, null, 2));
+        throw new Error(`Database error: ${error.message || error.code || 'Unknown database error'}`);
       }
 
       console.log('🚶 Successfully ended session with metrics:', data);
@@ -405,6 +406,8 @@ export const useOptimizedWalkingSession = () => {
     },
     onError: (err, variables, context) => {
       console.error('🚶 End session mutation error:', err);
+      console.error('🚶 Error message:', err instanceof Error ? err.message : 'Unknown error type');
+      console.error('🚶 Error stack:', err instanceof Error ? err.stack : 'No stack trace');
       // Refetch active session on error
       queryClient.invalidateQueries({ queryKey: activeSessionQueryKey(user?.id || null) });
     },
