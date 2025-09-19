@@ -152,19 +152,11 @@ export const DailyStatsPanel = memo(() => {
               <span className="text-sm font-medium text-warm-text">
                 Today's Deficit:
               </span>
-              <AccessGate feature="food">
-                {({ hasAccess }) => (
-                  hasAccess ? (
-                    <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-white">
-                      {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0
-                        ? '...'
-                        : `${formatNumber(deficitData.todayDeficit)} cal`}
-                    </span>
-                  ) : (
-                    <Lock className="w-3 h-3 text-muted-foreground" />
-                  )
-                )}
-              </AccessGate>
+              <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-white">
+                {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0
+                  ? '...'
+                  : `${formatNumber(deficitData.todayDeficit)} cal`}
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <span className="text-xs text-muted-foreground hidden sm:inline">
@@ -186,49 +178,19 @@ export const DailyStatsPanel = memo(() => {
             <div className="bg-card w-full z-50 rounded-b-lg border-l border-r border-b border-border">
               <div className="px-6 py-3 space-y-3">
                 {/* Main Deficit Display */}
-                <AccessGate feature="food">
-                  {({ hasAccess, requestUpgrade }) =>
-                    hasAccess ? (
-                      <DeficitDisplay
-                        deficit={deficitData.todayDeficit}
-                        loading={loading}
-                        tdee={deficitData.tdee}
-                        fatInGrams={fatInGrams}
-                        thirtyDayProjection={thirtyDayProjection}
-                        userUnits={profile?.units}
-                      />
-                    ) : (
-                      <Card className="p-4 bg-card/80 border border-subtle relative" onClick={requestUpgrade}>
-                        <div className="text-center space-y-3">
-                          <div className="flex items-center justify-center space-x-2">
-                            <h3 className="text-lg font-semibold text-muted-foreground">Today's Deficit</h3>
-                          </div>
-                          <div className="text-3xl font-bold text-muted-foreground">
-                            <Lock className="w-8 h-8 mx-auto" />
-                          </div>
-                          <div className="space-y-2">
-                            <p className="text-sm text-muted-foreground">
-                              Deficit tracking requires premium
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Unlock detailed calorie deficit analysis, fat loss projections, and more
-                            </p>
-                          </div>
-                        </div>
-                      </Card>
-                    )
-                  }
-                </AccessGate>
+                <DeficitDisplay
+                  deficit={deficitData.todayDeficit}
+                  loading={loading}
+                  tdee={deficitData.tdee}
+                  fatInGrams={fatInGrams}
+                  thirtyDayProjection={thirtyDayProjection}
+                  userUnits={profile?.units}
+                />
 
                 {/* Breakdown */}
                 <div className="grid grid-cols-2 gap-3 px-0.5">
                   {/* Calories In with Carbs */}
-                  <AccessGate feature="food">
-                    {({ hasAccess, requestUpgrade }) => (
-                <Card
-                  className={`p-3 bg-card/80 border border-subtle relative ${hasAccess ? '' : 'opacity-50 cursor-pointer'}`}
-                        onClick={hasAccess ? undefined : requestUpgrade}
-                      >
+                  <Card className="p-3 bg-card/80 border border-subtle relative">
                         <div className="absolute top-2 right-2">
                           <ClickableTooltip content="Total calories consumed from food today">
                             <Info className="w-5 h-5 text-muted-foreground" />
@@ -257,8 +219,6 @@ export const DailyStatsPanel = memo(() => {
                           </div>
                         </div>
                       </Card>
-                    )}
-                  </AccessGate>
 
                   {/* Calories Out */}
                   <StatDisplay
@@ -332,16 +292,9 @@ export const DailyStatsPanel = memo(() => {
 
 
                   {/* Goal Metrics */}
-                  <AccessGate feature="food">
-                    {({ hasAccess, requestUpgrade }) => (
-                      <div
-                        onClick={hasAccess ? undefined : requestUpgrade}
-                        className={hasAccess ? '' : 'opacity-50 cursor-pointer'}
-                      >
-                        <GoalMetrics />
-                      </div>
-                    )}
-                  </AccessGate>
+                  <div>
+                    <GoalMetrics />
+                  </div>
 
 
 

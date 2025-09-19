@@ -41,9 +41,9 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
     return {
       access_level: 'free',
       premium_expires_at: null,
-      hasAccess: false,
+      hasAccess: true, // Now includes food access
       hasPremiumFeatures: false,
-      hasFoodAccess: false,
+      hasFoodAccess: true, // All users can access food page
       hasAIAccess: false,
       isAdmin: false,
       isTrial: false,
@@ -78,8 +78,8 @@ const fetchAccessData = async (userId: string): Promise<AccessData> => {
   
   // Access logic based on effective level
   const hasPremiumFeatures = isAdmin || isPremium || isTrial;
-  const hasFoodAccess = isAdmin || isPremium || isTrial;
-  const hasAIAccess = isAdmin || isPremium || isTrial;
+  const hasFoodAccess = true; // All users can access food page (manual entry available)
+  const hasAIAccess = isAdmin || isPremium || isTrial; // AI features remain premium
   const hasAccess = hasPremiumFeatures || hasFoodAccess;
 
   return {
@@ -130,9 +130,9 @@ export const useAccess = () => {
   const defaultData: AccessData = {
     access_level: 'free',
     premium_expires_at: null,
-    hasAccess: false,
+    hasAccess: true, // Now includes food access
     hasPremiumFeatures: false,
-    hasFoodAccess: false,
+    hasFoodAccess: true, // All users can access food page
     hasAIAccess: false,
     isAdmin: false,
     isTrial: false,

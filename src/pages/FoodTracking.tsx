@@ -46,7 +46,7 @@ const FoodTracking = () => {
   const { toast } = useToast();
   const { execute: executeClearAll, isLoading: isClearingAll } = useStandardizedLoading();
   const { profile, updateProfile } = useProfile();
-  const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
+  const { hasAccess, hasPremiumFeatures, hasAIAccess, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
   const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, bulkMarkAsEaten, clearAllEntries, refreshFoodEntries, isBulkMarking } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
@@ -648,8 +648,8 @@ const FoodTracking = () => {
           </div>
         )}
 
-        {/* Premium upgrade prompt for free users */}
-        {!hasAccess && (
+        {/* Premium upgrade prompt for free users - only for AI features */}
+        {!hasAIAccess && (
           <div className="mt-8 p-4 border border-dashed border-muted rounded-lg text-center">
             <Crown className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
             <h3 className="text-lg font-medium mb-2">Unlock AI Food Tracking</h3>

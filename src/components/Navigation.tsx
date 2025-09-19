@@ -191,22 +191,13 @@ export const Navigation = () => {
                 }
               };
 
-              // Handle premium gating for Food navigation
+              // Food navigation is now available to all users
               const handleFoodClick = (e: React.MouseEvent) => {
-                if (access_level !== 'admin' && !hasFoodAccess) {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toast({
-                    title: "Premium Feature",
-                    description: "Food tracking requires premium access. Please upgrade to continue.",
-                    variant: "destructive",
-                  });
-                  return;
-                }
+                // All users can access food page now
               };
               
-              const hasAccess = access_level === 'admin' || hasFoodAccess;
-              const isLocked = label === 'Food' && !hasAccess;
+              const hasAccess = true; // Food access available to all users
+              const isLocked = false; // Food page no longer locked
               
               const content = (
                 <Link
@@ -220,13 +211,6 @@ export const Navigation = () => {
                 >
                   <Icon className="w-5 h-5 mb-1" />
                   <span className="text-ui-sm">{label}</span>
-                  
-                  {/* Lock icon overlay for Food button */}
-                  {isLocked && label === 'Food' && (
-                    <div className="absolute top-1 right-1">
-                      <Lock className="w-3 h-3 text-muted-foreground" />
-                    </div>
-                  )}
                   
                   {/* Timer badge for fasting/walking ONLY */}
                   {badge && (label === 'Fast' || label === 'Walk') && (
