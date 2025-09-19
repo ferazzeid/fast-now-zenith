@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { RealtimeDeficitProvider } from '@/contexts/RealtimeDeficitContext';
 import { queryClient } from "@/lib/query-client";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
@@ -521,28 +522,30 @@ const App = () => {
       }}
     >
       <QueryClientProvider client={queryClient}>
-        <HookConsistencyBoundary>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            
-            <ThemeProvider>
-              <SimpleWalkingStatsProvider>
-                <NavigationPreferencesProvider>
-                  <MiniTimerProvider>
-                    <Router>
-                      <NavigationGuard>
-                        <AsyncErrorBoundary>
-                          <AppContent />
-                        </AsyncErrorBoundary>
-                      </NavigationGuard>
-                    </Router>
-                  </MiniTimerProvider>
-                </NavigationPreferencesProvider>
-              </SimpleWalkingStatsProvider>
-            </ThemeProvider>
-          </TooltipProvider>
-        </HookConsistencyBoundary>
+        <RealtimeDeficitProvider>
+          <HookConsistencyBoundary>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              
+              <ThemeProvider>
+                <SimpleWalkingStatsProvider>
+                  <NavigationPreferencesProvider>
+                    <MiniTimerProvider>
+                      <Router>
+                        <NavigationGuard>
+                          <AsyncErrorBoundary>
+                            <AppContent />
+                          </AsyncErrorBoundary>
+                        </NavigationGuard>
+                      </Router>
+                    </MiniTimerProvider>
+                  </NavigationPreferencesProvider>
+                </SimpleWalkingStatsProvider>
+              </ThemeProvider>
+            </TooltipProvider>
+          </HookConsistencyBoundary>
+        </RealtimeDeficitProvider>
       </QueryClientProvider>
     </CriticalErrorBoundary>
   );

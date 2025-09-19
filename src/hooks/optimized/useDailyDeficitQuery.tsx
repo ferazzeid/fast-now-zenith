@@ -22,7 +22,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useBaseQuery } from '@/hooks/useBaseQuery';
 import { useFoodEntriesQuery } from '@/hooks/optimized/useFoodEntriesQuery';
-import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
+import { useOptimizedManualCalorieBurns } from './useOptimizedManualCalorieBurns';
 import { useOptimizedWalkingSession } from './useOptimizedWalkingSession';
 import { useProfile } from '@/hooks/useProfile';
 import { useDailyActivityOverride } from '@/hooks/useDailyActivityOverride';
@@ -70,8 +70,8 @@ export const useDailyDeficitQuery = () => {
     `${profile.weight}-${profile.height}-${profile.age}-${effectiveActivityLevel}-${profile.manual_tdee_override || 'auto'}-${overrideKey}` : 
     'no-profile';
 
-  // Get manual calorie burns for today
-  const { todayTotal: manualCaloriesTotal, loading: manualLoading } = useManualCalorieBurns();
+  // Get manual calorie burns for today (OPTIMIZED with caching and optimistic updates)
+  const { todayTotal: manualCaloriesTotal, loading: manualLoading } = useOptimizedManualCalorieBurns();
   
   // Remove excessive debug logging that was causing console spam
 
@@ -118,8 +118,8 @@ export const useDailyDeficitQuery = () => {
     },
     {
       enabled: !!profile?.weight && !!profile?.height && !!profile?.age,
-      staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
-      gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+      staleTime: 15 * 60 * 1000, // PERFORMANCE: 15 minutes stale time - BMR/TDEE rarely changes
+      gcTime: 30 * 60 * 1000, // PERFORMANCE: 30 minutes garbage collection
     }
   );
 
@@ -167,8 +167,8 @@ export const useDailyDeficitQuery = () => {
     },
     {
       enabled: !!walkingSessions && !!profile?.weight,
-      staleTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
-      gcTime: 0, // 🐛 FORCE REFRESH: Disable cache to debug
+      staleTime: 30 * 1000, // PERFORMANCE: 30 seconds - walking sessions change frequently during active walking
+      gcTime: 5 * 60 * 1000, // PERFORMANCE: 5 minutes garbage collection
     }
   );
 
@@ -198,7 +198,7 @@ export const useDailyDeficitQuery = () => {
     {
       enabled: !!bmrTdeeQuery.data && todayTotals !== undefined && 
                walkingCaloriesQuery.data !== undefined && manualCaloriesTotal !== undefined && !manualLoading,
-      staleTime: 0, // 🐛 FORCE IMMEDIATE REFRESH
+      staleTime: 1 * 60 * 1000, // PERFORMANCE: 1 minute stale time - deficit changes frequently
       gcTime: 10 * 60 * 1000, // PERFORMANCE: 10 minutes garbage collection
     }
   );

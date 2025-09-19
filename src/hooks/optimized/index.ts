@@ -15,6 +15,7 @@ export { useFoodEntriesQuery } from './useFoodEntriesQuery';
 export { useOptimizedProfile } from './useOptimizedProfile';
 export { useDailyDeficitQuery } from './useDailyDeficitQuery';
 export { useFastingHoursQuery } from './useFastingHoursQuery';
+export { useOptimizedManualCalorieBurns } from './useOptimizedManualCalorieBurns';
 
 // Type exports
 export type { FastingSession } from './useFastingSessionQuery';

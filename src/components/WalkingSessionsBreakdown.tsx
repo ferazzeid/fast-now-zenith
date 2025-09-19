@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useWalkingStats } from '@/contexts/WalkingStatsContext';
 import { useProfile } from '@/hooks/useProfile';
 import { formatDistance } from '@/utils/unitConversions';
-import { useManualCalorieBurns } from '@/hooks/useManualCalorieBurns';
+import { useOptimizedManualCalorieBurns } from '@/hooks/optimized/useOptimizedManualCalorieBurns';
 import { EditWalkingSessionTimeModal } from '@/components/EditWalkingSessionTimeModal';
 
 
@@ -50,7 +50,7 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
   const { profile } = useProfile();
-  const { manualBurns, todayTotal: manualCalorieTotal, deleteManualBurn } = useManualCalorieBurns();
+  const { manualBurns, todayTotal: manualCalorieTotal, deleteManualBurn } = useOptimizedManualCalorieBurns();
 
   const fetchTodaySessions = async () => {
     if (!user) return;
