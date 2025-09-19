@@ -16,6 +16,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useAccess } from '@/hooks/useAccess';
 import { SubscriptionStatus } from '@/components/SubscriptionStatus';
 import { NavigationPreferences } from '@/components/NavigationPreferences';
+import { BUILD_INFO } from '@/env';
 
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
@@ -518,12 +519,9 @@ const Settings = () => {
                         <SelectItem value="metric">Metric</SelectItem>
                       </SelectContent>
                     </Select>
-                    <Card className="text-ui-xs text-muted-foreground p-2">
-                      <div className="space-y-1">
-                        <div><strong>Imperial:</strong> miles, mph, lbs</div>
-                        <div><strong>Metric:</strong> kilometers, km/h, kg</div>
-                      </div>
-                    </Card>
+                    <div className="text-[11px] text-muted-foreground p-2 bg-muted/30 rounded text-center">
+                      <span><strong>Imperial:</strong> miles, mph, lbs • <strong>Metric:</strong> kilometers, km/h, kg</span>
+                    </div>
                   </div>
                   
                   {/* Physical Attributes Section */}
@@ -842,11 +840,7 @@ const Settings = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Version</span>
-                    <span className="text-warm-text font-medium">1.0.0</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Build</span>
-                    <span className="text-warm-text font-medium">Beta</span>
+                    <span className="text-warm-text font-medium">{BUILD_INFO.version}</span>
                   </div>
                 </div>
               </div>
