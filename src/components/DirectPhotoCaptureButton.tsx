@@ -3,12 +3,14 @@ import { Camera, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProcessingDots } from '@/components/ProcessingDots';
 import { FoodSelectionModal } from '@/components/FoodSelectionModal';
+import { MultiImageCaptureFlow } from '@/components/MultiImageCaptureFlow';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useAccess } from '@/hooks/useAccess';
 import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { useToast } from '@/hooks/use-toast';
 import { useUploadLoading } from '@/hooks/useStandardizedLoading';
+import { useMultiImageSettings } from '@/hooks/useMultiImageSettings';
 import { saveImageLocally } from '@/utils/localImageStorage';
 import { compressImage, getBase64FromFile } from '@/utils/imageCompression';
 
@@ -39,6 +41,7 @@ interface FoodSuggestion {
 export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [showFoodModal, setShowFoodModal] = useState(false);
+  const [showMultiImageFlow, setShowMultiImageFlow] = useState(false);
   const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -47,6 +50,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const { access_level, hasAIAccess } = useAccess();
   const sessionGuard = useSessionGuard();
   const { toast } = useToast();
+  const { data: multiImageEnabled = false } = useMultiImageSettings();
   const { isUploading, uploadState, startUpload, startAnalysis, completeUpload, completeAnalysis, setUploadError, reset } = useUploadLoading();
 
   const handleCameraClick = () => {
@@ -59,7 +63,13 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         });
         return;
       }
-      cameraInputRef.current?.click();
+      
+      // Use multi-image flow if enabled, otherwise use single image
+      if (multiImageEnabled) {
+        setShowMultiImageFlow(true);
+      } else {
+        cameraInputRef.current?.click();
+      }
     }, 'Photo Capture');
   };
 
@@ -179,7 +189,58 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     });
   };
 
+  // Handler for multi-image flow
+  const handleMultiImagesReady = async (images: string[]) => {
+    await sessionGuard.withSessionGuard(async () => {
+      try {
+        startAnalysis();
+
+        const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+          body: { images }, // Send array of base64 images
+        });
+        
+        if (error) throw error;
+        
+        console.log('Multi-image analysis response:', data);
+        
+        // Handle unified response format (same as single image)
+        if (data?.functionCall?.name === 'add_multiple_foods') {
+          const suggestion: FoodSuggestion = {
+            foods: data.functionCall.arguments.foods || [],
+            destination: data.functionCall.arguments.destination || 'today',
+            originalTranscription: data.originalTranscription || ''
+          };
+          
+          // Initialize selection with all items selected
+          const allSelected = new Set(suggestion.foods.map((_, index) => index));
+          setSelectedFoodIds(allSelected);
+          
+          setFoodSuggestion(suggestion);
+          setShowMultiImageFlow(false);
+          setShowFoodModal(true);
+          completeAnalysis();
+        } else {
+          // Fallback for no foods found or errors
+          handleAnalysisError(
+            data?.completion || 
+            'Could not identify any food items in these images. Please try clearer photos or add food manually.'
+          );
+        }
+
+      } catch (analysisError) {
+        console.error('Multi-image analysis error:', analysisError);
+        handleAnalysisError('Could not analyze the images. Please try again.');
+      }
+    });
+  };
+
+  const handleMultiImageCancel = () => {
+    setShowMultiImageFlow(false);
+    reset();
+  };
+
   const handleAnalysisError = (message: string) => {
+    setShowMultiImageFlow(false);
     reset();
     cleanup();
     toast({
@@ -287,7 +348,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     <>
       <Button
         onClick={handleCameraClick}
-        disabled={isUploading}
+        disabled={isUploading || showMultiImageFlow}
         variant="action-secondary"
         size="start-button"
         className={`w-full flex items-center justify-center transition-colors ${className}`}
@@ -303,6 +364,19 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         onChange={handleFileChange}
         className="hidden"
       />
+
+      {/* Multi-Image Capture Flow */}
+      {showMultiImageFlow && (
+        <div className="fixed inset-0 bg-background z-50 overflow-auto">
+          <div className="container max-w-md mx-auto p-4 min-h-screen flex flex-col justify-center">
+            <MultiImageCaptureFlow
+              onImagesReady={handleMultiImagesReady}
+              onCancel={handleMultiImageCancel}
+              isProcessing={isUploading}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Food Selection Modal (unified with voice) */}
       {showFoodModal && foodSuggestion && (

@@ -9,6 +9,7 @@ import { AdminCurrentModels } from "@/components/AdminCurrentModels";
 import { AdminModelSelector } from "@/components/AdminModelSelector";
 import { AdminModelTester } from "@/components/AdminModelTester";
 import { AdminCostCalculator } from "@/components/AdminCostCalculator";
+import { AdminMultiImageSettings } from "@/components/AdminMultiImageSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,10 @@ export default function AdminAI() {
 
         <section aria-label="AI model selection">
           <AdminModelSelector />
+        </section>
+
+        <section aria-label="Multi-image food analysis settings">
+          <AdminMultiImageSettings />
         </section>
 
         <section aria-label="Cost calculator">

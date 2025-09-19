@@ -86,10 +86,11 @@ serve(async (req) => {
 
   try {
     console.log('Food image analysis request received');
-    const { imageData, imageUrl } = await req.json();
+    const { imageData, imageUrl, images } = await req.json();
     
-    if (!imageData && !imageUrl) {
-      throw new Error('No image data or URL provided');
+    // Support both single and multiple image formats
+    if (!imageData && !imageUrl && !images) {
+      throw new Error('No image data, URL, or images array provided');
     }
 
     // Initialize Supabase client with service role key for admin operations
@@ -286,47 +287,64 @@ serve(async (req) => {
       throw new Error('OpenAI API key not available. Please configure a shared API key in admin settings.');
     }
 
-    console.log('Analyzing food image with OpenAI Vision API');
+    console.log('Analyzing food image(s) with OpenAI Vision API');
 
-    // Prepare the image content for OpenAI
-    let imageContent;
-    let finalImageUrl;
+    // Prepare the image content for OpenAI - support multiple images
+    let imageContents = [];
     
-    if (imageUrl) {
-      console.log('Processing imageUrl:', imageUrl.substring(0, 50) + '...');
+    if (images && Array.isArray(images) && images.length > 0) {
+      console.log(`Processing ${images.length} images from images array`);
       
-      if (imageUrl.startsWith('data:')) {
-        // Data URL passed via imageUrl parameter - use as is
-        finalImageUrl = imageUrl;
-        console.log('Data URL detected in imageUrl parameter');
-      } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-        // Already absolute HTTP/HTTPS URL - use as is
-        finalImageUrl = imageUrl;
-        console.log('HTTP URL detected:', imageUrl);
-      } else {
-        // Relative path - make it absolute using Supabase storage
-        finalImageUrl = `https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images${imageUrl}`;
-        console.log('Relative path converted to Supabase storage URL:', finalImageUrl);
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        let processedImageUrl;
+        
+        if (image.startsWith('data:')) {
+          processedImageUrl = image;
+          console.log(`Image ${i + 1}: Data URL detected`);
+        } else if (image.startsWith('http://') || image.startsWith('https://')) {
+          processedImageUrl = image;
+          console.log(`Image ${i + 1}: HTTP URL detected`);
+        } else {
+          // Raw base64 - add the data URL prefix
+          processedImageUrl = `data:image/jpeg;base64,${image}`;
+          console.log(`Image ${i + 1}: Added data URL prefix to base64 data`);
+        }
+        
+        imageContents.push({ type: "image_url", image_url: { url: processedImageUrl } });
       }
-      
-      imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
-    } else if (imageData) {
-      console.log('Processing imageData:', imageData.substring(0, 50) + '...');
-      
-      // Handle imageData - check if it's already a complete data URL
-      if (imageData.startsWith('data:')) {
-        // Already a complete data URL - use as is
-        finalImageUrl = imageData;
-        console.log('Complete data URL detected in imageData');
-      } else {
-        // Raw base64 - add the data URL prefix
-        finalImageUrl = `data:image/jpeg;base64,${imageData}`;
-        console.log('Added data URL prefix to base64 data');
-      }
-      
-      imageContent = { type: "image_url", image_url: { url: finalImageUrl } };
     } else {
-      throw new Error('No valid image data provided');
+      // Fallback to single image processing (backward compatibility)
+      let finalImageUrl;
+      
+      if (imageUrl) {
+        console.log('Processing imageUrl:', imageUrl.substring(0, 50) + '...');
+        
+        if (imageUrl.startsWith('data:')) {
+          finalImageUrl = imageUrl;
+          console.log('Data URL detected in imageUrl parameter');
+        } else if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+          finalImageUrl = imageUrl;
+          console.log('HTTP URL detected:', imageUrl);
+        } else {
+          finalImageUrl = `https://texnkijwcygodtywgedm.supabase.co/storage/v1/object/public/website-images${imageUrl}`;
+          console.log('Relative path converted to Supabase storage URL:', finalImageUrl);
+        }
+      } else if (imageData) {
+        console.log('Processing imageData:', imageData.substring(0, 50) + '...');
+        
+        if (imageData.startsWith('data:')) {
+          finalImageUrl = imageData;
+          console.log('Complete data URL detected in imageData');
+        } else {
+          finalImageUrl = `data:image/jpeg;base64,${imageData}`;
+          console.log('Added data URL prefix to base64 data');
+        }
+      } else {
+        throw new Error('No valid image data provided');
+      }
+      
+      imageContents.push({ type: "image_url", image_url: { url: finalImageUrl } });
     }
 
     // Use hardcoded model configuration
@@ -353,12 +371,13 @@ serve(async (req) => {
           content: [
             {
               type: 'text',
-                text: 'Analyze this food image and identify ALL food items visible. Create entries for each separate food item you can identify.'
-              },
-              imageContent
-            ]
-          }
-        ],
+              text: imageContents.length > 1 
+                ? `Analyze these ${imageContents.length} food images and identify ALL food items visible across all images. The images may show the same food from different angles (like front and back of packaging) or different foods. Create entries for each separate food item you can identify.`
+                : 'Analyze this food image and identify ALL food items visible. Create entries for each separate food item you can identify.'
+            },
+            ...imageContents
+          ]
+        },
         tools: [
           {
             type: "function",
