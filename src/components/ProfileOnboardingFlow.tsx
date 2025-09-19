@@ -219,10 +219,11 @@ export const ProfileOnboardingFlow = ({ onComplete, onSkip }: ProfileOnboardingF
                 type="number"
                 value={typeof tempValue === 'string' ? tempValue : ''}
                 onChange={(e) => setTempValue(e.target.value)}
-                placeholder="0"
+                placeholder="Enter age"
                 min="13"
                 max="120"
                 className="w-24 h-12 text-center text-lg font-medium"
+                onFocus={(e) => e.target.select()}
               />
               <div className="w-16 h-12 flex items-center justify-center bg-muted/30 border rounded-md text-sm font-medium">
                 years
