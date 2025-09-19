@@ -3,6 +3,7 @@ import { Mic, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PremiumGate } from '@/components/PremiumGate';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
+import { CapacitorVoicePermissionGuard } from '@/components/CapacitorVoicePermissionGuard';
 import { extractNumber } from '@/utils/numberExtraction';
 
 interface InlineVoiceButtonProps {
@@ -60,12 +61,14 @@ export const InlineVoiceButton = ({
             
             <div className="space-y-4">
               <PremiumGate feature="Voice Input" grayOutForFree={true}>
-                <div className="flex justify-center">
-                  <CircularVoiceButton
-                    onTranscription={handleVoiceTranscription}
-                    size="lg"
-                  />
-                </div>
+                <CapacitorVoicePermissionGuard>
+                  <div className="flex justify-center">
+                    <CircularVoiceButton
+                      onTranscription={handleVoiceTranscription}
+                      size="lg"
+                    />
+                  </div>
+                </CapacitorVoicePermissionGuard>
               </PremiumGate>
               
               <Button

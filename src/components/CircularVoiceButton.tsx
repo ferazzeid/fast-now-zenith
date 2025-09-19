@@ -105,12 +105,28 @@ export const CircularVoiceButton = React.forwardRef<
 
   const checkMicrophonePermission = async () => {
     try {
-      if (import.meta.env.DEV) console.log('🎤 Checking microphone permission...');
+      console.log('🎤 [Permission Check] Starting permission check...');
+      console.log('🎤 [Permission Check] Is Capacitor app:', !!(window as any).Capacitor);
+      console.log('🎤 [Permission Check] Platform:', (window as any).Capacitor?.getPlatform?.());
+      
+      // Check if we're in a Capacitor environment
+      const isCapacitor = !!(window as any).Capacitor;
+      
+      if (isCapacitor) {
+        console.log('🎤 [Permission Check] Capacitor environment detected');
+        // In Capacitor, permissions might work differently
+        // We'll check during getUserMedia call instead
+        setHasPermission(null);
+        return;
+      }
+      
+      // Web browser permission check
       const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
       setHasPermission(result.state === 'granted');
-      if (import.meta.env.DEV) console.log('🎤 Permission state:', result.state);
+      console.log('🎤 [Permission Check] Web permission state:', result.state);
     } catch (error) {
-      if (import.meta.env.DEV) console.log('🎤 Permission check not supported, will check during access');
+      console.log('🎤 [Permission Check] Permission check not supported, will check during access');
+      console.log('🎤 [Permission Check] Error:', error);
       setHasPermission(null); // Unknown, will check during access
     }
   };
@@ -142,8 +158,17 @@ export const CircularVoiceButton = React.forwardRef<
       console.log('🎤 [Mobile Debug] Starting recording...');
       console.log('🎤 [Mobile Debug] User agent:', navigator.userAgent);
       console.log('🎤 [Mobile Debug] Is mobile browser:', /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+      console.log('🎤 [Mobile Debug] Is Capacitor app:', !!(window as any).Capacitor);
+      console.log('🎤 [Mobile Debug] Capacitor platform:', (window as any).Capacitor?.getPlatform?.());
       
-      // Request permissions explicitly on mobile
+      // Show immediate feedback for better UX
+      toast({
+        title: "Requesting microphone access...",
+        description: "Please allow microphone permission when prompted",
+        duration: 3000,
+      });
+      
+      // Request permissions explicitly on mobile with enhanced settings for Capacitor
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: {
           sampleRate: 16000,
@@ -209,12 +234,24 @@ export const CircularVoiceButton = React.forwardRef<
       setHasPermission(false);
       
       let errorMsg = "Could not access microphone. Please check permissions.";
+      const isCapacitor = !!(window as any).Capacitor;
+      
       if (error.name === 'NotAllowedError') {
-        errorMsg = "Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.";
+        if (isCapacitor) {
+          errorMsg = "Microphone access denied. Please:\n1. Check app permissions in device settings\n2. Grant microphone permission to FastNow Zenith\n3. Restart the app";
+        } else {
+          errorMsg = "Microphone access denied. Please enable microphone permissions in your browser settings and refresh the page.";
+        }
       } else if (error.name === 'NotFoundError') {
         errorMsg = "No microphone found. Please connect a microphone and try again.";
       } else if (error.name === 'NotSupportedError') {
-        errorMsg = "Your browser doesn't support audio recording. Please try a different browser.";
+        if (isCapacitor) {
+          errorMsg = "Voice recording not supported on this device. Please use manual text input instead.";
+        } else {
+          errorMsg = "Your browser doesn't support audio recording. Please try a different browser.";
+        }
+      } else if (isCapacitor && (error.message?.includes('Permission') || error.message?.includes('denied'))) {
+        errorMsg = "Permission required: Go to device Settings > Apps > FastNow Zenith > Permissions and enable Microphone access.";
       }
       
       toast({

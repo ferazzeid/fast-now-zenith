@@ -1,0 +1,50 @@
+<!-- Template for iOS Capacitor App Info.plist -->
+<!-- Add these entries to ios/App/App/Info.plist after running `npx cap add ios` -->
+
+<!-- Add this inside the main <dict> tag of your Info.plist file -->
+
+<!-- REQUIRED: Microphone permission for voice recording -->
+<key>NSMicrophoneUsageDescription</key>
+<string>This app needs access to the microphone to record voice input for food logging and other features.</string>
+
+<!-- Optional: Camera permission if you plan to add camera features -->
+<!-- 
+<key>NSCameraUsageDescription</key>
+<string>This app needs access to the camera to take photos of food for logging.</string>
+-->
+
+<!-- Optional: Photo library permission if you plan to add photo selection -->
+<!--
+<key>NSPhotoLibraryUsageDescription</key>
+<string>This app needs access to your photo library to select food images for logging.</string>
+-->
+
+<!-- Optional: Location permission if you plan to add location features -->
+<!--
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>This app needs access to your location to provide location-based features.</string>
+-->
+
+<!-- Example of complete relevant section in Info.plist: -->
+<!--
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>FastNow Zenith</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    
+    <!-- ADD THE MICROPHONE PERMISSION HERE -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs access to the microphone to record voice input for food logging and other features.</string>
+    
+    <!-- Rest of your existing Info.plist content -->
+</dict>
+</plist>
+-->
