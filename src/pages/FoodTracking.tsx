@@ -27,11 +27,9 @@ import { trackFoodEvent } from '@/utils/analytics';
 import { CompactFoodSummary } from '@/components/CompactFoodSummary';
 import { FoodStatsCard } from '@/components/FoodStatsCard';
 import { ResponsivePageHeader } from '@/components/ResponsivePageHeader';
+import { AccessGate } from '@/components/AccessGate';
 import { useDailyFoodTemplate } from '@/hooks/useDailyFoodTemplate';
 import { SmartImage } from '@/components/SmartImage';
-import { ManualFoodInputButton } from '@/components/ManualFoodInputButton';
-import { InlineTextFoodInputButton } from '@/components/InlineTextFoodInputButton';
-import { LockedFeatureButton, PremiumPlaceholderButton } from '@/components/LockedFeatureButton';
 
 const FoodTracking = () => {
   const location = useLocation();
@@ -46,7 +44,7 @@ const FoodTracking = () => {
   const { toast } = useToast();
   const { execute: executeClearAll, isLoading: isClearingAll } = useStandardizedLoading();
   const { profile, updateProfile } = useProfile();
-  const { hasAccess, hasPremiumFeatures, hasAIAccess, hasFoodAccess, isAdmin } = useAccess();
+  const { hasAccess, hasPremiumFeatures, isAdmin } = useAccess();
   const isSubscriptionActive = hasAccess || hasPremiumFeatures;
   const { todayEntries, addFoodEntry, addMultipleFoodEntries, deleteFoodEntry, updateFoodEntry, toggleConsumption, bulkMarkAsEaten, clearAllEntries, refreshFoodEntries, isBulkMarking } = useFoodEntriesQuery();
   const { calculateWalkingMinutesForFood, formatWalkingTime } = useFoodWalkingCalculation();
@@ -147,7 +145,7 @@ const FoodTracking = () => {
     }
   };
 
-  const handleAddMultipleFoods = async (entries: any[]) => {
+  const handleTextInput = async (entries: any[]) => {
     try {
       if (entries && entries.length > 0) {
         await addMultipleFoodEntries(entries);
@@ -157,14 +155,15 @@ const FoodTracking = () => {
         });
       }
     } catch (error) {
-      console.error('Error adding foods:', error);
+      console.error('Error processing text input:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add foods"
+        description: "Failed to add foods from text input"
       });
     }
   };
+
 
   const handleToggleConsumption = async (entryId: string, consumed: boolean) => {
     try {
@@ -468,234 +467,260 @@ const FoodTracking = () => {
     </Card>
   );
 
-  const leftButton = null;
-
-  const handleMyFoodsClick = () => {
-    navigate('/my-foods?from=food-tracking');
-  };
-
-  const openHistoryModal = () => {
-    navigate('/food-history');
-  };
-
   return (
-    <div className="container mx-auto px-4 space-y-6">
-      <ResponsivePageHeader
-        title="Food Tracking"
-        subtitle={`Daily Goals: ${profile?.daily_calorie_goal || 1500} cal • ${profile?.daily_carb_goal || 30}g carbs`}
-        leftButton={leftButton}
-        onHistoryClick={openHistoryModal}
-        onMyFoodsClick={handleMyFoodsClick}
-        showAuthorTooltip={true}
-        authorTooltipContentKey="food_tracking_tooltip"
-        className="mb-6"
-      />
+    <AccessGate feature="food">
+      {({ hasAccess, requestUpgrade }) => 
+        hasAccess ? (
+          <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
+            <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
+              {/* Header with Responsive Page Header */}
+              <ResponsivePageHeader
+                title="Food Tracking"
+                subtitle="Track your food intake"
+                onHistoryClick={() => navigate('/food-history')}
+                historyTitle="View food history"
+                onMyFoodsClick={() => navigate('/my-foods')}
+                myFoodsTitle="Browse food library"
+                onFoodAdded={handleTextInput}
+                showAuthorTooltip={false}
+              />
 
-      {/* Conditional button layout based on access level */}
-      {hasFoodAccess ? (
-        // Premium: 4-button layout (2x2 grid)
-        <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto mb-6">
-          <div className="flex flex-col items-center gap-2">
-            <DirectPhotoCaptureButton 
-              onFoodAdded={handleAddMultipleFoods}
-              className="w-16 h-16"
-            />
-            <span className="text-xs text-muted-foreground text-center">Photo</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <DirectVoiceFoodInput 
-              onFoodAdded={handleAddMultipleFoods}
-            />
-            <span className="text-xs text-muted-foreground text-center">Voice</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <InlineTextFoodInputButton 
-              onFoodAdded={handleAddMultipleFoods}
-            />
-            <span className="text-xs text-muted-foreground text-center">AI Text</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <ManualFoodInputButton 
-              onFoodAdded={handleAddMultipleFoods}
-            />
-            <span className="text-xs text-muted-foreground text-center">Manual</span>
-          </div>
-        </div>
-      ) : (
-        // Free: 2-button layout (Manual + Premium placeholder)
-        <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto mb-6">
-          <div className="flex flex-col items-center gap-2">
-            <ManualFoodInputButton 
-              onFoodAdded={handleAddMultipleFoods}
-            />
-            <span className="text-xs text-muted-foreground text-center">Manual</span>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <PremiumPlaceholderButton />
-            <span className="text-xs text-muted-foreground text-center">AI Features</span>
-          </div>
-        </div>
-      )}
+              {/* Food Statistics Card */}
+              <div className="mb-6 relative">
+                <ComponentErrorBoundary>
+                  <FoodStatsCard entries={todayEntries} />
+                </ComponentErrorBoundary>
+              </div>
 
-      {/* Food Statistics Card */}
-      <div className="mb-6 relative">
-        <ComponentErrorBoundary>
-          <FoodStatsCard entries={todayEntries} />
-        </ComponentErrorBoundary>
-      </div>
+              {/* Action Buttons - Two Column Layout */}
+              <div className="mb-6 grid grid-cols-2 gap-6">
+                <div className="flex flex-col items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DirectPhotoCaptureButton onFoodAdded={handlePhotoCapture} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Take a photo to automatically detect food and nutrition</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <span className="text-xs text-muted-foreground text-center">Add with photo</span>
+                </div>
 
-      {/* Food Entries List */}
-      <div className="mb-6">
-        {todayEntries.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8 space-y-2">
-            <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <p>No foods added yet</p>
-            <p className="text-sm mt-2">Add foods using the buttons above</p>
+                <div className="flex flex-col items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DirectVoiceFoodInput onFoodAdded={handleVoiceInput} />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Speak to add foods using voice recognition</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <span className="text-xs text-muted-foreground text-center">Add with voice</span>
+                </div>
+              </div>
+
+              {/* Food Entries List */}
+              <div className="mb-6">
+                {todayEntries.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8 space-y-2">
+                    <Utensils className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p>No foods added yet</p>
+                    <p className="text-sm mt-2">Add foods using the buttons above</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {/* Small icon buttons positioned above food list */}
+                    <div className="flex justify-end items-center gap-2 pb-4 border-b border-border">
+                      <div className="flex items-center gap-4 mr-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => setShowClearAllDialog(true)}
+                          className={`h-5 w-5 p-1 rounded text-muted-foreground hover:text-foreground ${
+                            isClearingAll 
+                              ? 'bg-muted/50 hover:bg-muted/70' 
+                              : 'bg-transparent hover:bg-muted/10'
+                          }`}
+                          disabled={isClearingAll}
+                          title="Delete all foods"
+                          aria-label="Delete all foods"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={handleMarkAllAsEaten}
+                          disabled={isBulkMarking}
+                          className="h-5 w-5 p-1 rounded bg-muted/50 hover:bg-muted/70 text-muted-foreground"
+                          title="Mark all foods as eaten"
+                          aria-label="Mark all foods as eaten"
+                        >
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Sort entries so consumed items appear at the bottom */}
+                    {[...todayEntries].sort((a, b) => {
+                      if (a.consumed && !b.consumed) return 1;
+                      if (!a.consumed && b.consumed) return -1;
+                      return 0;
+                    }).map((entry) => 
+                      renderFoodEntryCard(entry)
+                    )}
+                    
+                    {/* Save to Template Button */}
+                    <div className="flex justify-between items-center mt-6 pt-2 border-t border-border">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowSaveToTemplateDialog(true)}
+                        className="text-muted-foreground hover:text-foreground text-xs px-2 py-2 h-auto flex items-center gap-1 bg-transparent hover:bg-muted/10"
+                      >
+                        <Save className="w-3 h-3" />
+                      </Button>
+                      <div className="flex items-center gap-4 mr-2">
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => setShowClearAllDialog(true)}
+                          className={`h-5 w-5 p-1 rounded text-muted-foreground hover:text-foreground ${
+                            isClearingAll 
+                              ? 'bg-muted/50 hover:bg-muted/70' 
+                              : 'bg-transparent hover:bg-muted/10'
+                          }`}
+                          disabled={isClearingAll}
+                          title="Delete all foods"
+                          aria-label="Delete all foods"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={handleMarkAllAsEaten}
+                          disabled={isBulkMarking}
+                          className="h-5 w-5 p-1 rounded bg-muted/50 hover:bg-muted/70 text-muted-foreground"
+                          title="Mark all foods as eaten"
+                          aria-label="Mark all foods as eaten"
+                        >
+                          <Check className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modals */}
+            <TooltipProvider>
+              {/* Edit Food Entry Modal */}
+              {editingEntry && (
+                <EditFoodEntryModal
+                  entry={editingEntry}
+                  isOpen={!!editingEntry}
+                  onUpdate={async (updatedEntry) => {
+                    try {
+                      await updateFoodEntry({ 
+                        id: editingEntry.id, 
+                        updates: updatedEntry 
+                      });
+                      setEditingEntry(null);
+                    } catch (error) {
+                      console.error('Error updating entry:', error);
+                      toast({
+                        variant: "destructive",
+                        title: "Error",
+                        description: "Failed to update food entry"
+                      });
+                    }
+                  }}
+                  onClose={() => setEditingEntry(null)}
+                />
+              )}
+
+              {/* Onboarding Modal - Temporarily disabled due to prop mismatch */}
+              {/* 
+              <PageOnboardingModal
+                isOpen={showOnboarding}
+                onClose={() => setShowOnboarding(false)}
+                title="Food Tracking"
+                subtitle="Track your nutrition"
+              >
+                <div>Food tracking onboarding content</div>
+              </PageOnboardingModal>
+              */}
+
+              {/* Clear All Confirmation Modal */}
+              <ConfirmationModal
+                isOpen={showClearAllDialog}
+                onClose={() => setShowClearAllDialog(false)}
+                onConfirm={handleClearAll}
+                title="Clear All Foods"
+                description="Are you sure you want to remove all food entries for today? This action cannot be undone."
+                confirmText="Clear All"
+                cancelText="Cancel"
+                variant="destructive"
+                isLoading={isClearingAll}
+              />
+
+              {/* Save to Template Confirmation Modal */}
+              <ConfirmationModal
+                isOpen={!!showSaveToTemplateDialog}
+                onClose={() => setShowSaveToTemplateDialog(false)}
+                onConfirm={handleSaveToTemplateConfirm}
+                title={typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null 
+                  ? `Save "${showSaveToTemplateDialog.name}" to Template`
+                  : "Save All Foods to Template"
+                }
+                description={typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null
+                  ? `This will add "${showSaveToTemplateDialog.name}" to your daily template. You can reuse this template to quickly add your favorite foods on other days.`
+                  : `This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`
+                }
+                confirmText="Save to Template"
+                cancelText="Cancel"
+              />
+            </TooltipProvider>
           </div>
         ) : (
-          <div className="space-y-1">
-            {/* Small icon buttons positioned above food list */}
-            <div className="flex justify-end items-center gap-2 pb-4 border-b border-border">
-              <div className="flex items-center gap-4 mr-2">
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => setShowClearAllDialog(true)}
-                  className={`h-5 w-5 p-1 rounded text-muted-foreground hover:text-foreground ${
-                    isClearingAll 
-                      ? 'bg-muted/50 hover:bg-muted/70' 
-                      : 'bg-transparent hover:bg-muted/10'
-                  }`}
-                  disabled={isClearingAll}
-                  title="Delete all foods"
-                  aria-label="Delete all foods"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleMarkAllAsEaten}
-                  disabled={isBulkMarking}
-                  className="h-5 w-5 p-1 rounded bg-muted/50 hover:bg-muted/70 text-muted-foreground"
-                  title="Mark all foods as eaten"
-                  aria-label="Mark all foods as eaten"
-                >
-                  <Check className="w-3 h-3" />
-                </Button>
-              </div>
-            </div>
+          <div className="relative min-h-[calc(100vh-80px)] bg-background p-4 overflow-x-hidden">
+            <div className="max-w-md mx-auto pt-10 pb-32 safe-bottom">
+              {/* Header */}
+              <ResponsivePageHeader
+                title="Food Tracking"
+                subtitle="Track your food intake"
+                onHistoryClick={() => navigate('/food-history')}
+                historyTitle="View food history"
+                onMyFoodsClick={() => navigate('/my-foods')}
+                myFoodsTitle="Browse food library"
+                onFoodAdded={handleTextInput}
+                showAuthorTooltip={true}
+                authorTooltipContentKey="food_tracking_insights"
+                authorTooltipContent="Proper nutrition tracking helps you understand your body's needs, maintain consistent energy levels, and develop sustainable eating habits. Focus on nutrient density rather than just calories!"
+              />
 
-            {/* Sort entries so consumed items appear at the bottom */}
-            {[...todayEntries].sort((a, b) => {
-              if (a.consumed && !b.consumed) return 1;
-              if (!a.consumed && b.consumed) return -1;
-              return 0;
-            }).map((entry) => 
-              renderFoodEntryCard(entry)
-            )}
-            
-            {/* Save to Template Button */}
-            <div className="flex justify-between items-center mt-6 pt-2 border-t border-border">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSaveToTemplateDialog(true)}
-                className="text-muted-foreground hover:text-foreground text-xs px-2 py-2 h-auto flex items-center gap-1 bg-transparent hover:bg-muted/10"
-              >
-                <Save className="w-3 h-3" />
-              </Button>
-              <div className="flex items-center gap-4 mr-2">
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => setShowClearAllDialog(true)}
-                  className={`h-5 w-5 p-1 rounded text-muted-foreground hover:text-foreground ${
-                    isClearingAll 
-                      ? 'bg-muted/50 hover:bg-muted/70' 
-                      : 'bg-transparent hover:bg-muted/10'
-                  }`}
-                  disabled={isClearingAll}
-                  title="Delete all foods"
-                  aria-label="Delete all foods"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={handleMarkAllAsEaten}
-                  disabled={isBulkMarking}
-                  className="h-5 w-5 p-1 rounded bg-muted/50 hover:bg-muted/70 text-muted-foreground"
-                  title="Mark all foods as eaten"
-                  aria-label="Mark all foods as eaten"
-                >
-                  <Check className="w-3 h-3" />
-                </Button>
+              <div className="bg-background/50 backdrop-blur-sm border border-border rounded-lg p-6 text-center space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                  <Lock className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Food Tracking Available with Premium</h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    Track your nutrition, log meals with photos and voice input, and maintain a healthy relationship with food.
+                  </p>
+                  <Button onClick={requestUpgrade} className="w-full">
+                    <Crown className="w-4 h-4 mr-2" />
+                    Upgrade to Premium
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        )}
-      </div>
-
-      {/* Modals */}
-      <TooltipProvider>
-        {/* Edit Food Entry Modal */}
-        {editingEntry && (
-          <EditFoodEntryModal
-            entry={editingEntry}
-            isOpen={!!editingEntry}
-            onUpdate={async (updatedEntry) => {
-              try {
-                await updateFoodEntry({ 
-                  id: editingEntry.id, 
-                  updates: updatedEntry 
-                });
-                setEditingEntry(null);
-              } catch (error) {
-                console.error('Error updating entry:', error);
-                toast({
-                  variant: "destructive",
-                  title: "Error",
-                  description: "Failed to update food entry"
-                });
-              }
-            }}
-            onClose={() => setEditingEntry(null)}
-          />
-        )}
-
-        {/* Clear All Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={showClearAllDialog}
-          onClose={() => setShowClearAllDialog(false)}
-          onConfirm={handleClearAll}
-          title="Clear All Foods"
-          description="Are you sure you want to remove all food entries for today? This action cannot be undone."
-          confirmText="Clear All"
-          cancelText="Cancel"
-          variant="destructive"
-          isLoading={isClearingAll}
-        />
-
-        {/* Save to Template Confirmation Modal */}
-        <ConfirmationModal
-          isOpen={!!showSaveToTemplateDialog}
-          onClose={() => setShowSaveToTemplateDialog(false)}
-          onConfirm={handleSaveToTemplateConfirm}
-          title={typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null 
-            ? `Save "${showSaveToTemplateDialog.name}" to Template`
-            : "Save All Foods to Template"
-          }
-          description={typeof showSaveToTemplateDialog === 'object' && showSaveToTemplateDialog !== null
-            ? `This will add "${showSaveToTemplateDialog.name}" to your daily template. You can reuse this template to quickly add your favorite foods on other days.`
-            : `This will add all ${todayEntries.length} food${todayEntries.length > 1 ? 's' : ''} from today's list to your daily template, including both eaten and non-eaten items. You can reuse this template to quickly add all your favorite foods on other days.`
-          }
-          confirmText="Save to Template"
-          cancelText="Cancel"
-        />
-      </TooltipProvider>
-    </div>
+        )
+      }
+    </AccessGate>
   );
 };
 
