@@ -15,33 +15,24 @@ export const WeightGoalVisual: React.FC<WeightGoalVisualProps> = ({
   size = 'md'
 }) => {
   const sizeClasses = {
-    sm: 'text-2xl px-4 py-2',
-    md: 'text-4xl px-6 py-4', 
-    lg: 'text-6xl px-8 py-6'
-  };
-
-  const unitLabels = {
-    kg: 'kg',
-    lbs: 'lbs',
-    stones: 'st'
+    sm: 'text-3xl px-4 py-3',
+    md: 'text-5xl px-6 py-4', 
+    lg: 'text-7xl px-8 py-6'
   };
 
   return (
     <div className={cn(
-      "flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 transition-all duration-300",
+      "flex items-center justify-center bg-accent text-accent-foreground font-bold transition-all duration-300 rounded-t-xl",
       sizeClasses[size],
       className
     )}>
-      <div className="flex items-baseline gap-2">
-        <span className="font-bold text-primary tabular-nums">
+      <div className="flex items-baseline gap-1">
+        <span className="tabular-nums">
           {weight}
         </span>
-        <span className="text-primary/70 font-semibold text-base">
-          {unitLabels[unit]}
+        <span className="text-[0.6em] font-semibold">
+          {unit}
         </span>
-      </div>
-      <div className="text-xs text-muted-foreground mt-1 font-medium">
-        Target Weight
       </div>
     </div>
   );
