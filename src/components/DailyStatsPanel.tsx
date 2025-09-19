@@ -276,7 +276,7 @@ export const DailyStatsPanel = memo(() => {
                     <div className="flex items-center space-x-2">
                       <Target className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm font-medium text-warm-text">
-                        {deficitData.isProgressiveBurnEnabled ? 'Earned Daily Burn' : 'Base Daily Burn'}
+                        {deficitData.isProgressiveBurnEnabled ? 'Progressive Daily Burn' : 'Base Daily Burn'}
                       </span>
                       <ClickableTooltip content={
                         deficitData.isProgressiveBurnEnabled 

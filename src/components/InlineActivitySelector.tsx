@@ -98,12 +98,12 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
             </div>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-ceramic-plate border-subtle z-[60]">
+        <SelectContent className="bg-background border-border shadow-lg z-[100] min-w-[200px]">
           {Object.entries(ACTIVITY_LEVELS).map(([key, label]) => (
             <SelectItem 
               key={key} 
               value={key}
-              className="text-xs hover:bg-ceramic-base focus:bg-ceramic-base"
+              className="text-xs hover:bg-muted/20 focus:bg-muted/20 data-[highlighted]:bg-muted/20"
             >
               <div className="flex items-center justify-between w-full">
                 <div className="flex flex-col">
@@ -133,7 +133,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
               </div>
               <SelectItem 
                 value="clear-override"
-                className="text-xs text-muted-foreground hover:bg-ceramic-base focus:bg-ceramic-base"
+                className="text-xs text-muted-foreground hover:bg-muted/20 focus:bg-muted/20 data-[highlighted]:bg-muted/20"
               >
                 <div className="flex items-center gap-1">
                   <RotateCcw className="w-3 h-3" />
