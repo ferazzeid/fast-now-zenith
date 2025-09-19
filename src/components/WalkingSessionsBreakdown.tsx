@@ -210,33 +210,62 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
       </div>
 
       {/* External Activities section */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Plus className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-warm-text">External Activities</span>
-          <ClickableTooltip content="Calories burned from manually added activities today">
-            <Info className="w-4 h-4 text-muted-foreground" />
-          </ClickableTooltip>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="text-sm font-bold text-warm-text">
-            {manualCalories} cal
+      <div className="space-y-1">
+        {manualBurns.length > 0 ? (
+          // Show individual activities
+          <div className="space-y-1">
+            <div className="flex items-center space-x-2 mb-1">
+              <Plus className="w-4 h-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">External Activities</span>
+              <ClickableTooltip content="Calories burned from manually added activities today">
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </ClickableTooltip>
+            </div>
+            {manualBurns.map((burn) => (
+              <div key={burn.id} className="flex items-center justify-between bg-muted/50 rounded px-2 py-1 ml-6">
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-medium text-warm-text">
+                    {burn.activity_name}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(burn.created_at).toLocaleTimeString('en-US', {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                      hour12: true
+                    })}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs font-bold text-warm-text">
+                    {burn.calories_burned} cal
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteManualBurn(burn.id, burn.activity_name)}
+                    className="h-4 w-4 p-0 bg-muted/50 hover:bg-destructive/20 text-muted-foreground hover:text-destructive rounded"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
-          {manualBurns.length > 1 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="h-6 w-6 p-0"
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </Button>
-          )}
-        </div>
+        ) : (
+          // Show placeholder when no activities
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Plus className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium text-warm-text">External Activities</span>
+              <ClickableTooltip content="Calories burned from manually added activities today">
+                <Info className="w-4 h-4 text-muted-foreground" />
+              </ClickableTooltip>
+            </div>
+            <div className="text-sm font-bold text-warm-text">
+              0 cal
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Session breakdown (when expanded) */}
