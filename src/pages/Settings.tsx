@@ -274,8 +274,7 @@ const Settings = () => {
             activity_level: activityLevel,
             manual_tdee_override: manualTdeeOverride ? parseInt(manualTdeeOverride) : null,
             target_deficit: targetDeficit ? parseInt(targetDeficit) : 1000,
-            primary_color: primaryColor,
-            secondary_color: secondaryColor
+            primary_color: primaryColor
           };
         
         console.log('Settings: User ID:', user?.id);
