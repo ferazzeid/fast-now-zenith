@@ -206,14 +206,17 @@ export const IFScheduleSelector = ({
           <Button
             onClick={handleConfirm}
             disabled={!canConfirm}
-            variant="action-primary"
+            variant={canConfirm ? "action-primary" : "outline"}
             size="start-button"
             className={cn(
               "w-full text-lg py-4 transition-all duration-200",
-              !canConfirm && "opacity-50 cursor-not-allowed"
+              !canConfirm && "opacity-50 cursor-not-allowed bg-muted text-muted-foreground border-muted-foreground/20"
             )}
           >
-            {startInPast ? `Start Past Fast` : `Start Fast`}
+            {!canConfirm 
+              ? "Select Schedule First" 
+              : (startInPast ? "Start Past Fast" : "Start Fast")
+            }
           </Button>
         </div>
       </div>
