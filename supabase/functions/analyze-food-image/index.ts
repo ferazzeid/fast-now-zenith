@@ -377,8 +377,9 @@ serve(async (req) => {
             },
             ...imageContents
           ]
-        },
-        tools: [
+        }
+      ],
+      tools: [
           {
             type: "function",
             function: {
