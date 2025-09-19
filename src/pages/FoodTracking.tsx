@@ -518,23 +518,6 @@ const FoodTracking = () => {
                   <TooltipTrigger asChild>
                     <div className="w-full">
                       <ComponentErrorBoundary>
-                        <DirectVoiceFoodInput 
-                          onFoodAdded={handleVoiceInput}
-                        />
-                      </ComponentErrorBoundary>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">
-                    Add food by voice description
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-
-              <div className="flex flex-col items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="w-full">
-                      <ComponentErrorBoundary>
                         <DirectPhotoCaptureButton
                           onFoodAdded={handlePhotoCapture}
                           className="w-full h-16"
@@ -547,46 +530,70 @@ const FoodTracking = () => {
                   </TooltipContent>
                 </Tooltip>
               </div>
+
+              <div className="flex flex-col items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="w-full">
+                      <ComponentErrorBoundary>
+                        <DirectVoiceFoodInput 
+                          onFoodAdded={handleVoiceInput}
+                        />
+                      </ComponentErrorBoundary>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    Add food by voice description
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </>
           ) : (
-            // Free Mode: Manual input only, AI features locked
+            // Free Mode: Manual input replaces photo, Premium placeholder replaces voice
             <>
               <div className="flex flex-col items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-not-allowed"
-                >
-                  <Lock className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Voice Input</span>
-                  <span className="text-xs text-muted-foreground">(Premium)</span>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleManualInput}
+                      variant="outline"
+                      className="w-full h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-solid"
+                    >
+                      <div className="flex items-center gap-1">
+                        <Plus className="w-4 h-4" />
+                        <span className="text-xs">⌨</span>
+                      </div>
+                      <span className="text-xs font-medium">Add with Photo</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    Manual food entry (free for all users)
+                  </TooltipContent>
+                </Tooltip>
               </div>
 
               <div className="flex flex-col items-center gap-2">
-                <Button
-                  variant="outline"
-                  className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-not-allowed"
-                >
-                  <Lock className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">Photo Input</span>
-                  <span className="text-xs text-muted-foreground">(Premium)</span>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => {
+                        const { createSubscription } = useAccess();
+                        createSubscription();
+                      }}
+                      variant="outline"
+                      className="w-full h-16 flex flex-col items-center justify-center gap-1 opacity-50 cursor-pointer hover:opacity-70"
+                    >
+                      <Lock className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">Add with Voice</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    Voice input (Premium Feature)
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </>
           )}
-        </div>
-
-        {/* Manual Input - Available for all users */}
-        <div className="mb-6">
-          <Button
-            onClick={handleManualInput}
-            variant="outline"
-            className="w-full h-16 flex flex-col items-center justify-center gap-1 border-2 border-dashed hover:border-solid"
-          >
-            <Plus className="w-5 h-5" />
-            <span className="text-sm font-medium">Manual Entry</span>
-            <span className="text-xs text-muted-foreground">Add food manually</span>
-          </Button>
         </div>
 
         {/* Food Entries List */}
