@@ -6,19 +6,10 @@ import { swVersionPlugin } from "./scripts/sw-version-plugin";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const isProduction = mode === 'production' || process.env.NODE_ENV === 'production';
-  
   const plugins: PluginOption[] = [react(), swVersionPlugin()];
   
-  if (mode === 'development') {
-    try {
-      // Use require for synchronous import in development
-      const { componentTagger } = require('lovable-tagger');
-      plugins.push(componentTagger());
-    } catch (e: any) {
-      console.warn('lovable-tagger not available:', e?.message || 'Unknown error');
-    }
-  }
+  // Skip lovable-tagger to avoid ESM import issues in build
+  // It's only needed for development tagging anyway
   
   return {
     base: './', // Use relative paths for Capacitor WebView compatibility
