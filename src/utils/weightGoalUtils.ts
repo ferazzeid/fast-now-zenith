@@ -16,9 +16,9 @@ export const WEIGHT_UNITS = {
 
 export const formatWeightDisplay = (weight: number, unit: 'kg' | 'lbs' | 'stones'): string => {
   const unitLabels = {
-    kg: 'KG',
-    lbs: 'LBS', 
-    stones: 'ST'
+    kg: 'kg',
+    lbs: 'lbs', 
+    stones: 'st'
   };
   
   return `${weight} ${unitLabels[unit]}`;

@@ -21,9 +21,9 @@ export const WeightGoalVisual: React.FC<WeightGoalVisualProps> = ({
   };
 
   const unitLabels = {
-    kg: 'KG',
-    lbs: 'LBS',
-    stones: 'ST'
+    kg: 'kg',
+    lbs: 'lbs',
+    stones: 'st'
   };
 
   return (

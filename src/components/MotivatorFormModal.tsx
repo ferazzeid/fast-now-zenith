@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Lightbulb, Mic, Upload, Target, ArrowLeft } from 'lucide-react';
+import { X, Save, Sparkles, Lightbulb, Mic, Upload, Target, ArrowLeft, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { UniversalModal } from '@/components/ui/universal-modal';
 import { ImageUpload } from '@/components/ImageUpload';
 import { WeightGoalVisual } from '@/components/WeightGoalVisual';
@@ -282,10 +283,10 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   <SelectTrigger className="w-24">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border border-border shadow-lg z-50">
                     {availableUnits.map((unit) => (
                       <SelectItem key={unit.value} value={unit.value}>
-                        {unit.value.toUpperCase()}
+                        {unit.value}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -308,9 +309,16 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <Label>Why do you want to reach this weight?</Label>
-                <span className="text-xs text-muted-foreground">
-                  (What will change in your life?)
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center justify-center w-4 h-4 rounded-full bg-muted border cursor-help">
+                      <Eye className="w-2.5 h-2.5 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p className="text-xs">Think about how reaching this weight will improve your health, confidence, or lifestyle</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
               
               <div className="space-y-2">
@@ -331,10 +339,6 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   placeholder="Third reason (optional)"
                 />
               </div>
-              
-              <p className="text-xs text-muted-foreground">
-                💡 Think about how reaching this weight will improve your health, confidence, or lifestyle
-              </p>
             </div>
           </div>
         ) : (
