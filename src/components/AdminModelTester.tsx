@@ -110,15 +110,14 @@ export function AdminModelTester() {
       <CardHeader>
         <CardTitle className="text-lg">Model Testing</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="space-y-2">
-          <Label htmlFor="test-prompt">Test Prompt</Label>
           <Textarea
             id="test-prompt"
             value={testPrompt}
             onChange={(e) => setTestPrompt(e.target.value)}
             placeholder="Enter a test prompt to validate the current model..."
-            rows={3}
+            rows={2}
             disabled={isLoading}
           />
         </div>
@@ -133,27 +132,27 @@ export function AdminModelTester() {
         </Button>
 
         {lastResult && (
-          <div className="p-4 bg-muted/50 rounded-lg space-y-3">
+          <div className="p-3 bg-muted/50 rounded-lg space-y-2">
             <div className="flex items-center gap-2">
               {lastResult.success ? (
-                <CheckCircle className="w-5 h-5 text-green-600" />
+                <CheckCircle className="w-4 h-4 text-green-600" />
               ) : (
-                <XCircle className="w-5 h-5 text-red-600" />
+                <XCircle className="w-4 h-4 text-red-600" />
               )}
-              <span className="font-medium">
+              <span className="font-medium text-sm">
                 {lastResult.success ? 'Test Successful' : 'Test Failed'}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <div className="text-xs text-muted-foreground">Model</div>
-                <Badge variant="outline">{lastResult.model}</Badge>
+                <Badge variant="outline" className="text-xs">{lastResult.model}</Badge>
               </div>
               
               <div className="space-y-1">
                 <div className="text-xs text-muted-foreground">Response Time</div>
-                <div className="flex items-center gap-1 text-sm">
+                <div className="flex items-center gap-1 text-xs">
                   <Clock className="w-3 h-3" />
                   {lastResult.responseTime}ms
                 </div>
@@ -162,7 +161,7 @@ export function AdminModelTester() {
               {lastResult.estimatedCost && (
                 <div className="space-y-1">
                   <div className="text-xs text-muted-foreground">Est. Cost</div>
-                  <div className="flex items-center gap-1 text-sm">
+                  <div className="flex items-center gap-1 text-xs">
                     <DollarSign className="w-3 h-3" />
                     {lastResult.estimatedCost.toFixed(2)}¢
                   </div>
@@ -173,9 +172,9 @@ export function AdminModelTester() {
             {lastResult.response && (
               <div className="space-y-1">
                 <div className="text-xs text-muted-foreground">Response</div>
-                <div className="text-sm p-2 bg-background rounded border">
-                  {lastResult.response.substring(0, 200)}
-                  {lastResult.response.length > 200 && '...'}
+                <div className="text-xs p-2 bg-background rounded border">
+                  {lastResult.response.substring(0, 150)}
+                  {lastResult.response.length > 150 && '...'}
                 </div>
               </div>
             )}
@@ -183,17 +182,13 @@ export function AdminModelTester() {
             {lastResult.error && (
               <div className="space-y-1">
                 <div className="text-xs text-muted-foreground">Error</div>
-                <div className="text-sm p-2 bg-red-50 text-red-700 rounded border border-red-200">
+                <div className="text-xs p-2 bg-red-50 text-red-700 rounded border border-red-200">
                   {lastResult.error}
                 </div>
               </div>
             )}
           </div>
         )}
-
-        <div className="text-xs text-muted-foreground p-3 bg-amber-50/50 rounded-lg border border-amber-200/50">
-          💡 Use this to validate your model selection before making it live. Test with typical prompts to ensure accuracy and performance.
-        </div>
       </CardContent>
     </Card>
   );
