@@ -68,37 +68,37 @@ export const StopWalkingConfirmDialog = ({
       showCloseButton={true}
       footer={
         showManualInput ? (
-          <div className="flex gap-2 w-full">
+          <div className="flex gap-3 w-full">
             <Button 
               variant="outline" 
               onClick={() => setShowManualInput(false)}
-              className="flex-1 min-h-[44px] px-2"
+              className="flex-1 h-12 text-base font-medium"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </Button>
             <Button 
               variant="action-primary"
               onClick={handleManualConfirm}
               disabled={!manualDuration || parseInt(manualDuration) <= 0}
-              className="flex-[2] min-h-[44px] px-4 text-sm font-medium"
+              className="flex-[2] h-12 text-base font-medium"
             >
               Save Duration
             </Button>
           </div>
         ) : (
-          <div className="flex gap-2 w-full">
+          <div className="flex gap-3 w-full">
             <Button 
               variant="outline" 
               onClick={handleClose}
-              className="flex-1 min-h-[44px] px-2"
+              className="flex-1 h-12 text-base font-medium"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </Button>
             {showLongSessionWarning && (
               <Button 
                 variant="outline"
                 onClick={() => setShowManualInput(true)}
-                className="flex-1 min-h-[44px] px-3 text-sm"
+                className="flex-1 h-12 text-base font-medium"
               >
                 Edit
               </Button>
@@ -106,7 +106,7 @@ export const StopWalkingConfirmDialog = ({
             <Button 
               variant="action-primary"
               onClick={onConfirm}
-              className={`min-h-[44px] px-3 text-sm font-medium ${showLongSessionWarning ? 'flex-1' : 'flex-[2]'}`}
+              className={`h-12 text-base font-medium ${showLongSessionWarning ? 'flex-1' : 'flex-[2]'}`}
             >
               {showLongSessionWarning ? 'Finish' : (actionType === 'cancel' ? 'Cancel Session' : 'Finish Session')}
             </Button>
