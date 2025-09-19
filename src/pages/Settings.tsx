@@ -206,7 +206,7 @@ const Settings = () => {
   // Auto-calculate goals when inputs change (for preview only)
   const getCalculatedGoals = () => {
     const calculatedCalorieGoal = calculateDynamicCalorieGoal();
-    const calculatedCarbGoal = 30; // Fixed carb goal
+    const calculatedCarbGoal = dailyCarbGoal ? parseInt(dailyCarbGoal) : 30; // Use user input or default to 30
     return { calculatedCalorieGoal, calculatedCarbGoal };
   };
 
@@ -611,28 +611,49 @@ const Settings = () => {
                   
                   {/* Dynamic Goals Section */}
                   <div className="space-y-4">
-                     <div className="flex items-center gap-2">
-                       <h4 className="text-sm font-medium text-warm-text">Dynamic Goals</h4>
-                       <ClickableTooltip content="Goals are calculated automatically when you save. Calorie goal = TDEE - deficit. Carb goal is fixed at 30g.">
-                         <Info className="w-4 h-4 text-muted-foreground" />
-                       </ClickableTooltip>
-                     </div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-medium text-warm-text">Dynamic Goals</h4>
+                        <ClickableTooltip content="Goals are calculated automatically when you save. Calorie goal = TDEE - deficit. Carb goal is adjustable - 30g is considered aggressive low carb.">
+                          <Info className="w-4 h-4 text-muted-foreground" />
+                        </ClickableTooltip>
+                      </div>
                     
-                    {/* Target Deficit Input */}
-                    <div className="space-y-2">
-                      <Label htmlFor="target-deficit" className="text-warm-text">Target Deficit (cal/day)</Label>
-                      <Input
-                        id="target-deficit"
-                        type="number"
-                        placeholder="1000"
-                        value={targetDeficit}
-                        onChange={(e) => setTargetDeficit(e.target.value)}
-                        className=""
-                        min="0"
-                        max="2000"
-                        step="50"
-                      />
-                    </div>
+                     {/* Target Deficit Input */}
+                     <div className="space-y-2">
+                       <Label htmlFor="target-deficit" className="text-warm-text">Target Deficit (cal/day)</Label>
+                       <Input
+                         id="target-deficit"
+                         type="number"
+                         placeholder="1000"
+                         value={targetDeficit}
+                         onChange={(e) => setTargetDeficit(e.target.value)}
+                         className=""
+                         min="0"
+                         max="2000"
+                         step="50"
+                       />
+                     </div>
+
+                     {/* Daily Carb Goal Input */}
+                     <div className="space-y-2">
+                       <div className="flex items-center gap-2">
+                         <Label htmlFor="daily-carb-goal" className="text-warm-text">Daily Carb Goal (g)</Label>
+                         <ClickableTooltip content="30g is aggressive low carb maximum. Choose any value that fits your diet plan.">
+                           <Info className="w-3 h-3 text-muted-foreground" />
+                         </ClickableTooltip>
+                       </div>
+                       <Input
+                         id="daily-carb-goal"
+                         type="number"
+                         placeholder="30"
+                         value={dailyCarbGoal}
+                         onChange={(e) => setDailyCarbGoal(e.target.value)}
+                         className=""
+                         min="0"
+                         max="500"
+                         step="5"
+                       />
+                     </div>
 
                       {/* Calculated Goals Display */}
                       <Card className="p-3 space-y-3">
@@ -651,11 +672,13 @@ const Settings = () => {
                             )}
                           </div>
                           
-                          <div className="space-y-1">
-                            <div className="text-ui-xs text-muted-foreground">Carb Goal</div>
-                            <div className="text-heading">30g</div>
-                            <div className="text-ui-xs text-muted-foreground">Fixed</div>
-                          </div>
+                           <div className="space-y-1">
+                             <div className="text-ui-xs text-muted-foreground">Carb Goal</div>
+                             <div className="text-heading">
+                               {dailyCarbGoal ? `${dailyCarbGoal}g` : '30g'}
+                             </div>
+                             <div className="text-ui-xs text-muted-foreground">Adjustable</div>
+                           </div>
                         </div>
                         
                         {/* Calorie Warning */}
