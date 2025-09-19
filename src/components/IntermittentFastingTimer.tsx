@@ -16,6 +16,7 @@ import { ImprovedUnifiedMotivatorRotation } from './ImprovedUnifiedMotivatorRota
 import { InlineTimer } from './InlineTimer';
 import { FastingModeToggle } from './FastingModeToggle';
 import { useTimerNavigation } from '@/hooks/useTimerNavigation';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 
 interface IntermittentFastingTimerProps {
   isActive?: boolean;
@@ -55,6 +56,7 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
   const [fastingElapsed, setFastingElapsed] = useState(0);
   const [eatingElapsed, setEatingElapsed] = useState(0);
   const [showScheduleSelector, setShowScheduleSelector] = useState(false);
+  const [showEndFastConfirmation, setShowEndFastConfirmation] = useState(false);
   
   // Auto-restart and schedule memory
   const [autoRestart, setAutoRestart] = useState(false);
@@ -175,7 +177,12 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
     }
   };
 
-  const handleEndFast = async () => {
+  const handleEndFast = () => {
+    setShowEndFastConfirmation(true);
+  };
+
+  const confirmEndFast = async () => {
+    setShowEndFastConfirmation(false);
     if (!todaySession?.id) return;
     try {
       await endEatingWindow(todaySession.id);
@@ -297,6 +304,17 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             onClose={() => setShowScheduleSelector(false)}
           />
         )}
+
+        {/* End Fast Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showEndFastConfirmation}
+          onClose={() => setShowEndFastConfirmation(false)}
+          onConfirm={confirmEndFast}
+          title="End Fast?"
+          description="Are you sure you want to end your intermittent fasting session? This will complete your current cycle."
+          confirmText="End Fast"
+          cancelText="Continue"
+        />
       </div>
     );
   }
@@ -480,6 +498,17 @@ export const IntermittentFastingTimer: React.FC<IntermittentFastingTimerProps> =
             End Fast
           </Button>
       </div>
+      
+      {/* End Fast Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showEndFastConfirmation}
+        onClose={() => setShowEndFastConfirmation(false)}
+        onConfirm={confirmEndFast}
+        title="End Fast?"
+        description="Are you sure you want to end your intermittent fasting session? This will complete your current cycle."
+        confirmText="End Fast"
+        cancelText="Continue"
+      />
     </div>
   );
 };

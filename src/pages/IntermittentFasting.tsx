@@ -5,6 +5,7 @@ import { ResponsivePageHeader } from "@/components/ResponsivePageHeader";
 import { FastingModeToggle } from "@/components/FastingModeToggle";
 import { useTimerNavigation } from "@/hooks/useTimerNavigation";
 import { useIntermittentFasting } from "@/hooks/useIntermittentFasting";
+import { useFastingSessionQuery } from "@/hooks/optimized/useFastingSessionQuery";
 import { useMiniTimer } from "@/contexts/MiniTimerContext";
 import { useAdminAnimationSettings } from "@/hooks/useAdminAnimationSettings";
 
@@ -12,8 +13,32 @@ const IntermittentFasting: React.FC = () => {
   const navigate = useNavigate();
   const { currentMode, switchMode } = useTimerNavigation();
   const { ifEnabled, todaySession } = useIntermittentFasting();
+  const { currentSession: extendedFastingSession } = useFastingSessionQuery();
   const { updateTimer } = useMiniTimer();
   const { enable_if_slideshow } = useAdminAnimationSettings();
+
+  // Check if switching fast types should be disabled
+  const isToggleDisabled = () => {
+    // Disable if trying to switch FROM IF to Extended while IF is active
+    if (currentMode === 'if' && todaySession && ['fasting', 'eating'].includes(todaySession.status)) {
+      return true;
+    }
+    // Disable if trying to switch FROM Extended to IF while Extended is active  
+    if (currentMode === 'fasting' && extendedFastingSession && extendedFastingSession.status === 'active') {
+      return true;
+    }
+    return false;
+  };
+
+  const getDisabledReason = () => {
+    if (currentMode === 'if' && todaySession && ['fasting', 'eating'].includes(todaySession.status)) {
+      return "You have an active intermittent fasting session. Please finish it before switching to extended fasting.";
+    }
+    if (currentMode === 'fasting' && extendedFastingSession && extendedFastingSession.status === 'active') {
+      return "You have an active extended fasting session. Please finish it before switching to intermittent fasting.";
+    }
+    return "";
+  };
 
   // Update mini-timer with IF session data
   useEffect(() => {
@@ -77,6 +102,8 @@ const IntermittentFasting: React.FC = () => {
                 currentMode={currentMode === 'walking' ? 'fasting' : currentMode}
                 onModeChange={switchMode}
                 showIF={true}
+                disabled={isToggleDisabled()}
+                disabledReason={getDisabledReason()}
               />
             ) : undefined}
           />

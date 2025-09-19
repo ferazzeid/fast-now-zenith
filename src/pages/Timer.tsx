@@ -56,7 +56,7 @@ const Timer = () => {
   const { currentSession: fastingSession, startFastingSession, endFastingSession, cancelFastingSession, refreshActiveSession } = useFastingSessionQuery();
   const { currentSession: walkingSession, startWalkingSession, endWalkingSession } = useOptimizedWalkingSession();
   const { currentMode, timerStatus, switchMode, formatTime, sheetOpen, setSheetOpen } = useTimerNavigation();
-  const { ifEnabled } = useIntermittentFasting();
+  const { ifEnabled, todaySession: ifTodaySession } = useIntermittentFasting();
   const { toast } = useToast();
   const { user } = useAuth();
   const { profile } = useProfile();
@@ -451,6 +451,17 @@ const Timer = () => {
             currentMode={currentMode === 'fasting' ? 'fasting' : 'if'}
             onModeChange={(mode) => switchMode(mode)}
             showIF={ifEnabled}
+            disabled={
+              // Disable if trying to switch FROM Extended to IF while Extended is active
+              (currentMode === 'fasting' && fastingSession && fastingSession.status === 'active') ||
+              // Disable if trying to switch FROM IF to Extended while IF is active  
+              (currentMode === 'if' && (ifTodaySession && ['fasting', 'eating'].includes(ifTodaySession.status)))
+            }
+            disabledReason={
+              currentMode === 'fasting' && fastingSession && fastingSession.status === 'active'
+                ? "You have an active extended fasting session. Please finish it before switching to intermittent fasting."
+                : "You have an active intermittent fasting session. Please finish it before switching to extended fasting."
+            }
           />
         </div>
 
