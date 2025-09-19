@@ -5,7 +5,9 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { X, Save } from 'lucide-react';
+import { X, Save, Lock } from 'lucide-react';
+import { useAccess } from '@/hooks/useAccess';
+import { PremiumFoodModal } from './PremiumFoodModal';
 
 interface Note {
   id?: string;
@@ -25,6 +27,8 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const { hasAIAccess } = useAccess();
 
   useEffect(() => {
     if (note) {
@@ -88,6 +92,14 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
     }
   };
 
+  const handleVoiceClick = () => {
+    if (!hasAIAccess) {
+      setShowPremiumModal(true);
+      return;
+    }
+    setIsProcessingVoice(true);
+  };
+
   const handleVoiceTranscription = (transcription: string) => {
     setIsProcessingVoice(false);
     if (transcription) {
@@ -137,11 +149,23 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
               {isProcessingVoice && (
                 <span className="text-xs text-muted-foreground">Processing voice...</span>
               )}
-              <CircularVoiceButton
-                onTranscription={handleVoiceTranscription}
-                size="sm"
-                isDisabled={isSubmitting || isProcessingVoice}
-              />
+              {hasAIAccess ? (
+                <CircularVoiceButton
+                  onTranscription={handleVoiceTranscription}
+                  size="sm"
+                  isDisabled={isSubmitting || isProcessingVoice}
+                />
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleVoiceClick}
+                  className="w-8 h-8 p-0 rounded-full border border-muted hover:bg-muted/80"
+                  title="AI voice features require premium"
+                >
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              )}
             </div>
           </div>
           <Textarea
@@ -154,6 +178,11 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
         </div>
       </div>
 
+      {/* Premium Modal for free users */}
+      <PremiumFoodModal
+        isOpen={showPremiumModal}
+        onClose={() => setShowPremiumModal(false)}
+      />
     </UniversalModal>
   );
 }

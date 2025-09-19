@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Save, Sparkles, Lightbulb, Mic, Upload, Target, ArrowLeft, Eye } from 'lucide-react';
+import { X, Save, Sparkles, Lightbulb, Mic, Upload, Target, ArrowLeft, Eye, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
+import { PremiumFoodModal } from './PremiumFoodModal';
 import { 
   WeightGoalData, 
   generateWeightGoalTitle, 
@@ -48,6 +49,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const [content, setContent] = useState(motivator?.content || '');
   const [imageUrl, setImageUrl] = useState(motivator?.imageUrl || '');
   const [tempMotivatorId, setTempMotivatorId] = useState<string | null>(null);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
   
   // Weight goal specific states
   const [isWeightGoalMode, setIsWeightGoalMode] = useState(false);
@@ -60,7 +62,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
   const { toast } = useToast();
   const { profile } = useProfile();
   const { templates, loading: templatesLoading } = useAdminTemplates();
-  const { isAdmin } = useAccess();
+  const { isAdmin, hasAIAccess } = useAccess();
   
   const isEditing = !!motivator?.id;
   const availableUnits = profile?.units ? getWeightUnitsForSystem(profile.units) : getWeightUnitsForSystem('metric');
@@ -178,6 +180,12 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
 
     console.log('MotivatorFormModal: Saving motivator data:', motivatorData);
     onSave(motivatorData);
+  };
+
+  const handleVoiceClick = () => {
+    if (!hasAIAccess) {
+      setShowPremiumModal(true);
+    }
   };
 
   const handleVoiceTranscription = (transcription: string, context: 'title' | 'content' = 'content') => {
@@ -380,11 +388,23 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   <Label htmlFor="title">
                     Title
                   </Label>
-                  <CircularVoiceButton
-                    onTranscription={(text) => handleVoiceTranscription(text, 'title')}
-                    size="sm"
-                    context="title"
-                  />
+                  {hasAIAccess ? (
+                    <CircularVoiceButton
+                      onTranscription={(text) => handleVoiceTranscription(text, 'title')}
+                      size="sm"
+                      context="title"
+                    />
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleVoiceClick}
+                      className="w-8 h-8 p-0 rounded-full border border-muted hover:bg-muted/80"
+                      title="AI voice features require premium"
+                    >
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  )}
                 </div>
                 <Input
                   id="title"
@@ -398,11 +418,23 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
                   <Label htmlFor="content">
                     Description
                   </Label>
-                  <CircularVoiceButton
-                    onTranscription={(text) => handleVoiceTranscription(text, 'content')}
-                    size="sm"
-                    context="content"
-                  />
+                  {hasAIAccess ? (
+                    <CircularVoiceButton
+                      onTranscription={(text) => handleVoiceTranscription(text, 'content')}
+                      size="sm"
+                      context="content"
+                    />
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleVoiceClick}
+                      className="w-8 h-8 p-0 rounded-full border border-muted hover:bg-muted/80"
+                      title="AI voice features require premium"
+                    >
+                      <Lock className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  )}
                 </div>
                 <Textarea
                   id="content"
@@ -428,6 +460,11 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         {/* Minimal spacing before footer buttons */}
         <div className="h-2" />
 
+        {/* Premium Modal for free users */}
+        <PremiumFoodModal
+          isOpen={showPremiumModal}
+          onClose={() => setShowPremiumModal(false)}
+        />
 
     </UniversalModal>
   );
