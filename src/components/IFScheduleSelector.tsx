@@ -34,6 +34,14 @@ export const IFScheduleSelector = ({
     setSelectedPreset(preset);
     setHasCustomSelection(false);
     setSliderTouched(false);
+    
+    // If backdating is enabled, ensure hoursAgo doesn't exceed the new maximum
+    if (startInPast) {
+      const maxBackdateHours = Math.max(1, preset.fastingHours - 1);
+      if (hoursAgo > maxBackdateHours) {
+        setHoursAgo(maxBackdateHours);
+      }
+    }
   };
 
   const handleCustomChange = (hours: number[]) => {
@@ -41,6 +49,14 @@ export const IFScheduleSelector = ({
     setSelectedPreset(null);
     setHasCustomSelection(true);
     setSliderTouched(true);
+    
+    // If backdating is enabled, ensure hoursAgo doesn't exceed the new maximum
+    if (startInPast) {
+      const maxBackdateHours = Math.max(1, hours[0] - 1);
+      if (hoursAgo > maxBackdateHours) {
+        setHoursAgo(maxBackdateHours);
+      }
+    }
   };
 
   const handleConfirm = () => {
@@ -55,7 +71,19 @@ export const IFScheduleSelector = ({
     }
   };
 
-  const canConfirm = selectedPreset || (hasCustomSelection && sliderTouched);
+  const getMaxBackdateHours = () => {
+    const fastingHours = selectedPreset?.fastingHours || customFastingHours[0] || 16;
+    // Maximum allowed backdating = fast duration - 1 hour
+    // This prevents creating already-completed fasts
+    return Math.max(1, fastingHours - 1);
+  };
+
+  const isValidBackdate = () => {
+    if (!startInPast) return true;
+    return hoursAgo >= 1 && hoursAgo <= getMaxBackdateHours();
+  };
+
+  const canConfirm = (selectedPreset || (hasCustomSelection && sliderTouched)) && isValidBackdate();
 
   const getSelectedDisplay = () => {
     if (selectedPreset) {
@@ -184,17 +212,22 @@ export const IFScheduleSelector = ({
                     {hoursAgo}h
                   </div>
                   <Button
-                    onClick={() => setHoursAgo(Math.min(24, hoursAgo + 1))}
+                    onClick={() => setHoursAgo(Math.min(getMaxBackdateHours(), hoursAgo + 1))}
                     variant="outline"
                     size="sm"
                     className="w-8 h-8 p-0"
-                    disabled={hoursAgo >= 24}
+                    disabled={hoursAgo >= getMaxBackdateHours()}
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
                 <div className="text-xs text-muted-foreground text-center">
                   Start time: {new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toLocaleString()}
+                  {!isValidBackdate() && (
+                    <div className="text-red-500 mt-1">
+                      Max backdate: {getMaxBackdateHours()}h (keeps fast active)
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -215,7 +248,7 @@ export const IFScheduleSelector = ({
           >
             {!canConfirm 
               ? "Select Schedule First" 
-              : (startInPast ? "Start Past Fast" : "Start Fast")
+              : "Start Fast"
             }
           </Button>
         </div>

@@ -40,7 +40,12 @@ export const FastSelector = ({
 
   const isValidDateTime = () => {
     if (!startInPast) return true;
-    return hoursAgo >= 1 && hoursAgo <= 72;
+    
+    // Maximum allowed backdating = fast duration - 1 hour
+    // This prevents creating already-completed fasts
+    const maxBackdateHours = Math.max(1, duration - 1);
+    
+    return hoursAgo >= 1 && hoursAgo <= maxBackdateHours;
   };
 
   const getPreviewDateTime = () => {
@@ -70,6 +75,14 @@ export const FastSelector = ({
 
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration);
+    
+    // If backdating is enabled, ensure hoursAgo doesn't exceed the new maximum
+    if (startInPast) {
+      const maxBackdateHours = Math.max(1, newDuration - 1);
+      if (hoursAgo > maxBackdateHours) {
+        setHoursAgo(maxBackdateHours);
+      }
+    }
   };
 
   const presets = [
@@ -104,7 +117,7 @@ export const FastSelector = ({
             className="flex-1 h-10"
             size="default"
           >
-            {startInPast ? 'Start Past Fasting' : 'Start Fasting'}
+            Start Fast
           </Button>
         </>
       }
@@ -120,7 +133,7 @@ export const FastSelector = ({
               <Button
                 key={preset.name}
                 variant={duration === preset.hours ? "default" : "outline"}
-                onClick={() => setDuration(preset.hours)}
+                onClick={() => handleDurationChange(preset.hours)}
                 className={duration === preset.hours 
                   ? "justify-start bg-primary text-primary-foreground hover:bg-primary/90 border-2 border-primary-foreground/20" 
                   : "justify-start bg-ceramic-base border border-subtle hover:bg-ceramic-rim"
@@ -179,7 +192,7 @@ export const FastSelector = ({
                 <Slider
                   value={[hoursAgo]}
                   onValueChange={(value) => setHoursAgo(value[0])}
-                  max={72}
+                  max={Math.max(1, duration - 1)} 
                   min={1}
                   step={1}
                   className="w-full"
@@ -197,7 +210,9 @@ export const FastSelector = ({
               </div>
 
               {!isValidDateTime() && (
-                <p className="text-red-500 text-xs">Please enter a valid number of hours (1-72)</p>
+                <p className="text-red-500 text-xs">
+                  Maximum backdate: {Math.max(1, duration - 1)} hours (keeps fast active)
+                </p>
               )}
             </div>
           )}
