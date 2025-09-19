@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { CircularVoiceButton } from '@/components/CircularVoiceButton';
 import { useAccess } from '@/hooks/useAccess';
-import { PremiumFoodModal } from './PremiumFoodModal';
+import { PremiumVoiceModal } from './PremiumVoiceModal';
 import { 
   WeightGoalData, 
   generateWeightGoalTitle, 
@@ -461,7 +461,7 @@ export const MotivatorFormModal = ({ motivator, onSave, onClose }: MotivatorForm
         <div className="h-2" />
 
         {/* Premium Modal for free users */}
-        <PremiumFoodModal
+        <PremiumVoiceModal
           isOpen={showPremiumModal}
           onClose={() => setShowPremiumModal(false)}
         />

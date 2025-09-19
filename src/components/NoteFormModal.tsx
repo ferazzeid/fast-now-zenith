@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { X, Save, Lock } from 'lucide-react';
 import { useAccess } from '@/hooks/useAccess';
-import { PremiumFoodModal } from './PremiumFoodModal';
+import { PremiumVoiceModal } from './PremiumVoiceModal';
 
 interface Note {
   id?: string;
@@ -179,7 +179,7 @@ export function NoteFormModal({ note, onSave, onClose, isOpen }: NoteFormModalPr
       </div>
 
       {/* Premium Modal for free users */}
-      <PremiumFoodModal
+      <PremiumVoiceModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
       />
