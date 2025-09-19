@@ -75,31 +75,55 @@ export type Database = {
         Row: {
           audio_duration_seconds: number | null
           created_at: string
+          error_message: string | null
           estimated_cost: number | null
+          feature_type: string | null
           id: string
+          input_characters: number | null
+          input_tokens: number | null
           model_used: string | null
+          output_tokens: number | null
+          request_metadata: Json | null
           request_type: string
+          success: boolean | null
           tokens_used: number | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           audio_duration_seconds?: number | null
           created_at?: string
+          error_message?: string | null
           estimated_cost?: number | null
+          feature_type?: string | null
           id?: string
+          input_characters?: number | null
+          input_tokens?: number | null
           model_used?: string | null
+          output_tokens?: number | null
+          request_metadata?: Json | null
           request_type: string
+          success?: boolean | null
           tokens_used?: number | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           audio_duration_seconds?: number | null
           created_at?: string
+          error_message?: string | null
           estimated_cost?: number | null
+          feature_type?: string | null
           id?: string
+          input_characters?: number | null
+          input_tokens?: number | null
           model_used?: string | null
+          output_tokens?: number | null
+          request_metadata?: Json | null
           request_type?: string
+          success?: boolean | null
           tokens_used?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
