@@ -98,7 +98,7 @@ export const InlineActivitySelector: React.FC<InlineActivitySelectorProps> = ({
             </div>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-ceramic-plate border-subtle z-50">
+        <SelectContent className="bg-ceramic-plate border-subtle z-[60]">
           {Object.entries(ACTIVITY_LEVELS).map(([key, label]) => (
             <SelectItem 
               key={key} 
