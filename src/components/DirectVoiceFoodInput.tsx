@@ -175,16 +175,35 @@ export const DirectVoiceFoodInput = ({ onFoodAdded }: DirectVoiceFoodInputProps)
       });
 
       if (error) {
-        // Handle different error types
-        if (error.message?.includes('transcription')) {
+        console.error('🎤 Voice analysis error:', error);
+        
+        // Show transcribed text even if analysis fails
+        if (transcription) {
           toast({
-            title: "Audio Processing Failed",
-            description: "I couldn't understand your voice input clearly. Please speak closer to the microphone and try again.",
+            title: "AI Analysis Failed",
+            description: `I heard: "${transcription}" but couldn't analyze it. You can add it manually.`,
             variant: "destructive"
           });
+          
+          // Create fallback food entry for manual input
+          const fallbackFood = {
+            name: transcription.trim(),
+            serving_size: 100,
+            calories: 0,
+            carbs: 0,
+            needsManualInput: true
+          };
+          
+          // Set up food modal with fallback
+          setFoodSuggestion({
+            foods: [fallbackFood],
+            destination: 'today',
+            originalTranscription: transcription
+          });
+          setShowFoodModal(true);
         } else {
           toast({
-            title: "Processing Failed",
+            title: "Processing Failed", 
             description: "I couldn't process your voice input. Please try again.",
             variant: "destructive"
           });

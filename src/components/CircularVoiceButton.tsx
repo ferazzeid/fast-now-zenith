@@ -466,7 +466,7 @@ export const CircularVoiceButton = React.forwardRef<
       
       toast({
         title: "Voice Processing Failed",
-        description: errorMessage,
+        description: "I couldn't understand your voice. Please speak clearly and try again.",
         variant: "destructive"
       });
       // Notify parent component of error

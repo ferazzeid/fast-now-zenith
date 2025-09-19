@@ -44,8 +44,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  let userId: string | null = null;
+  let message: string | null = null;
+
   try {
-    const { message } = await req.json();
+    const requestBody = await req.json();
+    message = requestBody.message;
     
     if (!message) {
       throw new Error('No message provided');
@@ -226,6 +230,10 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
 
     const result = await response.json();
     console.log('OpenAI Response:', JSON.stringify(result, null, 2));
+
+    // Extract token usage and calculate cost
+    const tokenUsage = extractTokenUsage(result);
+    const estimatedCost = tokenUsage.totalTokens * 0.000015; // Approximate cost
 
     let completion = result.choices[0].message.content || '';
     let functionCall = null;
