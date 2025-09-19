@@ -246,7 +246,7 @@ export default config;`;
         }, { onConflict: 'setting_key' });
 
       toast({
-        title: "🚀 Capacitor Config Generated!",
+        title: "Capacitor Config Generated!",
         description: "The capacitor.config.ts file content has been generated. Copy it to your local project after exporting to GitHub.",
       });
     } catch (error) {

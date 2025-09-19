@@ -454,3 +454,13 @@ html, body {
   height: 100vh;
   overflow: auto;
 }
+
+/* Toast positioning - above nav menu */
+[data-radix-toast-viewport] {
+  position: fixed !important;
+  bottom: 6rem !important;
+  right: 1rem !important;
+  top: unset !important;
+  max-width: calc(100vw - 2rem) !important;
+  z-index: 1000;
+}

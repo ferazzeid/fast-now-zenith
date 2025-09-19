@@ -182,7 +182,7 @@ export const useFastingSessionQuery = () => {
       queryClient.setQueryData(activeSessionQueryKey(user?.id || null), data);
       
       toast({
-        title: "🎯 Fasting Started!",
+        title: "Fasting Started!",
         description: "Your fasting session has begun. Good luck!",
       });
     },

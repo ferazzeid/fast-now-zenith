@@ -291,7 +291,7 @@ export const useMotivators = () => {
         };
         setMotivators(prev => [transformedData as Motivator, ...prev]);
         toast({
-          title: "📝 Quote Saved!",
+          title: "Quote Saved!",
           description: "Quote has been saved to your goals.",
         });
         return data.id;
