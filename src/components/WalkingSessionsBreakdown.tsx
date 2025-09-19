@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
 import { ChevronDown, ChevronUp, Activity, Clock, Plus, Info, X, Edit } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,6 +45,8 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   const [completedSessions, setCompletedSessions] = useState<WalkingSession[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingSession, setEditingSession] = useState<WalkingSession | null>(null);
+  const [deleteConfirmBurnId, setDeleteConfirmBurnId] = useState<string | null>(null);
+  const [activityToDelete, setActivityToDelete] = useState<string>('');
   const { user } = useAuth();
   const { walkingStats } = useWalkingStats();
   const { profile } = useProfile();
@@ -111,15 +114,25 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
   // Use the totalCalories prop which comes from useDailyDeficitQuery (more accurate)
   const displayCalories = totalCalories;
 
-  const handleDeleteManualBurn = async (burnId: string) => {
+  const handleDeleteManualBurn = async (burnId: string, activityName: string) => {
+    setDeleteConfirmBurnId(burnId);
+    setActivityToDelete(activityName);
+  };
+
+  const confirmDeleteManualBurn = async () => {
+    if (!deleteConfirmBurnId) return;
+    
     try {
-      await deleteManualBurn(burnId);
+      await deleteManualBurn(deleteConfirmBurnId);
       // Trigger refresh callback if provided
       if (onRefresh) {
         onRefresh();
       }
     } catch (error) {
       console.error('Failed to delete manual calorie burn:', error);
+    } finally {
+      setDeleteConfirmBurnId(null);
+      setActivityToDelete('');
     }
   };
 
@@ -335,8 +348,8 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteManualBurn(burn.id)}
-                        className="h-4 w-4 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200"
+                        onClick={() => handleDeleteManualBurn(burn.id, burn.activity_name)}
+                        className="h-4 w-4 p-0 bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground rounded"
                       >
                         <X className="w-3 h-3" />
                       </Button>
@@ -358,6 +371,21 @@ export const WalkingSessionsBreakdown: React.FC<WalkingSessionsBreakdownProps> =
           onSessionEdited={handleSessionEdited}
         />
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={deleteConfirmBurnId !== null}
+        onClose={() => {
+          setDeleteConfirmBurnId(null);
+          setActivityToDelete('');
+        }}
+        onConfirm={confirmDeleteManualBurn}
+        title="Delete External Activity"
+        description={`Are you sure you want to delete "${activityToDelete}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Keep"
+        variant="default"
+      />
     </div>
   );
 };

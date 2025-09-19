@@ -155,7 +155,7 @@ export const DailyStatsPanel = memo(() => {
               <AccessGate feature="food">
                 {({ hasAccess }) => (
                   hasAccess ? (
-                    <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-accent-foreground">
+                    <span className="text-xs px-2 py-1 rounded-full font-mono bg-accent text-white">
                       {loading && deficitData.todayDeficit === 0 && deficitData.tdee === 0
                         ? '...'
                         : `${formatNumber(deficitData.todayDeficit)} cal`}
