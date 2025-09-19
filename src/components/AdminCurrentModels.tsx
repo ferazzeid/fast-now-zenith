@@ -107,26 +107,20 @@ export function AdminCurrentModels() {
       <CardHeader>
         <CardTitle className="text-lg">Current AI Models in Use</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-3">
+      <CardContent>
+        <div className="grid gap-2">
           {currentModelInfo.map((usage, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="space-y-1">
-                <div className="font-medium text-sm">{usage.feature}</div>
-                <div className="text-xs text-muted-foreground">{usage.description}</div>
+            <div key={index} className="flex items-center justify-between p-2 bg-muted/30 rounded">
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-sm">{usage.feature}</span>
+                <span className="text-xs text-muted-foreground">{usage.description}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className={getTierColor(usage.type)}>
-                  {getTierIcon(usage.type)}
-                  {usage.model}
-                </Badge>
-              </div>
+              <Badge variant="outline" className={`text-xs ${getTierColor(usage.type)}`}>
+                {getTierIcon(usage.type)}
+                <span className="ml-1">{usage.model}</span>
+              </Badge>
             </div>
           ))}
-        </div>
-        
-        <div className="text-xs text-muted-foreground p-3 bg-blue-50/50 rounded-lg border border-blue-200/50">
-          💡 Text analysis features use the model selected above. Audio models (TTS/Whisper) are fixed for optimal performance.
         </div>
       </CardContent>
     </Card>
