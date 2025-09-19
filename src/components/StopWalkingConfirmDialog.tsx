@@ -71,49 +71,44 @@ export const StopWalkingConfirmDialog = ({
           <div className="flex gap-2 w-full">
             <Button 
               variant="outline" 
-              size="action-secondary"
               onClick={() => setShowManualInput(false)}
-              className="flex-1"
+              className="flex-1 min-h-[44px] px-2"
             >
               <X className="w-4 h-4" />
             </Button>
             <Button 
               variant="action-primary"
-              size="action-secondary"
               onClick={handleManualConfirm}
               disabled={!manualDuration || parseInt(manualDuration) <= 0}
-              className="flex-1"
+              className="flex-[2] min-h-[44px] px-4 text-sm font-medium"
             >
-              Save
+              Save Duration
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-3 gap-2 w-full">
+          <div className="flex gap-2 w-full">
             <Button 
               variant="outline" 
-              size="action-secondary"
               onClick={handleClose}
-              className="w-full"
+              className="flex-1 min-h-[44px] px-2"
             >
               <X className="w-4 h-4" />
             </Button>
             {showLongSessionWarning && (
               <Button 
                 variant="outline"
-                size="action-secondary"
                 onClick={() => setShowManualInput(true)}
-                className="w-full"
+                className="flex-1 min-h-[44px] px-3 text-sm"
               >
                 Edit
               </Button>
             )}
             <Button 
               variant="action-primary"
-              size="action-secondary"
               onClick={onConfirm}
-              className={`w-full ${!showLongSessionWarning ? 'col-span-2' : ''}`}
+              className={`min-h-[44px] px-3 text-sm font-medium ${showLongSessionWarning ? 'flex-1' : 'flex-[2]'}`}
             >
-              {actionType === 'cancel' ? 'Cancel Session' : 'Finish Session'}
+              {showLongSessionWarning ? 'Finish' : (actionType === 'cancel' ? 'Cancel Session' : 'Finish Session')}
             </Button>
           </div>
         )
