@@ -130,13 +130,9 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         const localImageId = await saveImageLocally(compressedFile);
         console.log('Compressed image saved locally with ID:', localImageId);
         
-        // Create data URL for permanent image reference
-        const reader = new FileReader();
-        const dataUrl = await new Promise<string>((resolve) => {
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.readAsDataURL(compressedFile);
-        });
-        setImageUrl(dataUrl);
+        // Store the local image ID for use in food suggestions
+        setImageUrl(localImageId);
+        setImageIds([localImageId]); // Store for cleanup
 
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
@@ -153,21 +149,21 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             if (error) throw error;
             
             console.log('Photo analysis response:', data);
-            console.log('🖼️ DirectPhoto Debug - dataUrl being set:', dataUrl);
+            console.log('🖼️ DirectPhoto Debug - localImageId being used:', localImageId);
             
             // Handle both function call and completion responses
             if (data?.functionCall?.name === 'add_multiple_foods') {
               // Function call response - food items identified
               const foodsWithImage = (data.functionCall.arguments.foods || []).map((food: FoodItem) => ({
                 ...food,
-                image_url: dataUrl
+                image_url: localImageId
               }));
               
               const suggestion: FoodSuggestion = {
                 foods: foodsWithImage,
                 destination: data.functionCall.arguments.destination || 'today',
                 originalTranscription: data.originalTranscription || '',
-                image_url: dataUrl
+                image_url: localImageId
               };
               
               console.log('🖼️ DirectPhoto Debug - suggestion created:', { 
@@ -190,14 +186,14 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                 if (parsedFoods && parsedFoods.length > 0) {
                   const foodsWithImage = parsedFoods.map((food: FoodItem) => ({
                     ...food,
-                    image_url: dataUrl
+                    image_url: localImageId
                   }));
                   
                 const suggestion: FoodSuggestion = {
                   foods: foodsWithImage,
                   destination: 'today',
                   originalTranscription: data.originalTranscription || 'Photo analysis',
-                  image_url: dataUrl
+                  image_url: localImageId
                 };
                 
                 console.log('🖼️ DirectPhoto Debug - completion suggestion created:', { 
@@ -275,26 +271,18 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             savedImageIds.push(imageId);
           }
           
-          // Get preview URL from first image
+          // Use first image ID directly
           if (savedImageIds.length > 0) {
-            imagePreviewUrl = await getLocalImageUrl(savedImageIds[0]) || '';
+            imagePreviewUrl = savedImageIds[0];
           }
           
           // Store image IDs for cleanup later
           setImageIds(savedImageIds);
         } catch (storageError) {
           console.error('Error saving images locally:', storageError);
-          // Fallback to original blob URL method if local storage fails
+          // If local storage fails, create a temporary ID for display
           if (images.length > 0) {
-            const base64Data = images[0];
-            const byteCharacters = atob(base64Data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: 'image/jpeg' });
-            imagePreviewUrl = URL.createObjectURL(blob);
+            imagePreviewUrl = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           }
         }
 
@@ -452,8 +440,8 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       const food = foodSuggestion.foods[index];
       return {
         ...food,
-        source: 'photo_analysis',
-        image_url: imageUrl || '' // Attach the captured image to all selected foods
+        source: 'photo_analysis'
+        // image_url is already set in the food object from the suggestion
       };
     });
     
@@ -511,12 +499,6 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   };
 
   const cleanup = async () => {
-    // Clean up blob URLs
-    if (imageUrl && imageUrl.startsWith('blob:')) {
-      URL.revokeObjectURL(imageUrl);
-    }
-    setImageUrl('');
-    
     // Clean up locally stored images
     if (imageIds.length > 0) {
       for (const imageId of imageIds) {
@@ -528,6 +510,9 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       }
       setImageIds([]);
     }
+    
+    // Clear image URL
+    setImageUrl('');
   };
 
   // Get button content based on state
