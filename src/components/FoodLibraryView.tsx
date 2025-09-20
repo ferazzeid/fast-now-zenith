@@ -980,7 +980,7 @@ export const FoodLibraryView = ({
                       await toggleFavorite(food.id, food.is_favorite || false);
                    }}
                    disabled={!isInteractionSafe}
-                   className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                   className="h-8 w-8 p-0 hover:bg-muted/50 rounded flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   title={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                   aria-label={food.is_favorite ? "Remove from favorites" : "Add to favorites"}
                 >
