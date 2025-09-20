@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save, Database, Play } from 'lucide-react';
+import { Heart, Search, Trash2, Edit, Plus, ShoppingCart, Check, ArrowLeft, Star, MoreVertical, Download, X, Utensils, Clock, Save, Database, Play, Info } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -1096,6 +1096,16 @@ export const FoodLibraryView = ({
                   </Button>
                 </div>
               )}
+
+              {/* User Tip Notification */}
+              <div className="mb-4 p-3 bg-info/5 dark:bg-info/10 border border-info/20 dark:border-info/30 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-info-foreground dark:text-info-foreground mt-0.5 flex-shrink-0" />
+                  <div className="text-xs text-info-foreground dark:text-info-foreground leading-relaxed">
+                    This is particularly useful if you often eat from the same selection of foods every day. You can collect that selection inside a template and apply it at the beginning of each day. Then just pick and eat the foods you want that day—you don't need to eat all of them. The calculations will only include the foods you actually eat. This makes templates very useful if your food choices are highly consistent.
+                  </div>
+                </div>
+              </div>
 
               {/* Template Foods List */}
               {templateLoading ? (
