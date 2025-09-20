@@ -2155,6 +2155,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_orphaned_if_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       configure_google_play_service_account: {
         Args: { service_account_json: string }
         Returns: undefined

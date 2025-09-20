@@ -66,6 +66,9 @@ export const useIntermittentFasting = () => {
       
       const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
       
+      // Clean up orphaned sessions first
+      await supabase.rpc('cleanup_orphaned_if_sessions');
+      
       const { data, error } = await supabase
         .from('intermittent_fasting_sessions')
         .select('*')
@@ -94,6 +97,9 @@ export const useIntermittentFasting = () => {
       
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      
+      // Clean up orphaned sessions before fetching
+      await supabase.rpc('cleanup_orphaned_if_sessions');
       
       const { data, error } = await supabase
         .from('intermittent_fasting_sessions')

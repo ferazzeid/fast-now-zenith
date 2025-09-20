@@ -24,6 +24,11 @@ const IntermittentFastingHistory = () => {
       return 'text-green-600 dark:text-green-400';
     }
     
+    // If it's expired, show as warning/orange
+    if (session.status === 'expired') {
+      return 'text-orange-600 dark:text-orange-400';
+    }
+    
     // If it's in progress (fasting/eating), show as in progress
     if (session.status === 'fasting' || session.status === 'eating') {
       return 'text-info-foreground dark:text-info-foreground';
@@ -42,6 +47,11 @@ const IntermittentFastingHistory = () => {
       return 'Completed';
     }
     
+    // If it's expired, show as incomplete
+    if (session.status === 'expired') {
+      return 'Incomplete';
+    }
+    
     // If it's in progress (fasting/eating), show current status
     if (session.status === 'fasting' || session.status === 'eating') {
       return session.status === 'fasting' ? 'Fasting' : 'Eating';
@@ -58,6 +68,11 @@ const IntermittentFastingHistory = () => {
     // If it's completed, show as completed
     if (session.status === 'completed' && session.completed) {
       return <CheckCircle className="w-3 h-3" />;
+    }
+    
+    // If it's expired, show warning triangle
+    if (session.status === 'expired') {
+      return <Clock className="w-3 h-3" />;
     }
     
     // If it's in progress (fasting/eating), show as in progress
