@@ -63,7 +63,7 @@ export const NinetyDayTimeline = () => {
   return (
     <div className="space-y-6">
       {/* Program Overview */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">

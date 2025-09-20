@@ -364,7 +364,7 @@ const Motivators = () => {
                       onClick={() => navigate('/90-day-program')}
                       variant="outline"
                       size="icon"
-                      className="w-10 h-10 rounded-full font-bold text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                      className="w-10 h-10 rounded-full font-medium text-foreground border-border hover:bg-muted"
                       aria-label="90-Day Program Timeline"
                     >
                       90

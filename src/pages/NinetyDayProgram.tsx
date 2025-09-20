@@ -3,11 +3,12 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Target, Calendar, Flame, TrendingDown, Play, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Target, Calendar, Flame, TrendingDown, Play, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useJourneyTracking } from "@/hooks/useJourneyTracking";
 import { NinetyDayOnboarding } from "@/components/NinetyDayOnboarding";
 import { NinetyDayTimeline } from "@/components/NinetyDayTimeline";
+import { ResponsivePageHeader } from "@/components/ResponsivePageHeader";
 
 export default function NinetyDayProgram() {
   usePageSEO({
@@ -18,26 +19,31 @@ export default function NinetyDayProgram() {
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { activeJourney, isStartingJourney } = useJourneyTracking();
+  const navigate = useNavigate();
 
   // If user has an active journey, show the timeline
   if (activeJourney) {
     return (
-      <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">90-Day Program Timeline</h1>
-            <p className="text-muted-foreground mt-1">Track your daily progress and projections</p>
-          </div>
-          <Button asChild variant="outline">
-            <Link to="/motivators" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Goals
-            </Link>
+      <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
+        <div className="absolute right-4 top-4 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/motivators")}
+            className="w-12 h-12 rounded-full bg-muted/50 hover:bg-muted/70 hover:scale-110 transition-all duration-200"
+            title="Close program"
+          >
+            <X className="w-8 h-8 text-warm-text" />
           </Button>
         </div>
 
+        <ResponsivePageHeader 
+          title="90-Day Program Timeline"
+          subtitle="Track your daily progress and projections"
+        />
+
         <NinetyDayTimeline />
-      </main>
+      </div>
     );
   }
 
@@ -56,19 +62,23 @@ export default function NinetyDayProgram() {
 
   // Landing page for users without active journey
   return (
-    <main className="container mx-auto p-6 space-y-8 overflow-x-hidden bg-background min-h-[calc(100vh-80px)]" role="main">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">90-Day Program Timeline</h1>
-          <p className="text-muted-foreground mt-1">Your structured journey to success</p>
-        </div>
-        <Button asChild variant="outline">
-          <Link to="/motivators" className="flex items-center gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Goals
-          </Link>
+    <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
+      <div className="absolute right-4 top-4 z-10">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/motivators")}
+          className="w-12 h-12 rounded-full bg-muted/50 hover:bg-muted/70 hover:scale-110 transition-all duration-200"
+          title="Close program"
+        >
+          <X className="w-8 h-8 text-warm-text" />
         </Button>
       </div>
+
+      <ResponsivePageHeader 
+        title="90-Day Program Timeline"
+        subtitle="Your structured journey to success"
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Program Overview */}
@@ -170,6 +180,6 @@ export default function NinetyDayProgram() {
           </CardContent>
         </Card>
       </div>
-    </main>
+    </div>
   );
 }
