@@ -352,7 +352,7 @@ serve(async (req) => {
     const modelName = await resolveOpenAIModel(dataClient);
     const modelConfig = getModelConfig(modelName);
     
-    console.log(`🤖 Using model: ${modelName} for image analysis`);
+    console.log(`🤖 Using model: ${modelName} for image analysis with config:`, JSON.stringify(modelConfig));
 
     // Call OpenAI Vision API with function calling (unified with voice)
     const requestBody: any = {
@@ -447,12 +447,27 @@ serve(async (req) => {
         tool_choice: "auto"
       };
 
-      // Add model-specific parameters
+      // Add model-specific parameters with validation
+      console.log(`🔧 Model supports temperature: ${modelConfig.supportsTemperature}`);
+      console.log(`🔧 Token parameter: ${modelConfig.tokenParam}`);
+      
       if (modelConfig.supportsTemperature) {
         requestBody.temperature = 0.1;
+        console.log(`✅ Added temperature: 0.1`);
+      } else {
+        console.log(`⚠️ Skipping temperature for model: ${modelName}`);
       }
       
-      requestBody[modelConfig.tokenParam] = Math.min(1000, modelConfig.maxTokens);
+      const tokenValue = Math.min(1000, modelConfig.maxTokens);
+      requestBody[modelConfig.tokenParam] = tokenValue;
+      console.log(`✅ Added ${modelConfig.tokenParam}: ${tokenValue}`);
+      
+      console.log(`📤 Sending to OpenAI:`, JSON.stringify({
+        model: requestBody.model,
+        temperature: requestBody.temperature,
+        [modelConfig.tokenParam]: requestBody[modelConfig.tokenParam],
+        tools: requestBody.tools?.length || 0
+      }));
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',

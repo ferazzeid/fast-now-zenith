@@ -202,7 +202,7 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES WITH PROPER INTERNATIONAL
     const modelName = await resolveOpenAIModel(supabase);
     const modelConfig = getModelConfig(modelName);
     
-    console.log(`🤖 Using model: ${modelName} with config:`, modelConfig);
+    console.log(`🤖 Using model: ${modelName} with config:`, JSON.stringify(modelConfig));
 
     // OpenAI API call with function calling
     const openaiRequestBody: any = {
@@ -242,12 +242,22 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES WITH PROPER INTERNATIONAL
       tool_choice: "auto"
     };
 
-    // Add model-specific parameters
+    // Add model-specific parameters with validation
+    console.log(`🔧 Model supports temperature: ${modelConfig.supportsTemperature}`);
+    console.log(`🔧 Token parameter: ${modelConfig.tokenParam}`);
+    
     if (modelConfig.supportsTemperature) {
       openaiRequestBody.temperature = 0.3;
+      console.log(`✅ Added temperature: 0.3`);
+    } else {
+      console.log(`⚠️ Skipping temperature for model: ${modelName}`);
     }
     
-    openaiRequestBody[modelConfig.tokenParam] = Math.min(4000, modelConfig.maxTokens);
+    const tokenValue = Math.min(4000, modelConfig.maxTokens);
+    openaiRequestBody[modelConfig.tokenParam] = tokenValue;
+    console.log(`✅ Added ${modelConfig.tokenParam}: ${tokenValue}`);
+    
+    console.log(`📤 Sending to OpenAI:`, JSON.stringify(openaiRequestBody, null, 2));
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
