@@ -75,7 +75,20 @@ const FoodTracking = () => {
   const handlePhotoCapture = async (foods: any[]) => {
     try {
       if (foods && foods.length > 0) {
-        await addMultipleFoodEntries(foods);
+        // Enhance photo entries with per-100g data for smart editing
+        const enhancedFoods = foods.map(food => ({
+          ...food,
+          // Calculate per-100g nutritional data if missing
+          calories_per_100g: food.calories_per_100g || (food.serving_size > 0 ? (food.calories / food.serving_size) * 100 : undefined),
+          carbs_per_100g: food.carbs_per_100g || (food.serving_size > 0 ? (food.carbs / food.serving_size) * 100 : undefined),
+          // Mark nutrition as auto-calculated (not manually set)
+          calories_manually_set: food.calories_manually_set || false,
+          carbs_manually_set: food.carbs_manually_set || false
+        }));
+        
+        console.log('📸 Enhanced photo entries with per-100g data:', enhancedFoods);
+        
+        await addMultipleFoodEntries(enhancedFoods);
         // Toast is already shown by DirectPhotoCaptureButton
       }
     } catch (error) {
@@ -139,7 +152,20 @@ const FoodTracking = () => {
   const handleVoiceInput = async (entries: any[]) => {
     try {
       if (entries && entries.length > 0) {
-        await addMultipleFoodEntries(entries);
+        // Enhance voice entries with per-100g data for smart editing
+        const enhancedEntries = entries.map(entry => ({
+          ...entry,
+          // Calculate per-100g nutritional data if missing
+          calories_per_100g: entry.calories_per_100g || (entry.serving_size > 0 ? (entry.calories / entry.serving_size) * 100 : undefined),
+          carbs_per_100g: entry.carbs_per_100g || (entry.serving_size > 0 ? (entry.carbs / entry.serving_size) * 100 : undefined),
+          // Mark nutrition as auto-calculated (not manually set)
+          calories_manually_set: entry.calories_manually_set || false,
+          carbs_manually_set: entry.carbs_manually_set || false
+        }));
+        
+        console.log('🎤 Enhanced voice entries with per-100g data:', enhancedEntries);
+        
+        await addMultipleFoodEntries(enhancedEntries);
         toast({
           title: "Foods Added",
           description: `${entries.length} food${entries.length > 1 ? 's' : ''} added by voice`
@@ -158,7 +184,20 @@ const FoodTracking = () => {
   const handleTextInput = async (entries: any[]) => {
     try {
       if (entries && entries.length > 0) {
-        await addMultipleFoodEntries(entries);
+        // Enhance text entries with per-100g data for smart editing
+        const enhancedEntries = entries.map(entry => ({
+          ...entry,
+          // Calculate per-100g nutritional data if missing
+          calories_per_100g: entry.calories_per_100g || (entry.serving_size > 0 ? (entry.calories / entry.serving_size) * 100 : undefined),
+          carbs_per_100g: entry.carbs_per_100g || (entry.serving_size > 0 ? (entry.carbs / entry.serving_size) * 100 : undefined),
+          // Mark nutrition as auto-calculated (not manually set)
+          calories_manually_set: entry.calories_manually_set || false,
+          carbs_manually_set: entry.carbs_manually_set || false
+        }));
+        
+        console.log('✏️ Enhanced text entries with per-100g data:', enhancedEntries);
+        
+        await addMultipleFoodEntries(enhancedEntries);
         toast({
           title: "Foods Added",
           description: `${entries.length} food${entries.length > 1 ? 's' : ''} added to your log`
@@ -345,12 +384,6 @@ const FoodTracking = () => {
              <DropdownMenuItem
                onClick={() => {
                  console.log('🥒 Edit button clicked for entry:', entry);
-                 console.log('🥒 Entry has per 100g data?', {
-                   calories_per_100g: entry.calories_per_100g,
-                   carbs_per_100g: entry.carbs_per_100g,
-                   hasCaloriesPer100g: !!entry.calories_per_100g,
-                   hasCarbs_per_100g: !!entry.carbs_per_100g
-                 });
                  setEditingEntry(entry);
                  console.log('🥒 editingEntry state set to:', entry);
                }}

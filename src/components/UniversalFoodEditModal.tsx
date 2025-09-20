@@ -201,15 +201,6 @@ export const UniversalFoodEditModal = ({
 
   const nutritionStatus = isNutritionCalculated(formData);
   const hasPerHundredGramData = formData.calories_per_100g || formData.carbs_per_100g;
-  
-  console.log('🧠 UniversalFoodEditModal nutrition data check:', {
-    food_name: food.name,
-    calories_per_100g: formData.calories_per_100g,
-    carbs_per_100g: formData.carbs_per_100g,
-    hasPerHundredGramData,
-    showingSmartFeatures: hasPerHundredGramData
-  });
-  
   const validationWarnings = getValidationWarnings();
 
   return (
