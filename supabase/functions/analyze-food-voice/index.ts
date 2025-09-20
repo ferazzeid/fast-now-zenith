@@ -263,54 +263,98 @@ ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
     let completion = result.choices[0].message.content || '';
     let functionCall = null;
 
-    // Extract function call
+    // Extract and merge function calls - process ALL calls to get best data
     if (result.choices[0].message.tool_calls && result.choices[0].message.tool_calls.length > 0) {
-      const toolCall = result.choices[0].message.tool_calls[0];
-      if (toolCall.type === 'function' && toolCall.function.name === 'add_multiple_foods') {
+      const toolCalls = result.choices[0].message.tool_calls.filter(
+        call => call.type === 'function' && call.function.name === 'add_multiple_foods'
+      );
+
+      if (toolCalls.length > 0) {
         try {
-          const args = JSON.parse(toolCall.function.arguments);
-          
-          // Capitalize food names for consistent formatting
-          if (args.foods && Array.isArray(args.foods)) {
-            args.foods = args.foods.map((food: any) => ({
-              ...food,
-              name: capitalizeFoodName(food.name)
-            }));
-          }
-          
-          functionCall = {
-            name: 'add_multiple_foods',
-            arguments: args
-          };
+          let bestFunctionCall = null;
+          let bestScore = -1;
 
-          // Validate nutrition data
-          let nutritionValid = true;
-          const invalidFoods: string[] = [];
+          // Process all tool calls to find the best one
+          for (const toolCall of toolCalls) {
+            const args = JSON.parse(toolCall.function.arguments);
+            
+            if (args.foods && Array.isArray(args.foods)) {
+              // Score this call based on data completeness and user-specified portions
+              let score = 0;
+              let hasUserPortions = false;
+              let hasValidNutrition = true;
 
-          if (args.foods && Array.isArray(args.foods)) {
-            for (const food of args.foods) {
-              if (!food.calories || food.calories <= 0 || !food.carbs || food.carbs < 0) {
-                nutritionValid = false;
-                invalidFoods.push(food.name);
+              for (const food of args.foods) {
+                // Check if serving size appears to be user-specified (not default 100g)
+                if (food.serving_size && food.serving_size !== 100) {
+                  hasUserPortions = true;
+                  score += 10; // High priority for user portions
+                }
+                
+                // Check nutrition validity
+                if (food.calories > 0 && food.carbs >= 0) {
+                  score += 5; // Points for valid nutrition
+                } else {
+                  hasValidNutrition = false;
+                }
+
+                // Bonus for per-100g data
+                if (food.calories_per_100g > 0 && food.carbs_per_100g >= 0) {
+                  score += 3;
+                }
+              }
+
+              // If this call has better data, use it
+              if (score > bestScore || (hasUserPortions && !bestFunctionCall)) {
+                bestScore = score;
+                bestFunctionCall = {
+                  name: 'add_multiple_foods',
+                  arguments: args
+                };
               }
             }
           }
 
-          if (!nutritionValid) {
-            return new Response(
-              JSON.stringify({
-                completion: `I need more details about these foods to provide accurate nutrition information: ${invalidFoods.join(', ')}. Could you be more specific?`,
-                functionCall: null,
-                validation_error: true,
-                invalid_foods: invalidFoods
-              }),
-              { 
-                headers: { 
-                  ...corsHeaders, 
-                  'Content-Type': 'application/json' 
-                } 
+          if (bestFunctionCall) {
+            // Capitalize food names for consistent formatting
+            if (bestFunctionCall.arguments.foods && Array.isArray(bestFunctionCall.arguments.foods)) {
+              bestFunctionCall.arguments.foods = bestFunctionCall.arguments.foods.map((food: any) => ({
+                ...food,
+                name: capitalizeFoodName(food.name)
+              }));
+            }
+            
+            functionCall = bestFunctionCall;
+
+            // Validate nutrition data
+            let nutritionValid = true;
+            const invalidFoods: string[] = [];
+
+            if (bestFunctionCall.arguments.foods && Array.isArray(bestFunctionCall.arguments.foods)) {
+              for (const food of bestFunctionCall.arguments.foods) {
+                if (!food.needsManualInput && (!food.calories || food.calories <= 0 || !food.carbs || food.carbs < 0)) {
+                  nutritionValid = false;
+                  invalidFoods.push(food.name);
+                }
               }
-            );
+            }
+
+            if (!nutritionValid) {
+              return new Response(
+                JSON.stringify({
+                  completion: `I need more details about these foods to provide accurate nutrition information: ${invalidFoods.join(', ')}. Could you be more specific?`,
+                  functionCall: null,
+                  validation_error: true,
+                  invalid_foods: invalidFoods
+                }),
+                { 
+                  headers: { 
+                    ...corsHeaders, 
+                    'Content-Type': 'application/json' 
+                  } 
+                }
+              );
+            }
           }
         } catch (e) {
           console.error('Error parsing function arguments:', e);
