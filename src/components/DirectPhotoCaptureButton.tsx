@@ -247,13 +247,38 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         
         console.log('Multi-image analysis response:', data);
         
+        // Create blob URL from first image for preview
+        let imagePreviewUrl = '';
+        if (images.length > 0) {
+          try {
+            // Convert base64 to blob URL
+            const base64Data = images[0];
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/jpeg' });
+            imagePreviewUrl = URL.createObjectURL(blob);
+          } catch (error) {
+            console.error('Error creating preview URL from base64:', error);
+          }
+        }
+        
         // Handle both function call and completion responses
         if (data?.functionCall?.name === 'add_multiple_foods') {
           // Function call response - food items identified
+          const foodsWithImage = (data.functionCall.arguments.foods || []).map((food: FoodItem) => ({
+            ...food,
+            image_url: imagePreviewUrl
+          }));
+          
           const suggestion: FoodSuggestion = {
-            foods: data.functionCall.arguments.foods || [],
+            foods: foodsWithImage,
             destination: data.functionCall.arguments.destination || 'today',
-            originalTranscription: data.originalTranscription || ''
+            originalTranscription: data.originalTranscription || '',
+            image_url: imagePreviewUrl
           };
           
           // Initialize selection with all items selected
@@ -269,10 +294,16 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
           try {
             const parsedFoods = tryParseCompletionForFoods(data.completion);
             if (parsedFoods && parsedFoods.length > 0) {
+              const foodsWithImage = parsedFoods.map((food: FoodItem) => ({
+                ...food,
+                image_url: imagePreviewUrl
+              }));
+              
               const suggestion: FoodSuggestion = {
-                foods: parsedFoods,
+                foods: foodsWithImage,
                 destination: 'today',
-                originalTranscription: data.originalTranscription || 'Photo analysis'
+                originalTranscription: data.originalTranscription || 'Photo analysis',
+                image_url: imagePreviewUrl
               };
               
               const allSelected = new Set(suggestion.foods.map((_, index) => index));

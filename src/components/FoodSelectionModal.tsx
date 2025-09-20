@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Utensils } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -213,20 +213,29 @@ export const FoodSelectionModal = ({
           </div>
         </Card>
 
-        {/* Photo Preview - Show only for photo-based entries */}
-        {foodSuggestion.image_url && (
-          <Card className="p-3 bg-muted/30">
-            <div className="text-xs text-muted-foreground mb-2">Photo captured:</div>
-            <div className="flex justify-center">
-              <SmartImage 
-                imageUrl={foodSuggestion.image_url}
-                alt="Captured food photo"
-                className="w-full max-w-md h-48 object-cover rounded-lg"
-                fallback={<div className="w-full h-48 bg-muted animate-pulse rounded-lg flex items-center justify-center text-muted-foreground">Loading image...</div>}
-              />
+        {/* Food Image Preview - Show for all entries */}
+        <Card className="p-3 bg-muted/30">
+          <div className="flex justify-center">
+            <div className="w-full max-w-md h-48 flex items-center justify-center">
+              {foodSuggestion.image_url ? (
+                <SmartImage 
+                  imageUrl={foodSuggestion.image_url}
+                  alt="Captured food photo"
+                  className="w-full h-48 object-cover rounded-lg"
+                  fallback={
+                    <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+                      <Utensils className="w-16 h-16 text-muted-foreground" />
+                    </div>
+                  }
+                />
+              ) : (
+                <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
+                  <Utensils className="w-16 h-16 text-muted-foreground" />
+                </div>
+              )}
             </div>
-          </Card>
-        )}
+          </div>
+        </Card>
 
         {/* Manual Entry Indicator */}
         {foodSuggestion.foods.some(food => (food as any).needsManualInput) && (
