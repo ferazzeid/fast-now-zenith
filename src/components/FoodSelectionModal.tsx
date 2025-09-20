@@ -213,29 +213,6 @@ export const FoodSelectionModal = ({
           </div>
         </Card>
 
-        {/* Food Image Preview - Show for all entries */}
-        <Card className="p-3 bg-muted/30">
-          <div className="flex justify-center">
-            <div className="w-full max-w-md h-48 flex items-center justify-center">
-              {foodSuggestion.image_url ? (
-                <SmartImage 
-                  imageUrl={foodSuggestion.image_url}
-                  alt="Captured food photo"
-                  className="w-full h-48 object-cover rounded-lg"
-                  fallback={
-                    <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
-                      <Utensils className="w-16 h-16 text-muted-foreground" />
-                    </div>
-                  }
-                />
-              ) : (
-                <div className="w-full h-48 bg-muted rounded-lg flex items-center justify-center">
-                  <Utensils className="w-16 h-16 text-muted-foreground" />
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
 
         {/* Manual Entry Indicator */}
         {foodSuggestion.foods.some(food => (food as any).needsManualInput) && (
@@ -377,6 +354,21 @@ export const FoodSelectionModal = ({
                       className="data-[state=checked]:bg-primary data-[state=checked]:border-primary shrink-0"
                     />
                   )}
+                  
+                  {/* Small thumbnail */}
+                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex items-center justify-center shrink-0">
+                    {foodSuggestion.image_url ? (
+                      <SmartImage 
+                        imageUrl={foodSuggestion.image_url}
+                        alt={food.name}
+                        className="w-full h-full object-cover"
+                        fallback={<Utensils className="w-5 h-5 text-muted-foreground" />}
+                      />
+                    ) : (
+                      <Utensils className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate flex items-center gap-1">
                       <ClickableTooltip content={food.name}>
