@@ -531,23 +531,69 @@ serve(async (req) => {
       }
     }
 
-    // If no function call was extracted, provide fallback response
+    // If no function call was extracted, try to parse completion for food data
     if (!functionCall) {
-      console.log('No function call found, providing fallback response');
-      return new Response(
-        JSON.stringify({
-          completion: completion || "I could not identify any food items in this image. Please try a clearer photo or add the food manually.",
-          functionCall: null,
-          errorType: 'no_foods_found',
-          originalTranscription: 'Photo analysis'
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
+      console.log('No function call found, checking completion for food data');
+      
+      // Try to extract JSON food data from completion
+      let parsedFoods = null;
+      if (completion) {
+        try {
+          // Look for JSON arrays in the completion
+          const jsonMatch = completion.match(/\[[\s\S]*?\]/);
+          if (jsonMatch) {
+            const jsonStr = jsonMatch[0];
+            const foodArray = JSON.parse(jsonStr);
+            
+            if (Array.isArray(foodArray) && foodArray.length > 0) {
+              // Convert to expected format
+              parsedFoods = foodArray.map((food: any) => ({
+                name: capitalizeFoodName(food.name || 'Unknown Food'),
+                serving_size: food.estimated_serving_size || food.serving_size || 100,
+                calories: Math.round((food.calories_per_100g || 0) * (food.estimated_serving_size || food.serving_size || 100) / 100),
+                carbs: Math.round((food.carbs_per_100g || 0) * (food.estimated_serving_size || food.serving_size || 100) / 100),
+                calories_per_100g: food.calories_per_100g || 0,
+                carbs_per_100g: food.carbs_per_100g || 0,
+                protein_per_100g: food.protein_per_100g || 0,
+                fat_per_100g: food.fat_per_100g || 0,
+                confidence: food.confidence || 0.8,
+                description: food.description || 'Identified from image analysis'
+              }));
+              
+              console.log('Successfully parsed food data from completion:', parsedFoods);
+              
+              // Create function call format
+              functionCall = {
+                name: 'add_multiple_foods',
+                arguments: {
+                  foods: parsedFoods,
+                  destination: 'today'
+                }
+              };
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to parse completion as JSON:', e);
         }
-      );
+      }
+      
+      // If still no food data found, return error
+      if (!functionCall) {
+        return new Response(
+          JSON.stringify({
+            completion: completion || "I could not identify any food items in this image. Please try a clearer photo or add the food manually.",
+            functionCall: null,
+            errorType: 'no_foods_found',
+            originalTranscription: 'Photo analysis'
+          }),
+          { 
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
+          }
+        );
+      }
     }
 
     // Increment usage counter (all users count against limits now)
