@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Clock, Calendar, CheckCircle, XCircle, Trophy, Edit, Trash2, TrendingUp } from 'lucide-react';
+import { X, Clock, Calendar, CheckCircle, XCircle, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -138,33 +138,19 @@ const IntermittentFastingHistory = () => {
 
       await refreshHistory();
       toast({
-        title: "History Deleted",
-        description: "All non-active intermittent fasting sessions have been deleted.",
+        title: "History Cleared",
+        description: "All completed fasting sessions have been deleted.",
       });
     } catch (error) {
-      console.error('Error deleting all IF history:', error);
+      console.error('Error clearing IF history:', error);
       toast({
         title: "Error", 
-        description: "Failed to delete intermittent fasting history.",
+        description: "Failed to clear fasting history.",
         variant: "destructive",
       });
     }
   };
 
-  const getSuccessRate = () => {
-    if (!history || history.length === 0) return 0;
-    const completedSessions = history.filter(s => s.status === 'completed');
-    const nonActiveSessions = history.filter(s => s.status !== 'active');
-    return nonActiveSessions.length > 0 ? Math.round((completedSessions.length / nonActiveSessions.length) * 100) : 0;
-  };
-
-  const getAverageHours = () => {
-    if (!history || history.length === 0) return 0;
-    const completedSessions = history.filter(s => s.status === 'completed');
-    if (completedSessions.length === 0) return 0;
-    const totalHours = completedSessions.reduce((sum, session) => sum + session.fasting_window_hours, 0);
-    return Math.round(totalHours / completedSessions.length);
-  };
 
   const groupSessionsByDate = (sessions: any[]) => {
     const groups: { [key: string]: any[] } = {};
@@ -244,25 +230,6 @@ const IntermittentFastingHistory = () => {
           </div>
         </div>
 
-        {/* Stats Section */}
-        {history && history.length > 0 && (
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <Card className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <TrendingUp className="w-4 h-4" />
-                Success Rate
-              </div>
-              <div className="text-2xl font-bold">{getSuccessRate()}%</div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Clock className="w-4 h-4" />
-                Avg. Fasting
-              </div>
-              <div className="text-2xl font-bold">{getAverageHours()}h</div>
-            </Card>
-          </div>
-        )}
 
         {!history || history.length === 0 ? (
           <div className="text-center py-12">
@@ -393,9 +360,9 @@ const IntermittentFastingHistory = () => {
           handleDeleteAllHistory();
           setDeleteAllModalOpen(false);
         }}
-        title="Delete All Fasting History"
-        description="Are you sure you want to delete ALL intermittent fasting history? This will permanently remove all non-active sessions. This action cannot be undone."
-        confirmText="Delete All History"
+        title="Clear Fasting History"
+        description="Are you sure you want to clear all completed fasting sessions? Active sessions will not be affected. This action cannot be undone."
+        confirmText="Clear History"
         variant="destructive"
       />
     </div>
