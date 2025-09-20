@@ -16,68 +16,56 @@ const IntermittentFastingHistory = () => {
   };
 
   const getSessionStatusColor = (session: any, isLatestInDay: boolean) => {
-    const now = new Date();
-    const sessionDate = new Date(session.session_date);
-    const isToday = sessionDate.toDateString() === now.toDateString();
-    
     // If it's explicitly canceled, show as canceled
     if (session.status === 'canceled') return 'text-red-600 dark:text-red-400';
     
-    // If it's completed AND it's the only session OR the latest session of the day, show as completed
-    if (session.status === 'completed' && session.completed && isLatestInDay) {
+    // If it's completed, show as completed
+    if (session.status === 'completed' && session.completed) {
       return 'text-green-600 dark:text-green-400';
     }
     
-    // If it's in progress (fasting/eating) and it's today and the latest session, show as in progress
-    if ((session.status === 'fasting' || session.status === 'eating') && isToday && isLatestInDay) {
+    // If it's in progress (fasting/eating), show as in progress
+    if (session.status === 'fasting' || session.status === 'eating') {
       return 'text-info-foreground dark:text-info-foreground';
     }
     
-    // Everything else is effectively canceled (past sessions that weren't completed, or non-latest sessions)
+    // Default fallback for unknown states
     return 'text-red-600 dark:text-red-400';
   };
 
   const getSessionStatusText = (session: any, isLatestInDay: boolean) => {
-    const now = new Date();
-    const sessionDate = new Date(session.session_date);
-    const isToday = sessionDate.toDateString() === now.toDateString();
-    
     // If it's explicitly canceled, show as canceled
     if (session.status === 'canceled') return 'Canceled';
     
-    // If it's completed AND it's the only session OR the latest session of the day, show as completed
-    if (session.status === 'completed' && session.completed && isLatestInDay) {
+    // If it's completed, show as completed
+    if (session.status === 'completed' && session.completed) {
       return 'Completed';
     }
     
-    // If it's in progress (fasting/eating) and it's today and the latest session, show as in progress
-    if ((session.status === 'fasting' || session.status === 'eating') && isToday && isLatestInDay) {
+    // If it's in progress (fasting/eating), show current status
+    if (session.status === 'fasting' || session.status === 'eating') {
       return session.status === 'fasting' ? 'Fasting' : 'Eating';
     }
     
-    // Everything else is effectively canceled (past sessions that weren't completed, or non-latest sessions)
+    // Default fallback for unknown states
     return 'Canceled';
   };
 
   const getSessionStatusIcon = (session: any, isLatestInDay: boolean) => {
-    const now = new Date();
-    const sessionDate = new Date(session.session_date);
-    const isToday = sessionDate.toDateString() === now.toDateString();
-    
     // If it's explicitly canceled, show as canceled
     if (session.status === 'canceled') return <XCircle className="w-3 h-3" />;
     
-    // If it's completed AND it's the only session OR the latest session of the day, show as completed
-    if (session.status === 'completed' && session.completed && isLatestInDay) {
+    // If it's completed, show as completed
+    if (session.status === 'completed' && session.completed) {
       return <CheckCircle className="w-3 h-3" />;
     }
     
-    // If it's in progress (fasting/eating) and it's today and the latest session, show as in progress
-    if ((session.status === 'fasting' || session.status === 'eating') && isToday && isLatestInDay) {
+    // If it's in progress (fasting/eating), show as in progress
+    if (session.status === 'fasting' || session.status === 'eating') {
       return <Clock className="w-3 h-3" />;
     }
     
-    // Everything else is effectively canceled (past sessions that weren't completed, or non-latest sessions)
+    // Default fallback for unknown states
     return <XCircle className="w-3 h-3" />;
   };
 
