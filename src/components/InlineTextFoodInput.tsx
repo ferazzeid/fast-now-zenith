@@ -249,7 +249,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
           {/* Centered modal-style input */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="relative w-full max-w-md bg-background rounded-lg border border-border shadow-xl p-6">
-              {/* X button in top-right corner */}
+              {/* X button in top-right corner with more spacing */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -259,7 +259,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                 <X className="w-4 h-4" />
               </Button>
               
-              <div className="flex items-center gap-3 mt-2">
+              {/* Connected Input and Go button */}
+              <div className="flex items-center mt-2 mr-12">
                 <Input
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -273,7 +274,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                     }
                   }}
                   placeholder="Enter food"
-                  className="flex-1 h-12 text-center text-base border-2 focus-visible:ring-2 focus-visible:ring-ring"
+                  className="flex-1 h-12 text-center text-base border-2 focus-visible:ring-2 focus-visible:ring-ring rounded-l-lg rounded-r-none border-r-0"
                   autoFocus
                   disabled={isProcessing}
                 />
@@ -282,7 +283,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                   disabled={!inputText.trim() || isProcessing}
                   size="lg"
                   variant="default"
-                  className="shrink-0 h-12 px-6 font-semibold"
+                  className="shrink-0 h-12 px-6 font-semibold rounded-r-lg rounded-l-none border-l-0"
                   title="Add food"
                 >
                   {isProcessing ? (

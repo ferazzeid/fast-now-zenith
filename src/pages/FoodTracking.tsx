@@ -675,7 +675,7 @@ const FoodTracking = () => {
                 onClick={() => setShowSaveToTemplateDialog(true)}
                 variant="ghost"
                 size="sm"
-                className="h-5 w-5 p-0 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-accent hover:text-accent-foreground"
+                className="h-5 w-5 p-0 rounded bg-gray-200 dark:bg-gray-700 hover:bg-accent hover:text-accent-foreground"
                 title="Save to Template"
               >
                 <Save className="w-3 h-3" />
@@ -687,7 +687,7 @@ const FoodTracking = () => {
                   onClick={() => setShowClearAllDialog(true)}
                   variant="ghost"
                   size="sm"
-                  className="h-5 w-5 p-0 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-accent hover:text-accent-foreground"
+                  className="h-5 w-5 p-0 rounded bg-gray-200 dark:bg-gray-700 hover:bg-accent hover:text-accent-foreground"
                   title="Clear All"
                   disabled={isClearingAll}
                 >
@@ -697,7 +697,7 @@ const FoodTracking = () => {
                   size="sm"
                   variant="ghost"  
                   onClick={handleMarkAllAsEaten}
-                  className="h-5 w-5 p-0 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-accent hover:text-accent-foreground"
+                  className="h-5 w-5 p-0 rounded bg-gray-200 dark:bg-gray-700 hover:bg-accent hover:text-accent-foreground"
                   title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
                   disabled={isBulkMarking}
                 >
