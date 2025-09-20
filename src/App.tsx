@@ -14,6 +14,7 @@ import { MiniTimer } from "@/components/MiniTimer";
 import Timer from "./pages/Timer";
 import Motivators from "./pages/Motivators";
 import MotivatorIdeas from "./pages/MotivatorIdeas";
+import NinetyDayProgram from "./pages/NinetyDayProgram";
 
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -269,6 +270,13 @@ const AppContent = () => {
               <ProtectedRoute>
                 <PageErrorBoundary>
                   <MotivatorIdeas />
+                </PageErrorBoundary>
+              </ProtectedRoute>
+            } />
+            <Route path="/90-day-program" element={
+              <ProtectedRoute>
+                <PageErrorBoundary>
+                  <NinetyDayProgram />
                 </PageErrorBoundary>
               </ProtectedRoute>
             } />

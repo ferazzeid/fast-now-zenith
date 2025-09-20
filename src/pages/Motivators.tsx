@@ -31,6 +31,7 @@ import { PremiumGate } from '@/components/PremiumGate';
 import { AuthorTooltip } from '@/components/AuthorTooltip';
 import { useAccess } from '@/hooks/useAccess';
 import { useAuthorTooltipEnabled } from '@/hooks/useAuthorTooltipEnabled';
+import { use90DayProgramSettings } from '@/hooks/use90DayProgramSettings';
 
 
 const Motivators = () => {
@@ -41,6 +42,7 @@ const Motivators = () => {
   const { systemMotivators, loading: systemLoading } = useStaticSystemMotivators();
   const { isAdmin } = useAccess();
   const isAuthorTooltipEnabled = useAuthorTooltipEnabled();
+  const { data: is90DayProgramEnabled } = use90DayProgramSettings();
   
   // Add useEffect to refresh data when component mounts
   useEffect(() => {
@@ -352,7 +354,30 @@ const Motivators = () => {
                 />
               </div>
             )}
-            <div className={`pl-0 ${isAuthorTooltipEnabled ? 'pr-12' : 'pr-0'}`}>
+            
+            {/* 90-Day Program Button */}
+            {activeTab === 'goals' && is90DayProgramEnabled && (
+              <div className={`absolute ${isAuthorTooltipEnabled ? 'right-12' : 'right-0'} top-0`}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => navigate('/90-day-program')}
+                      variant="outline"
+                      size="icon"
+                      className="w-10 h-10 rounded-full font-bold text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                      aria-label="90-Day Program Timeline"
+                    >
+                      90
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>90-Day Program Timeline - Structured journey tracking</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            )}
+            
+            <div className={`pl-0 ${isAuthorTooltipEnabled && is90DayProgramEnabled ? 'pr-24' : isAuthorTooltipEnabled || is90DayProgramEnabled ? 'pr-12' : 'pr-0'}`}>
               <h1 className="text-2xl font-bold text-foreground mb-1">
                 {activeTab === 'goals' ? 'My Goals' : activeTab === 'quotes' ? 'Saved Quotes' : 'My Notes'}
               </h1>

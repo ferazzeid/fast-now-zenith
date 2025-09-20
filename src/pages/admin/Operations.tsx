@@ -12,6 +12,7 @@ import { AdminIntermittentFastingSettings } from "@/components/AdminIntermittent
 import { AdminDailyReconciliationSettings } from "@/components/AdminDailyReconciliationSettings";
 import { AdminProgressiveBurnSettings } from "@/components/AdminProgressiveBurnSettings";
 import { AdminToastSettings } from "@/components/AdminToastSettings";
+import { Admin90DayProgramSettings } from "@/components/Admin90DayProgramSettings";
 
 export default function AdminOperations() {
   usePageSEO({
@@ -60,6 +61,10 @@ export default function AdminOperations() {
 
         <section aria-label="Toast message settings">
           <AdminToastSettings />
+        </section>
+
+        <section aria-label="90-day program timeline settings">
+          <Admin90DayProgramSettings />
         </section>
 
         <section aria-label="Google authentication settings" className="pb-24">
