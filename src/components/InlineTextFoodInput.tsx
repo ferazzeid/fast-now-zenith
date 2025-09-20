@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Loader2, Lock } from 'lucide-react';
+import { Plus, Loader2, Lock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -248,14 +248,31 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
           
           {/* Centered modal-style input */}
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-md bg-background rounded-lg border border-border shadow-xl p-6">
-              <h3 className="text-lg font-semibold mb-4 text-center">Enter Food</h3>
-              <div className="flex items-center gap-3">
+            <div className="relative w-full max-w-md bg-background rounded-lg border border-border shadow-xl p-6">
+              {/* X button in top-right corner */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancel}
+                className="absolute top-2 right-2 w-8 h-8 p-0 rounded-full hover:bg-muted"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+              
+              <div className="flex items-center gap-3 mt-2">
                 <Input
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Enter food (e.g., apple, rice, chicken)"
+                  onFocus={(e) => {
+                    e.target.placeholder = '';
+                  }}
+                  onBlur={(e) => {
+                    if (!e.target.value) {
+                      e.target.placeholder = 'Enter food';
+                    }
+                  }}
+                  placeholder="Enter food"
                   className="flex-1 h-12 text-center text-base border-2 focus-visible:ring-2 focus-visible:ring-ring"
                   autoFocus
                   disabled={isProcessing}
@@ -276,15 +293,6 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                   ) : (
                     "Go"
                   )}
-                </Button>
-              </div>
-              <div className="flex justify-center mt-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={handleCancel}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  Cancel
                 </Button>
               </div>
             </div>

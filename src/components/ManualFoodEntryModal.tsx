@@ -192,7 +192,8 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
           />
         </div>
 
-        <div className="grid grid-cols-1 gap-4">
+        <div className="space-y-4">
+          {/* Food Name - Full Width */}
           <div>
             <Label htmlFor="productName">Food Name *</Label>
             <Input
@@ -203,10 +204,11 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
               maxLength={100}
               onClick={(e) => e.stopPropagation()}
               onFocus={(e) => e.stopPropagation()}
-              className="bg-muted"
+              className="bg-input"
             />
           </div>
 
+          {/* Portion Size - Full Width */}
           <div>
             <Label htmlFor="portionSize">Portion Size (grams)</Label>
             <Input
@@ -219,80 +221,86 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
               step="0.1"
               onClick={(e) => e.stopPropagation()}
               onFocus={(e) => e.stopPropagation()}
-              className="bg-muted"
+              className="bg-input"
             />
           </div>
 
-          <div>
-            <Label htmlFor="calories">
-              {isPer100gMode ? "Calories (per 100g)" : "Calories (total for portion)"}
-            </Label>
-            <Input
-              id="calories"
-              type="number"
-              value={calories}
-              onChange={(e) => setCalories(e.target.value)}
-              placeholder="0"
-              min="0"
-              step="0.1"
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="bg-muted"
-            />
+          {/* Calories and Carbs - 2 Columns */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="calories">
+                {isPer100gMode ? "Calories (per 100g)" : "Calories (total for portion)"}
+              </Label>
+              <Input
+                id="calories"
+                type="number"
+                value={calories}
+                onChange={(e) => setCalories(e.target.value)}
+                placeholder="0"
+                min="0"
+                step="0.1"
+                onClick={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="bg-input"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="carbs">
+                {isPer100gMode ? "Carbs (grams per 100g)" : "Carbs (total grams for portion)"}
+              </Label>
+              <Input
+                id="carbs"
+                type="number"
+                value={carbs}
+                onChange={(e) => setCarbs(e.target.value)}
+                placeholder="0"
+                min="0"
+                step="0.1"
+                onClick={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="bg-input"
+              />
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="carbs">
-              {isPer100gMode ? "Carbs (grams per 100g)" : "Carbs (total grams for portion)"}
-            </Label>
-            <Input
-              id="carbs"
-              type="number"
-              value={carbs}
-              onChange={(e) => setCarbs(e.target.value)}
-              placeholder="0"
-              min="0"
-              step="0.1"
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="bg-muted"
-            />
-          </div>
+          {/* Protein and Fat - 2 Columns with Optional Labels */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="protein">
+                {isPer100gMode ? "Protein (optional)" : "Protein (optional)"} {isPer100gMode ? "(grams per 100g)" : "(total grams for portion)"}
+              </Label>
+              <Input
+                id="protein"
+                type="number"
+                value={protein}
+                onChange={(e) => setProtein(e.target.value)}
+                placeholder="0"
+                min="0"
+                step="0.1"
+                onClick={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="bg-input"
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="protein">
-              {isPer100gMode ? "Protein (grams per 100g)" : "Protein (total grams for portion)"}
-            </Label>
-            <Input
-              id="protein"
-              type="number"
-              value={protein}
-              onChange={(e) => setProtein(e.target.value)}
-              placeholder="0"
-              min="0"
-              step="0.1"
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="bg-muted"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="fat">
-              {isPer100gMode ? "Fat (grams per 100g)" : "Fat (total grams for portion)"}
-            </Label>
-            <Input
-              id="fat"
-              type="number"
-              value={fat}
-              onChange={(e) => setFat(e.target.value)}
-              placeholder="0"
-              min="0"
-              step="0.1"
-              onClick={(e) => e.stopPropagation()}
-              onFocus={(e) => e.stopPropagation()}
-              className="bg-muted"
-            />
+            <div>
+              <Label htmlFor="fat">
+                {isPer100gMode ? "Fat (optional)" : "Fat (optional)"} {isPer100gMode ? "(grams per 100g)" : "(total grams for portion)"}
+              </Label>
+              <Input
+                id="fat"
+                type="number"
+                value={fat}
+                onChange={(e) => setFat(e.target.value)}
+                placeholder="0"
+                min="0"
+                step="0.1"
+                onClick={(e) => e.stopPropagation()}
+                onFocus={(e) => e.stopPropagation()}
+                className="bg-input"
+              />
+            </div>
           </div>
         </div>
       </div>
