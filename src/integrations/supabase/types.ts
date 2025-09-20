@@ -686,9 +686,14 @@ export type Database = {
         Row: {
           created_at: string
           duration_seconds: number | null
+          edit_reason: string | null
           end_time: string | null
           goal_duration_seconds: number | null
           id: string
+          is_edited: boolean | null
+          original_duration_seconds: number | null
+          original_goal_duration_seconds: number | null
+          original_start_time: string | null
           start_time: string
           status: string | null
           updated_at: string
@@ -697,9 +702,14 @@ export type Database = {
         Insert: {
           created_at?: string
           duration_seconds?: number | null
+          edit_reason?: string | null
           end_time?: string | null
           goal_duration_seconds?: number | null
           id?: string
+          is_edited?: boolean | null
+          original_duration_seconds?: number | null
+          original_goal_duration_seconds?: number | null
+          original_start_time?: string | null
           start_time: string
           status?: string | null
           updated_at?: string
@@ -708,9 +718,14 @@ export type Database = {
         Update: {
           created_at?: string
           duration_seconds?: number | null
+          edit_reason?: string | null
           end_time?: string | null
           goal_duration_seconds?: number | null
           id?: string
+          is_edited?: boolean | null
+          original_duration_seconds?: number | null
+          original_goal_duration_seconds?: number | null
+          original_start_time?: string | null
           start_time?: string
           status?: string | null
           updated_at?: string
@@ -1004,10 +1019,16 @@ export type Database = {
           eating_end_time: string | null
           eating_start_time: string | null
           eating_window_hours: number
+          edit_reason: string | null
           fasting_end_time: string | null
           fasting_start_time: string | null
           fasting_window_hours: number
           id: string
+          is_edited: boolean | null
+          original_eating_start_time: string | null
+          original_eating_window_hours: number | null
+          original_fasting_start_time: string | null
+          original_fasting_window_hours: number | null
           session_date: string
           status: string
           updated_at: string
@@ -1019,10 +1040,16 @@ export type Database = {
           eating_end_time?: string | null
           eating_start_time?: string | null
           eating_window_hours?: number
+          edit_reason?: string | null
           fasting_end_time?: string | null
           fasting_start_time?: string | null
           fasting_window_hours?: number
           id?: string
+          is_edited?: boolean | null
+          original_eating_start_time?: string | null
+          original_eating_window_hours?: number | null
+          original_fasting_start_time?: string | null
+          original_fasting_window_hours?: number | null
           session_date?: string
           status?: string
           updated_at?: string
@@ -1034,10 +1061,16 @@ export type Database = {
           eating_end_time?: string | null
           eating_start_time?: string | null
           eating_window_hours?: number
+          edit_reason?: string | null
           fasting_end_time?: string | null
           fasting_start_time?: string | null
           fasting_window_hours?: number
           id?: string
+          is_edited?: boolean | null
+          original_eating_start_time?: string | null
+          original_eating_window_hours?: number | null
+          original_fasting_start_time?: string | null
+          original_fasting_window_hours?: number | null
           session_date?: string
           status?: string
           updated_at?: string
