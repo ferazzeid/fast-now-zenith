@@ -357,16 +357,23 @@ export const FoodSelectionModal = ({
                   
                   {/* Small thumbnail */}
                   <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted flex items-center justify-center shrink-0">
-                    {foodSuggestion.image_url ? (
-                      <SmartImage 
-                        imageUrl={foodSuggestion.image_url}
-                        alt={food.name}
-                        className="w-full h-full object-cover"
-                        fallback={<Utensils className="w-5 h-5 text-muted-foreground" />}
-                      />
-                    ) : (
-                      <Utensils className="w-5 h-5 text-muted-foreground" />
-                    )}
+                    {(() => {
+                      console.log('🖼️ FoodModal Debug - foodSuggestion.image_url:', foodSuggestion.image_url);
+                      console.log('🖼️ FoodModal Debug - food.image_url:', food.image_url);
+                      const imageUrl = foodSuggestion.image_url || food.image_url;
+                      console.log('🖼️ FoodModal Debug - final imageUrl:', imageUrl);
+                      
+                      return imageUrl ? (
+                        <SmartImage 
+                          imageUrl={imageUrl}
+                          alt={food.name}
+                          className="w-full h-full object-cover"
+                          fallback={<Utensils className="w-5 h-5 text-muted-foreground" />}
+                        />
+                      ) : (
+                        <Utensils className="w-5 h-5 text-muted-foreground" />
+                      );
+                    })()}
                   </div>
                   
                   <div className="flex-1 min-w-0">

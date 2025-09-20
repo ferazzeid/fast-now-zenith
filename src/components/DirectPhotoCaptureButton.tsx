@@ -148,6 +148,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             if (error) throw error;
             
             console.log('Photo analysis response:', data);
+            console.log('🖼️ DirectPhoto Debug - previewUrl being set:', previewUrl);
             
             // Handle both function call and completion responses
             if (data?.functionCall?.name === 'add_multiple_foods') {
@@ -163,6 +164,11 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                 originalTranscription: data.originalTranscription || '',
                 image_url: previewUrl
               };
+              
+              console.log('🖼️ DirectPhoto Debug - suggestion created:', { 
+                image_url: suggestion.image_url,
+                firstFoodImageUrl: suggestion.foods[0]?.image_url 
+              });
               
               // Initialize selection with all items selected
               const allSelected = new Set(suggestion.foods.map((_, index) => index));
@@ -182,12 +188,17 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                     image_url: previewUrl
                   }));
                   
-                  const suggestion: FoodSuggestion = {
-                    foods: foodsWithImage,
-                    destination: 'today',
-                    originalTranscription: data.originalTranscription || 'Photo analysis',
-                    image_url: previewUrl
-                  };
+                const suggestion: FoodSuggestion = {
+                  foods: foodsWithImage,
+                  destination: 'today',
+                  originalTranscription: data.originalTranscription || 'Photo analysis',
+                  image_url: previewUrl
+                };
+                
+                console.log('🖼️ DirectPhoto Debug - completion suggestion created:', { 
+                  image_url: suggestion.image_url,
+                  firstFoodImageUrl: suggestion.foods[0]?.image_url 
+                });
                   
                   const allSelected = new Set(suggestion.foods.map((_, index) => index));
                   setSelectedFoodIds(allSelected);

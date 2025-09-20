@@ -23,6 +23,8 @@ export interface EnhancedFoodItem {
   // Optional fields
   protein?: number;
   fat?: number;
+  // Image URL for photo-captured foods
+  image_url?: string;
 }
 
 /**
