@@ -30,12 +30,14 @@ interface FoodItem {
   fat_per_100g?: number;
   confidence?: number;
   description?: string;
+  image_url?: string;
 }
 
 interface FoodSuggestion {
   foods: FoodItem[];
   destination: 'today' | 'template';
   originalTranscription: string;
+  image_url?: string;
 }
 
 export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: DirectPhotoCaptureButtonProps) => {
@@ -150,10 +152,16 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             // Handle both function call and completion responses
             if (data?.functionCall?.name === 'add_multiple_foods') {
               // Function call response - food items identified
+              const foodsWithImage = (data.functionCall.arguments.foods || []).map((food: FoodItem) => ({
+                ...food,
+                image_url: previewUrl
+              }));
+              
               const suggestion: FoodSuggestion = {
-                foods: data.functionCall.arguments.foods || [],
+                foods: foodsWithImage,
                 destination: data.functionCall.arguments.destination || 'today',
-                originalTranscription: data.originalTranscription || ''
+                originalTranscription: data.originalTranscription || '',
+                image_url: previewUrl
               };
               
               // Initialize selection with all items selected
@@ -169,10 +177,16 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                 // Try to extract food information from completion text
                 const parsedFoods = tryParseCompletionForFoods(data.completion);
                 if (parsedFoods && parsedFoods.length > 0) {
+                  const foodsWithImage = parsedFoods.map((food: FoodItem) => ({
+                    ...food,
+                    image_url: previewUrl
+                  }));
+                  
                   const suggestion: FoodSuggestion = {
-                    foods: parsedFoods,
+                    foods: foodsWithImage,
                     destination: 'today',
-                    originalTranscription: data.originalTranscription || 'Photo analysis'
+                    originalTranscription: data.originalTranscription || 'Photo analysis',
+                    image_url: previewUrl
                   };
                   
                   const allSelected = new Set(suggestion.foods.map((_, index) => index));

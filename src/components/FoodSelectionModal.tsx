@@ -8,6 +8,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
 import { capitalizeFoodName } from '@/utils/textUtils';
+import { SmartImage } from '@/components/SmartImage';
 import { 
   EnhancedFoodItem, 
   updateFoodItemWithRecalculation, 
@@ -22,6 +23,7 @@ interface FoodSuggestion {
   destination?: 'today' | 'template' | 'library';
   added?: boolean;
   originalTranscription?: string; // Store original voice input for user reference
+  image_url?: string; // Store captured image URL for photo-based entries
 }
 
 interface FoodSelectionModalProps {
@@ -210,6 +212,21 @@ export const FoodSelectionModal = ({
             )}
           </div>
         </Card>
+
+        {/* Photo Preview - Show only for photo-based entries */}
+        {foodSuggestion.image_url && (
+          <Card className="p-3 bg-muted/30">
+            <div className="text-xs text-muted-foreground mb-2">Photo captured:</div>
+            <div className="flex justify-center">
+              <SmartImage 
+                imageUrl={foodSuggestion.image_url}
+                alt="Captured food photo"
+                className="w-full max-w-md h-48 object-cover rounded-lg"
+                fallback={<div className="w-full h-48 bg-muted animate-pulse rounded-lg flex items-center justify-center text-muted-foreground">Loading image...</div>}
+              />
+            </div>
+          </Card>
+        )}
 
         {/* Manual Entry Indicator */}
         {foodSuggestion.foods.some(food => (food as any).needsManualInput) && (
