@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { UniversalModal } from '@/components/ui/universal-modal';
-import { AlertCircle, Edit, X, Calculator, RotateCcw } from 'lucide-react';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { useToast } from '@/hooks/use-toast';
 import { capitalizeFoodName } from '@/utils/textUtils';
@@ -215,7 +214,6 @@ export const FoodSelectionModal = ({
         {foodSuggestion.foods.some(food => (food as any).needsManualInput) && (
           <Card className="p-3 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800">
             <div className="flex items-center gap-2 text-yellow-800 dark:text-yellow-200 text-sm">
-              <AlertCircle className="w-4 h-4" />
               <span className="font-medium">Manual review required</span>
               <span>- Please verify and adjust the nutritional information</span>
             </div>
@@ -253,10 +251,7 @@ export const FoodSelectionModal = ({
                   <div className="grid grid-cols-3 gap-1">
                     <div>
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                        Weight (g)
-                        <span title="Master field - changes will recalculate nutrition">
-                          <Calculator className="w-3 h-3 text-primary" />
-                        </span>
+                        Weight (g) <span className="text-primary">(auto-calc)</span>
                       </div>
                       <Input
                         type="number"
@@ -270,9 +265,7 @@ export const FoodSelectionModal = ({
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                         Calories
                         {isNutritionCalculated(foodSuggestion.foods[index]).calories && (
-                          <span title="Auto-calculated from weight">
-                            <Calculator className="w-3 h-3 text-green-600" />
-                          </span>
+                          <span className="text-green-600 text-xs">(auto-calc)</span>
                         )}
                       </div>
                       <Input
@@ -290,9 +283,7 @@ export const FoodSelectionModal = ({
                       <div className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
                         Carbs (g)
                         {isNutritionCalculated(foodSuggestion.foods[index]).carbs && (
-                          <span title="Auto-calculated from weight">
-                            <Calculator className="w-3 h-3 text-green-600" />
-                          </span>
+                          <span className="text-green-600 text-xs">(auto-calc)</span>
                         )}
                       </div>
                       <Input
@@ -310,16 +301,15 @@ export const FoodSelectionModal = ({
                   <div className="space-y-2">
                     {(foodSuggestion.foods[index].calories_manually_set || foodSuggestion.foods[index].carbs_manually_set) && (
                       <div className="flex items-center gap-1 text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded">
-                        <Calculator className="w-3 h-3" />
                         <span>Manual values - auto-calculation disabled</span>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => handleResetToCalculated(index)}
-                          className="h-5 w-5 p-0 ml-auto"
+                          className="h-5 px-2 ml-auto text-xs"
                           title="Reset to calculated values"
                         >
-                          <RotateCcw className="w-3 h-3" />
+                          Reset
                         </Button>
                       </div>
                     )}
@@ -384,7 +374,7 @@ export const FoodSelectionModal = ({
                         onClick={() => handleInlineEdit(index)}
                         className="h-7 w-7 p-0"
                       >
-                        <Edit className="h-3 w-3" />
+                        Edit
                       </Button>
                       <Button 
                         size="sm" 
@@ -392,7 +382,7 @@ export const FoodSelectionModal = ({
                         onClick={() => onFoodRemove(index)}
                         className="h-7 w-7 p-0 text-destructive hover:text-destructive"
                       >
-                        <X className="h-3 w-3" />
+                        Remove
                       </Button>
                     </div>
                   )}
