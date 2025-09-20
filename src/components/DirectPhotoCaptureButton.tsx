@@ -11,7 +11,7 @@ import { useSessionGuard } from '@/hooks/useSessionGuard';
 import { useToast } from '@/hooks/use-toast';
 import { useUploadLoading } from '@/hooks/useStandardizedLoading';
 import { useMultiImageSettings } from '@/hooks/useMultiImageSettings';
-import { saveImageLocally } from '@/utils/localImageStorage';
+import { saveImageLocally, getLocalImageUrl, deleteLocalImage } from '@/utils/localImageStorage';
 import { compressImage, getBase64FromFile } from '@/utils/imageCompression';
 
 interface DirectPhotoCaptureButtonProps {
@@ -47,6 +47,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const [foodSuggestion, setFoodSuggestion] = useState<FoodSuggestion | null>(null);
   const [selectedFoodIds, setSelectedFoodIds] = useState<Set<number>>(new Set());
   const [imageUrl, setImageUrl] = useState<string>('');
+  const [imageIds, setImageIds] = useState<string[]>([]);
   
   const { user } = useAuth();
   const { access_level, hasAIAccess } = useAccess();
@@ -254,19 +255,37 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       try {
         startAnalysis();
 
-        const { data, error } = await supabase.functions.invoke('analyze-food-image', {
-          body: { images }, // Send array of base64 images
-        });
-        
-        if (error) throw error;
-        
-        console.log('Multi-image analysis response:', data);
-        
-        // Create blob URL from first image for preview
+        // Save images locally first
+        const savedImageIds: string[] = [];
         let imagePreviewUrl = '';
-        if (images.length > 0) {
-          try {
-            // Convert base64 to blob URL
+        
+        try {
+          for (const base64Data of images) {
+            // Convert base64 to blob
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/jpeg' });
+            
+            // Save to local storage
+            const imageId = await saveImageLocally(blob);
+            savedImageIds.push(imageId);
+          }
+          
+          // Get preview URL from first image
+          if (savedImageIds.length > 0) {
+            imagePreviewUrl = await getLocalImageUrl(savedImageIds[0]) || '';
+          }
+          
+          // Store image IDs for cleanup later
+          setImageIds(savedImageIds);
+        } catch (storageError) {
+          console.error('Error saving images locally:', storageError);
+          // Fallback to original blob URL method if local storage fails
+          if (images.length > 0) {
             const base64Data = images[0];
             const byteCharacters = atob(base64Data);
             const byteNumbers = new Array(byteCharacters.length);
@@ -276,10 +295,16 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             const byteArray = new Uint8Array(byteNumbers);
             const blob = new Blob([byteArray], { type: 'image/jpeg' });
             imagePreviewUrl = URL.createObjectURL(blob);
-          } catch (error) {
-            console.error('Error creating preview URL from base64:', error);
           }
         }
+
+        const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+          body: { images }, // Send array of base64 images
+        });
+        
+        if (error) throw error;
+        
+        console.log('Multi-image analysis response:', data);
         
         // Handle both function call and completion responses
         if (data?.functionCall?.name === 'add_multiple_foods') {
@@ -360,7 +385,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     reset();
     // Don't cleanup immediately on error - let the user see the image in the error state
     // Clean up after a longer delay to allow error handling
-    setTimeout(() => cleanup(), 3000);
+    setTimeout(async () => await cleanup(), 3000);
     toast({
       title: "Analysis failed",
       description: message,
@@ -374,7 +399,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     setFoodSuggestion(null);
     setSelectedFoodIds(new Set());
     // Clean up image URL when modal closes without saving
-    setTimeout(() => cleanup(), 1000); // Increased delay to ensure modal rendering is complete
+    setTimeout(async () => await cleanup(), 1000); // Increased delay to ensure modal rendering is complete
   };
 
   const handleSelectionChange = (selectedIds: Set<number>) => {
@@ -443,7 +468,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     handleFoodModalClose();
     
     // Clean up image URL after successful save - delay to ensure all UI updates complete
-    setTimeout(() => cleanup(), 2000);
+    setTimeout(async () => await cleanup(), 2000);
   };
 
   // Helper function to try parsing completion text for food information
@@ -485,12 +510,24 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     }
   };
 
-  const cleanup = () => {
-    // Only clean up blob URLs, not data URLs (they don't need cleanup)
+  const cleanup = async () => {
+    // Clean up blob URLs
     if (imageUrl && imageUrl.startsWith('blob:')) {
       URL.revokeObjectURL(imageUrl);
     }
     setImageUrl('');
+    
+    // Clean up locally stored images
+    if (imageIds.length > 0) {
+      for (const imageId of imageIds) {
+        try {
+          await deleteLocalImage(imageId);
+        } catch (error) {
+          console.error('Error deleting local image:', imageId, error);
+        }
+      }
+      setImageIds([]);
+    }
   };
 
   // Get button content based on state
