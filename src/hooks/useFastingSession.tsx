@@ -98,6 +98,26 @@ export const useFastingSession = () => {
     }
 
     return await execute(async () => {
+      const startTime = customStartTime || new Date();
+      const endTime = new Date(startTime.getTime() + goalDurationSeconds * 1000);
+
+      // Check for scheduling conflicts with other fasts
+      const { data: hasConflicts } = await supabase.rpc('check_fast_conflicts', {
+        p_user_id: user.id,
+        p_start_time: startTime.toISOString(),
+        p_end_time: endTime.toISOString(),
+        p_exclude_session_id: null
+      });
+
+      if (!hasConflicts) {
+        toast({
+          title: "Scheduling Conflict",
+          description: "Cannot start fast due to overlap with existing fasting sessions. Please check your timeline.",
+          variant: "destructive",
+        });
+        throw new Error("Scheduling conflict detected");
+      }
+
       // Check for active intermittent fasting session first
       const { data: activeIFSession } = await supabase
         .from('intermittent_fasting_sessions')
@@ -127,7 +147,7 @@ export const useFastingSession = () => {
         .eq('status', 'active');
 
       // Use custom start time or current time
-      const startTime = customStartTime ? customStartTime.toISOString() : new Date().toISOString();
+      const startTimeIso = startTime.toISOString();
 
       // Create new session
       const { data, error } = await supabase
@@ -135,7 +155,7 @@ export const useFastingSession = () => {
         .insert([
           {
             user_id: user.id,
-            start_time: startTime,
+            start_time: startTimeIso,
             goal_duration_seconds: goalDurationSeconds,
             status: 'active'
           }

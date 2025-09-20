@@ -114,6 +114,22 @@ export const useFastingSessionQuery = () => {
       
       if (!user) throw new Error('User not authenticated');
 
+      const startTime = sessionData.start_time || new Date();
+      const endTime = new Date(startTime.getTime() + sessionData.goal_duration_seconds * 1000);
+
+      // Check for scheduling conflicts with other fasts
+      console.log('Checking for scheduling conflicts...');
+      const { data: hasConflicts } = await supabase.rpc('check_fast_conflicts', {
+        p_user_id: user.id,
+        p_start_time: startTime.toISOString(),
+        p_end_time: endTime.toISOString(),
+        p_exclude_session_id: null
+      });
+
+      if (!hasConflicts) {
+        throw new Error('Scheduling conflict detected - overlaps with existing fasting sessions');
+      }
+
       // End any existing active sessions first
       console.log('Cancelling existing active sessions...');
       const cancelResult = await supabase
@@ -129,7 +145,7 @@ export const useFastingSessionQuery = () => {
 
       const insertData = {
         user_id: user.id,
-        start_time: sessionData.start_time ? sessionData.start_time.toISOString() : new Date().toISOString(),
+        start_time: startTime.toISOString(),
         goal_duration_seconds: sessionData.goal_duration_seconds,
         status: 'active',
       };

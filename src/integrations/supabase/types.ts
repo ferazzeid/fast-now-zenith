@@ -808,6 +808,51 @@ export type Database = {
         }
         Relationships: []
       }
+      fasting_timeline_slots: {
+        Row: {
+          created_at: string
+          fast_end_time: string | null
+          fast_start_time: string | null
+          fast_type: string
+          fasting_session_id: string | null
+          hours_into_fast: number | null
+          id: string
+          if_session_id: string | null
+          slot_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fast_end_time?: string | null
+          fast_start_time?: string | null
+          fast_type: string
+          fasting_session_id?: string | null
+          hours_into_fast?: number | null
+          id?: string
+          if_session_id?: string | null
+          slot_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fast_end_time?: string | null
+          fast_start_time?: string | null
+          fast_type?: string
+          fasting_session_id?: string | null
+          hours_into_fast?: number | null
+          id?: string
+          if_session_id?: string | null
+          slot_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       feature_screenshots: {
         Row: {
           alt_text: string | null
@@ -2101,6 +2146,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_fast_conflicts: {
+        Args: {
+          p_end_time: string
+          p_exclude_session_id?: string
+          p_start_time: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       configure_google_play_service_account: {
         Args: { service_account_json: string }
         Returns: undefined
