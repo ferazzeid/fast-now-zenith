@@ -129,9 +129,13 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         const localImageId = await saveImageLocally(compressedFile);
         console.log('Compressed image saved locally with ID:', localImageId);
         
-        // Create object URL for preview
-        const previewUrl = URL.createObjectURL(compressedFile);
-        setImageUrl(previewUrl);
+        // Create data URL for permanent image reference
+        const reader = new FileReader();
+        const dataUrl = await new Promise<string>((resolve) => {
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.readAsDataURL(compressedFile);
+        });
+        setImageUrl(dataUrl);
 
         // Only attempt analysis if user has AI access
         if (canUseAIAnalysis) {
@@ -148,21 +152,21 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             if (error) throw error;
             
             console.log('Photo analysis response:', data);
-            console.log('🖼️ DirectPhoto Debug - previewUrl being set:', previewUrl);
+            console.log('🖼️ DirectPhoto Debug - dataUrl being set:', dataUrl);
             
             // Handle both function call and completion responses
             if (data?.functionCall?.name === 'add_multiple_foods') {
               // Function call response - food items identified
               const foodsWithImage = (data.functionCall.arguments.foods || []).map((food: FoodItem) => ({
                 ...food,
-                image_url: previewUrl
+                image_url: dataUrl
               }));
               
               const suggestion: FoodSuggestion = {
                 foods: foodsWithImage,
                 destination: data.functionCall.arguments.destination || 'today',
                 originalTranscription: data.originalTranscription || '',
-                image_url: previewUrl
+                image_url: dataUrl
               };
               
               console.log('🖼️ DirectPhoto Debug - suggestion created:', { 
@@ -185,14 +189,14 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                 if (parsedFoods && parsedFoods.length > 0) {
                   const foodsWithImage = parsedFoods.map((food: FoodItem) => ({
                     ...food,
-                    image_url: previewUrl
+                    image_url: dataUrl
                   }));
                   
                 const suggestion: FoodSuggestion = {
                   foods: foodsWithImage,
                   destination: 'today',
                   originalTranscription: data.originalTranscription || 'Photo analysis',
-                  image_url: previewUrl
+                  image_url: dataUrl
                 };
                 
                 console.log('🖼️ DirectPhoto Debug - completion suggestion created:', { 
@@ -208,11 +212,11 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
                   completeAnalysis();
                 } else {
                   // No foods found in completion
-                  handleAnalysisError(data.completion);
+                  handleAnalysisError('Could not identify any food items in this image.');
                 }
               } catch (error) {
                 console.error('Error parsing completion for foods:', error);
-                handleAnalysisError(data.completion);
+                handleAnalysisError('Could not process the image analysis results.');
               }
             } else {
               // Error response or no foods found
@@ -444,14 +448,45 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
   // Helper function to try parsing completion text for food information
   const tryParseCompletionForFoods = (completion: string): FoodItem[] | null => {
-    // This is a basic parser - could be enhanced
-    // Look for patterns like "Apple - 95 calories, 25g carbs per 100g"
-    // For now, return null to use the completion as error message
-    // In the future, could implement regex parsing for basic food info
-    return null;
+    try {
+      // Check if completion contains JSON data
+      const jsonMatch = completion.match(/```json\s*(\[.*?\])\s*```/s);
+      if (jsonMatch) {
+        const jsonData = JSON.parse(jsonMatch[1]);
+        if (Array.isArray(jsonData) && jsonData.length > 0) {
+          // Validate that items look like food items
+          const isValidFood = (item: any) => 
+            item && typeof item === 'object' && 
+            typeof item.name === 'string' && 
+            typeof item.calories_per_100g === 'number';
+          
+          if (jsonData.every(isValidFood)) {
+            return jsonData.map(food => ({
+              name: food.name,
+              serving_size: food.estimated_serving_size || 100,
+              calories: food.calories_per_100g || 0,
+              carbs: food.carbs_per_100g || 0,
+              calories_per_100g: food.calories_per_100g || 0,
+              carbs_per_100g: food.carbs_per_100g || 0,
+              protein_per_100g: food.protein_per_100g || 0,
+              fat_per_100g: food.fat_per_100g || 0,
+              confidence: food.confidence || 0.5,
+              description: food.description || ''
+            }));
+          }
+        }
+      }
+      
+      // If no JSON found, return null (will be handled as no food found)
+      return null;
+    } catch (error) {
+      console.error('Error parsing completion JSON:', error);
+      return null;
+    }
   };
 
   const cleanup = () => {
+    // Only clean up blob URLs, not data URLs (they don't need cleanup)
     if (imageUrl && imageUrl.startsWith('blob:')) {
       URL.revokeObjectURL(imageUrl);
     }
