@@ -358,22 +358,24 @@ const Motivators = () => {
             {/* 90-Day Program Button */}
             {activeTab === 'goals' && is90DayProgramEnabled && (
               <div className={`absolute ${isAuthorTooltipEnabled ? 'right-12' : 'right-0'} top-0`}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      onClick={() => navigate('/90-day-program')}
-                      variant="outline"
-                      size="icon"
-                      className="w-10 h-10 rounded-full font-medium text-foreground border-border hover:bg-muted"
-                      aria-label="90-Day Program Timeline"
-                    >
-                      90
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>90-Day Program Timeline - Structured journey tracking</p>
-                  </TooltipContent>
-                </Tooltip>
+                <PremiumGate feature="90-day-program" className="">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={() => navigate('/90-day-program')}
+                        variant="outline"
+                        size="icon"
+                        className="w-10 h-10 rounded-full text-foreground border-border hover:bg-muted"
+                        aria-label="90-Day Program Timeline"
+                      >
+                        90
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>90-Day Program Timeline - Structured journey tracking</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </PremiumGate>
               </div>
             )}
             

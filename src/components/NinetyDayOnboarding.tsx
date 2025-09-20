@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Target, Calendar, Flame, Clock } from "lucide-react";
 import { useJourneyTracking } from "@/hooks/useJourneyTracking";
 import { useToast } from "@/hooks/use-toast";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 interface NinetyDayOnboardingProps {
   onClose: () => void;
@@ -20,6 +21,7 @@ export const NinetyDayOnboarding = ({ onClose, onStart }: NinetyDayOnboardingPro
   const { startJourney, isStartingJourney } = useJourneyTracking();
   
   const [step, setStep] = useState(1);
+  const [showStartConfirmation, setShowStartConfirmation] = useState(false);
   const [formData, setFormData] = useState({
     startWeight: "",
     targetWeight: "",
@@ -246,16 +248,33 @@ export const NinetyDayOnboarding = ({ onClose, onStart }: NinetyDayOnboardingPro
                   Back
                 </Button>
                 <Button 
-                  onClick={handleStartProgram}
-                  disabled={!isFormValid() || isStartingJourney}
+                  onClick={() => setShowStartConfirmation(true)}
+                  disabled={!isFormValid()}
                   className="flex-1"
                 >
-                  {isStartingJourney ? "Starting..." : "Start 90-Day Program"}
+                  Start 90-Day Program
                 </Button>
               </div>
             </>
           )}
         </div>
+        
+        <ConfirmationModal
+          isOpen={showStartConfirmation}
+          onClose={() => setShowStartConfirmation(false)}
+          onConfirm={handleStartProgram}
+          title="Start 90-Day Program"
+          description={`Are you sure you want to start the 90-day program? 
+
+Starting Weight: ${formData.startWeight} kg
+Target Weight: ${formData.targetWeight} kg
+Weight to Lose: ${(parseFloat(formData.startWeight) - parseFloat(formData.targetWeight)).toFixed(1)} kg
+
+This will begin tracking your daily progress and you can reset the program at any time if needed.`}
+          confirmText="Start Program"
+          cancelText="Review Settings"
+          isLoading={isStartingJourney}
+        />
       </DialogContent>
     </Dialog>
   );

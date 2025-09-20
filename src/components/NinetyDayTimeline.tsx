@@ -62,6 +62,61 @@ export const NinetyDayTimeline = () => {
 
   return (
     <div className="space-y-6">
+      {/* 90-Day Projections - Moved to top */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingDown className="h-5 w-5" />
+            90-Day Projections
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="p-4 bg-accent/20 rounded-lg">
+              <h4 className="font-medium mb-2">If Current Trend Continues</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Final projected weight:</span>
+                  <span className="font-semibold">{projectedFinalWeight.toFixed(1)} kg</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total weight loss:</span>
+                  <span className="font-semibold text-green-600">
+                    {(activeJourney.current_weight_at_start - projectedFinalWeight).toFixed(1)} kg
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>vs Target ({activeJourney.target_weight} kg):</span>
+                  <span className={`font-semibold ${projectedFinalWeight <= activeJourney.target_weight ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {projectedFinalWeight <= activeJourney.target_weight ? '✓ On track' : '⚠ Adjust needed'}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <h4 className="font-medium mb-2">Success Metrics</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>Days completed:</span>
+                  <span className="font-semibold">{currentDay} / 90</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Consistency rate:</span>
+                  <span className="font-semibold">{Math.round((currentDay/90) * 100)}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Average daily burn:</span>
+                  <span className="font-semibold text-orange-600">
+                    {totalFatBurned > 0 ? (totalFatBurned / Math.max(currentDay, 1)).toFixed(0) : 0}g/day
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Program Overview */}
       <div className="grid gap-6">
         <Card>
@@ -247,61 +302,6 @@ export const NinetyDayTimeline = () => {
                   )}
                 </div>
               ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Final Projections */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingDown className="h-5 w-5" />
-            90-Day Projections
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="p-4 bg-accent/20 rounded-lg">
-              <h4 className="font-medium mb-2">If Current Trend Continues</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Final projected weight:</span>
-                  <span className="font-semibold">{projectedFinalWeight.toFixed(1)} kg</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total weight loss:</span>
-                  <span className="font-semibold text-green-600">
-                    {(activeJourney.current_weight_at_start - projectedFinalWeight).toFixed(1)} kg
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>vs Target ({activeJourney.target_weight} kg):</span>
-                  <span className={`font-semibold ${projectedFinalWeight <= activeJourney.target_weight ? 'text-green-600' : 'text-yellow-600'}`}>
-                    {projectedFinalWeight <= activeJourney.target_weight ? '✓ On track' : '⚠ Adjust needed'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <h4 className="font-medium mb-2">Success Metrics</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span>Days completed:</span>
-                  <span className="font-semibold">{currentDay} / 90</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Consistency rate:</span>
-                  <span className="font-semibold">{Math.round((currentDay/90) * 100)}%</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Average daily burn:</span>
-                  <span className="font-semibold text-orange-600">
-                    {totalFatBurned > 0 ? (totalFatBurned / Math.max(currentDay, 1)).toFixed(0) : 0}g/day
-                  </span>
-                </div>
-              </div>
             </div>
           </div>
         </CardContent>

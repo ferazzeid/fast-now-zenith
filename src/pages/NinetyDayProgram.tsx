@@ -3,12 +3,14 @@ import { usePageSEO } from "@/hooks/usePageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Target, Calendar, Flame, TrendingDown, Play, X } from "lucide-react";
+import { Target, Calendar, Flame, TrendingDown, Play, X, RotateCcw, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useJourneyTracking } from "@/hooks/useJourneyTracking";
 import { NinetyDayOnboarding } from "@/components/NinetyDayOnboarding";
 import { NinetyDayTimeline } from "@/components/NinetyDayTimeline";
 import { ResponsivePageHeader } from "@/components/ResponsivePageHeader";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NinetyDayProgram() {
   usePageSEO({
@@ -18,11 +20,61 @@ export default function NinetyDayProgram() {
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { activeJourney, isStartingJourney } = useJourneyTracking();
+  const [showResetConfirmation, setShowResetConfirmation] = useState(false);
+  const { activeJourney, isStartingJourney, endJourney, isEndingJourney, getCurrentDay } = useJourneyTracking();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleResetProgram = async () => {
+    try {
+      await endJourney();
+      setShowResetConfirmation(false);
+      toast({
+        title: "Program Reset Successfully",
+        description: "Your 90-day program has been reset. You can start a new journey anytime.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset program. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleExportData = () => {
+    if (!activeJourney) return;
+
+    const exportData = {
+      journey: activeJourney,
+      currentDay: getCurrentDay(),
+      exportDate: new Date().toISOString(),
+      programType: "90-day-timeline"
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `90-day-program-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Data Exported",
+      description: "Your 90-day program data has been downloaded as a JSON file.",
+    });
+  };
 
   // If user has an active journey, show the timeline
   if (activeJourney) {
+    const currentDay = getCurrentDay();
+    const progressPercentage = Math.min((currentDay / 90) * 100, 100);
+
     return (
       <div className="max-w-md mx-auto pt-10 pb-40 safe-bottom">
         <div className="absolute right-4 top-4 z-10">
@@ -42,7 +94,59 @@ export default function NinetyDayProgram() {
           subtitle="Track your daily progress and projections"
         />
 
+        {/* Program Status */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-semibold text-lg">Active Program</h3>
+                <p className="text-sm text-muted-foreground">
+                  Started {new Date(activeJourney.start_date).toLocaleDateString()} • Day {currentDay} of 90
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold text-primary">{Math.round(progressPercentage)}%</div>
+                <div className="text-xs text-muted-foreground">Complete</div>
+              </div>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+                className="flex-1"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export Data
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowResetConfirmation(true)}
+                className="flex-1"
+                disabled={isEndingJourney}
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                {isEndingJourney ? "Resetting..." : "Reset Program"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         <NinetyDayTimeline />
+        
+        <ConfirmationModal
+          isOpen={showResetConfirmation}
+          onClose={() => setShowResetConfirmation(false)}
+          onConfirm={handleResetProgram}
+          title="Reset 90-Day Program"
+          description="⚠️ WARNING: This will permanently delete all your program data, progress, and projections. This action cannot be undone. Are you sure you want to reset your 90-day program?"
+          confirmText="Reset Program"
+          cancelText="Keep Program"
+          variant="destructive"
+          isLoading={isEndingJourney}
+        />
       </div>
     );
   }
