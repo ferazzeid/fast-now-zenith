@@ -355,6 +355,8 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     setShowMultiImageFlow(false);
     reset();
     // Don't cleanup immediately on error - let the user see the image in the error state
+    // Clean up after a longer delay to allow error handling
+    setTimeout(() => cleanup(), 3000);
     toast({
       title: "Analysis failed",
       description: message,
@@ -368,7 +370,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     setFoodSuggestion(null);
     setSelectedFoodIds(new Set());
     // Clean up image URL when modal closes without saving
-    setTimeout(() => cleanup(), 100);
+    setTimeout(() => cleanup(), 1000); // Increased delay to ensure modal rendering is complete
   };
 
   const handleSelectionChange = (selectedIds: Set<number>) => {
@@ -436,8 +438,8 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     
     handleFoodModalClose();
     
-    // Clean up image URL after successful save
-    setTimeout(() => cleanup(), 100);
+    // Clean up image URL after successful save - delay to ensure all UI updates complete
+    setTimeout(() => cleanup(), 2000);
   };
 
   // Helper function to try parsing completion text for food information
@@ -458,8 +460,21 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
   // Get button content based on state
   const getButtonContent = () => {
-    if (isUploading || uploadState === 'analyzing') {
-      return <ProcessingDots className="text-white" />;
+    if (isUploading) {
+      return (
+        <div className="flex items-center space-x-2">
+          <ProcessingDots className="text-white" />
+          <span className="text-sm font-medium">Uploading...</span>
+        </div>
+      );
+    }
+    if (uploadState === 'analyzing') {
+      return (
+        <div className="flex items-center space-x-2">
+          <ProcessingDots className="text-white" />
+          <span className="text-sm font-medium">Analyzing...</span>
+        </div>
+      );
     }
     return (
       <div className="flex items-center space-x-1">
