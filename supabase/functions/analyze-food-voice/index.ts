@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { resolveOpenAIModel, getModelConfig } from '../_shared/protected-config.ts';
 
 // Utility function to capitalize food names properly
 const capitalizeFoodName = (foodName: string): string => {
@@ -197,14 +198,9 @@ USER INPUT: "${message}"
 
 ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES WITH PROPER INTERNATIONAL FOOD RECOGNITION.`;
 
-    // Use hardcoded model configuration
-    const modelName = 'gpt-4o-mini';
-    const modelConfig = {
-      model: 'gpt-4o-mini',
-      supportsTemperature: true,
-      tokenParam: 'max_tokens',
-      maxTokens: 4000
-    };
+    // Use dynamic model resolution from admin settings
+    const modelName = await resolveOpenAIModel(supabase);
+    const modelConfig = getModelConfig(modelName);
     
     console.log(`🤖 Using model: ${modelName} with config:`, modelConfig);
 

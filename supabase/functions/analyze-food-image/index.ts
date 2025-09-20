@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { resolveOpenAIModel, getModelConfig } from '../_shared/protected-config.ts';
 
 // Utility function to capitalize food names properly
 const capitalizeFoodName = (foodName: string): string => {
@@ -347,14 +348,9 @@ serve(async (req) => {
       imageContents.push({ type: "image_url", image_url: { url: finalImageUrl } });
     }
 
-    // Use hardcoded model configuration
-    const modelName = 'gpt-4o';
-    const modelConfig = {
-      model: 'gpt-4o',
-      supportsTemperature: true,
-      tokenParam: 'max_tokens',
-      maxTokens: 4000
-    };
+    // Use dynamic model resolution from admin settings
+    const modelName = await resolveOpenAIModel(dataClient);
+    const modelConfig = getModelConfig(modelName);
     
     console.log(`🤖 Using model: ${modelName} for image analysis`);
 
