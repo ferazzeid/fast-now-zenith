@@ -1143,11 +1143,11 @@ export const FoodLibraryView = ({
                          <div className="flex-shrink-0">
                            <DropdownMenu>
                              <DropdownMenuTrigger asChild>
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 className="h-8 w-8 p-0 hover:bg-secondary/80 rounded flex-shrink-0"
-                               >
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 hover:bg-muted/50 dark:hover:bg-secondary/80 rounded flex-shrink-0"
+                                >
                                  <MoreVertical className="w-5 h-5 text-muted-foreground" />
                                </Button>
                              </DropdownMenuTrigger>
