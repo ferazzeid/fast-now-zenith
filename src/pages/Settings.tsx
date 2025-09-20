@@ -3,6 +3,7 @@ import { Key, Bell, User, Info, Brain, Wifi, Crown, Settings as SettingsIcon, Lo
 import { useQueryClient } from '@tanstack/react-query';
 import { ClickableTooltip } from '@/components/ClickableTooltip';
 import { Button } from '@/components/ui/button';
+import { SmartSubmissionButton } from '@/components/enhanced/SmartSubmissionButton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -518,12 +519,14 @@ const Settings = () => {
                         <SelectItem value="metric">Metric</SelectItem>
                       </SelectContent>
                     </Select>
-                    <div className="text-[11px] text-muted-foreground p-2 bg-muted/30 rounded text-center">
-                      <span><strong>Imperial:</strong> miles, mph, lbs • <strong>Metric:</strong> kilometers, km/h, kg</span>
-                    </div>
-                  </div>
-                  
-                  {/* Physical Attributes Section */}
+                     <div className="text-[11px] text-muted-foreground p-2 bg-muted/30 rounded text-center">
+                       <span><strong>Imperial:</strong> miles, mph, lbs • <strong>Metric:</strong> kilometers, km/h, kg</span>
+                     </div>
+                   </div>
+                   
+                   <Separator />
+                   
+                   {/* Physical Attributes Section */}
                   <div className="space-y-4">
                     <h4 className="text-label">Physical Attributes</h4>
                     <div className="grid grid-cols-3 gap-3">
@@ -608,10 +611,10 @@ const Settings = () => {
                      </Select>
                    </div>
                   
-                  {/* Dynamic Goals Section */}
-                  <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-sm font-medium text-warm-text">Dynamic Goals</h4>
+                   {/* Dynamic Goals Section */}
+                   <div className="space-y-4 pt-6">
+                       <div className="flex items-center gap-2">
+                         <h4 className="text-base font-semibold text-warm-text">Dynamic Goals</h4>
                         <ClickableTooltip content="Goals are calculated automatically when you save. Calorie goal = TDEE - deficit. Carb goal is adjustable - 30g is considered aggressive low carb.">
                           <Info className="w-4 h-4 text-muted-foreground" />
                         </ClickableTooltip>
@@ -725,9 +728,20 @@ const Settings = () => {
                      </div>
                     )}
                     
-                  </div>
-                </div>
-              </Card>
+                   </div>
+                 </div>
+               </Card>
+
+            {/* Save Settings Button - after Profile */}
+            <SmartSubmissionButton 
+              onSubmit={handleSaveSettings}
+              variant="default" 
+              size="default" 
+              className="w-full"
+              loadingText="Saving Settings..."
+            >
+              Save Settings
+            </SmartSubmissionButton>
 
             {/* Appearance Section */}
             <Card className="p-6 bg-card">
@@ -754,18 +768,19 @@ const Settings = () => {
                   cssVariable="accent"
                   resetColor="#78A670"
                 />
-              </div>
-            </Card>
+               </div>
+             </Card>
 
-            {/* Save Settings Button - under Profile */}
-            <Button 
-              onClick={handleSaveSettings} 
-              variant="action-primary" 
-              size="action-main" 
-              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
+            {/* Save Settings Button - after Appearance */}
+            <SmartSubmissionButton 
+              onSubmit={handleSaveSettings}
+              variant="default" 
+              size="default" 
+              className="w-full"
+              loadingText="Saving Settings..."
             >
               Save Settings
-            </Button>
+            </SmartSubmissionButton>
 
           {/* Account Information */}
           <Card className="p-6 bg-card">
@@ -847,9 +862,19 @@ const Settings = () => {
                   Customize which navigation buttons appear at the bottom of the screen. At least one button must remain active.
                 </p>
                 <NavigationPreferences />
-              </div>
-            </Card>
+               </div>
+             </Card>
 
+            {/* Save Settings Button - after Navigation */}
+            <SmartSubmissionButton 
+              onSubmit={handleSaveSettings}
+              variant="default" 
+              size="default" 
+              className="w-full"
+              loadingText="Saving Settings..."
+            >
+              Save Settings
+            </SmartSubmissionButton>
 
             {/* About */}
             <Card className="p-6 bg-card">
