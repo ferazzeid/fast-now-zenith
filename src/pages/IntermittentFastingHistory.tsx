@@ -17,7 +17,6 @@ const IntermittentFastingHistory = () => {
   const [selectedSession, setSelectedSession] = useState<any>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
-  const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
   const { toast } = useToast();
 
   const formatDuration = (hours: number) => {
@@ -127,29 +126,6 @@ const IntermittentFastingHistory = () => {
     }
   };
 
-  const handleDeleteAllHistory = async () => {
-    try {
-      const { error } = await supabase
-        .from('intermittent_fasting_sessions')
-        .delete()
-        .neq('status', 'active'); // Don't delete active sessions
-
-      if (error) throw error;
-
-      await refreshHistory();
-      toast({
-        title: "History Cleared",
-        description: "All completed fasting sessions have been deleted.",
-      });
-    } catch (error) {
-      console.error('Error clearing IF history:', error);
-      toast({
-        title: "Error", 
-        description: "Failed to clear fasting history.",
-        variant: "destructive",
-      });
-    }
-  };
 
 
   const groupSessionsByDate = (sessions: any[]) => {
@@ -208,26 +184,14 @@ const IntermittentFastingHistory = () => {
       <div className="max-w-md mx-auto pt-16 pb-32">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Fasting History</h1>
-          <div className="flex gap-2">
-            {history && history.filter(s => s.status !== 'active').length > 0 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDeleteAllModalOpen(true)}
-                className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 text-destructive"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/intermittent-fasting')}
-              className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/intermittent-fasting')}
+            className="w-8 h-8 rounded-full hover:bg-muted/50 dark:hover:bg-muted/30 hover:scale-110 transition-all duration-200"
+          >
+            <X className="w-4 h-4" />
+          </Button>
         </div>
 
 
@@ -286,29 +250,27 @@ const IntermittentFastingHistory = () => {
                             </div>
                           </div>
                           
-                          {/* Action buttons for non-active sessions */}
-                          {session.status !== 'active' && (
-                            <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditSession(session)}
-                                className="h-8 px-3 hover:bg-muted text-xs"
-                              >
-                                <Edit className="w-3 h-3 mr-1" />
-                                Edit
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setDeleteSessionId(session.id)}
-                                className="h-8 px-3 hover:bg-destructive/10 text-destructive text-xs"
-                              >
-                                <Trash2 className="w-3 h-3 mr-1" />
-                                Delete
-                              </Button>
-                            </div>
-                          )}
+                          {/* Action buttons for all sessions */}
+                          <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditSession(session)}
+                              className="h-8 px-3 hover:bg-muted text-xs"
+                            >
+                              <Edit className="w-3 h-3 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteSessionId(session.id)}
+                              className="h-8 px-3 hover:bg-destructive/10 text-destructive text-xs"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Delete
+                            </Button>
+                          </div>
                         </CardContent>
                       </Card>
                       </div>
@@ -352,19 +314,6 @@ const IntermittentFastingHistory = () => {
         variant="destructive"
       />
 
-      {/* Delete All History Confirmation */}
-      <ConfirmationModal
-        isOpen={deleteAllModalOpen}
-        onClose={() => setDeleteAllModalOpen(false)}
-        onConfirm={() => {
-          handleDeleteAllHistory();
-          setDeleteAllModalOpen(false);
-        }}
-        title="Clear Fasting History"
-        description="Are you sure you want to clear all completed fasting sessions? Active sessions will not be affected. This action cannot be undone."
-        confirmText="Clear History"
-        variant="destructive"
-      />
     </div>
   );
 };
