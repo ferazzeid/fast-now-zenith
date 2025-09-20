@@ -50,8 +50,11 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const { access_level, hasAIAccess } = useAccess();
   const sessionGuard = useSessionGuard();
   const { toast } = useToast();
-  const { data: multiImageEnabled = false } = useMultiImageSettings();
+  const { data: multiImageEnabled = false, isLoading: isLoadingMultiImage } = useMultiImageSettings();
   const { isUploading, uploadState, startUpload, startAnalysis, completeUpload, completeAnalysis, setUploadError, reset } = useUploadLoading();
+
+  // Debug logging for multi-image setting
+  console.log('🔧 Multi-image setting debug:', { multiImageEnabled, isLoadingMultiImage });
 
   const handleCameraClick = () => {
     sessionGuard.withSessionGuard(async () => {
