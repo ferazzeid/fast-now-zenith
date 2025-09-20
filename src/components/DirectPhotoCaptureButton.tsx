@@ -365,7 +365,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
       return {
         ...food,
         source: 'photo_analysis',
-        image_url: '' // Could add image reference here if needed
+        image_url: imageUrl || '' // Attach the captured image to all selected foods
       };
     });
     

@@ -81,9 +81,13 @@ const FoodTracking = () => {
           // Calculate per-100g nutritional data if missing
           calories_per_100g: food.calories_per_100g || (food.serving_size > 0 ? (food.calories / food.serving_size) * 100 : undefined),
           carbs_per_100g: food.carbs_per_100g || (food.serving_size > 0 ? (food.carbs / food.serving_size) * 100 : undefined),
+          protein_per_100g: food.protein_per_100g || (food.serving_size > 0 && food.protein ? (food.protein / food.serving_size) * 100 : undefined),
+          fat_per_100g: food.fat_per_100g || (food.serving_size > 0 && food.fat ? (food.fat / food.serving_size) * 100 : undefined),
           // Mark nutrition as auto-calculated (not manually set)
           calories_manually_set: food.calories_manually_set || false,
-          carbs_manually_set: food.carbs_manually_set || false
+          carbs_manually_set: food.carbs_manually_set || false,
+          protein_manually_set: food.protein_manually_set || false,
+          fat_manually_set: food.fat_manually_set || false
         }));
         
         console.log('📸 Enhanced photo entries with per-100g data:', enhancedFoods);
@@ -158,9 +162,13 @@ const FoodTracking = () => {
           // Calculate per-100g nutritional data if missing
           calories_per_100g: entry.calories_per_100g || (entry.serving_size > 0 ? (entry.calories / entry.serving_size) * 100 : undefined),
           carbs_per_100g: entry.carbs_per_100g || (entry.serving_size > 0 ? (entry.carbs / entry.serving_size) * 100 : undefined),
+          protein_per_100g: entry.protein_per_100g || (entry.serving_size > 0 && entry.protein ? (entry.protein / entry.serving_size) * 100 : undefined),
+          fat_per_100g: entry.fat_per_100g || (entry.serving_size > 0 && entry.fat ? (entry.fat / entry.serving_size) * 100 : undefined),
           // Mark nutrition as auto-calculated (not manually set)
           calories_manually_set: entry.calories_manually_set || false,
-          carbs_manually_set: entry.carbs_manually_set || false
+          carbs_manually_set: entry.carbs_manually_set || false,
+          protein_manually_set: entry.protein_manually_set || false,
+          fat_manually_set: entry.fat_manually_set || false
         }));
         
         console.log('🎤 Enhanced voice entries with per-100g data:', enhancedEntries);
@@ -190,9 +198,13 @@ const FoodTracking = () => {
           // Calculate per-100g nutritional data if missing
           calories_per_100g: entry.calories_per_100g || (entry.serving_size > 0 ? (entry.calories / entry.serving_size) * 100 : undefined),
           carbs_per_100g: entry.carbs_per_100g || (entry.serving_size > 0 ? (entry.carbs / entry.serving_size) * 100 : undefined),
+          protein_per_100g: entry.protein_per_100g || (entry.serving_size > 0 && entry.protein ? (entry.protein / entry.serving_size) * 100 : undefined),
+          fat_per_100g: entry.fat_per_100g || (entry.serving_size > 0 && entry.fat ? (entry.fat / entry.serving_size) * 100 : undefined),
           // Mark nutrition as auto-calculated (not manually set)
           calories_manually_set: entry.calories_manually_set || false,
-          carbs_manually_set: entry.carbs_manually_set || false
+          carbs_manually_set: entry.carbs_manually_set || false,
+          protein_manually_set: entry.protein_manually_set || false,
+          fat_manually_set: entry.fat_manually_set || false
         }));
         
         console.log('✏️ Enhanced text entries with per-100g data:', enhancedEntries);
