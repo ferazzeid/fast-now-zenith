@@ -1,19 +1,33 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Gauge } from 'lucide-react';
+import { formatSpeed } from '@/utils/unitConversions';
 
 interface SpeedSelectorProps {
   selectedSpeed: number;
   onSpeedChange: (speed: number) => void;
   disabled?: boolean;
+  units?: 'metric' | 'imperial';
 }
 
-// Simplified speed mappings - just Normal and Fast options
-const SPEED_OPTIONS = [
-  { displaySpeed: 'normal', storageSpeed: 3.1, label: 'Normal', description: 'Sustainable pace, light-moderate cardio' },
-  { displaySpeed: 'fast', storageSpeed: 4.3, label: 'Fast', description: 'Intense pace, higher calorie burn' }
+// Simplified speed mappings - just Normal and Fast options with unit-aware descriptions
+const getSpeedOptions = (units: 'metric' | 'imperial' = 'imperial') => [
+  { 
+    displaySpeed: 'normal', 
+    storageSpeed: 3.1, 
+    label: 'Normal', 
+    description: `Sustainable pace (${formatSpeed(3.1, units)})` 
+  },
+  { 
+    displaySpeed: 'fast', 
+    storageSpeed: 4.3, 
+    label: 'Fast', 
+    description: `Brisk pace (${formatSpeed(4.3, units)})` 
+  }
 ];
 
-export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled }: SpeedSelectorProps) => {
+export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled, units = 'imperial' }: SpeedSelectorProps) => {
+  const SPEED_OPTIONS = getSpeedOptions(units);
+  
   // Find the current display speed by matching the stored speed to the closest mapping
   // Use improved tolerance and fallback logic for better matching
   const findSpeedMapping = (speed: number) => {
@@ -76,7 +90,7 @@ export const SpeedSelector = ({ selectedSpeed, onSpeedChange, disabled }: SpeedS
             </div>
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-background border shadow-lg z-50">
+        <SelectContent className="bg-popover border shadow-lg z-50">
           {SPEED_OPTIONS.map((option) => (
             <SelectItem key={option.displaySpeed} value={option.displaySpeed}>
               <div className="flex flex-col">

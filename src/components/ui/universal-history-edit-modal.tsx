@@ -9,7 +9,7 @@ import { AlertTriangle, Zap, Clock } from 'lucide-react';
 export interface UniversalEditField {
   key: string;
   label: string;
-  type: 'text' | 'number' | 'datetime-local' | 'textarea' | 'checkbox';
+  type: 'text' | 'number' | 'datetime-local' | 'textarea' | 'checkbox' | 'custom';
   value: any;
   onChange: (value: any) => void;
   required?: boolean;
@@ -18,6 +18,7 @@ export interface UniversalEditField {
   step?: number;
   placeholder?: string;
   rows?: number;
+  customComponent?: ReactNode;
 }
 
 export interface UniversalEditPreview {
@@ -124,6 +125,9 @@ export const UniversalHistoryEditModal: React.FC<UniversalHistoryEditModalProps>
           </div>
         );
       
+      case 'custom':
+        return field.customComponent || null;
+      
       default:
         return (
           <Input
@@ -148,29 +152,29 @@ export const UniversalHistoryEditModal: React.FC<UniversalHistoryEditModalProps>
     >
       <div className="space-y-4">
         {recalculateOption && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-            <Zap className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">{recalculateOption.label}</p>
+          <div className="bg-muted/50 border border-border rounded-lg p-3 flex items-start gap-2">
+            <Zap className="w-4 h-4 text-accent-foreground mt-0.5 flex-shrink-0" />
+            <div className="text-sm">
+              <p className="font-medium mb-1 text-foreground">{recalculateOption.label}</p>
               <label className="flex items-center gap-2 mt-2">
                 <input 
                   type="checkbox" 
                   checked={recalculateOption.checked}
                   onChange={(e) => recalculateOption.onChange(e.target.checked)}
-                  className="rounded"
+                  className="rounded accent-accent"
                 />
-                <span>{recalculateOption.description}</span>
+                <span className="text-muted-foreground">{recalculateOption.description}</span>
               </label>
             </div>
           </div>
         )}
 
         {warningMessage && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
-            {warningMessage.icon || <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />}
-            <div className="text-sm text-amber-800">
-              <p className="font-medium mb-1">{warningMessage.title}</p>
-              <p>{warningMessage.description}</p>
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 flex items-start gap-2">
+            {warningMessage.icon || <AlertTriangle className="w-4 h-4 text-warning mt-0.5 flex-shrink-0" />}
+            <div className="text-sm">
+              <p className="font-medium mb-1 text-foreground">{warningMessage.title}</p>
+              <p className="text-muted-foreground">{warningMessage.description}</p>
             </div>
           </div>
         )}
@@ -178,8 +182,8 @@ export const UniversalHistoryEditModal: React.FC<UniversalHistoryEditModalProps>
         {/* Render fields based on their layout preference */}
         <div className="space-y-4">
           {fields.map((field) => (
-            <div key={field.key} className={field.type === 'checkbox' ? '' : 'space-y-2'}>
-              {field.type !== 'checkbox' && (
+            <div key={field.key} className={field.type === 'checkbox' || field.type === 'custom' ? '' : 'space-y-2'}>
+              {field.type !== 'checkbox' && field.type !== 'custom' && (
                 <Label htmlFor={field.key}>
                   {field.label} {field.required && <span className="text-red-500">*</span>}
                 </Label>
@@ -191,12 +195,14 @@ export const UniversalHistoryEditModal: React.FC<UniversalHistoryEditModalProps>
 
         {/* Preview Section */}
         {preview && preview.length > 0 && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+          <div className="bg-muted/30 border border-border rounded-lg p-3">
             <div className="text-sm space-y-1">
               {preview.map((item, index) => (
-                <div key={index}>
-                  <strong>{item.label}:</strong>{' '}
-                  {item.format ? item.format(item.value) : item.value}
+                <div key={index} className="flex justify-between">
+                  <span className="text-muted-foreground">{item.label}:</span>
+                  <span className="font-medium text-foreground">
+                    {item.format ? item.format(item.value) : item.value}
+                  </span>
                 </div>
               ))}
             </div>

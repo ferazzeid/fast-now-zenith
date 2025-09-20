@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { Zap } from 'lucide-react';
+import { SpeedSelector } from './SpeedSelector';
+import { formatDistance } from '@/utils/unitConversions';
 import { useOptimizedProfile } from '@/hooks/optimized/useOptimizedProfile';
 import { estimateSteps } from '@/utils/stepEstimation';
 import { 
@@ -206,23 +208,27 @@ export const EditWalkingSessionTimeModal: React.FC<EditWalkingSessionTimeModalPr
     },
     {
       key: 'walking-speed',
-      label: 'Walking Speed (mph)',
-      type: 'number',
+      label: 'Walking Speed',
+      type: 'custom',
       value: speed,
       onChange: setSpeed,
-      min: 0.5,
-      max: 15,
-      step: 0.1,
-      required: true,
+      customComponent: (
+        <SpeedSelector
+          selectedSpeed={speed}
+          onSpeedChange={setSpeed}
+          disabled={isSaving}
+          units={profile?.units as 'metric' | 'imperial' || 'imperial'}
+        />
+      )
     },
   ];
 
   // Define preview data
   const preview: UniversalEditPreview[] = [
     { label: 'New Duration', value: formatDuration(duration) },
-    { label: 'Speed', value: `${speed} mph` },
+    { label: 'Speed', value: `${speed.toFixed(1)} ${profile?.units === 'metric' ? 'km/h' : 'mph'}` },
     ...(recalculateValues && previewValues ? [
-      { label: 'Distance', value: `${previewValues.distance.toFixed(2)} miles` },
+      { label: 'Distance', value: formatDistance(previewValues.distance, profile?.units as 'metric' | 'imperial' || 'imperial') },
       { label: 'Calories', value: previewValues.calories },
       { label: 'Steps', value: previewValues.steps.toLocaleString() },
     ] : []),

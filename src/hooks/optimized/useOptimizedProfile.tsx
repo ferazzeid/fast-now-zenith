@@ -20,6 +20,7 @@ export interface UserProfile {
   activity_level?: string;
   default_walking_speed?: number;
   manual_tdee_override?: number;
+  units?: 'metric' | 'imperial';
   
   sex?: 'male' | 'female';
   onboarding_completed?: boolean;
