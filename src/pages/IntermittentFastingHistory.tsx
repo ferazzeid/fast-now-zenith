@@ -26,20 +26,20 @@ const IntermittentFastingHistory = () => {
 
   const getSessionStatusColor = (session: any, isLatestInDay: boolean) => {
     // If it's explicitly canceled, show as canceled
-    if (session.status === 'canceled') return 'text-red-600 dark:text-red-400';
+    if (session.status === 'cancelled') return 'text-red-600 dark:text-red-400';
     
     // If it's completed, show as completed
     if (session.status === 'completed' && session.completed) {
       return 'text-green-600 dark:text-green-400';
     }
     
-    // If it's expired, show as warning/orange
-    if (session.status === 'expired') {
+    // If it's incomplete, show as warning/orange
+    if (session.status === 'incomplete') {
       return 'text-orange-600 dark:text-orange-400';
     }
     
-    // If it's in progress (fasting/eating), show as in progress
-    if (session.status === 'fasting' || session.status === 'eating') {
+    // If it's active (in progress), show as in progress
+    if (session.status === 'active' || session.status === 'fasting' || session.status === 'eating') {
       return 'text-info-foreground dark:text-info-foreground';
     }
     
@@ -49,43 +49,48 @@ const IntermittentFastingHistory = () => {
 
   const getSessionStatusText = (session: any, isLatestInDay: boolean) => {
     // If it's explicitly canceled, show as canceled
-    if (session.status === 'canceled') return 'Canceled';
+    if (session.status === 'cancelled') return 'Cancelled';
     
     // If it's completed, show as completed
     if (session.status === 'completed' && session.completed) {
       return 'Completed';
     }
     
-    // If it's expired, show as incomplete
-    if (session.status === 'expired') {
+    // If it's incomplete, show as incomplete
+    if (session.status === 'incomplete') {
       return 'Incomplete';
     }
     
-    // If it's in progress (fasting/eating), show current status
+    // If it's active (in progress), show as in progress
+    if (session.status === 'active') {
+      return 'In Progress';
+    }
+    
+    // Legacy status handling
     if (session.status === 'fasting' || session.status === 'eating') {
       return session.status === 'fasting' ? 'Fasting' : 'Eating';
     }
     
     // Default fallback for unknown states
-    return 'Canceled';
+    return 'Cancelled';
   };
 
   const getSessionStatusIcon = (session: any, isLatestInDay: boolean) => {
     // If it's explicitly canceled, show as canceled
-    if (session.status === 'canceled') return <XCircle className="w-3 h-3" />;
+    if (session.status === 'cancelled') return <XCircle className="w-3 h-3" />;
     
     // If it's completed, show as completed
     if (session.status === 'completed' && session.completed) {
       return <CheckCircle className="w-3 h-3" />;
     }
     
-    // If it's expired, show warning triangle
-    if (session.status === 'expired') {
+    // If it's incomplete, show warning triangle
+    if (session.status === 'incomplete') {
       return <Clock className="w-3 h-3" />;
     }
     
-    // If it's in progress (fasting/eating), show as in progress
-    if (session.status === 'fasting' || session.status === 'eating') {
+    // If it's active (in progress) or legacy statuses, show as in progress
+    if (session.status === 'active' || session.status === 'fasting' || session.status === 'eating') {
       return <Clock className="w-3 h-3" />;
     }
     
@@ -316,22 +321,24 @@ const IntermittentFastingHistory = () => {
                           
                           {/* Action buttons for non-active sessions */}
                           {session.status !== 'active' && (
-                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="sm"
                                 onClick={() => handleEditSession(session)}
-                                className="w-6 h-6 hover:bg-muted"
+                                className="h-8 px-3 hover:bg-muted text-xs"
                               >
-                                <Edit className="w-3 h-3" />
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
                               </Button>
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="sm"
                                 onClick={() => setDeleteSessionId(session.id)}
-                                className="w-6 h-6 hover:bg-destructive/10 text-destructive"
+                                className="h-8 px-3 hover:bg-destructive/10 text-destructive text-xs"
                               >
-                                <Trash2 className="w-3 h-3" />
+                                <Trash2 className="w-3 h-3 mr-1" />
+                                Delete
                               </Button>
                             </div>
                           )}
