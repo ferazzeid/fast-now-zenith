@@ -6,7 +6,7 @@ import { UniversalModal } from '@/components/ui/universal-modal';
 import { useToast } from '@/hooks/use-toast';
 import { LocalImageUpload } from '@/components/LocalImageUpload';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
-import { Calculator, RotateCcw, Info, AlertTriangle } from 'lucide-react';
+import { Calculator, RotateCcw, Info, AlertTriangle, X } from 'lucide-react';
 import { 
   updateFoodItemWithRecalculation, 
   resetToCalculatedValues,
@@ -224,7 +224,7 @@ export const UniversalFoodEditModal = ({
             className="flex-1"
             disabled={isLoading}
           >
-            Cancel
+            <X className="w-4 h-4" />
           </Button>
           <Button 
             onClick={handleSave} 
@@ -369,10 +369,10 @@ export const UniversalFoodEditModal = ({
             <div className="font-medium">Per 100g reference:</div>
             <div className="grid grid-cols-2 gap-2 mt-1">
               {formData.calories_per_100g && (
-                <div>Calories: {formData.calories_per_100g}</div>
+                <div>Calories: {formData.calories_per_100g.toFixed(1)}</div>
               )}
               {formData.carbs_per_100g && (
-                <div>Carbs: {formData.carbs_per_100g}g</div>
+                <div>Carbs: {formData.carbs_per_100g.toFixed(1)}g</div>
               )}
             </div>
           </div>

@@ -687,17 +687,17 @@ const FoodTracking = () => {
                   onClick={() => setShowClearAllDialog(true)}
                   variant="ghost"
                   size="sm"
-                  className="w-10 h-10 p-0 rounded-lg hover:bg-muted"
+                  className="h-5 w-5 p-0 rounded-lg hover:bg-muted/50"
                   title="Clear All"
                   disabled={isClearingAll}
                 >
-                  <Trash2 className="w-5 h-5" />
+                  <Trash2 className="w-3 h-3" />
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"  
                   onClick={handleMarkAllAsEaten}
-                  className="h-5 w-5 p-1 rounded border-2 border-muted-foreground/60 hover:border-muted-foreground hover:bg-muted/20 text-muted-foreground hover:text-foreground bg-transparent"
+                  className="h-5 w-5 p-0 rounded border-2 border-muted-foreground/60 hover:border-muted-foreground hover:bg-muted/20 text-muted-foreground hover:text-foreground bg-gray-100 dark:bg-gray-800"
                   title={isBulkMarking ? 'Marking...' : 'Mark All Eaten'}
                   disabled={isBulkMarking}
                 >
