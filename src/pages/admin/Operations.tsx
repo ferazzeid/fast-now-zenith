@@ -7,6 +7,7 @@ import { AdminTrialSettings } from "@/components/AdminTrialSettings";
 import { StaticSEOManager } from "@/components/StaticSEOManager";
 import { AdminGoogleLoginSettings } from "@/components/AdminGoogleLoginSettings";
 import { AdminPhotoWorkflowSettings } from "@/components/AdminPhotoWorkflowSettings";
+import { AdminImageCaptureSettings } from "@/components/AdminImageCaptureSettings";
 import { AdminIntermittentFastingSettings } from "@/components/AdminIntermittentFastingSettings";
 import { AdminDailyReconciliationSettings } from "@/components/AdminDailyReconciliationSettings";
 import { AdminProgressiveBurnSettings } from "@/components/AdminProgressiveBurnSettings";
@@ -35,6 +36,10 @@ export default function AdminOperations() {
 
         <section aria-label="Static SEO code generator">
           <StaticSEOManager />
+        </section>
+
+        <section aria-label="Image capture mode settings">
+          <AdminImageCaptureSettings />
         </section>
 
         <section aria-label="Photo analysis workflow settings">
