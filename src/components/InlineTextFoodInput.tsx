@@ -259,8 +259,8 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                 <X className="w-4 h-4" />
               </Button>
               
-              {/* Connected Input and Go button */}
-              <div className="flex items-center mt-2 mr-12">
+              {/* Connected Input and Go button with unified focus styling */}
+              <div className="flex items-center mt-2 mr-12 focus-within:ring-2 focus-within:ring-ring rounded-lg">
                 <Input
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -274,7 +274,7 @@ export const InlineTextFoodInput = ({ onFoodAdded }: InlineTextFoodInputProps) =
                     }
                   }}
                   placeholder="Enter food"
-                  className="flex-1 h-12 text-center text-base border-2 focus-visible:ring-2 focus-visible:ring-ring rounded-l-lg rounded-r-none border-r-0"
+                  className="flex-1 h-12 text-center text-base border-2 focus-visible:ring-0 rounded-l-lg rounded-r-none border-r-0"
                   autoFocus
                   disabled={isProcessing}
                 />

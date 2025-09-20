@@ -176,9 +176,26 @@ ${prompts.deduplication_logic}
 
 ${prompts.contextual_understanding}
 
+INTERNATIONAL FOOD RECOGNITION:
+- Recognize foods in ANY language (English, German, Spanish, Chinese, Arabic, etc.)
+- Common international foods you should recognize:
+  * German: Bratwurst (sausage ~300 cal/100g), Sauerkraut (~19 cal/100g), Schnitzel (~250 cal/100g), Strudel (~250 cal/100g)
+  * Italian: Risotto (~130 cal/100g), Prosciutto (~250 cal/100g), Gelato (~200 cal/100g)
+  * Asian: Kimchi (~15 cal/100g), Miso (~200 cal/100g), Tempura (~300 cal/100g)
+  * Mexican: Tamales (~150 cal/100g), Churros (~400 cal/100g)
+- If you recognize the food type but are unsure about the exact name, create the entry with the recognized nutritional profile
+- When portion sizes are specified (e.g., "500g", "2 pieces"), use those exact amounts
+- For cultural foods, provide typical nutritional values for that cuisine
+
+LANGUAGE PROCESSING GUIDELINES:
+- Process food names in their original language when possible
+- If a food name contains clear portion indicators (numbers + units), extract and use them
+- Common portion patterns: "500g", "2 Stück", "una porción", "一碗" (one bowl)
+- When unsure about a foreign food name, use context clues and typical nutritional profiles
+
 USER INPUT: "${message}"
 
-ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES.`;
+ANALYZE THIS INPUT AND CREATE APPROPRIATE FOOD ENTRIES WITH PROPER INTERNATIONAL FOOD RECOGNITION.`;
 
     // Use hardcoded model configuration
     const modelName = 'gpt-4o-mini';
