@@ -16,7 +16,7 @@ import {
 import {
   ConfirmationModal
 } from '@/components/ui/universal-modal';
-import { EditDefaultFoodModal } from '@/components/EditDefaultFoodModal';
+import { UniversalFoodEditModal } from '@/components/UniversalFoodEditModal';
 import { SmartImage } from '@/components/SmartImage';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,6 +65,7 @@ interface FoodLibraryViewProps {
   onClearTemplate?: () => Promise<any>;
   onApplyTemplate?: () => Promise<any>;
   onDeleteTemplateFood?: (foodId: string) => Promise<any>;
+  onEditTemplateFood?: (foodId: string, updates: { name: string; calories: number; carbs: number; serving_size: number; image_url?: string; }) => Promise<any>;
   onForceLoadTemplate?: () => Promise<void>;
 }
 
@@ -78,6 +79,7 @@ export const FoodLibraryView = ({
   onClearTemplate,
   onApplyTemplate,
   onDeleteTemplateFood,
+  onEditTemplateFood,
   onForceLoadTemplate
 }: FoodLibraryViewProps) => {
   const location = useLocation();
@@ -94,10 +96,83 @@ export const FoodLibraryView = ({
   const [defaultFoods, setDefaultFoods] = useState<DefaultFood[]>([]);
   const [defaultFoodFavorites, setDefaultFoodFavorites] = useState<Set<string>>(new Set());
   const [myFoodFavorites, setMyFoodFavorites] = useState<Set<string>>(new Set()); // Same pattern as defaultFoodFavorites
+  // Helper functions to convert food items to UniversalFoodEditModal format
+  const convertToFoodItem = (food: UserFood | DefaultFood, isUserFood: boolean): any => {
+    return {
+      id: food.id,
+      name: food.name,
+      calories: food.calories_per_100g || 0,
+      carbs: food.carbs_per_100g || 0,
+      serving_size: 100, // Default to 100g serving
+      calories_per_100g: food.calories_per_100g,
+      carbs_per_100g: food.carbs_per_100g,
+      image_url: food.image_url || ''
+    };
+  };
+
+  // Wrapper function for user food updates
+  const handleUserFoodUpdate = async (updatedFood: any) => {
+    const updates = {
+      name: updatedFood.name,
+      calories_per_100g: updatedFood.calories_per_100g || updatedFood.calories,
+      carbs_per_100g: updatedFood.carbs_per_100g || updatedFood.carbs,
+      image_url: updatedFood.image_url
+    };
+    await updateFood(updatedFood.id, updates);
+  };
+
+  // Wrapper function for default food updates
+  const handleDefaultFoodUpdate = async (updatedFood: any) => {
+    const updates = {
+      name: updatedFood.name,
+      calories_per_100g: updatedFood.calories_per_100g || updatedFood.calories,
+      carbs_per_100g: updatedFood.carbs_per_100g || updatedFood.carbs,
+      image_url: updatedFood.image_url
+    };
+    await updateDefaultFood(updatedFood.id, updates);
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [defaultFoodsLoading, setDefaultFoodsLoading] = useState(false); // No longer needed with static data
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState<'my-foods' | 'template' | 'suggested'>('my-foods');
+  const [editingTemplateFood, setEditingTemplateFood] = useState<TemplateFood | null>(null);
+
+  // Helper function to convert template food to FoodItem format
+  const convertTemplateFoodToFoodItem = (templateFood: TemplateFood): any => {
+    return {
+      id: templateFood.id,
+      name: templateFood.name,
+      calories: templateFood.calories,
+      carbs: templateFood.carbs,
+      serving_size: templateFood.serving_size,
+      // Calculate per 100g values for consistency
+      calories_per_100g: templateFood.serving_size > 0 ? (templateFood.calories / templateFood.serving_size) * 100 : 0,
+      carbs_per_100g: templateFood.serving_size > 0 ? (templateFood.carbs / templateFood.serving_size) * 100 : 0,
+      image_url: templateFood.image_url || ''
+    };
+  };
+
+  // Handler for editing template foods
+  const handleEditTemplateFood = (food: TemplateFood) => {
+    setEditingTemplateFood(food);
+  };
+
+  // Handler for updating template foods
+  const handleTemplateFoodUpdate = async (updatedFood: any) => {
+    if (!editingTemplateFood) return;
+    
+    const updates = {
+      name: updatedFood.name,
+      calories: updatedFood.calories,
+      carbs: updatedFood.carbs,
+      serving_size: updatedFood.serving_size,
+      image_url: updatedFood.image_url
+    };
+    
+    await onEditTemplateFood?.(editingTemplateFood.id, updates);
+    setEditingTemplateFood(null);
+  };
   const [showClearTemplateDialog, setShowClearTemplateDialog] = useState(false);
   const [showApplyTemplateDialog, setShowApplyTemplateDialog] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
@@ -973,14 +1048,14 @@ export const FoodLibraryView = ({
           </div>
         </div>
         
-        {/* Edit Modal - Use EditDefaultFoodModal for both cases */}
+        {/* Edit Modal - Use UniversalFoodEditModal for both cases */}
         {showEditModal && (
-          <EditDefaultFoodModal 
-            food={food as DefaultFood | UserFood} 
-            onUpdate={isUserFood ? updateFood : updateDefaultFood}
+          <UniversalFoodEditModal 
+            food={convertToFoodItem(food as DefaultFood | UserFood, isUserFood)} 
+            onUpdate={isUserFood ? handleUserFoodUpdate : handleDefaultFoodUpdate}
             isOpen={showEditModal}
             onClose={() => setShowEditModal(false)}
-            mode={isUserFood ? 'user' : 'default'}
+            title={`Edit ${food.name}`}
           />
         )}
       </div>
@@ -1160,14 +1235,21 @@ export const FoodLibraryView = ({
                                className="w-52 z-[9999] bg-background border border-subtle shadow-xl backdrop-blur-sm"
                                style={{ backgroundColor: 'hsl(var(--background))', zIndex: 9999 }}
                                onCloseAutoFocus={(e) => e.preventDefault()}
-                             >
-                               <DropdownMenuItem
-                                 onClick={() => onDeleteTemplateFood?.(food.id)}
-                                 className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
-                               >
-                                 <Trash2 className="w-4 h-4 mr-3" />
-                                 Delete from Template
-                               </DropdownMenuItem>
+                              >
+                                <DropdownMenuItem
+                                  onClick={() => handleEditTemplateFood(food)}
+                                  className="cursor-pointer py-2.5 px-3 flex items-center hover:bg-accent transition-colors"
+                                >
+                                  <Edit className="w-4 h-4 mr-3" />
+                                  Edit Food
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => onDeleteTemplateFood?.(food.id)}
+                                  className="text-destructive focus:text-destructive cursor-pointer py-2.5 px-3 flex items-center hover:bg-destructive/10 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-3" />
+                                  Delete from Template
+                                </DropdownMenuItem>
                              </DropdownMenuContent>
                            </DropdownMenu>
                          </div>
@@ -1325,6 +1407,17 @@ export const FoodLibraryView = ({
         confirmText="Apply Template"
         variant="default"
       />
+      
+      {/* Template Food Edit Modal */}
+      {editingTemplateFood && (
+        <UniversalFoodEditModal
+          food={convertTemplateFoodToFoodItem(editingTemplateFood)}
+          onUpdate={handleTemplateFoodUpdate}
+          isOpen={!!editingTemplateFood}
+          onClose={() => setEditingTemplateFood(null)}
+          title={`Edit ${editingTemplateFood.name}`}
+        />
+      )}
       </div>
     </DatabaseErrorBoundary>
   );

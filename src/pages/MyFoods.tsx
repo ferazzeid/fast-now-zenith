@@ -23,7 +23,8 @@ const MyFoods = () => {
     clearTemplate,
     applyTemplate,
     loadTemplate: forceLoadTemplate,
-    deleteTemplateFood
+    deleteTemplateFood,
+    editTemplateFood
   } = useDailyFoodTemplate();
 
   // SEO optimization
@@ -91,6 +92,7 @@ const MyFoods = () => {
           onClearTemplate={clearTemplate}
           onApplyTemplate={applyTemplate}
           onDeleteTemplateFood={deleteTemplateFood}
+          onEditTemplateFood={editTemplateFood}
           onForceLoadTemplate={forceLoadTemplate}
           />
         </div>

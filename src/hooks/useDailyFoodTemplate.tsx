@@ -172,6 +172,38 @@ export const useDailyFoodTemplate = () => {
     }
   });
 
+  // Edit template food mutation
+  const editTemplateFoodMutation = useMutation({
+    mutationFn: async ({ foodId, updates }: { 
+      foodId: string; 
+      updates: { name: string; calories: number; carbs: number; serving_size: number; image_url?: string; }
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('daily_food_templates')
+        .update(updates)
+        .eq('id', foodId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dailyTemplate(user?.id || '') });
+    },
+    onError: (error: any) => {
+      console.error('Error editing template food:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to edit template food"
+      });
+    }
+  });
+
   // Apply template mutation
   const applyTemplateMutation = useMutation({
     mutationFn: async () => {
@@ -328,6 +360,21 @@ export const useDailyFoodTemplate = () => {
     }
   }, [deleteTemplateFoodMutation]);
 
+  const editTemplateFood = useCallback(async (foodId: string, updates: { 
+    name: string; 
+    calories: number; 
+    carbs: number; 
+    serving_size: number; 
+    image_url?: string; 
+  }) => {
+    try {
+      const editedFood = await editTemplateFoodMutation.mutateAsync({ foodId, updates });
+      return { error: null, editedFood };
+    } catch (error) {
+      return { error };
+    }
+  }, [editTemplateFoodMutation]);
+
   const applyTemplate = useCallback(async () => {
     try {
       await applyTemplateMutation.mutateAsync();
@@ -363,6 +410,7 @@ export const useDailyFoodTemplate = () => {
              saveAsTemplateMutation.isPending ||
              clearTemplateMutation.isPending ||
              deleteTemplateFoodMutation.isPending ||
+             editTemplateFoodMutation.isPending ||
              applyTemplateMutation.isPending ||
              addToTemplateMutation.isPending,
     saveAsTemplate,
@@ -370,6 +418,7 @@ export const useDailyFoodTemplate = () => {
     clearTemplate,
     applyTemplate,
     loadTemplate,
-    deleteTemplateFood
+    deleteTemplateFood,
+    editTemplateFood
   };
 };
