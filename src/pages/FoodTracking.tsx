@@ -11,7 +11,7 @@ import { onboardingContent } from '@/data/onboardingContent';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ConfirmationModal } from '@/components/ui/ConfirmationModal';
-import { EditFoodEntryModal } from '@/components/EditFoodEntryModal';
+import { UniversalFoodEditModal } from '@/components/UniversalFoodEditModal';
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary';
 import { Card } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -706,13 +706,13 @@ const FoodTracking = () => {
       />
       
       {editingEntry && (
-        <EditFoodEntryModal
+        <UniversalFoodEditModal
           isOpen={!!editingEntry}
           onClose={() => setEditingEntry(null)}
-          entry={editingEntry}
-          onUpdate={async (updatedEntry) => {
+          food={editingEntry}
+          onUpdate={async (updatedFood) => {
             try {
-              await updateFoodEntry({ id: updatedEntry.id, updates: updatedEntry });
+              await updateFoodEntry({ id: updatedFood.id, updates: updatedFood });
               setEditingEntry(null);
               toast({
                 title: "Food Updated",
