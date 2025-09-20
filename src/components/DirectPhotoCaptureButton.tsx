@@ -144,12 +144,13 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             
             console.log('Photo analysis response:', data);
             
-            // Handle unified response format (same as voice)
+            // Handle both function call and completion responses
             if (data?.functionCall?.name === 'add_multiple_foods') {
+              // Function call response - food items identified
               const suggestion: FoodSuggestion = {
                 foods: data.functionCall.arguments.foods || [],
                 destination: data.functionCall.arguments.destination || 'today',
-                originalTranscription: data.originalTranscription || '' // Don't set placeholder text
+                originalTranscription: data.originalTranscription || ''
               };
               
               // Initialize selection with all items selected
@@ -159,8 +160,34 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
               setFoodSuggestion(suggestion);
               setShowFoodModal(true);
               completeAnalysis();
+            } else if (data?.completion && !data?.errorType) {
+              // Completion response - try to parse for food information
+              try {
+                // Try to extract food information from completion text
+                const parsedFoods = tryParseCompletionForFoods(data.completion);
+                if (parsedFoods && parsedFoods.length > 0) {
+                  const suggestion: FoodSuggestion = {
+                    foods: parsedFoods,
+                    destination: 'today',
+                    originalTranscription: data.originalTranscription || 'Photo analysis'
+                  };
+                  
+                  const allSelected = new Set(suggestion.foods.map((_, index) => index));
+                  setSelectedFoodIds(allSelected);
+                  
+                  setFoodSuggestion(suggestion);
+                  setShowFoodModal(true);
+                  completeAnalysis();
+                } else {
+                  // No foods found in completion
+                  handleAnalysisError(data.completion);
+                }
+              } catch (error) {
+                console.error('Error parsing completion for foods:', error);
+                handleAnalysisError(data.completion);
+              }
             } else {
-              // Fallback for no foods found or errors
+              // Error response or no foods found
               handleAnalysisError(
                 data?.completion || 
                 'Could not identify any food items in this image. Please try a clearer photo or add food manually.'
@@ -203,8 +230,9 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
         
         console.log('Multi-image analysis response:', data);
         
-        // Handle unified response format (same as single image)
+        // Handle both function call and completion responses
         if (data?.functionCall?.name === 'add_multiple_foods') {
+          // Function call response - food items identified
           const suggestion: FoodSuggestion = {
             foods: data.functionCall.arguments.foods || [],
             destination: data.functionCall.arguments.destination || 'today',
@@ -219,8 +247,33 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
           setShowMultiImageFlow(false);
           setShowFoodModal(true);
           completeAnalysis();
+        } else if (data?.completion && !data?.errorType) {
+          // Completion response - try to parse for food information
+          try {
+            const parsedFoods = tryParseCompletionForFoods(data.completion);
+            if (parsedFoods && parsedFoods.length > 0) {
+              const suggestion: FoodSuggestion = {
+                foods: parsedFoods,
+                destination: 'today',
+                originalTranscription: data.originalTranscription || 'Photo analysis'
+              };
+              
+              const allSelected = new Set(suggestion.foods.map((_, index) => index));
+              setSelectedFoodIds(allSelected);
+              
+              setFoodSuggestion(suggestion);
+              setShowMultiImageFlow(false);
+              setShowFoodModal(true);
+              completeAnalysis();
+            } else {
+              handleAnalysisError(data.completion);
+            }
+          } catch (error) {
+            console.error('Error parsing multi-image completion for foods:', error);
+            handleAnalysisError(data.completion);
+          }
         } else {
-          // Fallback for no foods found or errors
+          // Error response or no foods found
           handleAnalysisError(
             data?.completion || 
             'Could not identify any food items in these images. Please try clearer photos or add food manually.'
@@ -322,6 +375,15 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     });
     
     handleFoodModalClose();
+  };
+
+  // Helper function to try parsing completion text for food information
+  const tryParseCompletionForFoods = (completion: string): FoodItem[] | null => {
+    // This is a basic parser - could be enhanced
+    // Look for patterns like "Apple - 95 calories, 25g carbs per 100g"
+    // For now, return null to use the completion as error message
+    // In the future, could implement regex parsing for basic food info
+    return null;
   };
 
   const cleanup = () => {
