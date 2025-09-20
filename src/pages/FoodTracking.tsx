@@ -342,12 +342,18 @@ const FoodTracking = () => {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" side="bottom">
-            <DropdownMenuItem
-              onClick={() => {
-                console.log('Edit button clicked for entry:', entry);
-                setEditingEntry(entry);
-                console.log('editingEntry state set to:', entry);
-              }}
+             <DropdownMenuItem
+               onClick={() => {
+                 console.log('🥒 Edit button clicked for entry:', entry);
+                 console.log('🥒 Entry has per 100g data?', {
+                   calories_per_100g: entry.calories_per_100g,
+                   carbs_per_100g: entry.carbs_per_100g,
+                   hasCaloriesPer100g: !!entry.calories_per_100g,
+                   hasCarbs_per_100g: !!entry.carbs_per_100g
+                 });
+                 setEditingEntry(entry);
+                 console.log('🥒 editingEntry state set to:', entry);
+               }}
               className="py-2.5 px-3 focus:text-foreground"
             >
               <Edit className="w-4 h-4 mr-2" />

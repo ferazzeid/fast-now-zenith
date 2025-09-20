@@ -68,8 +68,9 @@ export const UniversalFoodEditModal = ({
       carbs: food.carbs,
       serving_size: food.serving_size,
       image_url: food.image_url || '',
-      calories_per_100g: food.calories_per_100g,
-      carbs_per_100g: food.carbs_per_100g,
+      // Calculate per-100g data if missing but we have serving data
+      calories_per_100g: food.calories_per_100g || (food.serving_size > 0 ? (food.calories / food.serving_size) * 100 : undefined),
+      carbs_per_100g: food.carbs_per_100g || (food.serving_size > 0 ? (food.carbs / food.serving_size) * 100 : undefined),
       calories_manually_set: food.calories_manually_set || false,
       carbs_manually_set: food.carbs_manually_set || false,
     });
@@ -190,8 +191,9 @@ export const UniversalFoodEditModal = ({
       carbs: food.carbs,
       serving_size: food.serving_size,
       image_url: food.image_url || '',
-      calories_per_100g: food.calories_per_100g,
-      carbs_per_100g: food.carbs_per_100g,
+      // Calculate per-100g data if missing but we have serving data
+      calories_per_100g: food.calories_per_100g || (food.serving_size > 0 ? (food.calories / food.serving_size) * 100 : undefined),
+      carbs_per_100g: food.carbs_per_100g || (food.serving_size > 0 ? (food.carbs / food.serving_size) * 100 : undefined),
       calories_manually_set: food.calories_manually_set || false,
       carbs_manually_set: food.carbs_manually_set || false,
     });
@@ -199,6 +201,15 @@ export const UniversalFoodEditModal = ({
 
   const nutritionStatus = isNutritionCalculated(formData);
   const hasPerHundredGramData = formData.calories_per_100g || formData.carbs_per_100g;
+  
+  console.log('🧠 UniversalFoodEditModal nutrition data check:', {
+    food_name: food.name,
+    calories_per_100g: formData.calories_per_100g,
+    carbs_per_100g: formData.carbs_per_100g,
+    hasPerHundredGramData,
+    showingSmartFeatures: hasPerHundredGramData
+  });
+  
   const validationWarnings = getValidationWarnings();
 
   return (
