@@ -460,21 +460,8 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
 
   // Get button content based on state
   const getButtonContent = () => {
-    if (isUploading) {
-      return (
-        <div className="flex items-center space-x-2">
-          <ProcessingDots className="text-white" />
-          <span className="text-sm font-medium">Uploading...</span>
-        </div>
-      );
-    }
-    if (uploadState === 'analyzing') {
-      return (
-        <div className="flex items-center space-x-2">
-          <ProcessingDots className="text-white" />
-          <span className="text-sm font-medium">Analyzing...</span>
-        </div>
-      );
+    if (isUploading || uploadState === 'analyzing') {
+      return <ProcessingDots className="text-white" />;
     }
     return (
       <div className="flex items-center space-x-1">
@@ -512,7 +499,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
             <MultiImageCaptureFlow
               onImagesReady={handleMultiImagesReady}
               onCancel={handleMultiImageCancel}
-              isProcessing={isUploading}
+               isProcessing={isUploading || uploadState === 'analyzing'}
             />
           </div>
         </div>
