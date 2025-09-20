@@ -160,7 +160,17 @@ export const useOptimizedProfile = () => {
 
   const calculateWalkingCalories = useCallback((durationMinutes: number, speedMph: number = 3) => {
     const profile = profileQuery.data;
-    if (!profile?.weight || !isProfileComplete()) return 0;
+    
+    // Only require weight for basic calorie calculation - don't block on profile completeness
+    if (!profile?.weight || profile.weight <= 0) {
+      console.warn('⚠️ Walking calories calculation: No valid weight found, using default');
+      // Use average weight as fallback instead of returning 0
+      const defaultWeightKg = 70; // Average adult weight
+      const speedKmh = speedMph * 1.60934;
+      let met = speedKmh < 4.0 ? 2.5 : speedKmh < 5.6 ? 3.0 : speedKmh < 6.4 ? 3.5 : speedKmh < 7.2 ? 4.0 : 4.5;
+      const hours = durationMinutes / 60;
+      return Math.round(met * defaultWeightKg * hours);
+    }
 
     // Weight is already in kg
     const weightKg = profile.weight;
@@ -178,8 +188,20 @@ export const useOptimizedProfile = () => {
 
     // Calories = MET × weight (kg) × time (hours)
     const hours = durationMinutes / 60;
-    return Math.round(met * weightKg * hours);
-  }, [profileQuery.data, isProfileComplete]);
+    const calculatedCalories = Math.round(met * weightKg * hours);
+    
+    console.log('🔥 Walking calories calculated:', {
+      durationMinutes,
+      speedMph,
+      speedKmh,
+      weightKg,
+      met,
+      hours,
+      calculatedCalories
+    });
+    
+    return calculatedCalories;
+  }, [profileQuery.data]);
 
   return {
     profile: profileQuery.data,

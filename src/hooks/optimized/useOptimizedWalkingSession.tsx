@@ -327,35 +327,67 @@ export const useOptimizedWalkingSession = () => {
       // Get session speed (default to profile speed if not set)
       const sessionSpeed = activeSession.speed_mph || profile?.default_walking_speed || 3.2;
       
-      // Calculate metrics if we have valid duration
+      // Always calculate metrics - never save null values
       let caloriesBurned = 0;
       let distance = 0;
       let estimatedSteps = 0;
       
       if (durationMinutes > 0) {
         // Calculate distance in miles
-        distance = (sessionSpeed * durationMinutes) / 60;
+        distance = Math.round(((sessionSpeed * durationMinutes) / 60) * 100) / 100; // Round to 2 decimal places
         
-        // Calculate calories using profile function
-        if (profile && calculateWalkingCalories) {
-          caloriesBurned = Math.round(calculateWalkingCalories(durationMinutes, sessionSpeed));
-        } else {
-          // Fallback MET calculation
-          const met = sessionSpeed <= 3 ? 3.2 : sessionSpeed <= 4 ? 3.8 : sessionSpeed <= 5 ? 4.5 : 5.0;
+        // Calculate calories using profile function with enhanced fallback
+        console.log('🔥 Starting calorie calculation:', {
+          durationMinutes,
+          sessionSpeed,
+          hasProfile: !!profile,
+          hasCalculateWalkingCalories: !!calculateWalkingCalories,
+          profileWeight: profile?.weight
+        });
+        
+        if (calculateWalkingCalories) {
+          caloriesBurned = calculateWalkingCalories(durationMinutes, sessionSpeed);
+          console.log('🔥 Calories calculated via profile function:', caloriesBurned);
+        }
+        
+        // Additional fallback if profile function fails
+        if (caloriesBurned === 0) {
+          console.warn('⚠️ Profile calorie calculation failed, using enhanced fallback');
+          const met = sessionSpeed <= 2.5 ? 2.5 : sessionSpeed <= 3.5 ? 3.2 : sessionSpeed <= 4.5 ? 3.8 : sessionSpeed <= 5.5 ? 4.5 : 5.0;
           const weightKg = profile?.weight || 70; // Default weight if not available
           caloriesBurned = Math.round((met * weightKg * durationMinutes) / 60);
+          console.log('🔥 Fallback calories calculated:', caloriesBurned, { met, weightKg });
         }
         
-        // Calculate estimated steps
+        // Calculate estimated steps with enhanced fallback
+        console.log('👟 Starting step calculation:', {
+          durationMinutes,
+          sessionSpeed,
+          hasEstimateStepsForSession: !!estimateStepsForSession
+        });
+        
         if (estimateStepsForSession) {
           estimatedSteps = estimateStepsForSession(durationMinutes, sessionSpeed);
-        } else {
-          // Fallback step calculation
-          const distanceMeters = distance * 1609.34;
-          const strideLength = 0.78; // meters, average stride
-          estimatedSteps = Math.round(distanceMeters / strideLength);
+          console.log('👟 Steps calculated via estimation function:', estimatedSteps);
+        }
+        
+        // Enhanced fallback step calculation if function fails
+        if (estimatedSteps === 0) {
+          console.warn('⚠️ Step estimation function failed, using enhanced fallback');
+          // Use more accurate step calculation based on speed and time
+          const stepsPerMinute = sessionSpeed <= 2 ? 80 : sessionSpeed <= 3 ? 100 : sessionSpeed <= 4 ? 120 : sessionSpeed <= 5 ? 140 : 160;
+          estimatedSteps = Math.round(stepsPerMinute * durationMinutes);
+          console.log('👟 Fallback steps calculated:', estimatedSteps, { stepsPerMinute });
         }
       }
+
+      console.log('📊 Final calculated metrics:', {
+        durationMinutes,
+        distance,
+        caloriesBurned,
+        estimatedSteps,
+        sessionSpeed
+      });
 
       // Debug logging reduced to errors only
 
