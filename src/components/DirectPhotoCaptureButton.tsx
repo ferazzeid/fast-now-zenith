@@ -343,7 +343,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
   const handleAnalysisError = (message: string) => {
     setShowMultiImageFlow(false);
     reset();
-    cleanup();
+    // Don't cleanup immediately on error - let the user see the image in the error state
     toast({
       title: "Analysis failed",
       description: message,
@@ -356,7 +356,8 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     setShowFoodModal(false);
     setFoodSuggestion(null);
     setSelectedFoodIds(new Set());
-    // Don't cleanup image URL here - let it persist until after save
+    // Clean up image URL when modal closes without saving
+    setTimeout(() => cleanup(), 100);
   };
 
   const handleSelectionChange = (selectedIds: Set<number>) => {

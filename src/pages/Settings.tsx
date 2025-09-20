@@ -782,6 +782,31 @@ const Settings = () => {
               Save Settings
             </SmartSubmissionButton>
 
+            {/* Navigation Section */}
+            <Card className="p-6 bg-card">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <Navigation2 className="w-5 h-5 text-foreground" />
+                  <h3 className="text-lg font-semibold text-warm-text">Navigation</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Customize which navigation buttons appear at the bottom of the screen. At least one button must remain active.
+                </p>
+                <NavigationPreferences />
+               </div>
+             </Card>
+
+            {/* Save Settings Button - after Navigation */}
+            <SmartSubmissionButton 
+              onSubmit={handleSaveSettings}
+              variant="default" 
+              size="default" 
+              className="w-full"
+              loadingText="Saving Settings..."
+            >
+              Save Settings
+            </SmartSubmissionButton>
+
           {/* Account Information */}
           <Card className="p-6 bg-card">
             <div className="space-y-4">
@@ -850,31 +875,6 @@ const Settings = () => {
               </div>
             </div>
           </Card>
-
-            {/* Navigation Section */}
-            <Card className="p-6 bg-card">
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <Navigation2 className="w-5 h-5 text-foreground" />
-                  <h3 className="text-lg font-semibold text-warm-text">Navigation</h3>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Customize which navigation buttons appear at the bottom of the screen. At least one button must remain active.
-                </p>
-                <NavigationPreferences />
-               </div>
-             </Card>
-
-            {/* Save Settings Button - after Navigation */}
-            <SmartSubmissionButton 
-              onSubmit={handleSaveSettings}
-              variant="default" 
-              size="default" 
-              className="w-full"
-              loadingText="Saving Settings..."
-            >
-              Save Settings
-            </SmartSubmissionButton>
 
             {/* About */}
             <Card className="p-6 bg-card">
