@@ -17,6 +17,8 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
   const [portionSize, setPortionSize] = useState('');
   const [calories, setCalories] = useState('');
   const [carbs, setCarbs] = useState('');
+  const [protein, setProtein] = useState('');
+  const [fat, setFat] = useState('');
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
@@ -25,6 +27,8 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
     setPortionSize('');
     setCalories('');
     setCarbs('');
+    setProtein('');
+    setFat('');
   };
 
   const handleSave = async () => {
@@ -41,6 +45,8 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
     const portionSizeValue = parseFloat(portionSize) || 100; // Default 100g
     const caloriesValue = parseFloat(calories) || 0;
     const carbsValue = parseFloat(carbs) || 0;
+    const proteinValue = parseFloat(protein) || 0;
+    const fatValue = parseFloat(fat) || 0;
 
     if (portionSizeValue <= 0) {
       toast({
@@ -58,16 +64,16 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
         serving_size: portionSizeValue,
         calories: caloriesValue,
         carbs: carbsValue,
+        protein: proteinValue,
+        fat: fatValue,
         consumed: false,
-        // Optional fields that can be empty
-        protein: 0,
-        fat: 0,
         image_url: null,
-        // Mark as manually entered (no per-100g data)
-        calories_per_100g: null,
-        carbs_per_100g: null,
-        protein_per_100g: null,
-        fat_per_100g: null,
+        // Calculate per-100g data for smart editing (same as other entry methods)
+        calories_per_100g: portionSizeValue > 0 ? (caloriesValue / portionSizeValue) * 100 : undefined,
+        carbs_per_100g: portionSizeValue > 0 ? (carbsValue / portionSizeValue) * 100 : undefined,
+        protein_per_100g: portionSizeValue > 0 ? (proteinValue / portionSizeValue) * 100 : undefined,
+        fat_per_100g: portionSizeValue > 0 ? (fatValue / portionSizeValue) * 100 : undefined,
+        // Mark nutrition as manually set
         calories_manually_set: true,
         carbs_manually_set: true,
         protein_manually_set: true,
@@ -184,6 +190,38 @@ export const ManualFoodEntryModal = ({ isOpen, onClose, onFoodAdded }: ManualFoo
             type="number"
             value={carbs}
             onChange={(e) => setCarbs(e.target.value)}
+            placeholder="0"
+            min="0"
+            step="0.1"
+            onClick={(e) => e.stopPropagation()}
+            onFocus={(e) => e.stopPropagation()}
+            className="bg-muted"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="protein">Protein (grams)</Label>
+          <Input
+            id="protein"
+            type="number"
+            value={protein}
+            onChange={(e) => setProtein(e.target.value)}
+            placeholder="0"
+            min="0"
+            step="0.1"
+            onClick={(e) => e.stopPropagation()}
+            onFocus={(e) => e.stopPropagation()}
+            className="bg-muted"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="fat">Fat (grams)</Label>
+          <Input
+            id="fat"
+            type="number"
+            value={fat}
+            onChange={(e) => setFat(e.target.value)}
             placeholder="0"
             min="0"
             step="0.1"
