@@ -40,7 +40,6 @@ import MyFoods from "./pages/MyFoods";
 import WalkingHistory from "./pages/WalkingHistory";
 import FoodHistory from "./pages/FoodHistory";
 import FastingHistory from "./pages/FastingHistory";
-import FastingTimeline from "./pages/FastingTimeline";
 import IntermittentFastingHistory from "./pages/IntermittentFastingHistory";
 import IntermittentFasting from "./pages/IntermittentFasting";
 import { HealthCheck } from "./pages/HealthCheck";
@@ -341,13 +340,6 @@ const AppContent = () => {
                 <ProtectedRoute>
                   <PageErrorBoundary>
                     <FastingHistory />
-                  </PageErrorBoundary>
-                </ProtectedRoute>
-              } />
-              <Route path="/fasting-timeline" element={
-                <ProtectedRoute>
-                  <PageErrorBoundary>
-                    <FastingTimeline />
                   </PageErrorBoundary>
                 </ProtectedRoute>
               } />

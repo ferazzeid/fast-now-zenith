@@ -30,9 +30,9 @@ export default function AdminContent() {
               <p className="text-muted-foreground">The new timeline system automatically tracks all fasting sessions and prevents scheduling conflicts.</p>
             </div>
             <Button asChild>
-              <Link to="/fasting-timeline">
+              <Link to="/fasting-history">
                 <Calendar className="h-4 w-4 mr-2" />
-                View Timeline
+                View Fasting History
               </Link>
             </Button>
           </div>
