@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Clock, Calendar, Trash2, Edit, Trophy } from 'lucide-react';
+import { X, Clock, Calendar, Trash2, Trophy, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ConfirmationModal } from '@/components/ui/universal-modal';
@@ -9,8 +9,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOManager } from '@/components/SEOManager';
 import { useStandardizedLoading } from '@/hooks/useStandardizedLoading';
+import { useFastingTimelineSlots, type FastingTimelineSlot } from '@/hooks/useFastingTimelineSlots';
 
-interface FastingSession {
+interface FastingSessionData {
   id: string;
   start_time: string;
   end_time: string | null;
@@ -23,49 +24,28 @@ const FastingHistory = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  const { data: sessions, isLoading, execute: fetchSessions } = useStandardizedLoading<FastingSession[]>([]);
+  const { timelineSlots, loading } = useFastingTimelineSlots();
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
 
+  // Filter and sort timeline slots for history view
+  const historySlots = timelineSlots
+    .filter(slot => {
+      // Include all slots (active, completed, cancelled)
+      return true;
+    })
+    .sort((a, b) => new Date(b.slot_date).getTime() - new Date(a.slot_date).getTime())
+    .slice(0, showAll ? 100 : 15);
+
   useEffect(() => {
-    if (user) {
-      loadFastingSessions();
+    // Check if there are more slots available
+    if (!showAll && timelineSlots.length >= 15) {
+      setHasMore(timelineSlots.length > 15);
+    } else {
+      setHasMore(false);
     }
-  }, [user, showAll]);
-
-  const loadFastingSessions = async () => {
-    if (!user) return;
-    
-    await fetchSessions(async () => {
-      const limit = showAll ? 100 : 15;
-      
-      const { data, error } = await supabase
-        .from('fasting_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .neq('status', 'active')
-        .order('start_time', { ascending: false })
-        .limit(limit);
-
-      if (error) throw error;
-
-      // Check if there are more sessions available
-      if (!showAll && data && data.length >= 15) {
-        const { count } = await supabase
-          .from('fasting_sessions')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .neq('status', 'active');
-        
-        setHasMore((count || 0) > 15);
-      } else {
-        setHasMore(false);
-      }
-
-      return (data || []) as FastingSession[];
-    });
-  };
+  }, [timelineSlots, showAll]);
 
   const handleDeleteSession = async (sessionId: string) => {
     if (!user) return;
@@ -78,11 +58,6 @@ const FastingHistory = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-
-      // Remove the session from local state
-      if (sessions) {
-        await fetchSessions(async () => sessions.filter(session => session.id !== sessionId));
-      }
       
       toast({
         title: "Fasting Session Deleted",
@@ -100,13 +75,30 @@ const FastingHistory = () => {
     }
   };
 
-  const calculateDuration = (startTime: string, endTime: string | null): number => {
-    const start = new Date(startTime);
-    const end = endTime ? new Date(endTime) : new Date();
-    return Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 1000)) / 1000;
+  const getSlotStatusColor = (slot: FastingTimelineSlot) => {
+    if (slot.status === 'completed') {
+      return 'text-green-600';
+    } else if (slot.status === 'in_progress') {
+      return 'text-blue-600';
+    } else if (slot.status === 'cancelled') {
+      return 'text-red-600';
+    }
+    return 'text-muted-foreground';
   };
 
-  const formatDuration = (hours: number): string => {
+  const getSlotStatusText = (slot: FastingTimelineSlot) => {
+    if (slot.status === 'completed') {
+      return 'Completed';
+    } else if (slot.status === 'in_progress') {
+      return 'In Progress';
+    } else if (slot.status === 'cancelled') {
+      return 'Cancelled';
+    }
+    return 'Unknown';
+  };
+
+  const formatHoursIntoFast = (hours: number | undefined): string => {
+    if (!hours) return '0h';
     const wholeHours = Math.floor(hours);
     const minutes = Math.round((hours - wholeHours) * 60);
     
@@ -116,27 +108,11 @@ const FastingHistory = () => {
     return `${minutes}m`;
   };
 
-  const getSessionStatusColor = (session: FastingSession) => {
-    if (session.status === 'completed') {
-      const duration = calculateDuration(session.start_time, session.end_time);
-      return duration >= (session.goal_duration_seconds / 3600) ? 'text-green-600' : 'text-yellow-600';
-    }
-    return 'text-red-600';
-  };
-
-  const getSessionStatusText = (session: FastingSession) => {
-    if (session.status === 'completed') {
-      const duration = calculateDuration(session.start_time, session.end_time);
-      return duration >= (session.goal_duration_seconds / 3600) ? 'Goal Achieved' : 'Ended Early';
-    }
-    return 'Stopped';
-  };
-
-  const groupSessionsByDate = (sessions: FastingSession[]) => {
-    const groups: { [key: string]: FastingSession[] } = {};
+  const groupSlotsByDate = (slots: FastingTimelineSlot[]) => {
+    const groups: { [key: string]: FastingTimelineSlot[] } = {};
     
-    sessions.forEach(session => {
-      const date = new Date(session.start_time).toLocaleDateString('en-US', {
+    slots.forEach(slot => {
+      const date = new Date(slot.slot_date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
@@ -145,13 +121,13 @@ const FastingHistory = () => {
       if (!groups[date]) {
         groups[date] = [];
       }
-      groups[date].push(session);
+      groups[date].push(slot);
     });
     
     return groups;
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
         <div className="max-w-md mx-auto pt-16 pb-32">
@@ -176,7 +152,7 @@ const FastingHistory = () => {
     );
   }
 
-  const groupedSessions = groupSessionsByDate(sessions || []);
+  const groupedSlots = groupSlotsByDate(historySlots);
 
   return (
     <div className="relative min-h-screen bg-background p-4 overflow-x-hidden">
@@ -195,7 +171,7 @@ const FastingHistory = () => {
           </Button>
         </div>
 
-        {!sessions || sessions.length === 0 ? (
+        {!historySlots || historySlots.length === 0 ? (
           <div className="text-center py-12">
             <Clock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No Fasting Sessions Yet</h3>
@@ -208,7 +184,7 @@ const FastingHistory = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            {Object.entries(groupedSessions).map(([date, daySessions]) => (
+            {Object.entries(groupedSlots).map(([date, dateSlots]) => (
               <div key={date}>
                 <div className="flex items-center gap-2 mb-3 sticky top-0 bg-background/80 backdrop-blur-sm py-2 z-10">
                   <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -217,84 +193,99 @@ const FastingHistory = () => {
                 </div>
                 
                 <div className="space-y-3 ml-6">
-                  {daySessions.map((session) => (
-                    <Card key={session.id} className="overflow-hidden">
+                  {dateSlots.map((slot) => (
+                    <Card key={slot.id} className="overflow-hidden">
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-3">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-semibold text-sm">
-                                {session.goal_duration_seconds / 3600}h Fast
+                                {slot.fast_type === 'extended' ? 'Extended Fast' : 'Intermittent Fast'}
                               </h3>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${getSessionStatusColor(session)} bg-current/10`}>
-                                {getSessionStatusText(session)}
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${getSlotStatusColor(slot)} bg-current/10`}>
+                                {getSlotStatusText(slot)}
                               </span>
-                              {session.status === 'completed' && 
-                               calculateDuration(session.start_time, session.end_time) >= (session.goal_duration_seconds / 3600) && (
+                              {slot.status === 'in_progress' && (
+                                <Play className="w-4 h-4 text-blue-500" />
+                              )}
+                              {slot.status === 'completed' && (
                                 <Trophy className="w-4 h-4 text-yellow-500" />
                               )}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Started: {new Date(session.start_time).toLocaleTimeString('en-US', {
+                              {slot.fast_start_time && `Started: ${new Date(slot.fast_start_time).toLocaleTimeString('en-US', {
                                 hour: '2-digit',
                                 minute: '2-digit'
-                              })}
-                              {session.end_time && ` • Ended: ${new Date(session.end_time).toLocaleTimeString('en-US', {
+                              })}`}
+                              {slot.fast_end_time && ` • Ended: ${new Date(slot.fast_end_time).toLocaleTimeString('en-US', {
                                 hour: '2-digit',
                                 minute: '2-digit'
                               })}`}
                             </p>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-8 h-8 text-destructive hover:text-destructive"
-                            onClick={() => setDeletingId(session.id)}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
+                          {slot.status !== 'in_progress' && slot.fasting_session_id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-8 h-8 text-destructive hover:text-destructive"
+                              onClick={() => setDeletingId(slot.fasting_session_id!)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div className="flex items-center gap-2">
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             <div>
-                              <p className="text-xs text-muted-foreground">Duration</p>
+                              <p className="text-xs text-muted-foreground">
+                                {slot.status === 'in_progress' ? 'Hours Fasted' : 'Duration'}
+                              </p>
                               <p className="font-medium">
-                                {formatDuration(calculateDuration(session.start_time, session.end_time))}
+                                {formatHoursIntoFast(slot.hours_into_fast)}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Trophy className="w-4 h-4 text-muted-foreground" />
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
                             <div>
-                              <p className="text-xs text-muted-foreground">Goal</p>
-                              <p className="font-medium">{session.goal_duration_seconds / 3600}h</p>
+                              <p className="text-xs text-muted-foreground">Day</p>
+                              <p className="font-medium">
+                                {new Date(slot.slot_date).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </p>
                             </div>
                           </div>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="mt-3">
-                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                            <span>Progress</span>
-                            <span>
-                              {Math.round((calculateDuration(session.start_time, session.end_time) / (session.goal_duration_seconds / 3600)) * 100)}%
-                            </span>
+                        {/* Multi-day progress indicator for extended fasts */}
+                        {slot.fast_type === 'extended' && slot.hours_into_fast && (
+                          <div className="mt-3">
+                            <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                              <span>Fast Progress</span>
+                              <span>
+                                {slot.status === 'in_progress' ? 'Ongoing' : `${Math.round(slot.hours_into_fast)}h total`}
+                              </span>
+                            </div>
+                            <div className="w-full bg-muted rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-200 ${
+                                  slot.status === 'completed' 
+                                    ? 'bg-green-500' 
+                                    : slot.status === 'in_progress'
+                                    ? 'bg-blue-500'
+                                    : 'bg-muted-foreground'
+                                }`}
+                                style={{
+                                  width: slot.status === 'in_progress' ? '100%' : `${Math.min(100, (slot.hours_into_fast / 72) * 100)}%`
+                                }}
+                              />
+                            </div>
                           </div>
-                          <div className="w-full bg-muted rounded-full h-2">
-                            <div 
-                              className={`h-2 rounded-full transition-all duration-200 ${
-                                calculateDuration(session.start_time, session.end_time) >= (session.goal_duration_seconds / 3600) 
-                                  ? 'bg-green-500' 
-                                  : 'bg-primary'
-                              }`}
-                              style={{
-                                width: `${Math.min(100, (calculateDuration(session.start_time, session.end_time) / (session.goal_duration_seconds / 3600)) * 100)}%`
-                              }}
-                            />
-                          </div>
-                        </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -313,7 +304,7 @@ const FastingHistory = () => {
               </Button>
             )}
 
-            {showAll && sessions.length > 15 && (
+            {showAll && historySlots.length > 15 && (
               <Button
                 variant="outline"
                 className="w-full"
