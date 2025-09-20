@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Edit, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -361,9 +362,6 @@ export const FoodSelectionModal = ({
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {food.serving_size}g • {food.calories} cal • {Math.round(food.carbs)}g carbs
-                      {(food.calories_per_100g || food.carbs_per_100g) && (
-                        <span className="text-green-600 ml-1" title="Auto-calculated nutrition available">🔄</span>
-                      )}
                     </div>
                   </div>
                   {!foodSuggestion.added && (
@@ -373,16 +371,18 @@ export const FoodSelectionModal = ({
                         variant="ghost" 
                         onClick={() => handleInlineEdit(index)}
                         className="h-7 w-7 p-0"
+                        aria-label="Edit food item"
                       >
-                        Edit
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <Button 
                         size="sm" 
                         variant="ghost" 
                         onClick={() => onFoodRemove(index)}
                         className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                        aria-label="Remove food item"
                       >
-                        Remove
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   )}

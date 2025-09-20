@@ -311,7 +311,7 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     setShowFoodModal(false);
     setFoodSuggestion(null);
     setSelectedFoodIds(new Set());
-    cleanup();
+    // Don't cleanup image URL here - let it persist until after save
   };
 
   const handleSelectionChange = (selectedIds: Set<number>) => {
@@ -378,6 +378,9 @@ export const DirectPhotoCaptureButton = ({ onFoodAdded, className = "" }: Direct
     });
     
     handleFoodModalClose();
+    
+    // Clean up image URL after successful save
+    setTimeout(() => cleanup(), 100);
   };
 
   // Helper function to try parsing completion text for food information
